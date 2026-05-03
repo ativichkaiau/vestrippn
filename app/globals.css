@@ -1,26 +1,37 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* LIGHT MODE (Day) */
+    --base: #F8FAFC;
+    --surface: #FFFFFF;
+    --borderline: #E2E8F0;
+    --accentCyan: #0284C7; /* Deeper blue for white bg contrast */
+    --accentAmber: #D97706;
+    --statusGreen: #10B981;
+    --statusRed: #EF4444;
+    --textPri: #0F172A;
+    --textSec: #475569;
+    --textMuted: #94A3B8;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  .dark {
+    /* DARK MODE (Night Cockpit) */
+    --base: #080C14;
+    --surface: #0F1623;
+    --borderline: #1E2D45;
+    --accentCyan: #00C2FF;
+    --accentAmber: #F0A500;
+    --statusGreen: #1DB97A;
+    --statusRed: #E05252;
+    --textPri: #E8EDF5;
+    --textSec: #7A8FA8;
+    --textMuted: #3A4D65;
+  }
+  
+  body {
+    background-color: var(--base);
+    color: var(--textPri);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
 }
