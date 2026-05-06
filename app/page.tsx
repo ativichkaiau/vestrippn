@@ -63,32 +63,42 @@ export default function Home() {
       {/* MAIN WORKSPACE */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
         
-        {/* SIDEBAR */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between p-4 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10">
-          <nav className="flex flex-row md:flex-col gap-6 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
+        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
+        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
+            
             {/* DASHBOARD - ACTIVE */}
-            <div className="text-accentCyan cursor-pointer transition-all flex items-center gap-2 font-medium">
-              <span className="text-[10px] hidden md:block">◉</span> Dashboard
+            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
+              <span className="text-[10px]">◉</span> Dashboard
             </div>
       
-            <Link href="/academics" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Academics
             </Link>
 
-            <Link href="/research" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+            <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Research
             </Link>
 
-            <Link href="/fitness" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+            <Link href="/fitness" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Fitness & Diet
             </Link>
 
-            <Link href="/archive" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Archive
             </Link>
-           <Link href="/ielts" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
-           <Link href="/tools" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
-           <Link href="/identity" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block"> Identity </Link>
+            
+            <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+              IELTS
+            </Link>
+            
+            <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">
+              Tools & Links
+            </Link>
+            
+            <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block"> 
+              Identity 
+            </Link>
           </nav>
           
           <div className="hidden md:block border-t border-borderline pt-4">

@@ -141,32 +141,31 @@ export default function FitnessHub() {
       {/* MAIN WORKSPACE */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
         
-        {/* SIDEBAR */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between p-4 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10">
-          <nav className="flex flex-row md:flex-col gap-6 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            <Link href="/" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
+        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
+            <Link href="/" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Dashboard
             </Link>
-            <Link href="/academics" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Academics
             </Link>
-            <Link href="/research" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+            <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Research
             </Link>
             
             {/* ACTIVE: FITNESS */}
-            <div className="text-accentCyan cursor-pointer transition-all flex items-center gap-2 font-medium">
-              <span className="text-[10px] hidden md:block">◉</span> Fitness & Diet
+            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
+              <span className="text-[10px]">◉</span> Fitness & Diet
             </div>
 
-            {/* ARCHIVE LINK ACTIVATED */}
-            <Link href="/archive" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
+            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
               Archive
             </Link>
 
-            <Link href="/ielts" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
-            <Link href="/tools" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
-            <Link href="/identity" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block"> Identity </Link>
+            <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
+            <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
+            <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Identity</Link>
           </nav>
           
           <div className="hidden md:block border-t border-borderline pt-4">
@@ -178,14 +177,14 @@ export default function FitnessHub() {
         {/* FITNESS CONTENT */}
         <main className="flex-1 flex flex-col gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden">
           
-          {/* HEADER SECTION */}
-          <div className="flex justify-between items-end shrink-0 mb-2">
+          {/* HEADER SECTION (Responsive Text & Spacing) */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end shrink-0 mb-2 gap-3">
             <div>
-              <h1 className="font-barlow text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Physical Command</h1>
-              <p className="text-[13px] text-textSec mt-1">Biomarkers, Nutrition, and Training Mesocycle</p>
+              <h1 className="font-barlow text-[24px] sm:text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Physical Command</h1>
+              <p className="text-[12px] sm:text-[13px] text-textSec mt-1">Biomarkers, Nutrition, and Training Mesocycle</p>
             </div>
-            <div className="flex gap-3">
-              <div className={`text-[11px] font-mono border px-3 py-1 rounded flex items-center gap-2 transition-colors ${stateColors}`}>
+            <div className="flex">
+              <div className={`text-[10px] sm:text-[11px] font-mono border px-3 py-1.5 sm:py-1 rounded flex items-center gap-2 transition-colors ${stateColors}`}>
                 <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${dotColor}`}></span>
                 METABOLIC STATE: {metabolicState}
               </div>
@@ -206,7 +205,7 @@ export default function FitnessHub() {
                     <span className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec flex items-center gap-2">
                       Daily Fuel ({meals.length}/3)
                       {meals.length > 0 && (
-                        <button onClick={handleResetMeals} className="text-[9px] text-textMuted border border-textMuted/30 px-1.5 rounded hover:text-red-400 hover:border-red-400/50 transition-colors">RESET</button>
+                        <button onClick={handleResetMeals} className="text-[9px] text-textMuted border border-textMuted/30 px-1.5 py-0.5 rounded hover:text-red-400 hover:border-red-400/50 transition-colors">RESET</button>
                       )}
                     </span>
                     <span className="font-plex text-textPri text-[13px]">
@@ -249,7 +248,7 @@ export default function FitnessHub() {
                   <button 
                     onClick={() => setIsLogging(true)}
                     disabled={meals.length >= 3}
-                    className="mt-auto w-full py-1.5 border border-borderline rounded text-[11px] text-textSec uppercase tracking-wider font-bold hover:text-accentCyan hover:border-accentCyan/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="mt-auto w-full py-2 sm:py-1.5 border border-borderline rounded text-[11px] text-textSec uppercase tracking-wider font-bold hover:text-accentCyan hover:border-accentCyan/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {meals.length >= 3 ? 'DAILY LIMIT REACHED' : '+ LOG MEAL'}
                   </button>
@@ -258,20 +257,20 @@ export default function FitnessHub() {
                 <div className="flex flex-col h-full animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex justify-between items-center mb-4">
                     <span className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-accentCyan">Log Intake</span>
-                    <button onClick={() => setIsLogging(false)} className="text-[10px] text-textMuted hover:text-textPri">CANCEL</button>
+                    <button onClick={() => setIsLogging(false)} className="text-[10px] text-textMuted hover:text-textPri p-1">CANCEL</button>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-2 mb-2">
-                    <input type="text" placeholder="Meal Name (e.g. Chicken Rice)" value={newMeal.name} onChange={e => setNewMeal({...newMeal, name: e.target.value})} className="col-span-2 bg-base border border-borderline rounded px-3 py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Protein (g)" value={newMeal.protein} onChange={e => setNewMeal({...newMeal, protein: e.target.value})} className="bg-base border border-borderline rounded px-3 py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Carbs (g)" value={newMeal.carbs} onChange={e => setNewMeal({...newMeal, carbs: e.target.value})} className="bg-base border border-borderline rounded px-3 py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Fats (g)" value={newMeal.fats} onChange={e => setNewMeal({...newMeal, fats: e.target.value})} className="bg-base border border-borderline rounded px-3 py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Calories" value={newMeal.calories} onChange={e => setNewMeal({...newMeal, calories: e.target.value})} className="bg-base border border-borderline rounded px-3 py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
+                    <input type="text" placeholder="Meal Name (e.g. Chicken Rice)" value={newMeal.name} onChange={e => setNewMeal({...newMeal, name: e.target.value})} className="col-span-2 bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
+                    <input type="number" placeholder="Protein (g)" value={newMeal.protein} onChange={e => setNewMeal({...newMeal, protein: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
+                    <input type="number" placeholder="Carbs (g)" value={newMeal.carbs} onChange={e => setNewMeal({...newMeal, carbs: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
+                    <input type="number" placeholder="Fats (g)" value={newMeal.fats} onChange={e => setNewMeal({...newMeal, fats: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
+                    <input type="number" placeholder="Calories" value={newMeal.calories} onChange={e => setNewMeal({...newMeal, calories: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
                   </div>
 
                   <button 
                     onClick={handleLogMeal}
-                    className="mt-auto w-full py-1.5 bg-accentCyan/10 border border-accentCyan/50 text-accentCyan rounded text-[11px] uppercase tracking-wider font-bold hover:bg-accentCyan/20 transition-all"
+                    className="mt-auto w-full py-2 sm:py-1.5 bg-accentCyan/10 border border-accentCyan/50 text-accentCyan rounded text-[11px] uppercase tracking-wider font-bold hover:bg-accentCyan/20 transition-all"
                   >
                     CONFIRM MACROS
                   </button>
@@ -306,7 +305,7 @@ export default function FitnessHub() {
                 <span>Recovery Metrics</span>
                 <button 
                   onClick={() => setIsEditingMetrics(!isEditingMetrics)}
-                  className="text-[10px] text-accentCyan border border-accentCyan/30 px-2 py-0.5 rounded hover:bg-accentCyan/10 transition-colors"
+                  className="text-[10px] text-accentCyan border border-accentCyan/30 px-3 sm:px-2 py-1 sm:py-0.5 rounded hover:bg-accentCyan/10 transition-colors"
                 >
                   {isEditingMetrics ? 'SAVE' : 'EDIT'}
                 </button>

@@ -45,22 +45,22 @@ export default function ToolsHub() {
       {/* MAIN WORKSPACE */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
         
-        {/* SIDEBAR */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between p-4 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10">
-          <nav className="flex flex-row md:flex-col gap-6 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            <Link href="/" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Dashboard</Link>
-            <Link href="/academics" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Academics</Link>
-            <Link href="/research" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Research</Link>
-            <Link href="/fitness" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Fitness & Diet</Link>
-            <Link href="/archive" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Archive</Link>
-            <Link href="/ielts" className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
+        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
+        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
+            <Link href="/" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Dashboard</Link>
+            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Academics</Link>
+            <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Research</Link>
+            <Link href="/fitness" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Fitness & Diet</Link>
+            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Archive</Link>
+            <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
 
             {/* ACTIVE: TOOLS & LINKS */}
-            <div className="text-accentCyan cursor-pointer transition-all flex items-center gap-2 font-medium">
-              <span className="text-[10px] hidden md:block">◉</span> Tools & Links
+            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
+              <span className="text-[10px]">◉</span> Tools & Links
             </div>
 
-            <div className="md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Identity</div>
+            <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Identity</Link>
           </nav>
           
           <div className="hidden md:block border-t border-borderline pt-4">
@@ -73,25 +73,25 @@ export default function ToolsHub() {
         <main className="flex-1 flex flex-col gap-6 p-4 md:p-6 overflow-y-auto bg-base custom-scrollbar">
           
           {/* HEADER SECTION */}
-          <div className="flex justify-between items-end shrink-0 mb-2">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end shrink-0 mb-2 gap-2">
             <div>
-              <h1 className="font-barlow text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Global Launchpad</h1>
-              <p className="text-[13px] text-textSec mt-1">External Tools, Engines, and Integrations</p>
+              <h1 className="font-barlow text-[24px] sm:text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Global Launchpad</h1>
+              <p className="text-[12px] sm:text-[13px] text-textSec mt-1">External Tools, Engines, and Integrations</p>
             </div>
           </div>
 
-          {/* MASTER IGNITION: NOTION (Absolute Dark Mode Enforced) */}
-          <div className="relative bg-[#0a0a0a] border border-accentCyan/50 rounded-xl p-6 shadow-[0_0_30px_rgba(6,182,212,0.1)] overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6 shrink-0 group hover:border-accentCyan transition-colors">
+          {/* MASTER IGNITION: NOTION (Mobile Optimized Alignment) */}
+          <div className="relative bg-[#0a0a0a] border border-accentCyan/50 rounded-xl p-5 sm:p-6 shadow-[0_0_30px_rgba(6,182,212,0.1)] overflow-hidden flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 sm:gap-6 shrink-0 group hover:border-accentCyan transition-colors">
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-r from-transparent to-accentCyan/5 pointer-events-none group-hover:to-accentCyan/10 transition-colors"></div>
             
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-14 h-14 bg-[#111] border border-accentCyan/30 rounded-lg flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(6,182,212,0.2)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all">
+            <div className="flex items-center gap-4 relative z-10 w-full lg:w-auto">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#111] border border-accentCyan/30 rounded-lg flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.2)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all">
                 📓
               </div>
-              <div>
-                <h2 className="font-orbitron font-bold text-[20px] text-white tracking-wider group-hover:text-accentCyan transition-colors">2026 MASTER PLANNER</h2>
-                <p className="text-[12px] text-gray-400 font-mono">WORKSPACE: NOTION_HQ | ENCRYPTED LINK</p>
+              <div className="flex-1">
+                <h2 className="font-orbitron font-bold text-[16px] sm:text-[20px] text-white tracking-wider group-hover:text-accentCyan transition-colors leading-tight">2026 MASTER PLANNER</h2>
+                <p className="text-[10px] sm:text-[12px] text-gray-400 font-mono mt-1 break-all sm:break-normal">WORKSPACE: NOTION_HQ | ENCRYPTED LINK</p>
               </div>
             </div>
             
@@ -99,14 +99,14 @@ export default function ToolsHub() {
               href="https://www.notion.so/2026-PLANNER-478a66b0e071827fa2380129a0030938" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="relative z-10 bg-accentCyan hover:bg-accentCyan/80 text-white px-8 py-3 rounded text-[12px] font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(6,182,212,0.4)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] flex items-center gap-2 w-full md:w-auto justify-center"
+              className="relative z-10 bg-accentCyan hover:bg-accentCyan/80 text-white px-6 sm:px-8 py-3 rounded text-[11px] sm:text-[12px] font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(6,182,212,0.4)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] flex items-center gap-2 w-full lg:w-auto justify-center"
             >
               IGNITE ENGINE ↗
             </a>
           </div>
 
           {/* THE TOOL GRID */}
-          <div className="flex flex-col gap-8 mt-4">
+          <div className="flex flex-col gap-8 mt-2 sm:mt-4">
 
             {/* SECTOR A: Artificial Intelligence */}
             <div>
@@ -169,20 +169,20 @@ export default function ToolsHub() {
   );
 }
 
-// Reusable Subcomponent for the tool buttons - hardcoded for dark mode readability
+// Reusable Subcomponent for the tool buttons 
 function ToolLink({ title, url, icon, color, glow }: { title: string, url: string, icon: string, color: string, glow: string }) {
   return (
     <a 
       href={url} 
       target="_blank" 
       rel="noopener noreferrer"
-      className={`group/tool bg-[#111] border border-[#333] p-3 rounded-lg flex items-center justify-between transition-all overflow-hidden relative ${color}`}
+      className={`group/tool bg-[#111] border border-[#333] p-4 sm:p-3 rounded-lg flex items-center justify-between transition-all overflow-hidden relative ${color}`}
     >
-      <div className="flex items-center gap-3">
-        <span className={`text-xl grayscale group-hover/tool:grayscale-0 transition-all ${glow}`}>{icon}</span>
-        <span className={`text-[13px] text-white font-medium truncate transition-colors ${glow}`}>{title}</span>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <span className={`text-xl sm:text-2xl grayscale group-hover/tool:grayscale-0 transition-all ${glow}`}>{icon}</span>
+        <span className={`text-[14px] sm:text-[13px] text-white font-medium truncate transition-colors ${glow}`}>{title}</span>
       </div>
-      <span className={`opacity-0 group-hover/tool:opacity-100 font-mono text-[10px] transition-all ${glow}`}>
+      <span className={`opacity-100 sm:opacity-0 group-hover/tool:opacity-100 font-mono text-[10px] transition-all text-gray-500 sm:text-inherit ${glow}`}>
         LAUNCH ↗
       </span>
     </a>
