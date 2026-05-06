@@ -6,14 +6,15 @@ const categories = ['Core', 'Research', 'AI', 'Fitness'];
 
 const links = [
   // CORE - Daily essentials for a Med Student
-  { name: 'Canvas', url: 'https://cmu.instructure.com', icon: '🎓', cat: 'Core' },
+  { name: 'Canvas', url: 'https://mango-cmu.instructure.com', icon: '🎓', cat: 'Core' },
   { name: 'Notion', url: 'https://www.notion.so', icon: '📓', cat: 'Core' },
   { name: 'Calendar', url: 'https://calendar.google.com', icon: '📅', cat: 'Core' },
   { name: 'Mail', url: 'https://mail.google.com', icon: '✉️', cat: 'Core' },
-  { name: 'Drive', url: 'https://drive.google.com', icon: '📁', cat: 'Core' },
+  { name: 'OnePager', url: 'https://drive.google.com/drive/folders/1nobEj31AcMk0PhHu2YxNKaihVYsPJRCi', icon: '📁', cat: 'Core' },
   { name: 'Osmosis', url: 'https://www.osmosis.org', icon: '💧', cat: 'Core' },
   { name: 'PDF Tool', url: 'https://www.ilovepdf.com', icon: '📄', cat: 'Core' },
-  { name: 'YouTube', url: 'https://www.youtube.com', icon: '📺', cat: 'Core' },
+  { name: 'Past Y3 Lectures', url: 'https://www.youtube.com/playlist?app=desktop&list=PLpahqM1fDy1dUBxAb89eYK1iZ369OJ5K-&ra=m&fbclid=PARlRTSARks55leHRuA2FlbQIxMABzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAac5jZhkTU7zX6aGmb5i8LfepplaLkwwnJCt8rpG4bYK-PAhJvlRGkItZWoSIQ_aem_RR_01fv5GU_cR2_dLEFc5g', icon: '📺', cat: 'Core' },
+  { name: 'IELTS', url: 'https://linktr.ee/ielts_package', icon: '🇬🇧', cat: 'Core' },
   
   // RESEARCH - Deep work tools
   { name: 'Prospero', url: 'https://www.crd.york.ac.uk/prospero/', icon: '📜', cat: 'Research' },

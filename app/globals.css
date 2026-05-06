@@ -35,3 +35,13 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
+/* Hide number input spinners for dashboard feel */
+.no-spinners::-webkit-inner-spin-button,
+.no-spinners::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinners {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
