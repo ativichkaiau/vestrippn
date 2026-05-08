@@ -136,12 +136,14 @@ export default function ToolsHub() {
               </div>
             </div>
 
-            {/* SECTOR C: Research & Clinical */}
+            {/* SECTOR C: Academic & Clinical */}
             <div>
               <h3 className="font-orbitron text-[11px] text-accentAmber mb-3 border-b border-borderline pb-1 tracking-widest uppercase flex items-center gap-2">
                 <span className="w-2 h-2 bg-accentAmber rounded-sm"></span> SECTOR C: Academic & Clinical
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                <ToolLink title="Year 3 Calendar" url="https://docs.google.com/spreadsheets/d/1oWKicDOiqKpXXCzbd46Qu3yMV-XZnA-K/edit?gid=1369392573#gid=1369392573" icon="🗓️" color="hover:border-accentAmber" glow="group-hover/tool:text-accentAmber" />
+                <ToolLink title="Research Tracker" url="https://docs.google.com/spreadsheets/d/1E-KPCBw3d7voDo72VYgfvEIc-TCf4gGXtmTVymA-_z8/edit?gid=0#gid=0" icon="📋" color="hover:border-accentAmber" glow="group-hover/tool:text-accentAmber" />
                 <ToolLink title="CMU Library" url="https://library.cmu.ac.th" icon="🏛️" color="hover:border-accentAmber" glow="group-hover/tool:text-accentAmber" />
                 <ToolLink title="Covidence" url="https://www.covidence.org" icon="📊" color="hover:border-accentAmber" glow="group-hover/tool:text-accentAmber" />
                 <ToolLink title="Google Scholar" url="https://scholar.google.com" icon="🎓" color="hover:border-accentAmber" glow="group-hover/tool:text-accentAmber" />
@@ -149,10 +151,23 @@ export default function ToolsHub() {
               </div>
             </div>
 
-            {/* SECTOR D: Cloud & Utilities */}
+            {/* SECTOR D: MSCA 2026 Operations */}
+            <div>
+              <h3 className="font-orbitron text-[11px] text-[#f43f5e] mb-3 border-b border-borderline pb-1 tracking-widest uppercase flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#f43f5e] rounded-sm"></span> SECTOR D: MSCA 2026 Operations
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                <ToolLink title="Mega One Stop" url="https://docs.google.com/spreadsheets/d/1ciQIcqZ6fQwPqdSU3mEK3aasHcXb-yqMt1IoBlWotrU/edit?gid=2092898450#gid=2092898450" icon="🗃️" color="hover:border-[#f43f5e]" glow="group-hover/tool:text-[#f43f5e]" />
+                <ToolLink title="Central PR & GD" url="https://docs.google.com/spreadsheets/d/1A1ATJuO-NXwWzdz5KFnDtw3N_6zPufOpd-FAbwAabgA/edit?ouid=101176181187135965293&usp=sheets_home&ths=true" icon="📢" color="hover:border-[#f43f5e]" glow="group-hover/tool:text-[#f43f5e]" />
+                <ToolLink title="CMU-IMC Ops" url="https://docs.google.com/spreadsheets/d/1OuNCnY9GfjvLCYN8S73mUSuRs0ah0igucEA6-ROWiyI/edit?gid=1848395347#gid=1848395347" icon="⚙️" color="hover:border-[#f43f5e]" glow="group-hover/tool:text-[#f43f5e]" />
+                <ToolLink title="Get Set GO" url="https://docs.google.com/spreadsheets/d/1CvvGvq0FooBNW60Khy9aO8eJ81aOT52cNbppysnCHeg/edit?gid=0#gid=0" icon="🚀" color="hover:border-[#f43f5e]" glow="group-hover/tool:text-[#f43f5e]" />
+              </div>
+            </div>
+
+            {/* SECTOR E: Cloud & Utilities */}
             <div>
               <h3 className="font-orbitron text-[11px] text-statusGreen mb-3 border-b border-borderline pb-1 tracking-widest uppercase flex items-center gap-2">
-                <span className="w-2 h-2 bg-statusGreen rounded-sm"></span> SECTOR D: Cloud Utilities
+                <span className="w-2 h-2 bg-statusGreen rounded-sm"></span> SECTOR E: Cloud Utilities
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 <ToolLink title="Google Drive" url="https://drive.google.com" icon="☁️" color="hover:border-statusGreen" glow="group-hover/tool:text-statusGreen" />
