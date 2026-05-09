@@ -6,6 +6,7 @@ import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import FitnessCard from '../../components/FitnessCard';
+import TopNavProfile from '../../components/TopNavProfile'; // <-- Imported Auth Status
 
 export default function FitnessHub() {
   // Target Macros
@@ -133,6 +134,9 @@ export default function FitnessHub() {
               <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#ef4444] group-hover:border-[#ef4444] group-hover:shadow-[0_0_12px_#ef4444] transition-all duration-300"></div>
             </div>
           </div>
+
+          {/* DYNAMIC AUTHENTICATION STATUS */}
+          <TopNavProfile />
 
           <ThemeToggle />
         </div>

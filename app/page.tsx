@@ -12,6 +12,7 @@ import AcademicsCard from '../components/AcademicsCard';
 import ResearchCard from '../components/ResearchCard';
 import FitnessCard from '../components/FitnessCard';
 import IdentityAnchor from '../components/IdentityAnchor';
+import LoginControl from '../components/LoginControl'; 
 import Link from 'next/link';
 
 export default function Home() {
@@ -56,6 +57,8 @@ export default function Home() {
 
           </div>
 
+          {/* <-- 2. INJECTED HERE (Before ThemeToggle) --> */}
+          <LoginControl />
           <ThemeToggle />
         </div>
       </header>
@@ -108,7 +111,7 @@ export default function Home() {
         </aside>
 
         {/* DASHBOARD CONTENT */}
-        <main className="flex-1 flex gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden bg-base">
+        <main className="flex-1 flex gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden bg-base custom-scrollbar">
           
           {/* Main Column */}
           <div className="w-full md:flex-[0.6] mx-auto flex flex-col gap-6 min-w-0 md:min-w-[400px] max-w-[900px]">
