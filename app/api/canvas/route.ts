@@ -4,12 +4,12 @@ export async function GET() {
   const CANVAS_URL = process.env.CANVAS_BASE_URL;
   const TOKEN = process.env.CANVAS_API_TOKEN;
 
+  // SAFETY 1: Check credentials before even trying
   if (!CANVAS_URL || !TOKEN) {
-    console.error("Missing ENV variables for Canvas");
-    return NextResponse.json({ error: 'Server config error' }, { status: 500 });
+    console.error("❌ CRITICAL: Missing Canvas Environment Variables");
+    return NextResponse.json({ error: 'Config Missing' }, { status: 500 });
   }
 
-  // YOUR VIP LIST
   const targetCourses = [
     { id: '26141', targetName: 'HEN-2 (Endocrine)' },
     { id: '26393', targetName: 'HNS-2 (Nervous & Senses)' },
@@ -17,19 +17,21 @@ export async function GET() {
   ];
 
   try {
+    // SAFETY 2: Targeted parallel fetches with individual catch blocks
     const coursePromises = targetCourses.map(course => 
       fetch(`${CANVAS_URL}/api/v1/courses/${course.id}?include[]=total_scores`, {
         headers: { 'Authorization': `Bearer ${TOKEN}` },
         next: { revalidate: 300 } 
       }).then(res => res.ok ? res.json() : null)
+        .catch(() => null)
     );
 
-    // Bumping per_page to 100 to make sure we catch every single assignment
     const assignmentPromises = targetCourses.map(course =>
       fetch(`${CANVAS_URL}/api/v1/courses/${course.id}/assignments?include[]=submission&per_page=100`, {
         headers: { 'Authorization': `Bearer ${TOKEN}` },
         next: { revalidate: 300 }
       }).then(res => res.ok ? res.json() : [])
+        .catch(() => [])
     );
 
     const [rawCourseData, rawAssignments] = await Promise.all([
@@ -40,28 +42,27 @@ export async function GET() {
     let globalQuizTotal = 0, globalQuizEarned = 0;
     let globalAssTotal = 0, globalAssEarned = 0;
 
-    // THE OVERRIDE: Calculate the grades manually
     const formattedSubjects = rawCourseData.map((course: any, index: number) => {
-      if (!course) return null;
+      // If course data is missing, skip it safely
+      if (!course || !course.id) return null;
       
       const vipInfo = targetCourses.find(c => c.id === course.id.toString());
-      const courseAssignments = rawAssignments[index] || [];
+      const courseAssignments = Array.isArray(rawAssignments[index]) ? rawAssignments[index] : [];
       
       let coursePointsEarned = 0;
       let coursePointsTotal = 0;
 
       courseAssignments.forEach((assign: any) => {
-        const sub = assign.submission;
+        const sub = assign?.submission;
         
-        // Only count it if you actually submitted it, it was graded, and it's worth points
         if (sub && sub.score !== null && sub.workflow_state === 'graded' && assign.points_possible > 0) {
-          
-          // 1. Add to the specific Course Grade
           coursePointsEarned += sub.score;
           coursePointsTotal += assign.points_possible;
 
-          // 2. Add to the Global QZZ/ASG Metrics
-          const isQuiz = assign.submission_types?.includes('online_quiz') || assign.is_quiz_assignment;
+          const isQuiz = assign.submission_types?.includes('online_quiz') || 
+                         assign.is_quiz_assignment || 
+                         assign.name?.toLowerCase().includes('quiz');
+
           if (isQuiz) {
             globalQuizEarned += sub.score;
             globalQuizTotal += assign.points_possible;
@@ -72,22 +73,21 @@ export async function GET() {
         }
       });
 
-      // THE MATH: Bypass the professor's hidden grade setting
+      // Calculate grade (fallback to Canvas's own calculation if math fails)
       let calculatedProgress = 0;
       if (coursePointsTotal > 0) {
         calculatedProgress = Math.round((coursePointsEarned / coursePointsTotal) * 100);
       } else {
-        // Absolute fallback if the semester just started and nothing is graded yet
         const score = course.enrollments?.[0]?.computed_current_score;
         calculatedProgress = score ? Math.round(score) : 0;
       }
 
       return {
         id: course.id.toString(),
-        name: vipInfo ? vipInfo.targetName : course.name,
-        progress: calculatedProgress > 100 ? 100 : calculatedProgress
+        name: vipInfo ? vipInfo.targetName : (course.name || "Unknown Module"),
+        progress: Math.min(calculatedProgress, 100)
       };
-    }).filter(Boolean); // Clean up any nulls
+    }).filter(Boolean); // Purge any null results
 
     const quizzes = globalQuizTotal > 0 ? Math.round((globalQuizEarned / globalQuizTotal) * 100) : 0;
     const assignments = globalAssTotal > 0 ? Math.round((globalAssEarned / globalAssTotal) * 100) : 0;
@@ -98,7 +98,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error("Canvas Sniper Fetch Error:", error);
-    return NextResponse.json({ error: 'Targeted fetch failed' }, { status: 500 });
+    console.error("❌ CANVAS FATAL ERROR:", error);
+    return NextResponse.json({ error: 'Server exploded' }, { status: 500 });
   }
 }
