@@ -1,323 +1,264 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
-import TopNavProfile from '../../components/TopNavProfile'; // <-- Imported Auth Status
+import TopNavProfile from '../../components/TopNavProfile';
+
+interface Module { id: number; text: string; }
 
 export default function IELTSHub() {
-  // Lexicon Engine (Dictionary & Thesaurus) State
+  // --- LEXICON STATE ---
   const [lexiconQuery, setLexiconQuery] = useState('');
   const [lexiconData, setLexiconData] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  // Fetch from Free Dictionary API
+  // --- MUTABLE MODULE STATE ---
+  const [modules, setModules] = useState<Module[]>([
+    { id: 1, text: 'Reading Strategies' },
+    { id: 2, text: 'Listening Buffer' },
+    { id: 3, text: 'Writing Framework' },
+    { id: 4, text: 'Speaking Protocol' }
+  ]);
+  const [isEditingModules, setIsEditingModules] = useState(false);
+  const [tempModules, setTempModules] = useState<Module[]>([]);
+  
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // --- PERSISTENCE ENGINE ---
+  useEffect(() => {
+    const savedModules = localStorage.getItem('vest_ielts_modules');
+    if (savedModules) {
+      setModules(JSON.parse(savedModules));
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('vest_ielts_modules', JSON.stringify(modules));
+    }
+  }, [modules, isLoaded]);
+
   const handleLexiconSearch = async () => {
     if (!lexiconQuery.trim()) return;
     setIsSearching(true);
     setSearchError('');
     setLexiconData(null);
-
     try {
       const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${lexiconQuery}`);
       const data = await response.json();
-
-      if (response.ok && data.length > 0) {
-        setLexiconData(data[0]);
-      } else {
-        setSearchError('Word not found in the database.');
-      }
-    } catch (error) {
-      setSearchError('Network error. Unable to connect to lexical servers.');
-    } finally {
-      setIsSearching(false);
-    }
+      if (response.ok && data.length > 0) setLexiconData(data[0]);
+      else setSearchError('WORD_NOT_FOUND');
+    } catch (e) { setSearchError('UPLINK_FAILURE'); }
+    finally { setIsSearching(false); }
   };
 
+  const startEditing = () => {
+    setTempModules([...modules]);
+    setIsEditingModules(true);
+  };
+
+  const commitModules = () => {
+    setModules([...tempModules]);
+    setIsEditingModules(false);
+  };
+
+  if (!isLoaded) return null;
+
   return (
-    <>
-      {/* TOP BAR */}
-      <header className="h-[56px] border-b border-borderline flex items-center justify-between px-4 md:px-6 shrink-0 bg-base">
-        <div className="font-orbitron font-bold text-[15px] md:text-[18px] text-textPri uppercase tracking-wider truncate">
-          vestrippn3point0
-        </div>
-        <div className="hidden sm:block text-[13px] text-textSec font-medium">
-          <ArcDate />
-        </div>
-        <div className="flex gap-4 items-center text-textSec text-[14px]">
-          
-          {/* F1 TELEMETRY GIMMICK */}
-          <div className="hidden sm:flex items-center gap-1 bg-surface border border-borderline px-3 py-1 rounded">
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#06b6d4] transition-colors duration-300">SYS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#06b6d4] group-hover:border-[#06b6d4] group-hover:shadow-[0_0_12px_#06b6d4] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#22c55e] transition-colors duration-300">AERO</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#22c55e] group-hover:border-[#22c55e] group-hover:shadow-[0_0_12px_#22c55e] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#f59e0b] transition-colors duration-300">ERS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#f59e0b] group-hover:border-[#f59e0b] group-hover:shadow-[0_0_12px_#f59e0b] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#ef4444] transition-colors duration-300">DRS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#ef4444] group-hover:border-[#ef4444] group-hover:shadow-[0_0_12px_#ef4444] transition-all duration-300"></div>
+    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500">
+      
+      {/* HUD ATMOSPHERE */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--accentViolet)]/5 rounded-full blur-[120px]"></div>
+        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentViolet)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      </div>
+
+      {/* --- HUD HEADER --- */}
+      <header className="h-[64px] border-b border-borderline flex items-center justify-between px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="font-orbitron font-black text-[18px] tracking-[0.2em] flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-1.5 h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_var(--accentCyan)]"></div>
+            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+          </Link>
+          <div className="h-5 w-[1px] bg-borderline mx-2"></div>
+          <div className="flex gap-4 font-mono text-[9px] uppercase tracking-widest text-textMuted">
+            <div className="flex flex-col">
+              <span>LINGUISTIC_OS: <span className="text-statusGreen uppercase font-bold tracking-tighter">Nominal</span></span>
+              <span>STATE: <span className={isEditingModules ? 'text-[var(--accentAmber)] animate-pulse' : 'text-[var(--accentViolet)]'}>
+                {isEditingModules ? 'RECONFIGURING...' : 'LOCKED'}
+              </span></span>
             </div>
           </div>
-
-          {/* DYNAMIC AUTHENTICATION STATUS */}
+        </div>
+        <div className="hidden md:block font-mono text-[11px] tracking-[0.2em] text-textPri uppercase"><ArcDate /></div>
+        <div className="flex gap-4 items-center border-l border-borderline pl-6">
           <TopNavProfile />
-
           <ThemeToggle />
         </div>
       </header>
 
-      {/* MAIN WORKSPACE */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            <Link href="/" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Dashboard</Link>
-            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Academics</Link>
-            <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Research</Link>
-            <Link href="/fitness" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Fitness & Diet</Link>
-            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Archive</Link>
-
-            {/* ACTIVE: IELTS */}
-            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
-              <span className="text-[10px]">◉</span> IELTS
-            </div>
-
-           <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
-           <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block"> Identity </Link>
+        {/* --- NAV SIDEBAR --- */}
+        <aside className="w-[230px] border-r border-borderline flex flex-col justify-between p-5 bg-surface/20 shrink-0 backdrop-blur-md">
+          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+            {[
+              { name: 'Dashboard', icon: '◉', href: '/', color: 'text-[var(--accentCyan)]' },
+              { name: 'Academics', icon: '▲', href: '/academics', color: 'text-[var(--accentFuchsia)]' },
+              { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]' },
+              { name: 'Fitness', icon: '◈', href: '/fitness', color: 'text-[var(--accentEmerald)]' },
+              { name: 'Archive', icon: '▥', href: '/archive', color: 'text-textSec' },
+              { name: 'IELTS', icon: '◎', href: '/ielts', color: 'text-[var(--accentViolet)]', active: true },
+              { name: 'Tools & Links', icon: '⚙', href: '/tools', color: 'text-[var(--accentIndigo)]' },
+              { name: 'Identity', icon: '⚇', href: '/identity', color: 'text-[var(--accentIndigo)]' },
+            ].map((item) => (
+              <Link key={item.name} href={item.href} className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${item.active ? 'bg-[var(--accentViolet)]/10 border-[var(--accentViolet)]/20 shadow-[0_0_15px_rgba(139,92,246,0.05)] font-bold' : 'hover:bg-surface'}`}>
+                <span className={`text-[14px] transition-all ${item.active ? `${item.color} drop-shadow-[0_0_5px_currentColor]` : 'text-textMuted opacity-40 group-hover:opacity-100'}`}>{item.icon}</span>
+                <span className={`text-[12px] tracking-tight ${item.active ? 'text-textPri' : 'text-textSec group-hover:text-textPri'}`}>{item.name}</span>
+              </Link>
+            ))}
           </nav>
-          
-          <div className="hidden md:block border-t border-borderline pt-4">
-            <Clock />
-            <div className="text-[11px] text-textSec">Schumacher standard.</div>
-          </div>
+          <div className="p-4 rounded-2xl bg-surface border border-borderline mt-4"><Clock /></div>
         </aside>
 
-        {/* IELTS CONTENT */}
-        <main className="flex-1 flex flex-col gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden bg-base">
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
           
-          {/* HEADER SECTION */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end shrink-0 mb-2 gap-3">
-            <div>
-              <h1 className="font-barlow text-[24px] sm:text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Linguistic Command</h1>
-              <p className="text-[12px] sm:text-[13px] text-textSec mt-1">IELTS Certification & English Proficiency Engine</p>
-            </div>
-            <div className="flex">
-              <div className="text-[10px] sm:text-[11px] font-mono text-accentCyan border border-accentCyan/30 bg-accentCyan/10 px-3 py-1.5 sm:py-1 rounded">
-                SYSTEM: NOMINAL
-              </div>
-            </div>
-          </div>
-
-          {/* NOTEBOOK LM PORTAL (The Hero Card) */}
-          <div className="relative bg-surface border border-accentCyan/40 rounded-xl p-5 sm:p-6 shadow-[0_0_20px_rgba(6,182,212,0.05)] overflow-hidden flex flex-col gap-5 sm:gap-4 shrink-0">
-            {/* Background Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-accentCyan/10 blur-[80px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
+          {/* SECTOR 1: NOTEBOOK LM IELTS VAULT (Editable) */}
+          <section className={`relative bg-surface/40 border rounded-[22px] p-8 shadow-xl overflow-hidden group transition-all duration-500 ${isEditingModules ? 'border-[var(--accentAmber)]/50' : 'border-borderline'}`}>
+            <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-[var(--accentViolet)]/10 rounded-full blur-[100px]"></div>
             
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center relative z-10 gap-4">
-              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                <div className="w-12 h-12 sm:w-10 sm:h-10 rounded bg-base border border-borderline flex items-center justify-center text-2xl sm:text-xl shrink-0">🎙️</div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 rounded-[20px] bg-base/50 border border-borderline flex items-center justify-center text-3xl shadow-inner group-hover:rotate-6 transition-transform">🎙️</div>
                 <div>
-                  <h2 className="font-barlow font-bold text-[15px] sm:text-[16px] text-textPri uppercase tracking-wide leading-tight">NotebookLM IELTS Vault</h2>
-                  <p className="text-[11px] text-textSec mt-0.5">AI-Powered Synthesis for Writing & Speaking</p>
+                  <h2 className="font-orbitron font-black text-[18px] text-textPri uppercase tracking-widest">NotebookLM IELTS Vault</h2>
+                  <p className="text-[10px] font-mono text-textMuted uppercase tracking-widest mt-1">
+                    {isEditingModules ? '// RECONFIGURING MODULE LABELS' : 'AI-Powered Synthesis // Grounding Matrix Active'}
+                  </p>
                 </div>
               </div>
-              <a 
-                href="https://notebooklm.google.com/notebook/6b628a58-9950-4fa9-918b-111fc6953777" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-accentCyan text-base font-bold text-[12px] px-6 py-3 sm:py-2.5 rounded hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all uppercase tracking-wider flex items-center gap-2 w-full sm:w-auto justify-center"
-              >
-                Launch Main Engine ↗
-              </a>
-            </div>
-
-            {/* Quick Summary/Sub-links */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-2 relative z-10">
-              <div className="bg-base border border-accentCyan/50 rounded p-3 flex flex-col gap-1 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-accentCyan"></div>
-                <span className="text-[10px] text-accentCyan font-mono pl-2 tracking-widest">MODULE 1</span>
-                <span className="text-[12px] sm:text-[13px] text-textPri font-medium leading-tight pl-2 mt-1">Reading Strategies</span>
-              </div>
-              <div className="bg-base border border-accentCyan/50 rounded p-3 flex flex-col gap-1 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-accentCyan"></div>
-                <span className="text-[10px] text-accentCyan font-mono pl-2 tracking-widest">MODULE 2</span>
-                <span className="text-[12px] sm:text-[13px] text-textPri font-medium leading-tight pl-2 mt-1">Listening Transcripts</span>
-              </div>
-              <div className="bg-base border border-accentCyan/50 rounded p-3 flex flex-col gap-1 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-accentCyan"></div>
-                <span className="text-[10px] text-accentCyan font-mono pl-2 tracking-widest">MODULE 3</span>
-                <span className="text-[12px] sm:text-[13px] text-textPri font-medium leading-tight pl-2 mt-1">Writing Task 1 & 2</span>
-              </div>
-              <div className="bg-base border border-accentCyan/50 rounded p-3 flex flex-col gap-1 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-accentCyan"></div>
-                <span className="text-[10px] text-accentCyan font-mono pl-2 tracking-widest">MODULE 4</span>
-                <span className="text-[12px] sm:text-[13px] text-textPri font-medium leading-tight pl-2 mt-1">Speaking Frameworks</span>
-              </div>
-            </div>
-          </div>
-
-          {/* TWO COLUMN LAYOUT */}
-          <div className="flex flex-col lg:flex-row gap-6 shrink-0 mb-6">
-            
-            {/* Left Column: Local Archives & Dictionary */}
-            <div className="flex-[0.6] flex flex-col gap-6">
               
-              {/* Core Archives */}
-              <div>
-                <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec border-b border-borderline pb-2 mb-4">
-                  Internal Storage Vaults
-                </div>
-                
-                <div className="flex flex-col gap-3">
-                  <a href="https://drive.google.com/drive/folders/1vPEPiASm7gRVLuE-KJr0ce1094eI0CjE?usp=sharing" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded-lg p-4 flex items-center justify-between hover:border-accentCyan/50 transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl sm:text-3xl grayscale group-hover:grayscale-0 transition-all">📝</span>
-                      <div>
-                        <div className="text-[13px] sm:text-[14px] font-bold text-textPri">Mock Tests by Kaiau</div>
-                        <div className="text-[11px] text-textSec mt-0.5">Personalized practice exams & grading</div>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-accentCyan font-mono tracking-wider hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity">ACCESS ↗</span>
-                  </a>
-
-                  <a href="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR?usp=share_link" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded-lg p-4 flex items-center justify-between hover:border-accentCyan/50 transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl sm:text-3xl grayscale group-hover:grayscale-0 transition-all">📂</span>
-                      <div>
-                        <div className="text-[13px] sm:text-[14px] font-bold text-textPri">IELTS Master GG Drive</div>
-                        <div className="text-[11px] text-textSec mt-0.5">Compiled PDFs, Audio Files & Frameworks</div>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-accentCyan font-mono tracking-wider hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity">ACCESS ↗</span>
-                  </a>
-                </div>
+              <div className="flex gap-3 w-full md:w-auto">
+                {isEditingModules ? (
+                  <>
+                    <button onClick={commitModules} className="flex-1 md:flex-none bg-[var(--statusGreen)] text-black font-black text-[10px] px-6 py-3 rounded-xl uppercase tracking-widest hover:shadow-[0_0_15px_var(--statusGreen)] transition-all">Commit Changes</button>
+                    <button onClick={() => setIsEditingModules(false)} className="flex-1 md:flex-none border border-borderline text-textMuted font-black text-[10px] px-6 py-3 rounded-xl uppercase tracking-widest hover:text-textPri transition-all">Abort</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={startEditing} className="px-4 py-3 rounded-xl border border-borderline text-[10px] font-black uppercase text-textMuted hover:text-[var(--accentAmber)] hover:border-[var(--accentAmber)] transition-all">Edit Matrix</button>
+                    <a href="https://notebooklm.google.com/notebook/6b628a58-9950-4fa9-918b-111fc6953777" target="_blank" className="bg-[var(--accentViolet)] text-white font-black text-[11px] px-8 py-3 rounded-xl hover:shadow-[0_0_20px_var(--accentViolet)] transition-all uppercase tracking-[0.2em]">Engage Core ↗</a>
+                  </>
+                )}
               </div>
+            </div>
 
-              {/* Lexicon Engine (Dictionary/Thesaurus) */}
-              <div className="bg-surface border border-borderline rounded-lg shadow-sm overflow-hidden flex flex-col">
-                <div className="bg-[#111] px-4 sm:px-5 py-3 border-b border-borderline flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-accentCyan animate-pulse"></span>
-                  <span className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textPri">Lexicon Engine</span>
-                  <span className="text-[9px] sm:text-[10px] font-mono text-textMuted ml-auto">DICTIONARY_API_V2</span>
-                </div>
-                
-                <div className="p-4 sm:p-5 flex flex-col gap-4">
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-10 relative z-10">
+              {(isEditingModules ? tempModules : modules).map((mod, i) => (
+                <div key={mod.id} className="bg-base/40 border border-borderline rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden group/mod hover:border-[var(--accentViolet)]/50 transition-all">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[var(--accentViolet)] opacity-20 group-hover/mod:opacity-100 transition-opacity"></div>
+                  <span className="text-[9px] text-[var(--accentViolet)] font-mono font-black tracking-widest uppercase">Module_0{mod.id}</span>
+                  
+                  {isEditingModules ? (
                     <input 
                       type="text" 
-                      placeholder="Enter word to define..."
-                      value={lexiconQuery}
-                      onChange={(e) => setLexiconQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleLexiconSearch()}
-                      className="flex-1 bg-base border border-borderline rounded px-4 py-3 sm:py-2 text-[13px] text-textPri outline-none focus:border-accentCyan/50 transition-colors font-mono"
+                      value={mod.text} 
+                      onChange={(e) => {
+                        const next = [...tempModules];
+                        next[i].text = e.target.value;
+                        setTempModules(next);
+                      }}
+                      className="bg-base border border-[var(--accentAmber)]/30 rounded px-2 py-1 text-[13px] text-textPri font-bold outline-none focus:border-[var(--accentAmber)]"
                     />
-                    <button 
-                      onClick={handleLexiconSearch}
-                      disabled={isSearching}
-                      className="bg-accentCyan/10 border border-accentCyan/50 text-accentCyan px-4 py-3 sm:py-2 rounded text-[11px] font-bold uppercase tracking-wider hover:bg-accentCyan/20 transition-all disabled:opacity-50 w-full sm:w-auto"
-                    >
-                      {isSearching ? '...' : 'QUERY'}
-                    </button>
-                  </div>
+                  ) : (
+                    <span className="text-[13px] text-textPri font-bold leading-tight">{mod.text}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
 
-                  {/* Results Display */}
-                  <div className="bg-base border border-borderline rounded p-4 min-h-[150px] overflow-y-auto">
-                    {searchError && (
-                      <div className="text-accentAmber text-[12px] font-mono">{searchError}</div>
-                    )}
-                    
-                    {!lexiconData && !searchError && !isSearching && (
-                      <div className="text-textMuted text-[11px] font-mono flex h-full items-center justify-center opacity-50">
-                        Awaiting input query...
-                      </div>
-                    )}
-
-                    {lexiconData && (
-                      <div className="flex flex-col gap-3 animate-in fade-in duration-300">
-                        <div className="flex items-baseline gap-3">
-                          <h3 className="text-xl sm:text-2xl font-bold text-textPri">{lexiconData.word}</h3>
-                          {lexiconData.phonetic && <span className="text-[12px] sm:text-[13px] text-accentCyan font-mono">{lexiconData.phonetic}</span>}
-                        </div>
-
-                        {lexiconData.meanings.slice(0, 2).map((meaning: any, idx: number) => (
-                          <div key={idx} className="flex flex-col gap-1">
-                            <span className="text-[10px] uppercase tracking-widest text-textMuted font-bold border-b border-borderline pb-1 mb-1">
-                              {meaning.partOfSpeech}
-                            </span>
-                            <p className="text-[13px] text-textSec leading-relaxed">
-                              1. {meaning.definitions[0].definition}
-                            </p>
-                            
-                            {/* Thesaurus / Synonyms */}
-                            {meaning.synonyms && meaning.synonyms.length > 0 && (
-                              <div className="mt-2 text-[11px]">
-                                <span className="text-textMuted">Synonyms: </span>
-                                <span className="text-accentCyan leading-relaxed">{meaning.synonyms.slice(0, 5).join(', ')}</span>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+          {/* SECTOR 2: LEXICON & VAULTS */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 bg-surface/40 border border-borderline rounded-[22px] shadow-xl overflow-hidden flex flex-col h-full">
+              <div className="bg-base/80 px-6 py-4 border-b border-borderline flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <span className="w-2 h-2 rounded-full bg-[var(--accentViolet)] animate-pulse shadow-[0_0_8px_var(--accentViolet)]"></span>
+                  <span className="font-mono text-[11px] font-black uppercase tracking-[0.3em] text-textPri">Lexicon Engine</span>
                 </div>
               </div>
-
-            </div>
-
-            {/* Right Column: External Databases */}
-            <div className="flex-[0.4] flex flex-col gap-4">
-              <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec border-b border-borderline pb-2">
-                External Practice Matrix
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pb-2">
-                {/* Official Sources */}
-                <a href="https://takeielts.britishcouncil.org/take-ielts/prepare/free-ielts-practice-tests" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">🇬🇧</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">British Council</div>
-                </a>
-                <a href="https://www.cambridgeenglish.org/exams-and-tests/ielts/preparation/" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">🏛️</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Cambridge Eng</div>
-                </a>
-                
-                {/* Mock Tests */}
-                <a href="https://ieltsonlinetests.com/" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">💻</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Online Tests</div>
-                </a>
-                <a href="https://ieltsliz.com/" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">👩‍🏫</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">IELTS Liz</div>
-                </a>
-
-                {/* Additional Practice */}
-                <a href="https://www.ieltsadvantage.com/" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">📈</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Advantage</div>
-                </a>
-                <a href="https://ielts-simon.study/" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">🧠</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Simon Study</div>
-                </a>
+              <div className="p-8 flex flex-col gap-6 flex-1">
+                <div className="flex gap-3">
+                  <input type="text" placeholder="Input token to define..." value={lexiconQuery} onChange={(e) => setLexiconQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLexiconSearch()} className="flex-1 bg-base/50 border border-borderline rounded-xl px-5 py-4 text-[13px] text-textPri outline-none focus:border-[var(--accentViolet)]/50 transition-all font-mono" />
+                  <button onClick={handleLexiconSearch} className="bg-[var(--accentViolet)]/10 border border-[var(--accentViolet)]/50 text-[var(--accentViolet)] px-6 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-[var(--accentViolet)]/20 transition-all">Query</button>
+                </div>
+                <div className="bg-base/30 border border-borderline rounded-xl p-6 min-h-[200px] flex-1">
+                  {lexiconData ? (
+                    <div className="space-y-6 animate-in fade-in duration-500">
+                      <div className="flex items-baseline gap-4 border-b border-borderline pb-4">
+                        <h3 className="text-3xl font-orbitron font-black text-textPri">{lexiconData.word}</h3>
+                        <span className="text-[14px] text-[var(--accentViolet)] font-mono tracking-widest">{lexiconData.phonetic}</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         {lexiconData.meanings.slice(0, 2).map((meaning: any, idx: number) => (
+                           <div key={idx} className="space-y-2">
+                             <div className="text-[10px] font-black uppercase tracking-widest text-[var(--accentViolet)] bg-[var(--accentViolet)]/10 w-fit px-2 py-0.5 rounded">{meaning.partOfSpeech}</div>
+                             <p className="text-[13px] text-textSec leading-relaxed font-medium">{meaning.definitions[0].definition}</p>
+                           </div>
+                         ))}
+                      </div>
+                    </div>
+                  ) : <div className="h-full flex items-center justify-center text-textMuted text-[10px] font-mono uppercase tracking-[0.4em] opacity-30">{searchError || 'Awaiting Command...'}</div>}
+                </div>
               </div>
             </div>
 
+            <div className="lg:col-span-4 flex flex-col gap-6">
+              <div className="bg-surface/30 border border-borderline rounded-[22px] p-6 shadow-xl">
+                 <div className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textMuted mb-6">Internal Vaults</div>
+                 <div className="space-y-3">
+                    <DriveTile title="Mock Tests by Kaiau" url="https://drive.google.com/drive/folders/1vPEPiASm7gRVLuE-KJr0ce1094eI0CjE" icon="📝" />
+                    <DriveTile title="IELTS Master Vault" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" icon="📂" />
+                 </div>
+              </div>
+              <div className="bg-surface/30 border border-borderline rounded-[22px] p-6 shadow-xl flex-1">
+                 <div className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textMuted mb-6">Practice Matrix</div>
+                 <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { name: 'Council', icon: '🇬🇧', url: 'https://takeielts.britishcouncil.org' },
+                      { name: 'Cambridge', icon: '🏛️', url: 'https://www.cambridgeenglish.org' },
+                      { name: 'Online', icon: '💻', url: 'https://ieltsonlinetests.com' },
+                      { name: 'IELTS Liz', icon: '👩‍🏫', url: 'https://ieltsliz.com' },
+                    ].map(site => (
+                      <a key={site.name} href={site.url} target="_blank" className="flex flex-col items-center justify-center p-4 bg-base/40 border border-borderline rounded-xl hover:border-[var(--accentViolet)]/40 transition-all group">
+                        <span className="text-2xl mb-2 group-hover:scale-125 transition-transform">{site.icon}</span>
+                        <span className="text-[9px] font-black uppercase text-textMuted group-hover:text-textPri tracking-tighter">{site.name}</span>
+                      </a>
+                    ))}
+                 </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>
-    </>
+    </div>
+  );
+}
+
+function DriveTile({ title, url, icon }: { title: string, url: string, icon: string }) {
+  return (
+    <a href={url} target="_blank" className="flex items-center gap-4 p-4 bg-base/40 border border-borderline rounded-xl hover:border-[var(--accentViolet)]/30 transition-all group">
+      <div className="text-2xl grayscale group-hover:grayscale-0 transition-all">{icon}</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-bold text-textPri truncate">{title}</div>
+        <div className="text-[9px] font-mono text-textMuted uppercase tracking-widest">G_Drive_Sync</div>
+      </div>
+    </a>
   );
 }

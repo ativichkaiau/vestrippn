@@ -5,324 +5,244 @@ import { useState, useEffect } from 'react';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
-import TopNavProfile from '../../components/TopNavProfile'; // <-- Imported Auth Status
+import TopNavProfile from '../../components/TopNavProfile';
+
+interface Subject { id: string; name: string; progress: number; }
+interface Exam { name: string; date: Date; color: string; border: string; }
 
 export default function Academics() {
-  // Deep Focus State Machine: 'idle' | 'countdown' | 'focused'
-  const [focus, setFocus] = useState<{ mode: 'idle' | 'countdown' | 'focused', targetTime: number }>({ mode: 'idle', targetTime: 0 });
-  const [displayTime, setDisplayTime] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
+  const [canvasData, setCanvasData] = useState<{ subjects: Subject[], metrics: any }>({ subjects: [], metrics: { quizzes: 0, assignments: 0 } });
+  const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
-  // 1. Hydration & Persistence
   useEffect(() => {
-    const saved = localStorage.getItem('vestrippn_focus');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.targetTime > Date.now()) {
-        setFocus(parsed);
-      } else {
-        localStorage.removeItem('vestrippn_focus');
-      }
-    }
     setIsLoaded(true);
+    const fetchCanvas = async () => {
+      try {
+        const res = await fetch('/api/canvas');
+        if (res.ok) setCanvasData(await res.json());
+      } catch (e) { console.error("Canvas_Sync_Fail", e); }
+    };
+    fetchCanvas();
   }, []);
 
-  // 2. The Tick Engine
   useEffect(() => {
-    if (focus.mode === 'idle') return;
+    const exams: Exam[] = [
+      { name: 'HEN-2', date: new Date('2026-06-09T09:00:00'), color: 'text-[var(--accentFuchsia)]', border: 'border-[var(--accentFuchsia)]' },
+      { name: 'HMS-2', date: new Date('2026-06-12T09:00:00'), color: 'text-[var(--accentAmber)]', border: 'border-[var(--accentAmber)]' },
+      { name: 'HNS-2', date: new Date('2026-06-16T09:00:00'), color: 'text-[var(--accentCyan)]', border: 'border-[var(--accentCyan)]' },
+    ];
 
-    const interval = setInterval(() => {
-      const remaining = focus.targetTime - Date.now();
-      
-      if (remaining <= 0) {
-        if (focus.mode === 'countdown') {
-          const newTarget = Date.now() + 25 * 60 * 1000;
-          const newState = { mode: 'focused' as const, targetTime: newTarget };
-          setFocus(newState);
-          localStorage.setItem('vestrippn_focus', JSON.stringify(newState));
-        } else {
-          setFocus({ mode: 'idle', targetTime: 0 });
-          localStorage.removeItem('vestrippn_focus');
-        }
-      } else {
-        if (focus.mode === 'countdown') {
-          setDisplayTime(Math.ceil(remaining / 1000).toString());
-        } else {
-          const m = Math.floor(remaining / 1000 / 60);
-          const s = Math.floor((remaining / 1000) % 60);
-          setDisplayTime(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-        }
-      }
-    }, 100); 
+    const tick = setInterval(() => {
+      const newTimers: { [key: string]: string } = {};
+      exams.forEach(exam => {
+        const diff = exam.date.getTime() - Date.now();
+        if (diff > 0) {
+          const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+          const m = Math.floor((diff / 1000 / 60) % 60);
+          newTimers[exam.name] = `${d}D ${h}H ${m}M`;
+        } else { newTimers[exam.name] = "STATION_ARRIVAL"; }
+      });
+      setTimers(newTimers);
+    }, 1000);
+    return () => clearInterval(tick);
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [focus]);
-
-  const toggleFocusProtocol = () => {
-    if (focus.mode !== 'idle') {
-      if (confirm("Abort Deep Work session?")) {
-        setFocus({ mode: 'idle', targetTime: 0 });
-        localStorage.removeItem('vestrippn_focus');
-      }
-    } else {
-      const target = Date.now() + 10 * 1000;
-      const newState = { mode: 'countdown' as const, targetTime: target };
-      setFocus(newState);
-      localStorage.setItem('vestrippn_focus', JSON.stringify(newState));
-    }
-  };
-
-  const isLocked = focus.mode !== 'idle';
-  if (!isLoaded) return null; 
+  if (!isLoaded) return null;
 
   return (
-    <>
-      {/* TOP BAR */}
-      <header className={`h-[56px] border-b border-borderline flex items-center justify-between px-4 md:px-6 shrink-0 bg-base transition-all duration-500 ${isLocked ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
-        <div className="font-orbitron font-bold text-[15px] md:text-[18px] text-textPri uppercase tracking-wider truncate">vestrippn3point0</div>
-        <div className="hidden sm:block text-[13px] text-textSec font-medium">
-          <ArcDate />
-        </div>
-        <div className="flex gap-4 items-center text-textSec text-[14px]">
-          
-          {/* F1 TELEMETRY GIMMICK */}
-          <div className="hidden sm:flex items-center gap-1 bg-surface border border-borderline px-3 py-1 rounded">
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#06b6d4] transition-colors duration-300">SYS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#06b6d4] group-hover:border-[#06b6d4] group-hover:shadow-[0_0_12px_#06b6d4] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#22c55e] transition-colors duration-300">AERO</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#22c55e] group-hover:border-[#22c55e] group-hover:shadow-[0_0_12px_#22c55e] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#f59e0b] transition-colors duration-300">ERS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#f59e0b] group-hover:border-[#f59e0b] group-hover:shadow-[0_0_12px_#f59e0b] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#ef4444] transition-colors duration-300">DRS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#ef4444] group-hover:border-[#ef4444] group-hover:shadow-[0_0_12px_#ef4444] transition-all duration-300"></div>
+    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500">
+      
+      {/* HUD ATMOSPHERE */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--accentFuchsia)]/5 rounded-full blur-[120px]"></div>
+        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentFuchsia)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      </div>
+
+      {/* --- HUD HEADER --- */}
+      <header className="h-[64px] border-b border-borderline flex items-center justify-between px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="font-orbitron font-black text-[18px] tracking-[0.2em] flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-1.5 h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_rgba(0,194,255,0.5)]"></div>
+            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+          </Link>
+          <div className="h-5 w-[1px] bg-borderline mx-2"></div>
+          <div className="flex gap-4 font-mono text-[9px] uppercase tracking-widest text-textMuted">
+            <div className="flex flex-col">
+              <span>ACAD_OS: <span className="text-statusGreen">NOMINAL</span></span>
+              <span>SYNC: <span className="text-[var(--accentFuchsia)]">ENCRYPTED</span></span>
             </div>
           </div>
+        </div>
 
-          {/* DYNAMIC AUTHENTICATION STATUS */}
+        <div className="hidden md:block font-mono text-[11px] tracking-[0.2em] text-textPri">
+          SUNDAY, MAY 10 | <span className="text-textMuted">DAY 18 OF 30</span>
+        </div>
+
+        <div className="flex gap-4 items-center border-l border-borderline pl-6">
           <TopNavProfile />
-
           <ThemeToggle />
         </div>
       </header>
 
-      {/* MAIN WORKSPACE */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
-        <aside className={`w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 transition-all duration-500 ${isLocked ? 'opacity-30' : 'opacity-100'} [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
-          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            
-            {isLocked ? (
-              <span className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 text-textMuted cursor-not-allowed opacity-50 block">Dashboard</span>
-            ) : (
-              <Link href="/" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Dashboard</Link>
-            )}
-            
-            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
-              <span className="text-[10px]">◉</span> Academics
-            </div>
-
-            {isLocked ? (
-              <span className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 text-textMuted cursor-not-allowed opacity-50 block">Research</span>
-            ) : (
-              <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Research</Link>
-            )}
-
-            {isLocked ? (
-              <span className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 text-textMuted cursor-not-allowed opacity-50 block">Fitness & Diet</span>
-            ) : (
-              <Link href="/fitness" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Fitness & Diet</Link>
-            )}
-
-            {isLocked ? (
-              <span className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 text-textMuted cursor-not-allowed opacity-50 block">Archive</span>
-            ) : (
-              <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Archive</Link>
-            )}
-
-            {isLocked ? (
-              <span className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 text-textMuted cursor-not-allowed opacity-50 block">IELTS</span>
-            ) : (
-              <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
-            )}
-
-            {isLocked ? (
-              <span className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 text-textMuted cursor-not-allowed opacity-50 hidden md:block">Tools & Links</span>
-            ) : (
-              <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
-            )}
-
-            {isLocked ? (
-              <span className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 text-textMuted cursor-not-allowed opacity-50 block">Identity</span>
-            ) : (
-              <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Identity</Link>
-            )}
+        {/* --- NAV SIDEBAR (RECALIBRATED) --- */}
+        <aside className="w-[230px] border-r border-borderline flex flex-col justify-between p-5 bg-surface/20 shrink-0 backdrop-blur-md">
+          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+            {[
+              { name: 'Dashboard', icon: '◉', href: '/', color: 'text-[var(--accentCyan)]' },
+              { name: 'Academics', icon: '▲', href: '/academics', color: 'text-[var(--accentFuchsia)]', active: true },
+              { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]' },
+              { name: 'Fitness', icon: '◈', href: '/fitness', color: 'text-[var(--accentEmerald)]' },
+              { name: 'Archive', icon: '▥', href: '/archive', color: 'text-textSec' },
+              { name: 'IELTS', icon: '◎', href: '/ielts', color: 'text-[var(--accentViolet)]' },
+              { name: 'Tools & Links', icon: '⚙', href: '/tools', color: 'text-[var(--accentIndigo)]' },
+              { name: 'Identity', icon: '⚇', href: '/identity', color: 'text-[var(--accentIndigo)]' },
+            ].map((item) => (
+              <Link 
+                key={item.name} 
+                href={item.href} 
+                className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${
+                  item.active 
+                  ? 'bg-[var(--accentFuchsia)]/10 border-[var(--accentFuchsia)]/20 shadow-[0_0_15px_rgba(167,139,250,0.05)]' 
+                  : 'hover:bg-surface hover:border-borderline'
+                }`}
+              >
+                <span className={`${item.color} text-[14px] ${item.active ? 'drop-shadow-[0_0_5px_currentColor]' : 'opacity-40 group-hover:opacity-100'}`}>
+                  {item.icon}
+                </span>
+                <span className={`text-[12px] font-medium tracking-tight ${item.active ? 'text-textPri font-bold' : 'text-textSec group-hover:text-textPri'}`}>
+                  {item.name}
+                </span>
+              </Link>
+            ))}
           </nav>
-          
-          <div className="hidden md:block border-t border-borderline pt-4">
+          <div className="p-4 rounded-2xl bg-surface border border-borderline">
             <Clock />
-            <div className="text-[11px] text-textSec">Schumacher standard.</div>
           </div>
         </aside>
 
-        {/* ACADEMICS CONTENT */}
-        <main className={`flex-1 flex flex-col gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden transition-all duration-700 ${focus.mode === 'focused' ? 'bg-surface shadow-[inset_0_0_100px_rgba(6,182,212,0.03)]' : 'bg-base'}`}>
+        {/* --- MAIN HUD CONTENT --- */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
           
-          {/* HEADER SECTION */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end shrink-0 gap-3">
-            <div>
-              <h1 className="font-barlow text-[24px] sm:text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Preclinical Hub</h1>
-              <p className="text-[12px] sm:text-[13px] text-textSec mt-1">Year 3 CMU Medical Curriculum & Intelligence Vault</p>
-            </div>
-            
-            <button 
-              onClick={toggleFocusProtocol}
-              className={`text-[10px] sm:text-[11px] font-mono px-4 py-2 sm:py-1.5 rounded transition-all duration-300 flex items-center justify-center gap-2 font-bold tracking-widest w-full sm:w-auto
-                ${focus.mode === 'countdown' ? 'bg-accentAmber text-base shadow-[0_0_20px_rgba(245,158,11,0.6)] animate-pulse' : 
-                  focus.mode === 'focused' ? 'bg-accentCyan text-base shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 
-                  'text-accentCyan border border-accentCyan/30 bg-accentCyan/10 hover:bg-accentCyan/20'}`}
-            >
-              {focus.mode === 'countdown' ? `[ LOCKDOWN IN: ${displayTime} ]` : 
-               focus.mode === 'focused' ? `[ DEEP WORK: ${displayTime} ]` : 
-               'INITIATE FOCUS PROTOCOL'}
-            </button>
+          {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
+          <div className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textMuted mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-4 bg-[var(--accentFuchsia)] shadow-[0_0_8px_var(--accentFuchsia)]"></span> Critical Milestones
           </div>
-
-          {/* NOTEBOOK LM PORTAL */}
-          <div className={`relative border rounded-xl p-5 sm:p-6 overflow-hidden flex flex-col gap-4 shrink-0 transition-all duration-500 ${focus.mode === 'focused' ? 'bg-base border-accentCyan shadow-[0_0_30px_rgba(6,182,212,0.15)] scale-[1.01]' : 'bg-surface border-accentCyan/40 shadow-[0_0_20px_rgba(6,182,212,0.05)]'}`}>
-            <div className={`absolute top-0 right-0 w-64 h-64 blur-[80px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/3 transition-all duration-1000 ${focus.mode === 'focused' ? 'bg-accentCyan/20' : 'bg-accentCyan/10'}`}></div>
-            
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center relative z-10 gap-4">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="w-12 h-12 sm:w-10 sm:h-10 rounded bg-base border border-borderline flex items-center justify-center text-2xl sm:text-xl shrink-0">📔</div>
-                <div>
-                  <h2 className="font-barlow font-bold text-[15px] sm:text-[16px] text-textPri uppercase tracking-wide leading-tight">NotebookLM Intelligence Vault</h2>
-                  <p className="text-[11px] text-textSec mt-0.5">AI-Powered Synthesis & Source Grounding</p>
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: 'HEN-2', date: '09 JUN', color: 'text-[var(--accentFuchsia)]', border: 'border-[var(--accentFuchsia)]/30' },
+              { name: 'HMS-2', date: '12 JUN', color: 'text-[var(--accentAmber)]', border: 'border-[var(--accentAmber)]/30' },
+              { name: 'HNS-2', date: '16 JUN', color: 'text-[var(--accentCyan)]', border: 'border-[var(--accentCyan)]/30' }
+            ].map(exam => (
+              <div key={exam.name} className={`bg-surface/40 border border-borderline rounded-[22px] p-6 transition-all hover:scale-[1.02] hover:border-white/30 group shadow-xl relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                <div className="flex justify-between items-start mb-4 relative z-10">
+                  <span className={`font-orbitron font-black text-[18px] ${exam.color} drop-shadow-[0_0_8px_currentColor]`}>{exam.name}</span>
+                  <span className="font-mono text-[9px] text-textMuted uppercase tracking-widest">{exam.date} // 09:00</span>
                 </div>
+                <div className="text-[24px] font-mono font-black text-textPri tracking-tighter relative z-10">
+                  {timers[exam.name] || "--D --H --M"}
+                </div>
+                <div className="text-[9px] font-mono text-textMuted mt-2 uppercase tracking-[0.2em] opacity-60">System_Clock // T-Minus</div>
               </div>
-              <a 
-                href="https://notebooklm.google.com/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-accentCyan text-base font-bold text-[12px] px-6 py-3 sm:py-2.5 rounded hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all uppercase tracking-wider flex items-center gap-2 w-full sm:w-auto justify-center"
-              >
-                Launch Main Engine ↗
-              </a>
-            </div>
+            ))}
+          </section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-2 relative z-10">
-              <a 
-                href="https://notebooklm.google.com/notebook/db9fd595-41ad-4c0d-848c-783a972904b1" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className={`group bg-base border rounded p-3.5 transition-all flex flex-col gap-1 relative overflow-hidden ${focus.mode === 'focused' ? 'border-accentCyan shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'border-accentCyan/50 hover:border-accentCyan'}`}
-              >
-                <div className="absolute top-0 left-0 w-1 h-full bg-accentCyan"></div>
-                <span className="text-[10px] text-accentCyan font-mono pl-2 tracking-widest">ACTIVE</span>
-                <span className="text-[13px] text-textPri font-medium group-hover:text-accentCyan transition-colors leading-tight pl-2 mt-1">Human Endocrine System-2</span>
-              </a>
-              
-              <a 
-                href="https://notebooklm.google.com/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="group bg-base border border-borderline border-dashed rounded p-3.5 hover:border-accentCyan/50 transition-all flex flex-col gap-1 items-center justify-center opacity-60 hover:opacity-100 hidden sm:flex"
-              >
-                <span className="text-[20px] text-textMuted group-hover:text-accentCyan transition-colors">+</span>
-                <span className="text-[9px] text-textMuted font-mono uppercase tracking-wider">New Vault</span>
-              </a>
-            </div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-6 shrink-0 mb-6">
-            <div className={`flex-[0.6] flex flex-col gap-4 transition-opacity duration-500 ${isLocked ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-              <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec border-b border-borderline pb-2">
-                Current Block Materials
+          {/* SECTOR 2: CANVAS TELEMETRY & DRIVE HUB */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* Live Subject Telemetry */}
+            <div className="lg:col-span-8 border border-borderline rounded-[22px] p-8 bg-surface/30 backdrop-blur-sm shadow-xl">
+              <div className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] mb-8 flex justify-between text-textMuted">
+                <span>Canvas Live Telemetry</span>
+                <span className="text-statusGreen flex items-center gap-1">
+                   <span className="w-1.5 h-1.5 bg-statusGreen rounded-full animate-pulse"></span>
+                   Uplink Active
+                </span>
               </div>
               
-              <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-[14px] font-bold text-textPri">Human Endocrine System</h3>
-                  <span className="text-[10px] text-statusGreen border border-statusGreen/30 bg-statusGreen/10 px-2 py-0.5 rounded">ACTIVE</span>
-                </div>
-                <div className="space-y-2">
-                  <a href="#" className="block text-[12px] text-textSec hover:text-accentCyan transition-colors bg-base p-2 rounded border border-borderline">📄 Endocrine OnePager Summary.pdf</a>
-                  <a href="#" className="block text-[12px] text-textSec hover:text-accentCyan transition-colors bg-base p-2 rounded border border-borderline">📝 Hormone Cascades Mock Exam</a>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {canvasData.subjects.length > 0 ? canvasData.subjects.map(sub => (
+                  <div key={sub.id} className="group/sub">
+                    <div className="flex justify-between items-center text-[11px] mb-2 uppercase font-mono tracking-tight">
+                      <span className="font-bold text-textPri group-hover/sub:text-[var(--accentCyan)] transition-colors">{sub.name}</span>
+                      <span className="text-[var(--accentCyan)] font-black">{sub.progress}%</span>
+                    </div>
+                    <div className="h-[3px] w-full bg-borderline/30 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[var(--accentCyan)] transition-all duration-1000 shadow-[0_0_10px_var(--accentCyan)]" 
+                        style={{ width: `${sub.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="col-span-2 text-center py-10 text-textMuted font-mono text-[10px] uppercase tracking-widest opacity-40">
+                    Awaiting Handshake with Mango Cloud...
+                  </div>
+                )}
               </div>
 
-              <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors opacity-70 hover:opacity-100">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-[14px] font-bold text-textPri">Next Module (TBD)</h3>
-                  <span className="text-[10px] text-accentAmber border border-accentAmber/30 bg-accentAmber/10 px-2 py-0.5 rounded">UPCOMING</span>
+              <div className="mt-12 pt-8 border-t border-borderline/50 grid grid-cols-2 gap-6">
+                <div className="p-5 bg-base/30 rounded-2xl border border-borderline hover:border-[var(--accentFuchsia)]/30 transition-all group/stat">
+                  <div className="text-[9px] font-mono text-textMuted uppercase mb-2 tracking-widest">Global Quiz Average</div>
+                  <div className="text-2xl font-orbitron font-black text-[var(--accentFuchsia)] drop-shadow-[0_0_8px_var(--accentFuchsia)]">{canvasData.metrics.quizzes}%</div>
                 </div>
-                <div className="text-[11px] text-textMuted italic">Awaiting syllabus drop from Mango Canvas...</div>
+                <div className="p-5 bg-base/30 rounded-2xl border border-borderline hover:border-[var(--accentAmber)]/30 transition-all group/stat">
+                  <div className="text-[9px] font-mono text-textMuted uppercase mb-2 tracking-widest">Assignment Completion</div>
+                  <div className="text-2xl font-orbitron font-black text-[var(--accentAmber)] drop-shadow-[0_0_8px_var(--accentAmber)]">{canvasData.metrics.assignments}%</div>
+                </div>
               </div>
             </div>
 
-            <div className={`flex-[0.4] flex flex-col gap-4 transition-opacity duration-500 ${isLocked ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-              <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec border-b border-borderline pb-2">
-                External Databases
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pb-2">
-                <a href="https://mango-cmu.instructure.com" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🎓</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Mango Canvas</div>
-                </a>
-                <a href="https://www.uptodate.com" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🩺</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">UpToDate</div>
-                </a>
-                
-                <a href="https://www.amboss.com" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">⚕️</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">AMBOSS</div>
-                </a>
-                <a href="https://www.clinicalkey.com" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🔑</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">ClinicalKey</div>
-                </a>
-
-                <a href="https://www.osmosis.org" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">💧</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Osmosis</div>
-                </a>
-                <a href="https://www.sketchy.com" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🎨</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Sketchy</div>
-                </a>
-
-                <a href="https://www.pathoma.com" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🔬</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">Pathoma</div>
-                </a>
-                <a href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">📚</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">PubMed</div>
-                </a>
-
-                <a href="https://ankiweb.net" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🧠</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">AnkiWeb</div>
-                </a>
-                <a href="https://www.uworld.com" target="_blank" rel="noopener noreferrer" className="bg-surface border border-borderline rounded p-4 text-center hover:border-accentCyan/50 hover:shadow-sm transition-all group">
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🌍</div>
-                  <div className="text-[10px] font-bold text-textPri uppercase tracking-wider">UWorld</div>
-                </a>
-              </div>
+            {/* Google Drive Hub (Tactical Tile) */}
+            <div className="lg:col-span-4 flex flex-col gap-6">
+              <a 
+                href="https://drive.google.com/drive/folders/1tfZ8mT6WLWOjRezS9wkdwiltd2Ov4wuB" 
+                target="_blank" 
+                className="flex-1 border border-borderline rounded-[22px] p-8 bg-surface/30 hover:border-statusGreen/50 transition-all group flex flex-col justify-center items-center text-center shadow-xl relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-statusGreen opacity-20 group-hover:opacity-100 transition-opacity"></div>
+                <div className="w-20 h-20 bg-statusGreen/10 rounded-[22px] border border-statusGreen/20 flex items-center justify-center text-4xl mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
+                  📂
+                </div>
+                <div className="font-orbitron font-black text-[16px] text-textPri uppercase tracking-widest">Textbook Hub</div>
+                <div className="text-[9px] text-textMuted font-mono mt-3 uppercase tracking-widest opacity-60">G_Drive // Shared Intelligence</div>
+                <div className="mt-8 px-6 py-2.5 bg-statusGreen/10 border border-statusGreen/20 rounded-full text-[10px] font-bold text-statusGreen uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all">
+                  Access Cloud_Vault ↗
+                </div>
+              </a>
             </div>
-
           </div>
+
+          {/* SECTOR 3: INTELLIGENCE BUFFER (NotebookLM) */}
+          <section className="border border-borderline rounded-[22px] p-8 bg-surface/10 backdrop-blur-sm relative overflow-hidden">
+             <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-[var(--accentFuchsia)]/5 rounded-full blur-[100px]"></div>
+             <div className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textPri mb-10 flex items-center gap-2 relative z-10">
+                <span className="w-1.5 h-4 bg-[var(--accentFuchsia)]"></span> Intelligence Buffer // AI Grounding
+             </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                <a href="https://notebooklm.google.com/notebook/db9fd595-41ad-4c0d-848c-783a972904b1" target="_blank" className="p-6 border border-borderline rounded-2xl hover:border-[var(--accentFuchsia)]/50 transition-all bg-base/40 group/nb">
+                   <div className="flex justify-between items-center mb-4">
+                      <div className="text-[10px] font-mono text-[var(--accentFuchsia)] font-black uppercase tracking-widest">Endocrine Vault</div>
+                      <span className="text-xl group-hover/nb:scale-125 transition-transform">📔</span>
+                   </div>
+                   <div className="text-[15px] font-bold text-textPri mb-1">HEN-2: Endocrine Synthesis</div>
+                   <div className="text-[10px] text-textMuted font-mono uppercase">Status: Grounding_Active</div>
+                </a>
+                <div className="p-6 border border-borderline border-dashed rounded-2xl opacity-40 flex flex-col items-center justify-center text-center bg-base/20 group/nb">
+                   <span className="text-2xl mb-2">⌛</span>
+                   <div className="text-[10px] font-mono uppercase tracking-widest">HNS-2 Vault Awaiting Sync</div>
+                </div>
+             </div>
+          </section>
+
+          <div className="h-12"></div>
         </main>
       </div>
-    </>
+    </div>
   );
 }

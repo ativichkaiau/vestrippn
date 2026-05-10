@@ -1,177 +1,209 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import CovidenceBoard from '../../components/CovidenceBoard';
-import TopNavProfile from '../../components/TopNavProfile'; // <-- Imported Auth Status
+import TopNavProfile from '../../components/TopNavProfile';
+
+interface LitResult {
+  id: string; title: string; authors: string; journal: string; date: string; url: string;
+}
 
 export default function ResearchHub() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [results, setResults] = useState<LitResult[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const handleSearch = (database: 'pubmed' | 'cochrane' | 'clinicalkey') => {
+  useEffect(() => { setIsLoaded(true); }, []);
+
+  // 1. LIVE EXTRACTION (PubMed HUD Integration)
+  const initiateExtraction = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
-    
-    const encodedQuery = encodeURIComponent(searchQuery);
-    let url = '';
+    setIsExtracting(true);
+    try {
+      const res = await fetch(`/api/literature?q=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      setResults(Array.isArray(data) ? data : []);
+    } catch (err) { console.error("Extraction_Uplink_Failure"); }
+    finally { setIsExtracting(false); }
+  };
 
-    switch (database) {
-      case 'pubmed':
-        url = `https://pubmed.ncbi.nlm.nih.gov/?term=${encodedQuery}`;
+  // 2. EXTERNAL SECTOR JUMPS (Scopus, ClinicalKey, Cochrane)
+  const pivotSearch = (target: 'scopus' | 'clinicalkey' | 'cochrane') => {
+    if (!searchQuery.trim()) return;
+    const q = encodeURIComponent(searchQuery);
+    let url = '';
+    switch (target) {
+      case 'scopus': 
+        url = `https://www.scopus.com/results/results.uri?sort=plf-f&src=s&st1=${q}&sot=b&sdt=b&origin=searchbasic`; 
         break;
-      case 'cochrane':
-        url = `https://www.cochranelibrary.com/en/search?p_p_id=scolarissearchresultsportlet_WAR_scolarissearchresults&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&q=${encodedQuery}`;
+      case 'clinicalkey': 
+        url = `https://www.clinicalkey.com/#!/search/${q}`; 
         break;
-      case 'clinicalkey':
-        url = `https://www.clinicalkey.com/#!/search/${encodedQuery}`;
+      case 'cochrane': 
+        url = `https://www.cochranelibrary.com/en/search?q=${q}`; 
         break;
     }
-
     window.open(url, '_blank');
   };
 
+  if (!isLoaded) return null;
+
   return (
-    <>
-      {/* TOP BAR */}
-      <header className="h-[56px] border-b border-borderline flex items-center justify-between px-4 md:px-6 shrink-0 bg-base">
-        <div className="font-orbitron font-bold text-[15px] md:text-[18px] text-textPri uppercase tracking-wider truncate">
-          vestrippn3point0
-        </div>
-        <div className="hidden sm:block text-[13px] text-textSec font-medium">
-          <ArcDate />
-        </div>
-        <div className="flex gap-4 items-center text-textSec text-[14px]">
-          
-          {/* F1 TELEMETRY GIMMICK */}
-          <div className="hidden sm:flex items-center gap-1 bg-surface border border-borderline px-3 py-1 rounded">
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#06b6d4] transition-colors duration-300">SYS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#06b6d4] group-hover:border-[#06b6d4] group-hover:shadow-[0_0_12px_#06b6d4] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#22c55e] transition-colors duration-300">AERO</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#22c55e] group-hover:border-[#22c55e] group-hover:shadow-[0_0_12px_#22c55e] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#f59e0b] transition-colors duration-300">ERS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#f59e0b] group-hover:border-[#f59e0b] group-hover:shadow-[0_0_12px_#f59e0b] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#ef4444] transition-colors duration-300">DRS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#ef4444] group-hover:border-[#ef4444] group-hover:shadow-[0_0_12px_#ef4444] transition-all duration-300"></div>
+    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500">
+      
+      {/* HUD ATMOSPHERE */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--accentAmber)]/5 rounded-full blur-[120px]"></div>
+        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentAmber)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      </div>
+
+      {/* --- HUD HEADER --- */}
+      <header className="h-[64px] border-b border-borderline flex items-center justify-between px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="font-orbitron font-black text-[18px] tracking-[0.2em] flex items-center gap-2">
+            <div className="w-1.5 h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_var(--accentCyan)]"></div>
+            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+          </Link>
+          <div className="h-5 w-[1px] bg-borderline mx-2"></div>
+          <div className="flex gap-4 font-mono text-[9px] uppercase tracking-widest text-textMuted">
+            <div className="flex flex-col">
+              <span>RESEARCH_OS: <span className="text-statusGreen">STABLE</span></span>
+              <span>EXTRACTION: <span className={isExtracting ? 'text-[var(--accentAmber)] animate-pulse' : 'text-textMuted'}>
+                {isExtracting ? 'RUNNING...' : 'READY'}
+              </span></span>
             </div>
           </div>
-
-          {/* DYNAMIC AUTHENTICATION STATUS */}
+        </div>
+        <div className="hidden md:block font-mono text-[11px] tracking-[0.2em] text-textPri">
+          <ArcDate />
+        </div>
+        <div className="flex gap-4 items-center border-l border-borderline pl-6">
           <TopNavProfile />
-
           <ThemeToggle />
         </div>
       </header>
 
-      {/* MAIN WORKSPACE */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            <Link href="/" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Dashboard
-            </Link>
-            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Academics
-            </Link>
-            
-            {/* ACTIVE: RESEARCH */}
-            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
-              <span className="text-[10px] hidden md:block">◉</span> Research
-            </div>
-
-            <Link href="/fitness" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Fitness & Diet
-            </Link>
-
-            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Archive
-            </Link>
-
-            <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
-            <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
-            <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Identity</Link>
+        {/* --- NAV SIDEBAR --- */}
+        <aside className="w-[230px] border-r border-borderline flex flex-col justify-between p-5 bg-surface/20 shrink-0 backdrop-blur-md">
+          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+            {[
+              { name: 'Dashboard', icon: '◉', href: '/' },
+              { name: 'Academics', icon: '▲', href: '/academics' },
+              { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]', active: true },
+              { name: 'Fitness', icon: '◈', href: '/fitness' },
+              { name: 'Archive', icon: '▥', href: '/archive' },
+              { name: 'IELTS', icon: '◎', href: '/ielts' },
+              { name: 'Tools & Links', icon: '⚙', href: '/tools' },
+              { name: 'Identity', icon: '⚇', href: '/identity' },
+            ].map((item) => (
+              <Link key={item.name} href={item.href} className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${item.active ? 'bg-[var(--accentAmber)]/10 border-[var(--accentAmber)]/20 shadow-[0_0_15px_rgba(245,158,11,0.05)] font-bold' : 'hover:bg-surface'}`}>
+                <span className={`${item.color || 'opacity-40'} text-[14px]`}>{item.icon}</span>
+                <span className="text-[12px]">{item.name}</span>
+              </Link>
+            ))}
           </nav>
-          
-          <div className="hidden md:block border-t border-borderline pt-4">
-            <Clock />
-            <div className="text-[11px] text-textSec">Schumacher standard.</div>
-          </div>
+          <div className="p-4 rounded-2xl bg-surface border border-borderline mt-4"><Clock /></div>
         </aside>
 
-        {/* RESEARCH CONTENT */}
-        <main className="flex-1 flex flex-col gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden">
+        {/* --- MAIN HUD CONTENT --- */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
           
-          {/* HEADER SECTION (Responsive text sizes) */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end shrink-0 mb-2 gap-3">
-            <div>
-              <h1 className="font-barlow text-[24px] sm:text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Meta-Analysis War Room</h1>
-              <p className="text-[12px] sm:text-[13px] text-textSec mt-1">Systematic Review Engine & Covidence Protocol</p>
-            </div>
-            <div className="flex">
-              <div className="text-[10px] sm:text-[11px] font-mono text-accentAmber border border-accentAmber/30 bg-accentAmber/10 px-3 py-1 rounded flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-accentAmber rounded-full animate-pulse"></span>
-                SCREENING PHASE
-              </div>
-            </div>
-          </div>
-
-          {/* OMNI-SEARCH FETCHER (Mobile Optimized Grid) */}
-          <div className="bg-surface border border-borderline rounded-lg p-4 sm:p-5 shadow-sm shrink-0 hover:border-accentCyan/40 transition-colors">
-            <div className="font-barlow font-semibold text-[11px] sm:text-[13px] uppercase tracking-wide text-textSec mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4 text-accentCyan" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              Global Literature Fetcher
+          {/* OMNI-SEARCH EXTRACTION TERMINAL */}
+          <section className="bg-surface/30 border border-borderline rounded-[22px] p-8 shadow-xl relative overflow-hidden group hover:border-[var(--accentAmber)]/30 transition-all">
+            <div className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textMuted mb-6 flex items-center gap-3">
+              <div className="w-1.5 h-4 bg-[var(--accentAmber)] shadow-[0_0_8px_var(--accentAmber)]"></div>
+              Multi-Source Intelligence Extraction
             </div>
             
-            <div className="flex flex-col lg:flex-row gap-3">
-              <input 
-                type="text" 
-                placeholder='Enter search string (e.g., "vaginal estrogen" AND "UTI")'
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch('pubmed')}
-                className="flex-1 bg-base border border-borderline rounded px-4 py-3 text-[13px] text-textPri outline-none focus:border-accentCyan/50 transition-colors font-mono placeholder:text-textMuted"
-              />
-              
-              <div className="grid grid-cols-3 sm:flex gap-2 shrink-0">
+            <form onSubmit={initiateExtraction} className="flex flex-col gap-4 relative z-10">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <input 
+                  type="text" 
+                  placeholder='Enter literature query (e.g., "Meta-Analysis" AND "Urology")'
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-base/50 border border-borderline rounded-xl px-5 py-4 text-[13px] text-textPri outline-none focus:border-[var(--accentAmber)]/50 transition-all font-mono placeholder:text-textMuted"
+                />
                 <button 
-                  onClick={() => handleSearch('pubmed')}
-                  className="bg-base border border-borderline hover:border-accentCyan hover:text-accentCyan hover:bg-accentCyan/5 text-textSec py-2.5 sm:px-4 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all"
+                  type="submit"
+                  disabled={isExtracting}
+                  className="bg-[var(--accentAmber)] text-black px-10 rounded-xl text-[11px] font-black uppercase tracking-widest hover:shadow-[0_0_20px_var(--accentAmber)] transition-all disabled:opacity-50"
                 >
-                  PubMed
-                </button>
-                <button 
-                  onClick={() => handleSearch('cochrane')}
-                  className="bg-base border border-borderline hover:border-accentCyan hover:text-accentCyan hover:bg-accentCyan/5 text-textSec py-2.5 sm:px-4 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all"
-                >
-                  Cochrane
-                </button>
-                <button 
-                  onClick={() => handleSearch('clinicalkey')}
-                  className="bg-base border border-borderline hover:border-accentCyan hover:text-accentCyan hover:bg-accentCyan/5 text-textSec py-2.5 sm:px-4 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all"
-                >
-                  ClinicalKey
+                  {isExtracting ? 'Extracting...' : 'Fetch Live Feed'}
                 </button>
               </div>
-            </div>
+
+              {/* SECTOR JUMPS: The New Database Buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                 <button 
+                   onClick={() => pivotSearch('scopus')}
+                   className="bg-base border border-borderline hover:border-[var(--accentCyan)]/40 hover:text-[var(--accentCyan)] p-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
+                 >
+                    <span className="text-xs">🏛️</span> Scopus Jump
+                 </button>
+                 <button 
+                   onClick={() => pivotSearch('clinicalkey')}
+                   className="bg-base border border-borderline hover:border-[var(--accentAmber)]/40 hover:text-[var(--accentAmber)] p-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
+                 >
+                    <span className="text-xs">🔑</span> ClinicalKey
+                 </button>
+                 <button 
+                   onClick={() => pivotSearch('cochrane')}
+                   className="bg-base border border-borderline hover:border-[var(--accentFuchsia)]/40 hover:text-[var(--accentFuchsia)] p-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
+                 >
+                    <span className="text-xs">📚</span> Cochrane
+                 </button>
+                 <div className="bg-[var(--base)]/20 border border-[var(--borderline)]/40 p-3 rounded-xl text-[8px] font-mono text-[var(--textMuted)] flex items-center justify-center uppercase tracking-tighter italic">
+                    Uplink: Institutional_Auth
+                 </div>
+              </div>
+            </form>
+          </section>
+
+          {/* LIVE EXTRACTION FEED */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {results.map((result) => (
+              <a 
+                key={result.id} 
+                href={result.url} 
+                target="_blank" 
+                className="group relative p-6 bg-surface/40 border border-borderline rounded-[22px] hover:border-[var(--accentCyan)]/40 transition-all overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-1 h-full bg-[var(--accentCyan)] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="flex justify-between items-start mb-4 font-mono text-[9px] uppercase tracking-widest text-textMuted">
+                  <span className="text-[var(--accentCyan)] font-bold">PMID_{result.id}</span>
+                  <span>{result.date}</span>
+                </div>
+                <h3 className="text-[14px] font-bold text-textPri group-hover:text-[var(--accentCyan)] transition-colors line-clamp-2 leading-snug mb-4">
+                  {result.title}
+                </h3>
+                <div className="flex justify-between text-[10px] font-mono text-textMuted uppercase tracking-tighter">
+                  <span className="truncate pr-4">{result.authors}</span>
+                  <span className="italic shrink-0">{result.journal}</span>
+                </div>
+              </a>
+            ))}
           </div>
 
           {/* COVIDENCE PROTOCOL BOARD */}
-          <div className="flex-1 min-h-[600px] overflow-x-auto custom-scrollbar">
-            <CovidenceBoard />
-          </div>
+          <section className="border border-borderline rounded-[22px] p-8 bg-surface/10 backdrop-blur-sm min-h-[600px] shadow-xl">
+             <div className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textPri mb-8 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-[var(--accentAmber)] shadow-[0_0_10px_var(--accentAmber)]"></span> Systematic Review Workspace
+             </div>
+             <CovidenceBoard />
+          </section>
 
+          <div className="h-12"></div>
         </main>
       </div>
-    </>
+    </div>
   );
 }

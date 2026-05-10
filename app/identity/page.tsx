@@ -1,374 +1,338 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
-import TopNavProfile from '../../components/TopNavProfile'; // <-- Imported Auth Status
+import TopNavProfile from '../../components/TopNavProfile';
 
 export default function IdentityHub() {
+  const [isLoaded, setIsLoaded] = useState(false);
+  useEffect(() => { setIsLoaded(true); }, []);
+
+  if (!isLoaded) return null;
+
   return (
-    <>
-      {/* TOP BAR */}
-      <header className="h-[56px] border-b border-borderline flex items-center justify-between px-4 md:px-6 shrink-0 bg-base">
-        <div className="font-orbitron font-bold text-[15px] md:text-[18px] text-textPri uppercase tracking-wider truncate">
-          vestrippn3point0
-        </div>
-        <div className="hidden sm:block text-[13px] text-textSec font-medium">
-          <ArcDate />
-        </div>
-        <div className="flex gap-4 items-center text-textSec text-[14px]">
-          
-          {/* F1 TELEMETRY GIMMICK */}
-          <div className="hidden sm:flex items-center gap-1 bg-surface border border-borderline px-3 py-1 rounded">
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#06b6d4] transition-colors duration-300">SYS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#06b6d4] group-hover:border-[#06b6d4] group-hover:shadow-[0_0_12px_#06b6d4] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#22c55e] transition-colors duration-300">AERO</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#22c55e] group-hover:border-[#22c55e] group-hover:shadow-[0_0_12px_#22c55e] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#f59e0b] transition-colors duration-300">ERS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#f59e0b] group-hover:border-[#f59e0b] group-hover:shadow-[0_0_12px_#f59e0b] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#ef4444] transition-colors duration-300">DRS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#ef4444] group-hover:border-[#ef4444] group-hover:shadow-[0_0_12px_#ef4444] transition-all duration-300"></div>
+    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500">
+      
+      {/* HUD ATMOSPHERE */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--accentCyan)]/5 rounded-full blur-[120px]"></div>
+        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentCyan)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      </div>
+
+      {/* --- HUD HEADER --- */}
+      <header className="h-[64px] border-b border-borderline flex items-center justify-between px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="font-orbitron font-black text-[18px] tracking-[0.2em] flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-1.5 h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_var(--accentCyan)]"></div>
+            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+          </Link>
+          <div className="h-5 w-[1px] bg-borderline mx-2"></div>
+          <div className="flex gap-4 font-mono text-[9px] uppercase tracking-widest text-textMuted">
+            <div className="flex flex-col">
+              <span>OPERATOR_ID: <span className="text-statusGreen font-bold">ATIVICH_V</span></span>
+              <span>THEME_LOCK: <span className="text-[var(--accentAmber)] uppercase">Night_MFD_Enforced</span></span>
             </div>
           </div>
-
-          {/* DYNAMIC AUTHENTICATION STATUS */}
+        </div>
+        <div className="hidden md:block font-mono text-[11px] tracking-[0.2em] text-textPri uppercase"><ArcDate /></div>
+        <div className="flex gap-4 items-center border-l border-borderline pl-6">
           <TopNavProfile />
-
           <ThemeToggle />
         </div>
       </header>
 
-      {/* MAIN WORKSPACE */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            <Link href="/" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Dashboard</Link>
-            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Academics</Link>
-            <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Research</Link>
-            <Link href="/fitness" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Fitness & Diet</Link>
-            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Archive</Link>
-            <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
-            <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
-
-            {/* ACTIVE: IDENTITY */}
-            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
-              <span className="text-[10px]">◉</span> Identity
-            </div>
+        {/* --- NAV SIDEBAR --- */}
+        <aside className="w-[230px] border-r border-borderline flex flex-col justify-between p-5 bg-surface/20 shrink-0 backdrop-blur-md">
+          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+            {[
+              { name: 'Dashboard', icon: '◉', href: '/', color: 'text-[var(--accentCyan)]' },
+              { name: 'Academics', icon: '▲', href: '/academics', color: 'text-[var(--accentFuchsia)]' },
+              { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]' },
+              { name: 'Fitness', icon: '◈', href: '/fitness', color: 'text-[var(--accentEmerald)]' },
+              { name: 'Archive', icon: '▥', href: '/archive', color: 'text-textSec' },
+              { name: 'IELTS', icon: '◎', href: '/ielts', color: 'text-[var(--accentViolet)]' },
+              { name: 'Tools & Links', icon: '⚙', href: '/tools', color: 'text-[var(--accentIndigo)]' },
+              { name: 'Identity', icon: '⚇', href: '/identity', color: 'text-[var(--accentCyan)]', active: true },
+            ].map((item) => (
+              <Link key={item.name} href={item.href} className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${item.active ? 'bg-[var(--accentCyan)]/10 border-[var(--accentCyan)]/20 shadow-[0_0_15px_rgba(6,182,212,0.05)] font-bold' : 'hover:bg-surface'}`}>
+                <span className={`text-[14px] transition-all ${item.active ? `${item.color} drop-shadow-[0_0_5px_currentColor]` : 'text-textMuted opacity-40 group-hover:opacity-100'}`}>{item.icon}</span>
+                <span className={`text-[12px] tracking-tight ${item.active ? 'text-textPri font-bold' : 'text-textSec group-hover:text-textPri'}`}>{item.name}</span>
+              </Link>
+            ))}
           </nav>
-          
-          <div className="hidden md:block border-t border-borderline pt-4">
-            <Clock />
-            <div className="text-[11px] text-textSec">Schumacher standard.</div>
-          </div>
+          <div className="p-4 rounded-2xl bg-surface border border-borderline mt-4"><Clock /></div>
         </aside>
 
-        {/* IDENTITY CONTENT: F1 COCKPIT */}
-        <main className="flex-1 flex flex-col gap-6 p-4 md:p-6 overflow-hidden bg-base">
+        {/* --- MAIN HUD: THE IDENTITY MFD (Absolute Dark Mode) --- */}
+        <main className="flex-1 flex flex-col p-6 overflow-hidden bg-base">
           
-          {/* HEADER SECTION (Responsive text sizes) */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end shrink-0 mb-2 gap-3">
-            <div>
-              <h1 className="font-barlow text-[24px] sm:text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Operator Profile</h1>
-              <p className="text-[12px] sm:text-[13px] text-textSec mt-1">Core Directives, Philosophy, and System Portfolio</p>
-            </div>
-            <div className="flex">
-              <div className="text-[10px] sm:text-[11px] font-mono text-[#06b6d4] border border-[#06b6d4]/30 bg-[#06b6d4]/10 px-3 py-1.5 sm:py-1 rounded flex items-center gap-2 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
-                <span className="w-1.5 h-1.5 bg-[#06b6d4] rounded-full animate-pulse"></span>
-                IDENTITY VERIFIED
-              </div>
-            </div>
-          </div>
-
-          {/* F1 MFD WRAPPER - ABSOLUTE DARK MODE ENFORCED */}
-          <div className="group flex-1 bg-[#0a0a0a] border-4 border-[#1a1a1a] rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden relative cursor-default">
+          <div className="group flex-1 bg-[#05070a] border border-white/10 rounded-[22px] shadow-2xl flex flex-col overflow-hidden relative">
             
-            {/* RPM LED Strip */}
-            <div className="h-4 bg-[#111] border-b border-[#222] flex justify-center items-center gap-1 sm:gap-1.5 px-2 sm:px-4 pt-1 shrink-0">
-              {[...Array(10)].map((_, i) => <div key={`g-${i}`} className="w-4 sm:w-6 h-2 rounded-sm bg-[#222] transition-all duration-75 group-hover:bg-[#22c55e] group-hover:shadow-[0_0_8px_rgba(34,197,94,0.8)]" style={{ transitionDelay: `${i * 30}ms` }}></div>)}
-              {[...Array(4)].map((_, i) => <div key={`a-${i}`} className="w-4 sm:w-6 h-2 rounded-sm bg-[#222] transition-all duration-75 group-hover:bg-[#f59e0b] group-hover:shadow-[0_0_8px_rgba(245,158,11,0.8)]" style={{ transitionDelay: `${(i + 10) * 30}ms` }}></div>)}
-              {[...Array(3)].map((_, i) => <div key={`r-${i}`} className="w-4 sm:w-6 h-2 rounded-sm bg-[#222] transition-all duration-75 group-hover:bg-[#ef4444] group-hover:shadow-[0_0_8px_rgba(239,68,68,0.8)]" style={{ transitionDelay: `${(i + 14) * 30}ms` }}></div>)}
-              {[...Array(2)].map((_, i) => <div key={`b-${i}`} className="w-4 sm:w-6 h-2 rounded-sm bg-[#222] transition-all duration-75 group-hover:bg-[#3b82f6] group-hover:shadow-[0_0_8px_rgba(59,130,246,0.8)]" style={{ transitionDelay: `${(i + 17) * 30}ms` }}></div>)}
+            {/* RPM LED STRIP */}
+            <div className="h-4 bg-[#0a0a0a] border-b border-white/5 flex justify-center items-center gap-1.5 px-4 pt-1 shrink-0">
+               {[...Array(10)].map((_, i) => <div key={`g-${i}`} className="w-6 h-1.5 rounded-full bg-white/5 transition-all group-hover:bg-[var(--statusGreen)] group-hover:shadow-[0_0_8px_var(--statusGreen)]" style={{ transitionDelay: `${i * 20}ms` }}></div>)}
+               {[...Array(4)].map((_, i) => <div key={`a-${i}`} className="w-6 h-1.5 rounded-full bg-white/5 transition-all group-hover:bg-[var(--accentAmber)] group-hover:shadow-[0_0_8px_var(--accentAmber)]" style={{ transitionDelay: `${(i+10) * 20}ms` }}></div>)}
+               {[...Array(3)].map((_, i) => <div key={`r-${i}`} className="w-6 h-1.5 rounded-full bg-white/5 transition-all group-hover:bg-[var(--statusRed)] group-hover:shadow-[0_0_8px_var(--statusRed)]" style={{ transitionDelay: `${(i+14) * 20}ms` }}></div>)}
             </div>
 
-            {/* THE DUAL-ZONE SCROLL MATRIX */}
-            <div className="flex-1 w-full p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row gap-6 md:gap-8 relative z-20 overflow-y-auto lg:overflow-hidden">
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative z-10">
               
-              {/* LEFT COLUMN: THE MANIFESTO (Independent Scroll) */}
-              <div className="flex-[0.35] flex flex-col gap-6 lg:h-full lg:overflow-y-auto custom-scrollbar lg:pr-4 pb-4">
-                
-                {/* VESTRIPPN3POINT0 Profile */}
-                <div className="bg-[#111] border border-[#222] rounded-lg p-4 sm:p-5 shrink-0">
-                  <h2 className="font-orbitron font-bold text-[18px] sm:text-[22px] text-white tracking-widest uppercase mb-1">VESTRIPPN3POINT0</h2>
-                  <div className="text-[11px] sm:text-[12px] font-mono text-[#06b6d4] mb-4 flex flex-wrap gap-2">
-                    <span className="bg-[#06b6d4]/10 px-2 py-0.5 rounded border border-[#06b6d4]/30">Medical student</span>
-                    <span className="bg-[#06b6d4]/10 px-2 py-0.5 rounded border border-[#06b6d4]/30">Systems builder</span>
-                    <span className="bg-[#06b6d4]/10 px-2 py-0.5 rounded border border-[#06b6d4]/30">Research operator</span>
-                  </div>
-                  <p className="text-gray-400 text-[12px] sm:text-[13px] leading-relaxed italic border-l-2 border-[#333] pl-3 mb-4">
-                    "Built through discipline, failure, adaptation, and relentless iteration."
-                  </p>
-                  <p className="text-gray-300 text-[12px] sm:text-[13px] leading-relaxed">
-                    This platform exists for one purpose: <strong className="text-white">To transform chaos into clarity.</strong> From academics to research, from fitness to leadership, every system here is designed around one principle:
-                  </p>
-                </div>
-
-                {/* DAS SYSTEM */}
-                <div className="bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-[#333] rounded-lg p-4 sm:p-5 shadow-[0_0_20px_rgba(6,182,212,0.05)] relative overflow-hidden shrink-0">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#06b6d4]/5 blur-[40px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-                  <h3 className="font-orbitron text-[18px] sm:text-[20px] text-[#06b6d4] font-bold mb-1"># DAS SYSTEM</h3>
-                  <div className="text-[10px] sm:text-[11px] font-mono text-gray-500 mb-4 tracking-widest uppercase">Delegating Anticipatory Standards <span className="text-white">→</span> Dominating All Season.</div>
-                  <p className="text-gray-400 text-[12px] sm:text-[13px] leading-relaxed mb-4">
-                    Not through burnout.<br/>
-                    Not through panic.<br/>
-                    Through <span className="text-white">structure, consistency, strategy,</span> and repeatable execution.
-                  </p>
-                  
-                  <h4 className="text-[10px] sm:text-[11px] font-mono text-white tracking-widest uppercase mb-2 border-b border-[#333] pb-1">Core Philosophy</h4>
-                  <ul className="text-[11px] sm:text-[12px] text-gray-400 space-y-1.5 font-mono list-disc pl-4">
-                    <li><span className="text-gray-300">Strong days accumulate.</span></li>
-                    <li>Systems outperform motivation.</li>
-                    <li>Strategy beats raw firepower.</li>
-                    <li>Calm execution under pressure.</li>
-                    <li>Every setback contains data.</li>
-                    <li>Optimization is an act of perseverance.</li>
-                  </ul>
-                </div>
-
-                {/* MISSION & ORIGIN */}
-                <div className="bg-[#111] border border-[#222] rounded-lg p-4 sm:p-5 shrink-0">
-                  <h4 className="text-[10px] sm:text-[11px] font-mono text-[#f59e0b] tracking-widest uppercase mb-3 border-b border-[#333] pb-1">The Mission</h4>
-                  <div className="text-[12px] sm:text-[13px] text-gray-300 mb-4">
-                    To become:
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li>a reliable doctor</li>
-                      <li>a capable researcher</li>
-                      <li>a disciplined leader</li>
-                      <li>and a person who fully lives each day with intention.</li>
-                    </ul>
-                  </div>
-                  <p className="text-[10px] sm:text-[11px] text-gray-500 uppercase tracking-widest mb-5">
-                    This website is not a showcase.<br/>It is a command center for continuous improvement.
-                  </p>
-
-                  <h4 className="text-[10px] sm:text-[11px] font-mono text-[#22c55e] tracking-widest uppercase mb-3 border-b border-[#333] pb-1">Built From</h4>
-                  <ul className="list-disc pl-5 text-[11px] sm:text-[12px] text-gray-400 space-y-1 mb-5">
-                    <li>Olympiad discipline</li>
-                    <li>Medical school pressure</li>
-                    <li>Leadership experience</li>
-                    <li>Research ambition</li>
-                    <li>Late-night failures</li>
-                    <li>Early-morning recovery drives</li>
-                  </ul>
-
-                  <div className="bg-[#1a1a1a] border-l-2 border-[#06b6d4] p-3 text-[11px] sm:text-[12px] text-white italic">
-                    And above all:<br/>
-                    "the decision to keep moving forward."
+              {/* LEFT ZONE: OPERATOR MANIFESTO (Stays Dark) */}
+              <div className="flex-[0.3] flex flex-col gap-6 p-8 overflow-y-auto custom-scrollbar border-r border-white/5 bg-[#07090d]">
+                <div className="space-y-2 mb-4">
+                  <h2 className="font-orbitron font-black text-[24px] text-white tracking-[0.2em] uppercase">VESTRIPPN 3.0</h2>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[var(--accentCyan)]/20 border border-[var(--accentCyan)]/40 text-[var(--accentCyan)] rounded">MED_STUDENT</span>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-white/5 border border-white/10 text-slate-400 rounded uppercase">SYSTEMS_ARCHITECT</span>
                   </div>
                 </div>
 
-                {/* FINAL DIRECTIVE */}
-                <div className="text-center py-4 bg-[#111] border border-[#222] rounded-lg shrink-0">
-                  <h4 className="text-[9px] sm:text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-3 border-b border-[#333] pb-2 mx-4">FINAL DIRECTIVE</h4>
-                  <div className="font-orbitron text-[13px] sm:text-[14px] text-white tracking-[0.2em] mb-1">PLAN INTELLIGENTLY.</div>
-                  <div className="font-orbitron text-[13px] sm:text-[14px] text-white tracking-[0.2em] mb-1">EXECUTE CALMLY.</div>
-                  <div className="font-orbitron text-[13px] sm:text-[14px] text-white tracking-[0.2em] mb-3">ADAPT RELENTLESSLY.</div>
-                  <div className="text-[#06b6d4] font-bold tracking-widest text-[13px] sm:text-[14px]">#DASSystem 🏁</div>
+                <div className="p-6 bg-white/[0.03] border border-white/10 rounded-xl space-y-4">
+                   <div className="text-[10px] font-mono text-[var(--accentCyan)] font-bold uppercase tracking-[0.3em]"># DAS_SYSTEM_v3</div>
+                   <p className="text-[13px] text-slate-200 leading-relaxed italic">"Transforming chaos into clarity through discipline, failure, adaptation, and relentless iteration."</p>
                 </div>
 
+                <div className="space-y-5">
+                   <h4 className="text-[10px] font-mono text-[var(--accentAmber)] uppercase tracking-[0.4em] border-b border-white/5 pb-2">University_Acceptance</h4>
+                   <div className="space-y-3">
+                      <div className="p-4 bg-[var(--statusGreen)]/10 border border-[var(--statusGreen)]/30 rounded-xl">
+                        <div className="text-[12px] font-bold text-white uppercase leading-tight">Faculty of Medicine, Chiang Mai University</div>
+                        <div className="text-[9px] font-mono text-[var(--statusGreen)] mt-1 uppercase tracking-tighter">Portfolio Round // Olympiad (ตัวจริง)</div>
+                      </div>
+                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-xl">
+                        <div className="text-[12px] font-bold text-white uppercase leading-tight">Faculty of Medicine Siriraj Hospital, Mahidol</div>
+                        <div className="text-[9px] font-mono text-slate-400 mt-1 uppercase tracking-tighter">Portfolio Round // Olympiad (ตัวจริง)</div>
+                      </div>
+                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-xl">
+                        <div className="text-[12px] font-bold text-white uppercase leading-tight">Faculty of Medicine, Khon Kaen</div>
+                        <div className="text-[9px] font-mono text-slate-400 mt-1 uppercase tracking-tighter">Portfolio Round // MDX-1 (Interview)</div>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="mt-auto pt-6 border-t border-white/10 text-center">
+                   <div className="text-[10px] font-mono text-white/30 uppercase tracking-[0.4em] mb-4">Final Directive</div>
+                   <div className="font-orbitron text-[15px] font-black text-white tracking-[0.2em] space-y-1">
+                      <div>PLAN INTELLIGENTLY</div>
+                      <div>EXECUTE CALMLY</div>
+                      <div className="text-[var(--accentCyan)]">ADAPT RELENTLESSLY</div>
+                   </div>
+                </div>
               </div>
 
-              {/* RIGHT COLUMN: THE EXPANDED PORTFOLIO TELEMETRY (Independent Scroll) */}
-              <div className="flex-[0.65] flex flex-col gap-6 lg:h-full lg:overflow-y-auto custom-scrollbar lg:pr-4 pb-4">
+              {/* RIGHT ZONE: DATA MATRIX (ACHIEVEMENTS + LEGENDS) */}
+              <div className="flex-[0.7] flex flex-col p-8 overflow-y-auto custom-scrollbar bg-white/[0.01]">
                 
-                {/* 1. Science Olympiads */}
-                <div className="bg-[#111] border border-[#222] rounded-lg p-4 sm:p-5 shrink-0">
-                  <h3 className="font-orbitron text-[13px] sm:text-[15px] text-white mb-4 sm:mb-5 border-b border-[#333] pb-2 tracking-widest uppercase flex items-center gap-2">
-                    <span className="text-xl sm:text-2xl">🥴</span> Science Olympiads
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {/* IESO */}
-                    <div className="bg-[#1a1a1a] border border-[#333] p-3 sm:p-4 rounded group hover:border-[#d97706] transition-colors relative overflow-hidden">
-                      <div className="absolute left-0 top-0 w-1 h-full bg-[#d97706]"></div>
-                      <div className="flex flex-col sm:flex-row justify-between items-start mb-2 pl-2 gap-2">
-                        <div className="text-[13px] sm:text-[14px] font-bold text-white leading-tight">16th International Earth Science Olympiad (IESO 2023)</div>
-                        <div className="text-[9px] sm:text-[10px] font-mono text-[#d97706] bg-[#d97706]/10 px-2 py-0.5 rounded whitespace-nowrap shrink-0 border border-[#d97706]/30">RANK: 72th GLOBALLY</div>
-                      </div>
-                      <div className="text-[12px] sm:text-[13px] text-gray-300 pl-2 mt-2 leading-relaxed">
-                        <span className="text-[#d97706] font-bold bg-[#d97706]/10 px-1 rounded">Bronze Medalist 🥉</span> in the following examinations:
-                        <ul className="list-none space-y-1 mt-2 text-gray-400">
-                          <li>1. Data Mining Test (DMT) 🥉</li>
-                          <li>2. National Team Field Investigation (NTFI) 🥉</li>
-                          <li>3. Earth System Project (ESP) 🥉</li>
-                          <li>4. <strong className="text-gray-200">IESO Art in Earth Science</strong> 🥉</li>
-                        </ul>
-                      </div>
-                    </div>
+                {/* Sector A: Science Olympiads */}
+                <h3 className="font-mono text-[11px] font-bold text-[var(--accentAmber)] uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-4 bg-[var(--accentAmber)] shadow-[0_0_8px_var(--accentAmber)]"></div>
+                  Sector Alpha: Science Olympiads 🥴
+                </h3>
 
-                    {/* TESO */}
-                    <div className="bg-[#1a1a1a] border border-[#333] p-3 sm:p-4 rounded group hover:border-[#eab308] transition-colors relative overflow-hidden">
-                      <div className="absolute left-0 top-0 w-1 h-full bg-[#eab308]"></div>
-                      <div className="flex flex-col sm:flex-row justify-between items-start mb-2 pl-2 gap-2">
-                        <div className="text-[13px] sm:text-[14px] font-bold text-white leading-tight">3rd Thailand Earth Science Olympiad (TESO 2023)</div>
-                        <div className="text-[9px] sm:text-[10px] font-mono text-[#eab308] bg-[#eab308]/10 px-2 py-0.5 rounded whitespace-nowrap shrink-0 border border-[#eab308]/30">RANK: 2nd</div>
-                      </div>
-                      <div className="text-[12px] sm:text-[13px] text-gray-300 pl-2 mt-2 leading-relaxed">
-                        <span className="text-[#eab308] font-bold bg-[#eab308]/10 px-1 rounded">Gold Medalist 🥇</span> with the following special awards:
-                        <ul className="list-none space-y-1 mt-2 text-gray-400">
-                          <li>1. Best Earth System Project (ESP) Research Team 🏆</li>
-                          <li>2. Highest Practical Test Scorer (Best Practical) 🏆</li>
-                          <li>3. Highest Regional Student Scorer (Best Regional) 🏆</li>
-                          <li className="text-gray-200 mt-2">4. Qualified to become the <strong className="text-white">Representative of Thailand</strong> to participate in the 16th International Earth Science Olympiad (IESO 2023)</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Astronomy Senior */}
-                    <div className="bg-[#1a1a1a] border border-[#333] p-3 sm:p-4 rounded group hover:border-[#9ca3af] transition-colors relative overflow-hidden">
-                      <div className="absolute left-0 top-0 w-1 h-full bg-[#9ca3af]"></div>
-                      <div className="text-[13px] sm:text-[14px] font-bold text-white mb-3 pl-2">Thailand Astronomy Olympiad (Senior Division)</div>
-                      <div className="text-[12px] sm:text-[13px] text-gray-300 pl-2 space-y-4">
-                        <div className="border-l border-[#333] pl-3">
-                          <span className="text-[#9ca3af] font-bold bg-[#9ca3af]/10 px-1 rounded">Silver Medalist 🥈</span> (ranked 18th) in the senior division of the <strong>20th Thailand Astronomy Olympiad (20th TAO)</strong> to qualify for the International Olympiad on Astronomy and Astrophysics (IOAA).
-                        </div>
-                        <div className="border-l border-[#333] pl-3">
-                          <span className="text-[#9ca3af] font-bold bg-[#9ca3af]/10 px-1 rounded">Silver Medalist 🥈</span> (ranked 14th) in the senior division of the <strong>19th Thailand Astronomy Olympiad (19th TAO)</strong> to qualify for the International Olympiad on Astronomy and Astrophysics (IOAA).
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Astronomy Junior */}
-                    <div className="bg-[#1a1a1a] border border-[#333] p-3 sm:p-4 rounded group hover:border-[#eab308] transition-colors relative overflow-hidden">
-                      <div className="absolute left-0 top-0 w-1 h-full bg-[#eab308]"></div>
-                      <div className="text-[13px] sm:text-[14px] font-bold text-white mb-3 pl-2">Thailand Astronomy Olympiad (Junior Division)</div>
-                      <div className="text-[12px] sm:text-[13px] text-gray-300 pl-2 space-y-4">
-                        <div className="border-l border-[#333] pl-3">
-                          <span className="text-[#eab308] font-bold bg-[#eab308]/10 px-1 rounded">Gold Medalist 🥇</span> (ranked 4th) in the <strong>junior division of the 18th Thailand Astronomy Olympiad (18th TAO)</strong> to qualify for the International Astronomy Olympiad (IAO) with the following special awards:
-                          <div className="mt-2 text-gray-400">
-                            1. Qualified to become the <strong className="text-gray-200">Substitute Representative of Thailand</strong> to participate in the International Remote Astronomy Olympiad (IRAO 2021).
-                          </div>
-                        </div>
-                        <div className="border-l border-[#333] pl-3">
-                          <span className="text-[#d97706] font-bold bg-[#d97706]/10 px-1 rounded">Bronze Medalist 🥉</span> (ranked 24th) in the <strong>junior division of the 17th Thailand Astronomy Olympiad (17th TAO)</strong> to qualify for the International Astronomy Olympiad (IAO).
-                        </div>
-                      </div>
-                    </div>
-                    
-                  </div>
+                <div className="space-y-4 mb-12">
+                   <AchievementNode 
+                     title="16th International Earth Science Olympiad (IESO 2023)" 
+                     rank="RANK_72nd GLOBALLY" 
+                     medal="BRONZE MEDALIST 🥉" 
+                     color="var(--accentAmber)"
+                     details={[
+                       "1. Data Mining Test (DMT) 🥉",
+                       "2. National Team Field Investigation (NTFI) 🥉",
+                       "3. Earth System Project (ESP) 🥉",
+                       "4. IESO Art in Earth Science 🥉"
+                     ]}
+                   />
+                   <AchievementNode 
+                     title="3rd Thailand Earth Science Olympiad (TESO 2023)" 
+                     rank="RANK_2nd NATIONAL" 
+                     medal="GOLD MEDALIST 🥇" 
+                     color="var(--statusGreen)"
+                     details={[
+                       "1. Best Earth System Project (ESP) Research Team 🏆",
+                       "2. Highest Practical Test Scorer (Best Practical) 🏆",
+                       "3. Highest Regional Student Scorer (Best Regional) 🏆",
+                       "4. Qualified as Representative of Thailand for IESO 2023"
+                     ]}
+                   />
+                   <AchievementNode 
+                     title="Thailand Astronomy Olympiad (TAO Senior)" 
+                     rank="19th & 20th TAO" 
+                     medal="SILVER MEDALIST 🥈" 
+                     color="var(--textMuted)"
+                     details={[
+                       "Ranked 14th in 19th TAO Senior Division",
+                       "Ranked 18th in 20th TAO Senior Division",
+                       "Qualified for Int. Olympiad on Astronomy and Astrophysics (IOAA)"
+                     ]}
+                   />
+                   <AchievementNode 
+                     title="18th Thailand Astronomy Olympiad (TAO Junior)" 
+                     rank="RANK_4th NATIONAL" 
+                     medal="GOLD MEDALIST 🥇" 
+                     color="var(--statusGreen)"
+                     details={[
+                       "Qualified for International Astronomy Olympiad (IAO)",
+                       "Qualified as Substitute Representative of Thailand for IRAO 2021"
+                     ]}
+                   />
+                   <AchievementNode 
+                     title="17th Thailand Astronomy Olympiad (TAO Junior)" 
+                     rank="RANK_24th NATIONAL" 
+                     medal="BRONZE MEDALIST 🥉" 
+                     color="var(--accentAmber)"
+                     details={["Qualified for International Astronomy Olympiad (IAO)"]}
+                   />
                 </div>
 
-                {/* 2. Scientific Competitions */}
-                <div className="bg-[#111] border border-[#222] rounded-lg p-4 sm:p-5 shrink-0">
-                  <h3 className="font-orbitron text-[13px] sm:text-[15px] text-white mb-4 sm:mb-5 border-b border-[#333] pb-2 tracking-widest uppercase flex items-center gap-2">
-                    <span className="text-xl sm:text-2xl">😎</span> Scientifically-Related Competitions
-                  </h3>
-                  <div className="space-y-5">
-                    <div className="border-l-2 border-[#06b6d4] pl-3 sm:pl-4">
-                      <div className="text-[13px] sm:text-[14px] font-bold text-white mb-1">YSC 2023 (2023 Young Scientist’s Competition) - Chemistry 🧪</div>
-                      <div className="text-[12px] sm:text-[13px] text-gray-300 space-y-1">
-                        <div>to qualify for the <strong className="text-white">International Science and Engineering Fair (Regeneron ISEF 2023)</strong> 🏆</div>
-                        <ul className="list-none text-gray-400 mt-2 space-y-1">
-                          <li>- 🔖 1st Prize Project on the Regional Competition</li>
-                          <li>- Honourable Mention Project on the National Competition</li>
-                        </ul>
-                      </div>
-                    </div>
+                {/* Sector B: Scientific Competitions */}
+                <h3 className="font-mono text-[11px] font-bold text-[var(--accentFuchsia)] uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-4 bg-[var(--accentFuchsia)] shadow-[0_0_8px_var(--accentFuchsia)]"></div>
+                  Sector Beta: Scientific Competitions 😎
+                </h3>
 
-                    <div className="border-l-2 border-[#22c55e] pl-3 sm:pl-4">
-                      <div className="text-[13px] sm:text-[14px] font-bold text-white mb-1">TYSF 2023 (2023 Thailand Youth Science Fair) - Physics and Material Science ⚛️</div>
-                      <div className="text-[12px] sm:text-[13px] text-gray-300 space-y-1">
-                        <div>to qualify for the <strong className="text-white">International Science and Engineering Fair (Regeneron ISEF 2024)</strong> 🥉</div>
-                        <ul className="list-none text-gray-400 mt-2 space-y-1">
-                          <li>- 🥉 Bronze Medal on the Regional Competition with a special award of:</li>
-                          <li>- 🏆 Best Material Science Innovation Project</li>
-                        </ul>
+                <div className="space-y-4 mb-12">
+                   <AchievementNode 
+                     title="YSC 2023 (Young Scientist’s Competition) - Chemistry" 
+                     rank="NATIONAL FINALIST" 
+                     medal="QUALIFIED FOR ISEF 2023 🏆" 
+                     color="var(--accentFuchsia)"
+                     details={[
+                       "1st Prize Project on the Regional Competition 🔖",
+                       "Honourable Mention Project on the National Competition"
+                     ]}
+                   />
+                   <AchievementNode 
+                     title="TYSF 2023 (Thailand Youth Science Fair) - Physics & Materials" 
+                     rank="QUALIFIED FOR ISEF 2024" 
+                     medal="BRONZE / BEST INNOVATION 🥉" 
+                     color="var(--accentAmber)"
+                     details={[
+                       "Bronze Medal on the Regional Competition",
+                       "Special Award: Best Material Science Innovation Project 🏆"
+                     ]}
+                   />
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-5 bg-white/[0.02] border border-white/10 rounded-xl">
+                        <div className="text-[10px] font-mono text-[var(--accentAmber)] mb-1 uppercase font-black">Astro Challenge 2021</div>
+                        <div className="text-[14px] font-bold text-white mb-2">3rd Prize Winner 🥉</div>
                       </div>
-                    </div>
-
-                    <div className="border-l-2 border-[#333] pl-3 sm:pl-4 text-[12px] sm:text-[13px] text-gray-300 space-y-3 pt-2">
-                      <div><strong className="text-white">Astro Challenge 2021</strong> - 🥉- 3rd Prize Winner</div>
-                      <div><strong className="text-white">Junior Science Talent Project</strong> (24th Generation Alumni)</div>
-                      <div><strong className="text-white">PM Science Award</strong> - Top 5 Project (National-level award)</div>
-                      <div className="italic text-gray-500 font-mono text-[10px] sm:text-[11px] mt-2">and other more small-scale awards.....</div>
-                    </div>
-                  </div>
+                      <div className="p-5 bg-white/[0.02] border border-white/10 rounded-xl">
+                        <div className="text-[10px] font-mono text-slate-400 mb-1 uppercase font-black">Alumni Node</div>
+                        <div className="text-[14px] font-bold text-white mb-2">JSTP 24th Generation</div>
+                      </div>
+                      <div className="p-5 bg-white/[0.02] border border-white/10 rounded-xl">
+                        <div className="text-[10px] font-mono text-[var(--statusGreen)] mb-1 uppercase font-black">National Node</div>
+                        <div className="text-[14px] font-bold text-white mb-2">PM Science Top 5</div>
+                      </div>
+                   </div>
+                   <div className="text-[10px] font-mono text-slate-500 italic mt-2 uppercase tracking-widest text-center">... and other small-scale operational victories logged ...</div>
                 </div>
 
-                {/* 3. English & University (Split Row) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 shrink-0">
-                  
-                  {/* English Proficiency Test */}
-                  <div className="bg-[#111] border border-[#222] rounded-lg p-4 sm:p-5">
-                    <h3 className="font-orbitron text-[12px] sm:text-[13px] text-white mb-3 sm:mb-4 border-b border-[#333] pb-2 tracking-widest uppercase flex items-center gap-2">
-                      <span className="text-lg sm:text-xl">🔖</span> English Proficiency Test
-                    </h3>
-                    <div className="space-y-4 text-[12px] sm:text-[13px]">
-                      <div>
-                        <div className="text-white font-bold mb-1">IELTS Overall = <span className="text-[#06b6d4]">8.0</span></div>
-                        <div className="text-gray-400 font-mono text-[10px] sm:text-[11px] bg-[#1a1a1a] p-2 rounded border border-[#333]">
-                          ( L8.5, R8.5, S7.5, W7 → avg. 7.875 ~ 8 )
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="text-white font-bold mb-1">BMAT (BioMedical Admissions Test)</div>
-                        <div className="text-gray-400 font-mono text-[10px] sm:text-[11px] bg-[#1a1a1a] p-2 rounded border border-[#333]">
-                          Overall <span className="text-[#f59e0b] font-bold">14.0 A</span> ( Part1=4.6, Part2=6.4, Part3=3A )
-                        </div>
-                      </div>
+                {/* Sector C: Proficiency Telemetry */}
+                <h3 className="font-mono text-[11px] font-bold text-[var(--accentCyan)] uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-4 bg-[var(--accentCyan)] shadow-[0_0_8px_var(--accentCyan)]"></div>
+                  Sector Gamma: English Proficiency 🔖
+                </h3>
 
-                      <ul className="text-gray-300 space-y-2 border-t border-[#333] pt-3">
-                        <li><strong className="text-white">Cambridge Assessments Test: PET</strong> (CEFR=B1) 168/170</li>
-                        <li><strong className="text-white">Cambridge Assessments Test: KET</strong> (CEFR=A2) 170/170</li>
-                        <li className="text-gray-400">🔖 - Honourable Mention at the Pet Yod Mongkut English Test (Junior Division)</li>
-                        <li className="text-gray-400">🔖 - TGAT1 (English Part) 93.333/100</li>
-                        <li className="italic text-gray-500 font-mono text-[9px] sm:text-[10px] pt-1">and other more small-scale awards.....</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* University Acceptance */}
-                  <div className="bg-[#111] border border-[#222] rounded-lg p-4 sm:p-5">
-                    <h3 className="font-orbitron text-[12px] sm:text-[13px] text-white mb-3 sm:mb-4 border-b border-[#333] pb-2 tracking-widest uppercase flex items-center gap-2">
-                      <span className="text-lg sm:text-xl">😁</span> University Acceptance
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="bg-[#1a1a1a] border border-[#333] p-3 rounded group hover:border-[#06b6d4] transition-colors">
-                        <div className="text-[12px] sm:text-[13px] font-bold text-white leading-tight mb-1">Faculty of Medicine, Chiang Mai University</div>
-                        <div className="text-[10px] sm:text-[11px] text-[#06b6d4] font-mono">(Portfolio Round, Olympiad (ตัวจริง))</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                   <div className="p-6 bg-white/[0.03] border border-[var(--accentCyan)]/30 rounded-xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-3 font-orbitron text-[32px] font-black text-[var(--accentCyan)] opacity-20">8.0</div>
+                      <div className="text-[13px] font-black text-white uppercase mb-3 tracking-widest">IELTS Overall</div>
+                      <div className="text-[11px] font-mono text-slate-400 uppercase tracking-tighter mb-4">L:8.5 | R:8.5 | S:7.5 | W:7.0 (Avg: 7.875)</div>
+                      <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Protocol: BC_STANDARD</div>
+                   </div>
+                   <div className="p-6 bg-white/[0.03] border border-[var(--accentAmber)]/30 rounded-xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-3 font-orbitron text-[32px] font-black text-[var(--accentAmber)] opacity-20">14.0A</div>
+                      <div className="text-[13px] font-black text-white uppercase mb-3 tracking-widest">BMAT Overall</div>
+                      <div className="text-[11px] font-mono text-slate-400 uppercase tracking-tighter mb-4">Part1: 4.6 | Part2: 6.4 | Part3: 3A</div>
+                      <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Protocol: CAMBRIDGE_MED</div>
+                   </div>
+                   <div className="md:col-span-2 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="p-4 bg-white/[0.02] border border-white/10 rounded-xl text-center">
+                        <div className="text-[8px] font-mono text-slate-400 uppercase mb-1 tracking-tighter">PET (B1)</div>
+                        <div className="text-[16px] font-bold text-white font-orbitron">168/170</div>
                       </div>
-                      
-                      <div className="bg-[#1a1a1a] border border-[#333] p-3 rounded group hover:border-[#22c55e] transition-colors">
-                        <div className="text-[12px] sm:text-[13px] font-bold text-white leading-tight mb-1">Faculty of Medicine Siriraj Hospital, Mahidol University</div>
-                        <div className="text-[10px] sm:text-[11px] text-[#22c55e] font-mono">(Portfolio Round, Olympiad (ตัวจริง))</div>
+                      <div className="p-4 bg-white/[0.02] border border-white/10 rounded-xl text-center">
+                        <div className="text-[8px] font-mono text-slate-400 uppercase mb-1 tracking-tighter">KET (A2)</div>
+                        <div className="text-[16px] font-bold text-white font-orbitron">170/170</div>
                       </div>
-                      
-                      <div className="bg-[#1a1a1a] border border-[#333] p-3 rounded group hover:border-[#f59e0b] transition-colors">
-                        <div className="text-[12px] sm:text-[13px] font-bold text-white leading-tight mb-1">Faculty of Medicine, Khon Kaen University</div>
-                        <div className="text-[10px] sm:text-[11px] text-[#f59e0b] font-mono">(Portfolio Round, MDX-1 (Interview-Round))</div>
+                      <div className="p-4 bg-white/[0.02] border border-white/10 rounded-xl text-center">
+                        <div className="text-[8px] font-mono text-slate-400 uppercase mb-1 tracking-tighter">TGAT1 (Eng)</div>
+                        <div className="text-[16px] font-bold text-white font-orbitron">93.33/100</div>
                       </div>
-                    </div>
-                  </div>
-
+                      <div className="p-4 bg-white/[0.02] border border-white/10 rounded-xl text-center flex items-center justify-center">
+                        <div className="text-[9px] font-mono text-[var(--accentCyan)] font-black uppercase tracking-tighter">Pet Yod Mongkut Hon. Mention</div>
+                      </div>
+                   </div>
                 </div>
 
+                {/* Sector D: Archetype Archive (F1 LEGENDS) */}
+                <h3 className="font-mono text-[11px] font-bold text-[var(--statusRed)] uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-4 bg-[var(--statusRed)] shadow-[0_0_8px_var(--statusRed)]"></div>
+                  Sector Sigma: Legacy Archetypes // F1 Hall of Fame
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LegendTile name="Michael Schumacher" title="7 Titles" color="var(--statusRed)" fact="Transformed Ferrari through total tactical discipline; established the 'Super-Athlete' driver standard." />
+                  <LegendTile name="Lewis Hamilton" title="7 Titles" color="var(--accentViolet)" fact="Record holder for most wins/poles; used global platform to redefine cultural impact in racing." />
+                  <LegendTile name="Juan Manuel Fangio" title="5 Titles" color="var(--accentAmber)" fact="The original master; won 5 championships with 4 different teams with a 46% win-to-race ratio." />
+                  <LegendTile name="Max Verstappen" title="4 Titles" color="var(--accentCyan)" fact="Defined a new era of dominance with a relentless, aggressive pace and clinical consistency." />
+                  <LegendTile name="Sebastian Vettel" title="4 Titles" color="var(--accentIndigo)" fact="Youngest world champion; known for hyper-strategic intelligence and absolute work ethic." />
+                  <LegendTile name="Alain Prost" title="4 Titles" color="var(--accentEmerald)" fact="'The Professor'; won through intellectual precision, risk-mitigation, and calculated execution." />
+                  <LegendTile name="Ayrton Senna" title="3 Titles" color="var(--statusRed)" fact="Pure driving instinct; redefined limits in Monaco and wet-weather; the spiritual master of speed." />
+                  <LegendTile name="Niki Lauda" title="3 Titles" color="var(--statusRed)" fact="'The Computer'; used engineering logic to survive the unsurvivable and out-calculate rivals." />
+                </div>
+
+                <div className="h-32"></div>
               </div>
             </div>
 
-            <div className="h-2 bg-[#111] border-t border-[#333] shrink-0"></div>
+            {/* BOTTOM TRIM */}
+            <div className="h-1.5 bg-gradient-to-r from-[var(--accentCyan)] via-[var(--statusGreen)] to-[var(--accentAmber)] opacity-30"></div>
           </div>
         </main>
       </div>
-    </>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENTS (With Hardcoded White/Glow Text) ---
+
+function AchievementNode({ title, rank, medal, details, color }: { title: string, rank: string, medal: string, details: string[], color: string }) {
+  return (
+    <div className="group/node p-6 bg-white/[0.02] border border-white/10 rounded-xl hover:border-white/20 transition-all relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-1 h-full opacity-30 group-hover/node:opacity-100 transition-opacity" style={{ backgroundColor: color }}></div>
+      <div className="flex justify-between items-start mb-4 pl-2">
+        <span className="text-[14px] font-orbitron font-black text-white uppercase tracking-tighter">{title}</span>
+        <span className="text-[9px] font-mono font-black text-slate-400 uppercase tracking-widest">{rank}</span>
+      </div>
+      <div className="pl-2">
+        <div className="text-[11px] font-mono font-black uppercase tracking-widest mb-3" style={{ color }}>{medal}</div>
+        <ul className="space-y-1.5">
+           {details.map((line, i) => (
+             <li key={i} className="text-[12px] text-slate-300 font-medium leading-relaxed group-hover/node:text-white transition-colors">• {line}</li>
+           ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function LegendTile({ name, title, color, fact }: { name: string, title: string, color: string, fact: string }) {
+  return (
+    <div className="group/legend p-6 bg-white/[0.02] border border-white/10 rounded-xl hover:border-white/20 transition-all relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-1 h-full opacity-20 group-hover/legend:opacity-100 transition-opacity" style={{ backgroundColor: color }}></div>
+      <div className="flex justify-between items-start mb-3">
+        <span className="text-[15px] font-orbitron font-black text-white uppercase tracking-tight">{name}</span>
+        <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded border border-white/10" style={{ color }}>{title}</span>
+      </div>
+      <p className="text-[12px] text-slate-400 leading-snug group-hover/legend:text-white/90 transition-colors italic">"{fact}"</p>
+    </div>
   );
 }

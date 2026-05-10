@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run node -v",
+            "program": "/usr/local/bin/node",
+            "args": [
+                "-v"
+            ],
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}

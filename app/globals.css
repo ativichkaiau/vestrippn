@@ -3,45 +3,78 @@
 @layer base {
   :root {
     /* LIGHT MODE (Day) */
-    --base: #F8FAFC;
+    --base: #F1F5F9;
     --surface: #FFFFFF;
     --borderline: #E2E8F0;
-    --accentCyan: #0284C7; /* Deeper blue for white bg contrast */
-    --accentAmber: #D97706;
-    --statusGreen: #10B981;
+    
+    --accentCyan: #0EA5E9;
+    --accentFuchsia: #D946EF;
+    --accentAmber: #F59E0B;
+    --accentEmerald: #10B981;
+    --accentIndigo: #6366F1;
+    --accentViolet: #8B5CF6;
+    
+    --statusGreen: #22C55E;
     --statusRed: #EF4444;
+    
     --textPri: #0F172A;
     --textSec: #475569;
     --textMuted: #94A3B8;
-  }
-
-  .dark {
-    /* DARK MODE (Night Cockpit) */
-    --base: #080C14;
-    --surface: #0F1623;
-    --borderline: #1E2D45;
-    --accentCyan: #00C2FF;
-    --accentAmber: #F0A500;
-    --statusGreen: #1DB97A;
-    --statusRed: #E05252;
-    --textPri: #E8EDF5;
-    --textSec: #7A8FA8;
-    --textMuted: #3A4D65;
   }
   
   body {
     background-color: var(--base);
     color: var(--textPri);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 }
-/* Hide number input spinners for dashboard feel */
-.no-spinners::-webkit-inner-spin-button,
-.no-spinners::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+
+/* DARK MODE (Tactical Night) */
+.dark {
+  --base: #05070a;
+  --surface: #0b0e14;
+  --borderline: #1e293b;
+  
+  --accentCyan: #00C2FF;
+  --accentFuchsia: #A78BFA;
+  --accentAmber: #FBBF24;
+  --accentEmerald: #34D399;
+  --accentIndigo: #818CF8;
+  --accentViolet: #C084FC;
+  
+  --statusGreen: #4ADE80;
+  --statusRed: #FB7185;
+  
+  --textPri: #F8FAFC;
+    /* Only transition on theme changes to avoid jank */
+    transition: background-color 0.4s ease, color 0.4s ease;
+  --textMuted: #475569;
 }
-.no-spinners {
-  appearance: textfield;
-  -moz-appearance: textfield;
+
+/* SCANLINE ANIMATION */
+@keyframes scanline {
+  0% { transform: translateY(-100vh); }
+  100% { transform: translateY(100vh); }
+}
+.animate-scanline {
+  animation: scanline 12s linear infinite;
+}
+/* CUSTOM SCROLLBAR FOR MEDICAL HUD */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--borderline) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--borderline);
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accentCyan);
 }

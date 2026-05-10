@@ -3,169 +3,153 @@
 import { useState, useEffect } from 'react';
 
 interface PubMedResult {
-  id: string;
-  title: string;
-  authors: string;
-  pubdate: string;
+  id: string; title: string; authors: string; pubdate: string;
 }
 
 export default function ResearchCard() {
   const [isMounted, setIsMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Project State
-  const [projectName, setProjectName] = useState('Brugada Phenotypes in SE Asia');
-  const [currentPhase, setCurrentPhase] = useState('Extraction Phase');
-  const [nextStep, setNextStep] = useState('Finish data table for cohort A');
-  const [projectDay, setProjectDay] = useState('Day 5');
+  const [projectName, setProjectName] = useState('Local Estrogen Formulations and rUTI');
+  const [stats, setStats] = useState({ screening: 45, fullText: 12, extraction: 0 });
 
-  // PubMed API State
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [papers, setPapers] = useState<PubMedResult[]>([]);
 
-  // WAKE UP: Load saved project data
   useEffect(() => {
     setIsMounted(true);
-    try {
-      const saved = localStorage.getItem('vestrippn-research');
-      if (saved) {
-        const data = JSON.parse(saved);
-        setProjectName(data.name || projectName);
-        setCurrentPhase(data.phase || currentPhase);
-        setNextStep(data.step || nextStep);
-        setProjectDay(data.day || projectDay);
+    const initializeData = async () => {
+      try {
+        const res = await fetch('/api/research');
+        if (res.ok) {
+          const data = await res.json();
+          setProjectName(data.title);
+          setStats(data.stats);
+        } else {
+          const saved = localStorage.getItem('research-manual-stats');
+          if (saved) setStats(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.warn("Covidence Bridge Offline");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (e) {
-      console.error("Failed to load research data", e);
-    }
+    };
+    initializeData();
   }, []);
 
-  // Save Project Updates
-  const saveProject = (updates: any) => {
-    const newData = { name: projectName, phase: currentPhase, step: nextStep, day: projectDay, ...updates };
-    localStorage.setItem('vestrippn-research', JSON.stringify(newData));
+  const updateManualStat = (key: string, val: number) => {
+    const newStats = { ...stats, [key]: val };
+    setStats(newStats);
+    localStorage.setItem('research-manual-stats', JSON.stringify(newStats));
   };
 
-  // PubMed Live Fetcher
   const searchPubMed = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
     setIsSearching(true);
-    setPapers([]);
-
     try {
-      // 1. Get IDs from PubMed
-      const searchRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(searchQuery)}&retmode=json&retmax=3&sort=date`);
-      const searchData = await searchRes.json();
-      const ids = searchData.esearchresult.idlist;
-
-      if (!ids || ids.length === 0) {
-        setIsSearching(false);
-        return; // No results
-      }
-
-      // 2. Get summaries for those IDs
-      const summaryRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json`);
-      const summaryData = await summaryRes.json();
-
-      const results = ids.map((id: string) => {
-        const paper = summaryData.result[id];
-        return {
-          id,
-          title: paper.title,
-          authors: paper.authors && paper.authors.length > 0 ? paper.authors[0].name + (paper.authors.length > 1 ? ' et al.' : '') : 'Unknown',
-          pubdate: paper.pubdate.split(' ')[0] // Just get the year/month
-        };
-      });
-
-      setPapers(results);
-    } catch (error) {
-      console.error("PubMed Fetch Error:", error);
-    } finally {
-      setIsSearching(false);
-    }
+      const sRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(searchQuery)}&retmode=json&retmax=3`);
+      const sData = await sRes.json();
+      const ids = sData.esearchresult.idlist;
+      if (!ids?.length) { setPapers([]); return; }
+      const sumRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json`);
+      const sumData = await sumRes.json();
+      setPapers(ids.map((id: string) => ({
+        id, title: sumData.result[id].title,
+        authors: sumData.result[id].authors?.[0]?.name + ' et al.',
+        pubdate: sumData.result[id].pubdate.split(' ')[0]
+      })));
+    } finally { setIsSearching(false); }
   };
 
-  if (!isMounted) return <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm flex-1 animate-pulse min-h-[200px]" />;
+  if (!isMounted) return <div className="bg-[var(--surface)]/20 border border-[var(--borderline)] rounded-[22px] p-6 h-[400px] animate-pulse" />;
 
   return (
-    <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors flex-1 flex flex-col h-[320px]">
+    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex-1 flex flex-col min-h-[400px] relative overflow-hidden group transition-all hover:border-[var(--accentAmber)]/30">
       
+      {/* TACTICAL OVERLAYS */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
+
       {/* HEADER */}
-      <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec flex justify-between items-center mb-4">
-        <span>Research</span>
-        <input
-          type="text"
-          value={projectDay}
-          onChange={(e) => { setProjectDay(e.target.value); saveProject({ day: e.target.value }); }}
-          className="bg-transparent text-right text-textSec text-[11px] normal-case outline-none hover:bg-borderline/30 focus:bg-base focus:ring-1 focus:ring-accentCyan/50 rounded w-16 transition-colors"
-        />
+      <div className="relative z-10 flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 bg-[var(--accentAmber)] shadow-[0_0_10px_var(--accentAmber)]"></div>
+          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--textPri)]">
+            Research Hub
+          </span>
+        </div>
+        <span className="text-[9px] font-mono text-[var(--textMuted)] uppercase tracking-widest tabular-nums border border-[var(--borderline)] px-2 py-0.5 rounded">
+          {isLoading ? 'SYNCING...' : 'HYBRID_MODE'}
+        </span>
       </div>
 
-      {/* ACTIVE PROJECT */}
-      <div className="mb-5 pb-5 border-b border-borderline/50">
-        <input
-          type="text"
-          value={projectName}
-          onChange={(e) => { setProjectName(e.target.value); saveProject({ name: e.target.value }); }}
-          className="w-full bg-transparent text-[13px] text-textPri mb-1 outline-none hover:bg-borderline/30 focus:bg-base focus:ring-1 focus:ring-accentCyan/50 rounded -ml-1 px-1 transition-colors font-medium truncate"
-        />
-        <input
-          type="text"
-          value={currentPhase}
-          onChange={(e) => { setCurrentPhase(e.target.value); saveProject({ phase: e.target.value }); }}
-          className="bg-accentAmber/10 text-accentAmber text-[11px] border border-accentAmber/30 px-2 py-0.5 rounded outline-none hover:bg-accentAmber/20 focus:ring-1 focus:ring-accentAmber transition-colors block w-fit mb-2"
-        />
-        <div className="flex gap-1 items-center">
-          <span className="text-[11px] text-textSec shrink-0">Next:</span>
-          <input
-            type="text"
-            value={nextStep}
-            onChange={(e) => { setNextStep(e.target.value); saveProject({ step: e.target.value }); }}
-            className="w-full bg-transparent text-[11px] text-textSec outline-none hover:bg-borderline/30 focus:bg-base focus:ring-1 focus:ring-accentCyan/50 rounded px-1 transition-colors truncate"
-          />
+      {/* PROJECT TELEMETRY */}
+      <div className="relative z-10 mb-6 p-4 bg-[var(--base)]/30 rounded-xl border border-[var(--borderline)]">
+        <div className="text-[10px] font-mono text-[var(--accentAmber)] uppercase tracking-widest mb-3 flex items-center gap-2">
+          <span className="w-1 h-1 bg-[var(--accentAmber)] rounded-full animate-ping"></span>
+          {projectName}
+        </div>
+        
+        <div className="space-y-4">
+          {[
+            { id: 'screening', label: 'Screening', val: stats.screening, color: 'bg-[var(--accentCyan)]' },
+            { id: 'fullText', label: 'Full Text', val: stats.fullText, color: 'bg-[var(--accentAmber)]' },
+            { id: 'extraction', label: 'Extraction', val: stats.extraction, color: 'bg-[var(--statusGreen)]' }
+          ].map((stat) => (
+            <div key={stat.id} className="group/stat cursor-pointer" onClick={() => {
+              const newVal = window.prompt(`Update ${stat.label} %:`, stat.val.toString());
+              if (newVal) updateManualStat(stat.id, parseInt(newVal));
+            }}>
+              <div className="flex justify-between text-[9px] font-mono mb-1.5 uppercase tracking-tighter">
+                <span className="text-[var(--textSec)] group-hover/stat:text-[var(--textPri)] transition-colors">{stat.label}</span>
+                <span className="text-[var(--textPri)] font-bold">{stat.val}%</span>
+              </div>
+              <div className="h-[2px] w-full bg-[var(--borderline)]/20 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full ${stat.color} transition-all duration-1000 shadow-[0_0_5px_currentColor] opacity-70 group-hover/stat:opacity-100`} 
+                  style={{ width: `${stat.val}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* PUBMED INTEGRATION */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <form onSubmit={searchPubMed} className="relative mb-3 shrink-0">
+      {/* PUBMED SEARCH SECTOR */}
+      <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
+        <form onSubmit={searchPubMed} className="relative mb-4">
           <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search PubMed..."
-            className="w-full bg-base border border-borderline rounded px-3 py-1.5 text-[11px] text-textPri placeholder:text-textMuted focus:outline-none focus:border-accentCyan transition-colors"
+            type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Library Query..."
+            className="w-full bg-[var(--base)]/50 border border-[var(--borderline)] rounded-lg px-4 py-2 text-[12px] text-[var(--textPri)] outline-none focus:border-[var(--accentCyan)]/50 transition-all font-mono placeholder:text-[var(--textMuted)]"
           />
-          <button
-            type="submit"
-            disabled={isSearching || !searchQuery.trim()}
-            className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] uppercase font-mono text-textSec hover:text-accentCyan disabled:opacity-50 px-2 py-1"
-          >
+          <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black font-mono text-[var(--textSec)] hover:text-[var(--accentCyan)] uppercase tracking-widest">
             {isSearching ? '...' : 'Fetch'}
           </button>
         </form>
 
-        {/* RESULTS AREA */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2">
-          {papers.length === 0 && !isSearching ? (
-             <div className="text-[10px] text-textMuted text-center mt-4">NCBI E-utilities Ready.</div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+          {papers.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-[10px] font-mono text-[var(--textMuted)] uppercase tracking-widest opacity-30">
+              No recent fetches.
+            </div>
           ) : (
             papers.map((paper) => (
-              <a
-                key={paper.id}
-                href={`https://pubmed.ncbi.nlm.nih.gov/${paper.id}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block bg-base border border-borderline rounded p-2 hover:border-accentCyan/50 transition-colors"
+              <a 
+                key={paper.id} 
+                href={`https://pubmed.ncbi.nlm.nih.gov/${paper.id}/`} 
+                target="_blank" 
+                className="group/paper block bg-[var(--base)]/30 border border-[var(--borderline)] rounded-lg p-3 hover:border-[var(--accentCyan)]/40 transition-all"
               >
-                <div className="text-[11px] text-textPri line-clamp-2 leading-tight group-hover:text-accentCyan transition-colors mb-1">
+                <div className="text-[11px] text-[var(--textPri)] line-clamp-2 leading-snug group-hover/paper:text-[var(--accentCyan)] transition-colors mb-2 font-medium">
                   {paper.title}
                 </div>
-                <div className="flex justify-between text-[9px] text-textSec font-mono">
-                  <span className="truncate pr-2">{paper.authors}</span>
-                  <span>{paper.pubdate}</span>
+                <div className="flex justify-between text-[9px] text-[var(--textMuted)] font-mono uppercase tracking-tighter">
+                  <span className="truncate pr-4">{paper.authors}</span>
+                  <span className="shrink-0">{paper.pubdate}</span>
                 </div>
               </a>
             ))

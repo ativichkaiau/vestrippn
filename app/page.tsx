@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import Clock from "../components/Clock";
 import ThemeToggle from "../components/ThemeToggle"; 
 import TodaysCommand from "../components/TodaysCommand";
@@ -12,151 +13,162 @@ import AcademicsCard from '../components/AcademicsCard';
 import ResearchCard from '../components/ResearchCard';
 import FitnessCard from '../components/FitnessCard';
 import IdentityAnchor from '../components/IdentityAnchor';
-import LoginControl from '../components/LoginControl'; 
+import TopNavProfile from '../components/TopNavProfile';
 import Link from 'next/link';
 
 export default function Home() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
+
   return (
-    <>
-      {/* TOP BAR */}
-      <header className="h-[56px] border-b border-borderline flex items-center justify-between px-4 md:px-6 shrink-0 bg-base">
-        <div className="font-orbitron font-bold text-[15px] md:text-[18px] text-textPri uppercase tracking-wider truncate">
-          vestrippn3point0
-        </div>
-        <div className="hidden sm:block text-[13px] text-textSec font-medium">
-          <ArcDate />
-        </div>
-        <div className="flex gap-4 items-center text-textSec text-[14px]">
+    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500 selection:bg-accentCyan/30">
+      
+      {/* --- HUD ATMOSPHERE --- */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--accentCyan)]/10 rounded-full blur-[120px] dark:opacity-100 opacity-50"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--accentFuchsia)]/10 rounded-full blur-[120px] dark:opacity-100 opacity-50"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--borderline)_1px,transparent_1px),linear-gradient(to_bottom,var(--borderline)_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.15] dark:opacity-[0.07]"></div>
+        <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] z-50 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentCyan)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      </div>
+
+      {/* --- HUD HEADER --- */}
+      <header className="h-[60px] border-b border-borderline flex items-center justify-between px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="font-orbitron font-black text-[17px] tracking-[0.2em] flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-1.5 h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_rgba(6,182,212,0.5)]"></div>
+            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+          </Link>
           
-          {/* F1 TELEMETRY GIMMICK (Fixed Hover States & Larger Hit Area) */}
-          <div className="hidden sm:flex items-center gap-1 bg-surface border border-borderline px-3 py-1 rounded">
-            
-            {/* SYS - Cyan */}
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#06b6d4] transition-colors duration-300">SYS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#06b6d4] group-hover:border-[#06b6d4] group-hover:shadow-[0_0_12px_#06b6d4] transition-all duration-300"></div>
+          <div className="hidden lg:flex gap-4 border-l border-borderline pl-6 font-mono text-[9px] uppercase tracking-widest text-textSec">
+            <div className="flex flex-col">
+              <span>PWR: <span className="text-[var(--statusGreen)]">NOMINAL</span></span>
+              <span>OS: <span className="text-[var(--accentCyan)] uppercase">Stable</span></span>
             </div>
-
-            {/* AERO - Green */}
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#22c55e] transition-colors duration-300">AERO</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#22c55e] group-hover:border-[#22c55e] group-hover:shadow-[0_0_12px_#22c55e] transition-all duration-300"></div>
-            </div>
-
-            {/* ERS - Amber */}
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#f59e0b] transition-colors duration-300">ERS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#f59e0b] group-hover:border-[#f59e0b] group-hover:shadow-[0_0_12px_#f59e0b] transition-all duration-300"></div>
-            </div>
-
-            {/* DRS - Red */}
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#ef4444] transition-colors duration-300">DRS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#ef4444] group-hover:border-[#ef4444] group-hover:shadow-[0_0_12px_#ef4444] transition-all duration-300"></div>
-            </div>
-
           </div>
+        </div>
 
-          {/* <-- 2. INJECTED HERE (Before ThemeToggle) --> */}
-          <LoginControl />
+        <div className="hidden md:block">
+           <div className="font-mono text-[11px] tracking-[0.2em] text-textPri uppercase">
+              <ArcDate />
+           </div>
+        </div>
+
+        <div className="flex gap-4 items-center">
+          <TopNavProfile />
           <ThemeToggle />
         </div>
       </header>
 
-      {/* MAIN WORKSPACE */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            
-            {/* DASHBOARD - ACTIVE */}
-            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
-              <span className="text-[10px]">◉</span> Dashboard
-            </div>
-      
-            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Academics
-            </Link>
-
-            <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Research
-            </Link>
-
-            <Link href="/fitness" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Fitness & Diet
-            </Link>
-
-            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Archive
-            </Link>
-            
-            <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              IELTS
-            </Link>
-            
-            <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">
-              Tools & Links
-            </Link>
-            
-            <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block"> 
-              Identity 
-            </Link>
+        {/* --- NAV SIDEBAR (RECALIBRATED) --- */}
+        <aside className="hidden md:flex w-[230px] flex-col justify-between p-5 bg-surface/20 border-r border-borderline shrink-0 backdrop-blur-md">
+          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+            {[
+              { name: 'Dashboard', icon: '◉', href: '/', color: 'text-[var(--accentCyan)]', active: true },
+              { name: 'Academics', icon: '▲', href: '/academics', color: 'text-[var(--accentFuchsia)]' },
+              { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]' },
+              { name: 'Fitness', icon: '◈', href: '/fitness', color: 'text-[var(--accentEmerald)]' },
+              { name: 'Archive', icon: '▥', href: '/archive', color: 'text-[var(--textSec)]' },
+              { name: 'IELTS', icon: '◎', href: '/ielts', color: 'text-[var(--accentViolet)]' },
+              { name: 'Tools & Links', icon: '⚙', href: '/tools', color: 'text-[var(--accentIndigo)]' },
+              { name: 'Identity', icon: '⚇', href: '/identity', color: 'text-[var(--accentIndigo)]' },
+            ].map((item) => (
+              <Link 
+                key={item.name} 
+                href={item.href} 
+                className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${
+                  item.active 
+                  ? 'bg-[var(--accentCyan)]/10 border-[var(--accentCyan)]/20 shadow-[inset_0_0_10px_rgba(6,182,212,0.05)]' 
+                  : 'hover:bg-surface hover:border-borderline'
+                }`}
+              >
+                <span className={`${item.color} text-[14px] ${item.active ? 'drop-shadow-[0_0_5px_currentColor]' : 'opacity-40 group-hover:opacity-100'}`}>
+                  {item.icon}
+                </span>
+                <span className={`text-[12px] font-medium tracking-tight ${item.active ? 'text-textPri font-bold' : 'text-textSec group-hover:text-textPri'}`}>
+                  {item.name}
+                </span>
+              </Link>
+            ))}
           </nav>
           
-          <div className="hidden md:block border-t border-borderline pt-4">
+          <div className="p-4 rounded-2xl bg-surface border border-borderline mt-4">
             <Clock />
-            <div className="text-[11px] text-textSec">Schumacher standard.</div>
           </div>
         </aside>
 
-        {/* DASHBOARD CONTENT */}
-        <main className="flex-1 flex gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden bg-base custom-scrollbar">
-          
-          {/* Main Column */}
-          <div className="w-full md:flex-[0.6] mx-auto flex flex-col gap-6 min-w-0 md:min-w-[400px] max-w-[900px]">
+        {/* --- MAIN DASHBOARD CONTENT --- */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-6">
+          <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* CARD 1: TODAY'S COMMAND */}
-            <div className="flex flex-col gap-6">
-              <TodaysCommand/>
-              <NotificationCenter />
+            {/* MISSION CONTROL */}
+            <div className="lg:col-span-5 min-w-0">
+               <div className="h-full rounded-[22px] border border-borderline bg-surface/40 backdrop-blur-sm hover:border-[var(--accentCyan)]/50 transition-all overflow-hidden">
+                  <TodaysCommand />
+               </div>
             </div>
 
-            {/* CARDS 2 & 3: ACADEMICS & RESEARCH */}
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="w-full"><AcademicsCard/></div>
-              <div className="w-full"><ResearchCard/></div>
+            <div className="lg:col-span-7 min-w-0">
+               <div className="h-full rounded-[22px] border border-borderline bg-surface/40 backdrop-blur-sm overflow-hidden">
+                  <NotificationCenter />
+               </div>
             </div>
 
-            {/* CARD 4: FITNESS */}
-            <FitnessCard/>
-            
-            {/* CARD 5: DOMAIN HEALTH */}
-            <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors">
-              <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec mb-4">Domain Health</div>
-              <DomainHealth />
-            </div>
-
-            {/* CARD 6: QUICK ACCESS */}
-            <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors">
-              <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec mb-4 flex justify-between items-center">
-                <span>Quick Access</span>
-                <span className="text-[10px] font-mono text-textMuted hidden sm:inline">External Links</span>
+            {/* CORE TELEMETRY */}
+            <div className="lg:col-span-6 min-w-0">
+              <div className="rounded-[22px] border border-borderline bg-surface/40 hover:border-[var(--accentFuchsia)]/40 hover:shadow-[0_0_30px_rgba(217,70,239,0.05)] transition-all overflow-hidden">
+                <AcademicsCard />
               </div>
-              <QuickAccess />
-            </div>
-           
-            {/* CARD 7: REMINDERS */}
-            <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors flex flex-col min-h-[250px]">
-              <Reminders />
             </div>
 
-            {/* CARD 8: IDENTITY ANCHOR */}
-            <IdentityAnchor/>
+            <div className="lg:col-span-6 min-w-0">
+              <div className="rounded-[22px] border border-borderline bg-surface/40 hover:border-[var(--accentAmber)]/40 hover:shadow-[0_0_30px_rgba(245,158,11,0.05)] transition-all overflow-hidden">
+                <ResearchCard />
+              </div>
+            </div>
+
+            {/* BIO-METRICS */}
+            <div className="lg:col-span-8 min-w-0">
+              <div className="rounded-[22px] border border-borderline bg-surface/40 hover:border-[var(--accentEmerald)]/40 h-full overflow-hidden transition-all">
+                <FitnessCard />
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 min-w-0">
+              <div className="bg-surface border border-borderline rounded-[22px] p-6 h-full shadow-sm relative overflow-hidden group">
+                <div className="text-[10px] font-black text-[var(--accentCyan)] uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-[var(--accentCyan)]"></span> Domain Status
+                </div>
+                <DomainHealth />
+              </div>
+            </div>
+
+            {/* UTILITIES */}
+            <div className="lg:col-span-4 min-w-0">
+              <div className="bg-surface border border-borderline rounded-2xl p-6 hover:border-[var(--accentIndigo)]/30 transition-all">
+                <QuickAccess />
+              </div>
+            </div>
+            <div className="lg:col-span-4 min-w-0">
+              <div className="bg-surface border border-borderline rounded-2xl p-6">
+                <Reminders />
+              </div>
+            </div>
+            <div className="lg:col-span-4 min-w-0">
+              <IdentityAnchor />
+            </div>
 
           </div>
+          <div className="h-10"></div>
         </main>
       </div>
-    </>
+    </div>
   );
 }

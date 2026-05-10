@@ -8,9 +8,9 @@ interface Reminder {
 }
 
 const defaultReminders: Reminder[] = [
-  { id: '1', text: 'Laundry — Today' },
-  { id: '2', text: 'Research call — 3:00 PM' },
-  { id: '3', text: 'IELTS prep — Sun 10:00 AM' }
+  { id: '1', text: 'Laundry Protocol — Sunday' },
+  { id: '2', text: 'Research Sync — 15:00' },
+  { id: '3', text: 'IELTS Prep: Reading — 10:00' }
 ];
 
 export default function Reminders() {
@@ -18,28 +18,18 @@ export default function Reminders() {
   const [inputValue, setInputValue] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
-  // Load from local storage on mount
   useEffect(() => {
     setIsMounted(true);
     try {
       const saved = localStorage.getItem('vestrippn-reminders-v2');
-      if (saved) {
-        setReminders(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error("Failed to parse reminders", e);
-    }
+      if (saved) setReminders(JSON.parse(saved));
+    } catch (e) { console.error("Buffer Load Failure", e); }
   }, []);
 
   const addReminder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-
-    const newReminder = {
-      id: Date.now().toString(),
-      text: inputValue.trim()
-    };
-
+    const newReminder = { id: Date.now().toString(), text: inputValue.trim() };
     const updated = [...reminders, newReminder];
     setReminders(updated);
     setInputValue('');
@@ -52,41 +42,51 @@ export default function Reminders() {
     localStorage.setItem('vestrippn-reminders-v2', JSON.stringify(updated));
   };
 
-  // Safe hydration skeleton
-  if (!isMounted) {
-    return (
-      <div className="flex flex-col h-full animate-pulse">
-        <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec mb-4">Reminders</div>
-        <div className="h-4 w-full bg-borderline/20 rounded mb-2"></div>
-        <div className="h-4 w-3/4 bg-borderline/20 rounded"></div>
-      </div>
-    );
-  }
+  if (!isMounted) return <div className="h-[250px] bg-[var(--surface)]/20 border border-[var(--borderline)] rounded-[22px] animate-pulse" />;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec mb-4">
-        Reminders
+    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex-1 flex flex-col min-h-[300px] relative overflow-hidden group transition-all hover:border-[var(--accentIndigo)]/30">
+      
+      {/* TACTICAL OVERLAYS */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
+
+      {/* HEADER */}
+      <div className="relative z-10 flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 bg-[var(--accentIndigo)] shadow-[0_0_10px_var(--accentIndigo)]"></div>
+          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--textPri)]">
+            Utility Reminders
+          </span>
+        </div>
+        <span className="text-[9px] font-mono text-[var(--textMuted)] uppercase tracking-widest tabular-nums border border-[var(--borderline)]/40 px-2 py-0.5 rounded">
+          {reminders.length} Active
+        </span>
       </div>
 
-      <ul className="text-[13px] text-textPri space-y-1 mb-4 flex-1 overflow-y-auto custom-scrollbar pr-1 max-h-[150px]">
+      {/* REMINDER LIST */}
+      <ul className="relative z-10 flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 mb-6">
         {reminders.length === 0 ? (
-          <li className="text-textSec italic text-[11px] py-2">No active reminders.</li>
+          <li className="h-full flex items-center justify-center text-[var(--textMuted)] text-[10px] font-mono uppercase tracking-[0.2em] opacity-40 italic">
+            Buffer Empty // No Alerts
+          </li>
         ) : (
           reminders.map((reminder) => (
             <li 
               key={reminder.id} 
-              className="group flex items-start justify-between gap-2 p-1.5 -mx-1.5 rounded hover:bg-borderline/30 transition-colors"
+              className="group/item flex items-center justify-between gap-3 p-2.5 bg-[var(--base)]/20 border border-transparent hover:border-[var(--accentIndigo)]/20 hover:bg-[var(--base)]/40 rounded-lg transition-all cursor-default"
             >
-              <div className="flex items-start gap-2 pt-0.5">
-                <span className="text-accentCyan leading-none">·</span>
-                <span className="leading-tight break-words pr-2">{reminder.text}</span>
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accentIndigo)]/40 group-hover/item:bg-[var(--accentIndigo)] transition-colors shadow-[0_0_5px_var(--accentIndigo)]"></span>
+                <span className="text-[13px] text-[var(--textSec)] group-hover/item:text-[var(--textPri)] transition-colors truncate tracking-tight font-medium">
+                  {reminder.text}
+                </span>
               </div>
               <button
                 type="button"
                 onClick={() => removeReminder(reminder.id)}
-                className="text-textSec hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity px-1 cursor-pointer shrink-0"
-                title="Dismiss"
+                className="text-[var(--textMuted)] hover:text-[var(--statusRed)] opacity-0 group-hover/item:opacity-100 transition-all px-2 font-black text-[14px]"
+                title="Purge"
               >
                 ×
               </button>
@@ -95,20 +95,21 @@ export default function Reminders() {
         )}
       </ul>
 
-      <form onSubmit={addReminder} className="relative mt-auto shrink-0">
+      {/* INPUT SECTOR */}
+      <form onSubmit={addReminder} className="relative z-10 shrink-0">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="New reminder..."
-          className="w-full bg-base border border-borderline rounded px-3 py-2 text-[12px] text-textPri placeholder:text-textMuted focus:outline-none focus:border-accentCyan transition-colors"
+          placeholder="New system alert..."
+          className="w-full bg-[var(--base)]/50 border border-[var(--borderline)] rounded-xl px-4 py-3 text-[12px] text-[var(--textPri)] placeholder:text-[var(--textMuted)] focus:outline-none focus:border-[var(--accentIndigo)]/50 transition-all font-mono shadow-inner"
         />
         <button
           type="submit"
           disabled={!inputValue.trim()}
-          className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] uppercase font-mono text-textSec hover:text-accentCyan disabled:opacity-50 disabled:hover:text-textMuted transition-colors px-2 py-1 cursor-pointer bg-base"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-black font-mono text-[var(--textSec)] hover:text-[var(--accentIndigo)] disabled:opacity-30 transition-all px-2 tracking-widest"
         >
-          Add
+          Inject
         </button>
       </form>
     </div>

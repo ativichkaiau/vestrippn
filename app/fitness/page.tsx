@@ -6,394 +6,289 @@ import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import FitnessCard from '../../components/FitnessCard';
-import TopNavProfile from '../../components/TopNavProfile'; // <-- Imported Auth Status
+import TopNavProfile from '../../components/TopNavProfile';
 
 export default function FitnessHub() {
-  // Target Macros
   const targets = { protein: 160, carbs: 300, fats: 70, calories: 2470 };
 
-  // Live State
   const [meals, setMeals] = useState<{name: string, protein: number, carbs: number, fats: number, calories: number}[]>([]);
   const [metrics, setMetrics] = useState({ sleep: "7h 20m", weight: "72.4", water: "2.1" });
-  
-  // UI State
+  const [activeCycle, setActiveCycle] = useState(1); 
   const [isLogging, setIsLogging] = useState(false);
-  const [isEditingMetrics, setIsEditingMetrics] = useState(false);
   const [newMeal, setNewMeal] = useState({ name: '', protein: '', carbs: '', fats: '', calories: '' });
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // --- THE STORAGE ENGINE ---
   useEffect(() => {
-    const savedMealData = localStorage.getItem('vestrippn_meals');
-    const today = new Date().toLocaleDateString();
-    
-    if (savedMealData) {
-      const parsed = JSON.parse(savedMealData);
-      if (parsed.date === today) {
-        setMeals(parsed.meals);
-      } else {
-        setMeals([]);
-      }
-    }
-
+    const savedMeals = localStorage.getItem('vestrippn_meals');
     const savedMetrics = localStorage.getItem('vestrippn_metrics');
-    if (savedMetrics) {
-      setMetrics(JSON.parse(savedMetrics));
+    const savedCycle = localStorage.getItem('vestrippn_cycle');
+    if (savedMeals) {
+      const parsed = JSON.parse(savedMeals);
+      if (parsed.date === new Date().toLocaleDateString()) setMeals(parsed.meals);
     }
-
+    if (savedMetrics) setMetrics(JSON.parse(savedMetrics));
+    if (savedCycle) setActiveCycle(Number(savedCycle));
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
     if (isLoaded) {
-      const today = new Date().toLocaleDateString();
-      localStorage.setItem('vestrippn_meals', JSON.stringify({ date: today, meals }));
-    }
-  }, [meals, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) {
+      localStorage.setItem('vestrippn_meals', JSON.stringify({ date: new Date().toLocaleDateString(), meals }));
       localStorage.setItem('vestrippn_metrics', JSON.stringify(metrics));
+      localStorage.setItem('vestrippn_cycle', activeCycle.toString());
     }
-  }, [metrics, isLoaded]);
+  }, [meals, metrics, activeCycle, isLoaded]);
 
-  // Dynamic Calculations
   const current = {
-    protein: meals.reduce((sum, meal) => sum + meal.protein, 0),
-    carbs: meals.reduce((sum, meal) => sum + meal.carbs, 0),
-    fats: meals.reduce((sum, meal) => sum + meal.fats, 0),
-    calories: meals.reduce((sum, meal) => sum + meal.calories, 0),
-  };
-
-  let metabolicState = "OPTIMAL";
-  let stateColors = "text-statusGreen border-statusGreen/30 bg-statusGreen/10";
-  let dotColor = "bg-statusGreen";
-
-  if (current.calories === 0 || current.calories < targets.calories * 0.4) {
-    metabolicState = "FASTING STATE";
-    stateColors = "text-accentCyan border-accentCyan/30 bg-accentCyan/10";
-    dotColor = "bg-accentCyan";
-  } else if (current.calories > targets.calories) {
-    metabolicState = "CALORIC SURPLUS";
-    stateColors = "text-accentAmber border-accentAmber/30 bg-accentAmber/10";
-    dotColor = "bg-accentAmber";
-  }
-
-  const handleLogMeal = () => {
-    if (meals.length >= 3) return;
-    if (!newMeal.name || !newMeal.calories) return;
-
-    setMeals([...meals, {
-      name: newMeal.name,
-      protein: Number(newMeal.protein) || 0,
-      carbs: Number(newMeal.carbs) || 0,
-      fats: Number(newMeal.fats) || 0,
-      calories: Number(newMeal.calories) || 0
-    }]);
-
-    setNewMeal({ name: '', protein: '', carbs: '', fats: '', calories: '' });
-    setIsLogging(false);
-  };
-
-  const handleResetMeals = () => {
-    if(confirm("Clear today's macros?")) {
-      setMeals([]);
-    }
+    protein: meals.reduce((s, m) => s + m.protein, 0),
+    carbs: meals.reduce((s, m) => s + m.carbs, 0),
+    fats: meals.reduce((s, m) => s + m.fats, 0),
+    calories: meals.reduce((s, m) => s + m.calories, 0),
   };
 
   if (!isLoaded) return null;
 
   return (
-    <>
-      {/* TOP BAR */}
-      <header className="h-[56px] border-b border-borderline flex items-center justify-between px-4 md:px-6 shrink-0 bg-base">
-        <div className="font-orbitron font-bold text-[15px] md:text-[18px] text-textPri uppercase tracking-wider truncate">
-          vestrippn3point0
-        </div>
-        <div className="hidden sm:block text-[13px] text-textSec font-medium">
-          <ArcDate />
-        </div>
-        <div className="flex gap-4 items-center text-textSec text-[14px]">
-          
-          {/* F1 TELEMETRY GIMMICK */}
-          <div className="hidden sm:flex items-center gap-1 bg-surface border border-borderline px-3 py-1 rounded">
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#06b6d4] transition-colors duration-300">SYS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#06b6d4] group-hover:border-[#06b6d4] group-hover:shadow-[0_0_12px_#06b6d4] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#22c55e] transition-colors duration-300">AERO</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#22c55e] group-hover:border-[#22c55e] group-hover:shadow-[0_0_12px_#22c55e] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#f59e0b] transition-colors duration-300">ERS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#f59e0b] group-hover:border-[#f59e0b] group-hover:shadow-[0_0_12px_#f59e0b] transition-all duration-300"></div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-1 cursor-crosshair group">
-              <span className="text-[8px] font-mono font-bold text-textMuted group-hover:text-[#ef4444] transition-colors duration-300">DRS</span>
-              <div className="w-4 h-1.5 rounded-full bg-textMuted/20 border border-borderline group-hover:bg-[#ef4444] group-hover:border-[#ef4444] group-hover:shadow-[0_0_12px_#ef4444] transition-all duration-300"></div>
+    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500">
+      
+      {/* HUD ATMOSPHERE */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--accentEmerald)]/5 rounded-full blur-[120px]"></div>
+        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentEmerald)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      </div>
+
+      <header className="h-[64px] border-b border-borderline flex items-center justify-between px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="font-orbitron font-black text-[18px] tracking-[0.2em] flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-1.5 h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_var(--accentCyan)]"></div>
+            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+          </Link>
+          <div className="h-5 w-[1px] bg-borderline mx-2"></div>
+          <div className="flex gap-4 font-mono text-[9px] uppercase tracking-widest text-textMuted">
+            <div className="flex flex-col">
+              <span>BIO_SYNC: <span className="text-statusGreen uppercase">Nominal</span></span>
+              <span>STATE: <span className="text-[var(--accentEmerald)] uppercase tracking-tighter">On_Target</span></span>
             </div>
           </div>
-
-          {/* DYNAMIC AUTHENTICATION STATUS */}
+        </div>
+        <div className="hidden md:block font-mono text-[11px] tracking-[0.2em] text-textPri uppercase"><ArcDate /></div>
+        <div className="flex gap-4 items-center border-l border-borderline pl-6">
           <TopNavProfile />
-
           <ThemeToggle />
         </div>
       </header>
 
-      {/* MAIN WORKSPACE */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-base">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* SIDEBAR (Mobile optimized scrolling & touch targets) */}
-        <aside className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-borderline flex flex-row md:flex-col justify-between px-4 py-3 md:p-6 shrink-0 overflow-x-auto md:overflow-hidden bg-base z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <nav className="flex flex-row md:flex-col gap-2 md:gap-4 text-[13px] text-textSec items-center md:items-start whitespace-nowrap">
-            <Link href="/" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Dashboard
-            </Link>
-            <Link href="/academics" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Academics
-            </Link>
-            <Link href="/research" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Research
-            </Link>
-            
-            {/* ACTIVE: FITNESS */}
-            <div className="text-accentCyan cursor-default transition-all flex items-center gap-1.5 font-medium px-3 py-1.5 md:px-0 md:py-0 md:pl-4 bg-accentCyan/5 md:bg-transparent rounded md:rounded-none">
-              <span className="text-[10px]">◉</span> Fitness & Diet
-            </div>
+        {/* --- FIXED SIDEBAR NAVIGATION --- */}
+        <aside className="w-[230px] border-r border-borderline flex flex-col justify-between p-5 bg-surface/20 shrink-0 backdrop-blur-md">
+          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+            {[
+              { name: 'Dashboard', icon: '◉', href: '/', color: 'text-[var(--accentCyan)]' },
+              { name: 'Academics', icon: '▲', href: '/academics', color: 'text-[var(--accentFuchsia)]' },
+              { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]' },
+              { name: 'Fitness', icon: '◈', href: '/fitness', color: 'text-[var(--accentEmerald)]', active: true },
+              { name: 'Archive', icon: '▥', href: '/archive', color: 'text-textSec' },
+              { name: 'IELTS', icon: '◎', href: '/ielts', color: 'text-[var(--accentViolet)]' },
+              { name: 'Tools & Links', icon: '⚙', href: '/tools', color: 'text-[var(--accentIndigo)]' },
+              { name: 'Identity', icon: '⚇', href: '/identity', color: 'text-[var(--accentIndigo)]' },
+            ].map((item) => (
+              <Link 
+                key={item.name} 
+                href={item.href} 
+                className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${
+                  item.active 
+                  ? 'bg-[var(--accentEmerald)]/10 border-[var(--accentEmerald)]/20 shadow-[0_0_15px_rgba(52,211,153,0.05)] font-bold' 
+                  : 'hover:bg-surface'
+                }`}
+              >
+                {/* ICON LOGIC: Only colorizes and glows if item is ACTIVE */}
+                <span className={`text-[14px] transition-all duration-300 ${
+                  item.active 
+                    ? `${item.color} drop-shadow-[0_0_5px_currentColor]` 
+                    : 'text-textMuted opacity-40 group-hover:opacity-100'
+                }`}>
+                  {item.icon}
+                </span>
 
-            <Link href="/archive" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">
-              Archive
-            </Link>
-
-            <Link href="/ielts" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">IELTS</Link>
-            <Link href="/tools" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all hidden md:block">Tools & Links</Link>
-            <Link href="/identity" className="px-3 py-1.5 md:px-0 md:py-0 md:pl-4 hover:text-accentCyan cursor-pointer transition-all block">Identity</Link>
+                {/* TEXT LOGIC: Bold only if ACTIVE */}
+                <span className={`text-[12px] tracking-tight transition-colors ${
+                  item.active ? 'text-textPri font-bold' : 'text-textSec group-hover:text-textPri'
+                }`}>
+                  {item.name}
+                </span>
+              </Link>
+            ))}
           </nav>
-          
-          <div className="hidden md:block border-t border-borderline pt-4">
+          <div className="p-4 rounded-2xl bg-surface border border-borderline mt-4">
             <Clock />
-            <div className="text-[11px] text-textSec">Schumacher standard.</div>
           </div>
         </aside>
 
-        {/* FITNESS CONTENT */}
-        <main className="flex-1 flex flex-col gap-6 p-4 md:p-6 overflow-y-auto overflow-x-hidden">
+        {/* --- MAIN HUD CONTENT --- */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
           
-          {/* HEADER SECTION (Responsive Text & Spacing) */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end shrink-0 mb-2 gap-3">
-            <div>
-              <h1 className="font-barlow text-[24px] sm:text-[28px] text-textPri font-bold uppercase tracking-wide leading-none">Physical Command</h1>
-              <p className="text-[12px] sm:text-[13px] text-textSec mt-1">Biomarkers, Nutrition, and Training Mesocycle</p>
-            </div>
-            <div className="flex">
-              <div className={`text-[10px] sm:text-[11px] font-mono border px-3 py-1.5 sm:py-1 rounded flex items-center gap-2 transition-colors ${stateColors}`}>
-                <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${dotColor}`}></span>
-                METABOLIC STATE: {metabolicState}
-              </div>
-            </div>
-          </div>
-
-          {/* TOP GRID: STREAK & MACROS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 shrink-0">
-            
-            <div className="min-h-[180px] h-full flex flex-col justify-end">
+          {/* SECTOR 1: NUTRITIONAL PROTOCOL HUD */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div className="lg:col-span-4 min-h-[220px]">
               <FitnessCard />
             </div>
 
-            <div className="bg-surface border border-borderline rounded-lg p-5 shadow-sm min-h-[180px] flex flex-col hover:border-accentCyan/40 transition-colors relative">
-              {!isLogging ? (
-                <>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec flex items-center gap-2">
-                      Daily Fuel ({meals.length}/3)
-                      {meals.length > 0 && (
-                        <button onClick={handleResetMeals} className="text-[9px] text-textMuted border border-textMuted/30 px-1.5 py-0.5 rounded hover:text-red-400 hover:border-red-400/50 transition-colors">RESET</button>
-                      )}
-                    </span>
-                    <span className="font-plex text-textPri text-[13px]">
-                      {current.calories} / <span className="text-textSec">{targets.calories} kcal</span>
-                    </span>
+            <div className="lg:col-span-8 bg-surface/40 border border-borderline rounded-[22px] p-8 shadow-xl relative overflow-hidden group">
+               <div className="flex justify-between items-center mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-4 bg-[var(--accentEmerald)] shadow-[0_0_10px_var(--accentEmerald)]"></div>
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textPri">Nutritional Protocol</span>
                   </div>
-                  
-                  <div className="space-y-3 mb-4">
-                    <div>
-                      <div className="flex justify-between text-[11px] mb-1">
-                        <span className="text-textPri font-medium">Protein</span>
-                        <span className="text-textSec font-mono">{current.protein}g / {targets.protein}g</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-base rounded-full overflow-hidden">
-                        <div className="h-full bg-accentCyan transition-all duration-500" style={{ width: `${Math.min((current.protein / targets.protein) * 100, 100)}%` }}></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-[11px] mb-1">
-                        <span className="text-textPri font-medium">Carbohydrates</span>
-                        <span className="text-textSec font-mono">{current.carbs}g / {targets.carbs}g</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-base rounded-full overflow-hidden">
-                        <div className="h-full bg-statusGreen transition-all duration-500" style={{ width: `${Math.min((current.carbs / targets.carbs) * 100, 100)}%` }}></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-[11px] mb-1">
-                        <span className="text-textPri font-medium">Fats</span>
-                        <span className="text-textSec font-mono">{current.fats}g / {targets.fats}g</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-base rounded-full overflow-hidden">
-                        <div className="h-full bg-accentAmber transition-all duration-500" style={{ width: `${Math.min((current.fats / targets.fats) * 100, 100)}%` }}></div>
-                      </div>
-                    </div>
+                  <div className="font-orbitron text-[16px] font-black text-textPri drop-shadow-[0_0_8px_var(--accentEmerald)] uppercase">
+                    {current.calories} <span className="text-[10px] text-textMuted tracking-widest">/ {targets.calories} KCAL</span>
                   </div>
+               </div>
 
-                  <button 
-                    onClick={() => setIsLogging(true)}
-                    disabled={meals.length >= 3}
-                    className="mt-auto w-full py-2 sm:py-1.5 border border-borderline rounded text-[11px] text-textSec uppercase tracking-wider font-bold hover:text-accentCyan hover:border-accentCyan/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    {meals.length >= 3 ? 'DAILY LIMIT REACHED' : '+ LOG MEAL'}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <MacroBar label="Protein" val={current.protein} target={targets.protein} color="var(--accentIndigo)" />
+                  <MacroBar label="Carbohydrates" val={current.carbs} target={targets.carbs} color="var(--accentEmerald)" />
+                  <MacroBar label="Fats" val={current.fats} target={targets.fats} color="var(--accentAmber)" />
+               </div>
+
+               <div className="mt-8 pt-6 border-t border-borderline/40 flex justify-between">
+                  <button onClick={() => setIsLogging(true)} className="px-6 py-2 bg-[var(--accentCyan)]/10 border border-[var(--accentCyan)]/30 rounded-lg text-[10px] font-black uppercase text-[var(--accentCyan)] tracking-widest hover:bg-[var(--accentCyan)]/20 transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)]">
+                    Inject Intake Data +
                   </button>
-                </>
-              ) : (
-                <div className="flex flex-col h-full animate-in fade-in zoom-in-95 duration-200">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-accentCyan">Log Intake</span>
-                    <button onClick={() => setIsLogging(false)} className="text-[10px] text-textMuted hover:text-textPri p-1">CANCEL</button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <input type="text" placeholder="Meal Name (e.g. Chicken Rice)" value={newMeal.name} onChange={e => setNewMeal({...newMeal, name: e.target.value})} className="col-span-2 bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Protein (g)" value={newMeal.protein} onChange={e => setNewMeal({...newMeal, protein: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Carbs (g)" value={newMeal.carbs} onChange={e => setNewMeal({...newMeal, carbs: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Fats (g)" value={newMeal.fats} onChange={e => setNewMeal({...newMeal, fats: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                    <input type="number" placeholder="Calories" value={newMeal.calories} onChange={e => setNewMeal({...newMeal, calories: e.target.value})} className="bg-base border border-borderline rounded px-3 py-2 sm:py-1.5 text-[12px] text-textPri outline-none focus:border-accentCyan/50" />
-                  </div>
-
-                  <button 
-                    onClick={handleLogMeal}
-                    className="mt-auto w-full py-2 sm:py-1.5 bg-accentCyan/10 border border-accentCyan/50 text-accentCyan rounded text-[11px] uppercase tracking-wider font-bold hover:bg-accentCyan/20 transition-all"
-                  >
-                    CONFIRM MACROS
+                  <button onClick={() => setMeals([])} className="text-[9px] font-mono text-textMuted hover:text-statusRed transition-colors uppercase tracking-[0.2em]">
+                    Flush_Macro_Buffer
                   </button>
-                </div>
-              )}
+               </div>
             </div>
-
           </div>
 
-          {/* BOTTOM GRID */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1">
-            
-            <div className="xl:col-span-2 bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors">
-              <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec border-b border-borderline pb-3 mb-4 flex justify-between">
-                <span>Current Mesocycle: Hypertrophy Block</span>
-                <span className="text-accentCyan">Week 3 / 10</span>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <SplitDay day="MON" focus="Upper Power" exercises={['Bench Press', 'Weighted Pull-ups', 'Rows']} active />
-                <SplitDay day="TUE" focus="Lower Power" exercises={['Squats', 'RDLs', 'Calf Raises']} />
-                <SplitDay day="WED" focus="Active Recovery" exercises={['Zone 2 Cardio', 'Mobility']} isRest />
-                <SplitDay day="THU" focus="Upper Hypertrophy" exercises={['Incline DB', 'Lat Pulldowns', 'Arms']} />
-                <SplitDay day="FRI" focus="Lower Hypertrophy" exercises={['Leg Press', 'Ham Curls', 'Extensions']} />
-                <SplitDay day="SAT" focus="Weak Points" exercises={['Shoulders', 'Abs', 'Forearms']} />
-                <SplitDay day="SUN" focus="Complete Rest" exercises={['Meal Prep', 'Sleep']} isRest />
-              </div>
-            </div>
-
-            <div className="xl:col-span-1 bg-surface border border-borderline rounded-lg p-5 shadow-sm hover:border-accentCyan/40 transition-colors flex flex-col">
-              <div className="font-barlow font-semibold text-[13px] uppercase tracking-wide text-textSec border-b border-borderline pb-3 mb-4 flex justify-between items-center">
-                <span>Recovery Metrics</span>
-                <button 
-                  onClick={() => setIsEditingMetrics(!isEditingMetrics)}
-                  className="text-[10px] text-accentCyan border border-accentCyan/30 px-3 sm:px-2 py-1 sm:py-0.5 rounded hover:bg-accentCyan/10 transition-colors"
-                >
-                  {isEditingMetrics ? 'SAVE' : 'EDIT'}
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="bg-base border border-borderline rounded p-3 relative group">
-                  <div className="text-[10px] text-textMuted uppercase tracking-wider mb-1">Sleep Quality</div>
-                  <div className="flex items-end gap-2">
-                    {isEditingMetrics ? (
-                      <input 
-                        type="text" 
-                        value={metrics.sleep} 
-                        onChange={(e) => setMetrics({...metrics, sleep: e.target.value})}
-                        className="bg-surface border border-accentCyan/50 text-[16px] text-textPri font-bold px-2 py-1 rounded w-24 outline-none"
-                      />
-                    ) : (
-                      <span className="text-[20px] text-textPri font-bold leading-none">{metrics.sleep}</span>
-                    )}
-                    <span className="text-[11px] text-statusGreen">Optimal</span>
-                  </div>
+          {/* SECTOR 2: TACTICAL MESOCYCLE SWITCHER */}
+          <section className="bg-surface/30 border border-borderline rounded-[22px] p-8 shadow-xl">
+             <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-4 bg-[var(--accentViolet)] shadow-[0_0_10px_var(--accentViolet)]"></div>
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-textPri">Tactical Mesocycle Matrix</span>
                 </div>
-
-                <div className="bg-base border border-borderline rounded p-3 relative group">
-                  <div className="text-[10px] text-textMuted uppercase tracking-wider mb-1">Morning Weight</div>
-                  <div className="flex items-end gap-2">
-                    {isEditingMetrics ? (
-                      <div className="flex items-end gap-1">
-                        <input 
-                          type="text" 
-                          value={metrics.weight} 
-                          onChange={(e) => setMetrics({...metrics, weight: e.target.value})}
-                          className="bg-surface border border-accentCyan/50 text-[16px] text-textPri font-bold px-2 py-1 rounded w-20 outline-none"
-                        />
-                        <span className="text-[12px] text-textSec mb-1">kg</span>
-                      </div>
-                    ) : (
-                      <span className="text-[20px] text-textPri font-bold leading-none">{metrics.weight} kg</span>
-                    )}
-                    <span className="text-[11px] text-accentCyan">On Target</span>
-                  </div>
+                
+                <div className="flex bg-base/50 border border-borderline p-1.5 rounded-xl shadow-inner">
+                  {[1, 2, 3, 4].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setActiveCycle(num)}
+                      className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                        activeCycle === num 
+                        ? 'bg-[var(--accentViolet)] text-white shadow-[0_0_15px_var(--accentViolet)]' 
+                        : 'text-textMuted hover:text-textPri'
+                      }`}
+                    >
+                      Cycle {num}
+                    </button>
+                  ))}
                 </div>
+             </div>
 
-                <div className="bg-base border border-borderline rounded p-3 relative group">
-                  <div className="text-[10px] text-textMuted uppercase tracking-wider mb-1">Water Intake</div>
-                  <div className="flex items-end gap-2">
-                    {isEditingMetrics ? (
-                      <div className="flex items-end gap-1">
-                        <input 
-                          type="text" 
-                          value={metrics.water} 
-                          onChange={(e) => setMetrics({...metrics, water: e.target.value})}
-                          className="bg-surface border border-accentCyan/50 text-[16px] text-textPri font-bold px-2 py-1 rounded w-16 outline-none"
-                        />
-                        <span className="text-[12px] text-textSec mb-1">L</span>
-                      </div>
-                    ) : (
-                      <span className="text-[20px] text-textPri font-bold leading-none">{metrics.water} L</span>
-                    )}
-                    <span className="text-[11px] text-accentAmber">Target: 3.0L</span>
+             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                {getCycleData(activeCycle).map((day, i) => (
+                  <div key={i} className={`p-5 rounded-xl border transition-all ${day.rest ? 'border-dashed border-borderline opacity-40 bg-transparent' : 'bg-base/40 border-borderline hover:border-[var(--accentViolet)]/50 group/day'}`}>
+                    <div className="text-[9px] font-mono font-bold text-textMuted uppercase mb-2 tracking-widest">{day.label}</div>
+                    <div className={`text-[13px] font-bold leading-tight mb-4 ${day.rest ? 'text-textMuted' : 'text-textPri group-hover/day:text-[var(--accentViolet)] transition-colors'}`}>{day.focus}</div>
+                    <div className="space-y-1.5">
+                       {day.moves.map((m, j) => (
+                         <div key={j} className="text-[9px] font-mono text-textMuted truncate flex items-center gap-2">
+                            <span className="w-1 h-1 bg-borderline rounded-full"></span> {m}
+                         </div>
+                       ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                ))}
+             </div>
+          </section>
 
-            </div>
-
+          {/* SECTOR 3: NEURAL & BIO RECOVERY */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <RecoveryCard label="Sleep Architecture" val={metrics.sleep} status="Restorative" color="var(--accentFuchsia)" />
+            <RecoveryCard label="Biometric Weight" val={`${metrics.weight} kg`} status="Stable" color="var(--accentCyan)" />
+            <RecoveryCard label="Hydration Level" val={`${metrics.water} L`} status="Optimal" color="var(--accentCyan)" />
           </div>
 
+          <div className="h-12"></div>
         </main>
       </div>
-    </>
+
+      {/* TACTICAL LOGGING MODAL */}
+      {isLogging && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-base/60 backdrop-blur-md animate-in fade-in duration-300">
+           <div className="bg-surface border border-borderline rounded-[22px] p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 border-t-[var(--accentCyan)] border-t-4">
+              <h2 className="text-xl font-orbitron font-black text-textPri mb-6 uppercase tracking-wider">Intake_Injection</h2>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <input type="text" placeholder="Entry ID" className="col-span-2 bg-base/50 border border-borderline rounded-xl p-4 text-sm outline-none focus:border-[var(--accentCyan)] shadow-inner" value={newMeal.name} onChange={e => setNewMeal({...newMeal, name: e.target.value})} />
+                <input type="number" placeholder="Pro (g)" className="bg-base/50 border border-borderline rounded-xl p-4 text-sm outline-none" value={newMeal.protein} onChange={e => setNewMeal({...newMeal, protein: e.target.value})} />
+                <input type="number" placeholder="Cho (g)" className="bg-base/50 border border-borderline rounded-xl p-4 text-sm outline-none" value={newMeal.carbs} onChange={e => setNewMeal({...newMeal, carbs: e.target.value})} />
+                <input type="number" placeholder="Fat (g)" className="bg-base/50 border border-borderline rounded-xl p-4 text-sm outline-none" value={newMeal.fats} onChange={e => setNewMeal({...newMeal, fats: e.target.value})} />
+                <input type="number" placeholder="Kcal" className="bg-base/50 border border-borderline rounded-xl p-4 text-sm outline-none" value={newMeal.calories} onChange={e => setNewMeal({...newMeal, calories: e.target.value})} />
+              </div>
+              <div className="flex gap-4">
+                <button onClick={() => {
+                  if(newMeal.name && newMeal.calories) {
+                    setMeals([...meals, { name: newMeal.name, protein: Number(newMeal.protein), carbs: Number(newMeal.carbs), fats: Number(newMeal.fats), calories: Number(newMeal.calories) }]);
+                    setIsLogging(false);
+                    setNewMeal({ name: '', protein: '', carbs: '', fats: '', calories: '' });
+                  }
+                }} className="flex-1 py-4 bg-[var(--accentCyan)] text-white rounded-xl font-bold uppercase text-[12px] tracking-widest shadow-[0_0_20px_rgba(6,182,212,0.4)]">Commit Entry</button>
+                <button onClick={() => setIsLogging(false)} className="px-6 py-4 border border-borderline rounded-xl text-textMuted uppercase text-[12px]">Abort</button>
+              </div>
+           </div>
+        </div>
+      )}
+    </div>
   );
 }
 
-function SplitDay({ day, focus, exercises, active = false, isRest = false }: { day: string, focus: string, exercises: string[], active?: boolean, isRest?: boolean }) {
+function MacroBar({ label, val, target, color }: { label: string, val: number, target: number, color: string }) {
+  const percent = Math.min((val / target) * 100, 100);
   return (
-    <div className={`p-3 rounded border ${active ? 'bg-accentCyan/5 border-accentCyan shadow-[0_0_10px_rgba(6,182,212,0.1)]' : isRest ? 'bg-base/50 border-borderline border-dashed opacity-70' : 'bg-base border-borderline'} transition-colors`}>
-      <div className={`text-[10px] font-bold tracking-widest mb-1 ${active ? 'text-accentCyan' : 'text-textSec'}`}>{day}</div>
-      <div className="text-[12px] text-textPri font-medium mb-2 leading-tight">{focus}</div>
-      <ul className="text-[10px] text-textMuted space-y-1">
-        {exercises.map((ex, i) => (
-          <li key={i} className="truncate">• {ex}</li>
-        ))}
-      </ul>
+    <div className="space-y-4">
+      <div className="flex justify-between items-end px-1">
+        <span className="text-[10px] font-mono font-black text-textMuted uppercase tracking-[0.2em]">{label}</span>
+        <span className="text-[15px] font-orbitron font-bold" style={{ color }}>{val}<span className="text-[10px] text-textMuted ml-1">/ {target}g</span></span>
+      </div>
+      <div className="h-2 w-full bg-borderline/20 rounded-full overflow-hidden shadow-inner">
+        <div 
+          className="h-full transition-all duration-1000 shadow-[0_0_12px_currentColor] rounded-full" 
+          style={{ width: `${percent}%`, backgroundColor: color, color }}
+        ></div>
+      </div>
     </div>
   );
+}
+
+function RecoveryCard({ label, val, status, color }: { label: string, val: string, status: string, color: string }) {
+  return (
+    <div className="bg-surface/40 border border-borderline rounded-[22px] p-6 hover:border-white/20 transition-all group shadow-lg">
+      <div className="text-[9px] font-mono font-bold text-textMuted uppercase tracking-[0.3em] mb-3">{label}</div>
+      <div className="flex items-baseline justify-between">
+         <div className="text-[28px] font-orbitron font-black text-textPri drop-shadow-[0_0_10px_rgba(255,255,255,0.05)]">{val}</div>
+         <div className="text-[9px] font-mono font-bold px-2.5 py-1 rounded border border-borderline group-hover:text-white group-hover:bg-white/10 transition-all uppercase tracking-widest">{status}</div>
+      </div>
+      <div className="mt-5 h-[3px] w-full bg-borderline/10 rounded-full overflow-hidden">
+        <div className="h-full transition-all duration-700 opacity-30 group-hover:opacity-100 shadow-[0_0_8px_currentColor]" style={{ backgroundColor: color, width: '70%', color }}></div>
+      </div>
+    </div>
+  );
+}
+
+function getCycleData(cycle: number) {
+  const base = [
+    { label: 'Mon', focus: 'Upper Power', moves: ['Bench Press', 'Pull-ups'], rest: false },
+    { label: 'Tue', focus: 'Lower Power', moves: ['Squat', 'RDL'], rest: false },
+    { label: 'Wed', focus: 'Active Recovery', moves: ['Mobility', 'Z2 Cardio'], rest: true },
+    { label: 'Thu', focus: 'Upper Hyper', moves: ['Incl. DB', 'Rows'], rest: false },
+    { label: 'Fri', focus: 'Lower Hyper', moves: ['Leg Press', 'Curls'], rest: false },
+    { label: 'Sat', focus: 'Weak Points', moves: ['Shoulders', 'Arms'], rest: false },
+    { label: 'Sun', focus: 'System Rest', moves: ['Sleep', 'Meal Prep'], rest: true },
+  ];
+  if (cycle === 2) return base.map(d => d.rest ? d : { ...d, focus: d.focus + ' (Heavy)', moves: d.moves.map(m => m + ' (+5%)') });
+  if (cycle === 3) return base.map(d => d.rest ? d : { ...d, focus: 'Deload Focus', moves: ['Technique', 'RPE 6'] });
+  if (cycle === 4) return base.map(d => d.rest ? d : { ...d, focus: 'PR Calibration', moves: ['1-Rep Max', 'Max Effort'] });
+  return base;
 }
