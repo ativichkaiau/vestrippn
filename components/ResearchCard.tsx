@@ -27,7 +27,8 @@ export default function ResearchCard() {
           setProjectName(data.title);
           setStats(data.stats);
         } else {
-          const saved = localStorage.getItem('research-manual-stats');
+          // Bumped local storage key to v2 for clean state
+          const saved = localStorage.getItem('vestrippn-research-stats-v2');
           if (saved) setStats(JSON.parse(saved));
         }
       } catch (e) {
@@ -42,7 +43,7 @@ export default function ResearchCard() {
   const updateManualStat = (key: string, val: number) => {
     const newStats = { ...stats, [key]: val };
     setStats(newStats);
-    localStorage.setItem('research-manual-stats', JSON.stringify(newStats));
+    localStorage.setItem('vestrippn-research-stats-v2', JSON.stringify(newStats));
   };
 
   const searchPubMed = async (e: React.FormEvent) => {
@@ -64,52 +65,63 @@ export default function ResearchCard() {
     } finally { setIsSearching(false); }
   };
 
-  if (!isMounted) return <div className="bg-[var(--surface)]/20 border border-[var(--borderline)] rounded-[22px] p-6 h-[400px] animate-pulse" />;
+  // Sleek Glassmorphic Skeleton
+  if (!isMounted) return (
+    <div className="flex flex-col gap-6 w-full animate-pulse transition-colors duration-700">
+      <div className="h-32 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+      <div className="h-10 bg-black/5 dark:bg-white/5 rounded-xl w-full"></div>
+      <div className="flex-1 space-y-3">
+        <div className="h-16 bg-black/5 dark:bg-white/5 rounded-xl w-full"></div>
+        <div className="h-16 bg-black/5 dark:bg-white/5 rounded-xl w-full"></div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex-1 flex flex-col min-h-[400px] relative overflow-hidden group transition-all hover:border-[var(--accentAmber)]/30">
+    <div className="flex flex-col h-full w-full relative group transition-colors duration-700">
       
-      {/* TACTICAL OVERLAYS */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-
-      {/* HEADER */}
-      <div className="relative z-10 flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 bg-[var(--accentAmber)] shadow-[0_0_10px_var(--accentAmber)]"></div>
-          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--textPri)]">
-            Research Hub
+      {/* STATUS INDICATOR */}
+      <div className="absolute -top-12 right-0 flex items-center gap-2">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
+          <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`}></span>
+          <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase transition-colors duration-700">
+            {isLoading ? 'Syncing' : 'Covidence Live'}
           </span>
         </div>
-        <span className="text-[9px] font-mono text-[var(--textMuted)] uppercase tracking-widest tabular-nums border border-[var(--borderline)] px-2 py-0.5 rounded">
-          {isLoading ? 'SYNCING...' : 'HYBRID_MODE'}
-        </span>
       </div>
 
       {/* PROJECT TELEMETRY */}
-      <div className="relative z-10 mb-6 p-4 bg-[var(--base)]/30 rounded-xl border border-[var(--borderline)]">
-        <div className="text-[10px] font-mono text-[var(--accentAmber)] uppercase tracking-widest mb-3 flex items-center gap-2">
-          <span className="w-1 h-1 bg-[var(--accentAmber)] rounded-full animate-ping"></span>
-          {projectName}
+      <div className="mb-6 p-5 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-colors duration-700">
+        <div className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2 transition-colors duration-700">
+          <span className="w-1.5 h-1.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-colors duration-700"></span>
+          Active Review
         </div>
+        
+        <h3 className="font-bold text-[15px] leading-tight text-neutral-800 dark:text-neutral-200 mb-6 transition-colors duration-700">
+          {projectName}
+        </h3>
         
         <div className="space-y-4">
           {[
-            { id: 'screening', label: 'Screening', val: stats.screening, color: 'bg-[var(--accentCyan)]' },
-            { id: 'fullText', label: 'Full Text', val: stats.fullText, color: 'bg-[var(--accentAmber)]' },
-            { id: 'extraction', label: 'Extraction', val: stats.extraction, color: 'bg-[var(--statusGreen)]' }
+            { id: 'screening', label: 'Screening', val: stats.screening, color: 'bg-blue-500 dark:bg-blue-400' },
+            { id: 'fullText', label: 'Full Text', val: stats.fullText, color: 'bg-amber-500 dark:bg-amber-400' },
+            { id: 'extraction', label: 'Extraction', val: stats.extraction, color: 'bg-emerald-500 dark:bg-emerald-400' }
           ].map((stat) => (
-            <div key={stat.id} className="group/stat cursor-pointer" onClick={() => {
+            <div key={stat.id} className="group/stat cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 -mx-2 px-2 py-1 rounded-lg transition-all duration-300" onClick={() => {
               const newVal = window.prompt(`Update ${stat.label} %:`, stat.val.toString());
               if (newVal) updateManualStat(stat.id, parseInt(newVal));
             }}>
-              <div className="flex justify-between text-[9px] font-mono mb-1.5 uppercase tracking-tighter">
-                <span className="text-[var(--textSec)] group-hover/stat:text-[var(--textPri)] transition-colors">{stat.label}</span>
-                <span className="text-[var(--textPri)] font-bold">{stat.val}%</span>
+              <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest mb-1.5 transition-colors duration-700">
+                <span className="text-neutral-500 dark:text-neutral-400 group-hover/stat:text-neutral-700 dark:group-hover/stat:text-neutral-200 transition-colors duration-300">
+                  {stat.label}
+                </span>
+                <span className="text-neutral-900 dark:text-white transition-colors duration-700">
+                  {stat.val}%
+                </span>
               </div>
-              <div className="h-[2px] w-full bg-[var(--borderline)]/20 rounded-full overflow-hidden">
+              <div className="h-[4px] w-full bg-black/10 dark:bg-white/10 rounded-full overflow-hidden transition-colors duration-700">
                 <div 
-                  className={`h-full ${stat.color} transition-all duration-1000 shadow-[0_0_5px_currentColor] opacity-70 group-hover/stat:opacity-100`} 
+                  className={`h-full ${stat.color} transition-all duration-1000 rounded-full`} 
                   style={{ width: `${stat.val}%` }}
                 ></div>
               </div>
@@ -119,22 +131,29 @@ export default function ResearchCard() {
       </div>
 
       {/* PUBMED SEARCH SECTOR */}
-      <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
-        <form onSubmit={searchPubMed} className="relative mb-4">
+      <div className="flex flex-col flex-1 overflow-hidden min-h-[200px]">
+        
+        {/* Soft Search Input */}
+        <form onSubmit={searchPubMed} className="relative mb-4 flex">
           <input
             type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Library Query..."
-            className="w-full bg-[var(--base)]/50 border border-[var(--borderline)] rounded-lg px-4 py-2 text-[12px] text-[var(--textPri)] outline-none focus:border-[var(--accentCyan)]/50 transition-all font-mono placeholder:text-[var(--textMuted)]"
+            placeholder="Search PubMed Library..."
+            className="w-full bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 focus:ring-2 focus:ring-blue-500/30 rounded-xl px-4 py-2.5 text-[13px] text-neutral-900 dark:text-white outline-none transition-all placeholder:text-neutral-400 dark:placeholder:text-neutral-500 font-medium"
           />
-          <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black font-mono text-[var(--textSec)] hover:text-[var(--accentCyan)] uppercase tracking-widest">
+          <button 
+            type="submit" 
+            disabled={!searchQuery.trim()}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] font-bold bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 px-3 py-1.5 rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-50 disabled:hover:shadow-none"
+          >
             {isSearching ? '...' : 'Fetch'}
           </button>
         </form>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+        {/* Dynamic Paper Feed */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
           {papers.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-[10px] font-mono text-[var(--textMuted)] uppercase tracking-widest opacity-30">
-              No recent fetches.
+            <div className="h-full flex items-center justify-center text-[12px] font-medium text-neutral-400 dark:text-neutral-500 italic transition-colors duration-700">
+              Awaiting query...
             </div>
           ) : (
             papers.map((paper) => (
@@ -142,20 +161,23 @@ export default function ResearchCard() {
                 key={paper.id} 
                 href={`https://pubmed.ncbi.nlm.nih.gov/${paper.id}/`} 
                 target="_blank" 
-                className="group/paper block bg-[var(--base)]/30 border border-[var(--borderline)] rounded-lg p-3 hover:border-[var(--accentCyan)]/40 transition-all"
+                className="group/paper block bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl p-3.5 transition-all duration-300 border border-transparent dark:border-white/5 active:scale-[0.99]"
               >
-                <div className="text-[11px] text-[var(--textPri)] line-clamp-2 leading-snug group-hover/paper:text-[var(--accentCyan)] transition-colors mb-2 font-medium">
+                <div className="text-[13px] text-neutral-800 dark:text-neutral-200 font-bold line-clamp-2 leading-snug group-hover/paper:text-blue-600 dark:group-hover/paper:text-blue-400 transition-colors mb-2">
                   {paper.title}
                 </div>
-                <div className="flex justify-between text-[9px] text-[var(--textMuted)] font-mono uppercase tracking-tighter">
+                <div className="flex justify-between items-center text-[11px] text-neutral-500 dark:text-neutral-400 font-medium tracking-tight transition-colors duration-700">
                   <span className="truncate pr-4">{paper.authors}</span>
-                  <span className="shrink-0">{paper.pubdate}</span>
+                  <span className="shrink-0 font-bold bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded-md transition-colors duration-700">
+                    {paper.pubdate}
+                  </span>
                 </div>
               </a>
             ))
           )}
         </div>
       </div>
+
     </div>
   );
 }

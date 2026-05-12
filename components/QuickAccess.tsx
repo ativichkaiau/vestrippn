@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 
 const categories = [
-  { id: 'Core', color: 'var(--accentCyan)' },
-  { id: 'Research', color: 'var(--accentAmber)' },
-  { id: 'AI', color: 'var(--accentFuchsia)' },
-  { id: 'Fitness', color: 'var(--accentEmerald)' }
+  { id: 'Core', colorClass: 'bg-blue-500', textClass: 'text-blue-500' },
+  { id: 'Research', colorClass: 'bg-amber-500', textClass: 'text-amber-500' },
+  { id: 'AI', colorClass: 'bg-pink-500', textClass: 'text-pink-500' },
+  { id: 'Fitness', colorClass: 'bg-emerald-500', textClass: 'text-emerald-500' }
 ];
 
 const links = [
@@ -40,22 +40,27 @@ export default function QuickAccess() {
   const currentCat = categories.find(c => c.id === activeTab);
   const filteredLinks = links.filter(link => link.cat === activeTab);
 
-  if (!isMounted) return <div className="h-[200px] animate-pulse bg-[var(--borderline)]/10 rounded-xl" />;
+  if (!isMounted) return (
+    <div className="flex flex-col gap-6 animate-pulse transition-colors duration-700">
+      <div className="h-10 w-full bg-black/5 dark:bg-white/5 rounded-xl"></div>
+      <div className="grid grid-cols-3 gap-3">
+        {[1,2,3,4,5,6].map(i => <div key={i} className="h-20 bg-black/5 dark:bg-white/5 rounded-2xl"></div>)}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col gap-6 relative">
+    <div className="flex flex-col gap-6 w-full transition-colors duration-700">
       
       {/* TACTICAL CATEGORY SELECTOR */}
-      <div className="relative flex p-1 bg-[var(--base)]/50 border border-[var(--borderline)] rounded-xl backdrop-blur-sm shadow-inner">
-        {/* Animated Background Slide */}
+      <div className="relative flex p-1 bg-black/5 dark:bg-white/5 rounded-xl border border-transparent dark:border-white/5 transition-colors duration-700">
+        
+        {/* Animated Background Slide (Tailwind Logic) */}
         <div 
-          className="absolute top-1 bottom-1 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] rounded-lg shadow-lg"
+          className={`absolute top-1 bottom-1 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] rounded-lg shadow-sm ${currentCat?.colorClass} opacity-10 dark:opacity-20`}
           style={{
-            left: `${(categories.findIndex(c => c.id === activeTab) * 25) + 0.5}%`,
-            width: '24%',
-            backgroundColor: currentCat?.color,
-            opacity: 0.15,
-            border: `1px solid ${currentCat?.color}`
+            left: `calc(${(categories.findIndex(c => c.id === activeTab) * 25)}% + 4px)`,
+            width: 'calc(25% - 8px)',
           }}
         />
         
@@ -63,16 +68,15 @@ export default function QuickAccess() {
           <button
             key={cat.id}
             onClick={() => setActiveTab(cat.id)}
-            className={`relative z-10 flex-1 py-2 text-[9px] font-mono font-bold uppercase tracking-[0.2em] transition-all duration-300 ${
-              activeTab === cat.id ? 'text-[var(--textPri)]' : 'text-[var(--textMuted)] hover:text-[var(--textSec)]'
+            className={`relative z-10 flex-1 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all duration-300 ${
+              activeTab === cat.id 
+                ? `text-neutral-900 dark:text-white` 
+                : 'text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300'
             }`}
           >
             {cat.id}
             {activeTab === cat.id && (
-              <span 
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full shadow-[0_0_8px_currentColor]"
-                style={{ backgroundColor: cat.color, color: cat.color }}
-              ></span>
+              <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${cat.colorClass} shadow-sm animate-pulse`}></span>
             )}
           </button>
         ))}
@@ -86,36 +90,16 @@ export default function QuickAccess() {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex flex-col items-center justify-center bg-[var(--base)]/30 border border-[var(--borderline)] rounded-xl p-4 transition-all duration-300 hover:scale-[1.03] animate-in fade-in zoom-in-95"
-            style={{ 
-              borderColor: activeTab === 'Core' ? 'transparent' : '' // Subtle logic for hover
-            }}
+            className="group flex flex-col items-center justify-center bg-black/5 dark:bg-white/5 border border-transparent hover:border-black/10 dark:hover:border-white/10 rounded-2xl p-4 transition-all duration-300 active:scale-95 animate-in fade-in zoom-in-95"
           >
-            {/* Dynamic Hover Border */}
-            <div 
-              className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border"
-              style={{ borderColor: currentCat?.color }}
-            ></div>
-
-            <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300 relative z-10">
+            <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">
               {link.icon}
             </span>
-            <span className="text-[9px] font-mono text-[var(--textSec)] font-black uppercase tracking-tighter group-hover:text-[var(--textPri)] text-center leading-tight relative z-10">
+            <span className={`text-[10px] font-bold uppercase tracking-tight text-neutral-500 dark:text-neutral-400 group-hover:${currentCat?.textClass} text-center leading-tight transition-colors duration-300`}>
               {link.name}
             </span>
-            
-            {/* Technical Detail */}
-            <div 
-              className="mt-2 w-4 h-[1px] opacity-20"
-              style={{ backgroundColor: currentCat?.color }}
-            ></div>
           </a>
         ))}
-      </div>
-
-      {/* SYSTEM STATUS OVERLAY (Decorative) */}
-      <div className="absolute -bottom-2 -right-2 font-mono text-[7px] text-[var(--textMuted)] opacity-20 uppercase tracking-[0.4em] rotate-90 origin-bottom-right">
-        Quick_Access_Protocol_v3.0
       </div>
     </div>
   );

@@ -14,6 +14,10 @@ export default function IELTSHub() {
   const [lexiconData, setLexiconData] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+  const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
   const [modules, setModules] = useState<Module[]>([
     { id: 1, text: 'Reading Strategies' },
     { id: 2, text: 'Listening Buffer' },
@@ -22,17 +26,19 @@ export default function IELTSHub() {
   ]);
   const [isEditingModules, setIsEditingModules] = useState(false);
   const [tempModules, setTempModules] = useState<Module[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const savedModules = localStorage.getItem('vest_ielts_modules');
+    setIsMounted(true);
+    const currentHour = new Date().getHours();
+    setCycleTime(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
+
+    const savedModules = localStorage.getItem('vest_ielts_modules_v3');
     if (savedModules) setModules(JSON.parse(savedModules));
-    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (isLoaded) localStorage.setItem('vest_ielts_modules', JSON.stringify(modules));
-  }, [modules, isLoaded]);
+    if (isMounted) localStorage.setItem('vest_ielts_modules_v3', JSON.stringify(modules));
+  }, [modules, isMounted]);
 
   const handleLexiconSearch = async () => {
     if (!lexiconQuery.trim()) return;
@@ -43,7 +49,7 @@ export default function IELTSHub() {
       const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${lexiconQuery}`);
       const data = await response.json();
       if (response.ok && data.length > 0) setLexiconData(data[0]);
-      else setSearchError('WORD_NOT_FOUND');
+      else setSearchError('TOKEN_NOT_FOUND');
     } catch (e) { setSearchError('UPLINK_FAILURE'); }
     finally { setIsSearching(false); }
   };
@@ -53,44 +59,42 @@ export default function IELTSHub() {
     setIsEditingModules(false);
   };
 
+  if (!isMounted) return null;
+
   const navItems = [
-    { name: 'Dashboard', icon: '◉', href: '/', color: 'text-[var(--accentCyan)]' },
-    { name: 'Academics', icon: '▲', href: '/academics', color: 'text-[var(--accentFuchsia)]' },
-    { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]' },
-    { name: 'Fitness', icon: '◈', href: '/fitness', color: 'text-[var(--accentEmerald)]' },
-    { name: 'Archive', icon: '▥', href: '/archive', color: 'text-textSec' },
-    { name: 'IELTS', icon: '◎', href: '/ielts', color: 'text-[var(--accentViolet)]', active: true },
-    { name: 'Tools', icon: '⚙', href: '/tools', color: 'text-[var(--accentIndigo)]' },
-    { name: 'Identity', icon: '⚇', href: '/identity', color: 'text-[var(--accentIndigo)]' },
+    { name: 'Dashboard', icon: '◉', href: '/', active: false },
+    { name: 'Academics', icon: '▲', href: '/academics', active: false },
+    { name: 'Research', icon: '◆', href: '/research', active: false },
+    { name: 'Fitness', icon: '◈', href: '/fitness', active: false },
+    { name: 'Archive', icon: '▥', href: '/archive', active: false },
+    { name: 'IELTS', icon: '◎', href: '/ielts', active: true },
+    { name: 'Tools', icon: '⚙', href: '/tools', active: false },
+    { name: 'Identity', icon: '⚇', href: '/identity', active: false },
   ];
 
-  if (!isLoaded) return null;
-
   return (
-    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500">
+    <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-purple-500/30">
       
-      {/* HUD ATMOSPHERE */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] lg:w-[40%] h-[40%] bg-[var(--accentViolet)]/5 rounded-full blur-[80px] lg:blur-[120px]"></div>
-        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentViolet)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      {/* --- DAY/NIGHT ATMOSPHERE --- */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
+        <div className="absolute top-[-10%] right-[10%] w-[60%] h-[60%] bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-purple-600/15 dark:to-[#00A598]/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-60 transition-all duration-1000"></div>
+        <div className="absolute bottom-[-10%] left-[5%] w-[50%] h-[50%] bg-gradient-to-tr from-blue-400/20 to-purple-300/20 dark:from-blue-600/10 dark:to-purple-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
       </div>
 
-      {/* --- HUD HEADER --- */}
-      <header className="h-[56px] lg:h-[64px] border-b border-borderline flex items-center justify-between px-4 lg:px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
-        <div className="flex items-center gap-4 lg:gap-6">
-          <Link href="/" className="font-orbitron font-black text-[15px] lg:text-[18px] tracking-[0.2em] flex items-center gap-2">
-            <div className="w-1 h-4 lg:w-1.5 lg:h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_var(--accentCyan)]"></div>
-            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+      {/* --- MINIMALIST HEADER --- */}
+      <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
+        <div className="flex items-center gap-4 lg:gap-8">
+          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className="hidden lg:flex items-center justify-center p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-neutral-500 dark:text-neutral-400 active:scale-95">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="14" y2="18"></line></svg>
+          </button>
+          <Link href="/" className="font-black text-[20px] lg:text-[22px] tracking-tighter flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">V</div>
+            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="text-purple-600 dark:text-purple-400 transition-colors duration-700">3.0</span></div>
           </Link>
-          <div className="hidden lg:flex gap-4 border-l border-borderline pl-6 font-mono text-[9px] uppercase tracking-widest text-textMuted">
-            <div className="flex flex-col">
-              <span>LINGUISTIC_OS: <span className="text-statusGreen font-bold uppercase tracking-tighter">Nominal</span></span>
-              <span>STATE: <span className={isEditingModules ? 'text-[var(--accentAmber)] animate-pulse' : 'text-[var(--accentViolet)] uppercase'}>{isEditingModules ? 'RECONFIGURING' : 'LOCKED'}</span></span>
-            </div>
-          </div>
         </div>
-        <div className="hidden sm:block font-mono text-[10px] lg:text-[11px] tracking-[0.2em] text-textPri uppercase"><ArcDate /></div>
-        <div className="flex gap-3 lg:gap-4 items-center border-l border-borderline pl-4 lg:pl-6">
+        <div className="flex gap-4 lg:gap-6 items-center">
+          <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
+          <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
           <TopNavProfile />
           <ThemeToggle />
         </div>
@@ -98,163 +102,165 @@ export default function IELTSHub() {
 
       <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* --- DESKTOP SIDEBAR --- */}
-        <aside className="hidden lg:flex w-[230px] border-r border-borderline flex flex-col justify-between p-5 bg-surface/20 shrink-0 backdrop-blur-md">
-          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+        {/* --- RETRACTABLE SIDEBAR --- */}
+        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarExpanded ? 'w-[240px] px-6' : 'w-[88px] px-4'}`}>
+          <nav className="space-y-2">
             {navItems.map((item) => (
-              <Link key={item.name} href={item.href} className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${item.active ? 'bg-[var(--accentViolet)]/10 border-[var(--accentViolet)]/20 font-bold' : 'hover:bg-surface'}`}>
-                <span className={`text-[14px] transition-all ${item.active ? `${item.color} drop-shadow-[0_0_5px_currentColor]` : 'text-textMuted opacity-40 group-hover:opacity-100'}`}>{item.icon}</span>
-                <span className={`text-[12px] tracking-tight ${item.active ? 'text-textPri' : 'text-textSec group-hover:text-textPri'}`}>{item.name}</span>
+              <Link key={item.name} href={item.href} className={`flex items-center ${isSidebarExpanded ? 'px-4' : 'justify-center'} py-3 rounded-2xl transition-all duration-300 group relative ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
+                <span className={`text-[18px] shrink-0 ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
+                <span className={`text-[13px] font-bold tracking-tight whitespace-nowrap transition-all duration-500 ${isSidebarExpanded ? 'max-w-[150px] opacity-100 ml-4' : 'max-w-0 opacity-0 ml-0'}`}>{item.name}</span>
               </Link>
             ))}
           </nav>
-          <div className="p-4 rounded-2xl bg-surface border border-borderline mt-4"><Clock /></div>
+          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className={`mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center cursor-pointer active:scale-95 ${isSidebarExpanded ? 'p-5' : 'p-4 aspect-square'}`}>
+            {isSidebarExpanded ? <Clock /> : <span className="text-xl">⏱️</span>}
+          </button>
         </aside>
 
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8 space-y-6 lg:space-y-8 pb-24 lg:pb-8">
-          
-          {/* SECTOR 1: NOTEBOOK LM PORTAL */}
-          <section className={`relative bg-surface/40 border rounded-[22px] p-6 lg:p-8 shadow-xl overflow-hidden group transition-all duration-500 ${isEditingModules ? 'border-[var(--accentAmber)]/50' : 'border-borderline'}`}>
-            <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-[var(--accentViolet)]/10 rounded-full blur-[100px]"></div>
+        {/* --- MAIN WORKSPACE --- */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
+          <div className="max-w-[1400px] mx-auto space-y-8 lg:space-y-10">
             
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-6">
-              <div className="flex items-center gap-4 lg:gap-5">
-                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-[20px] bg-base/50 border border-borderline flex items-center justify-center text-2xl lg:text-3xl shadow-inner group-hover:rotate-6 transition-transform">🎙️</div>
-                <div>
-                  <h2 className="font-orbitron font-black text-[16px] lg:text-[18px] text-textPri uppercase tracking-widest">NotebookLM IELTS Vault</h2>
-                  <p className="text-[9px] lg:text-[10px] font-mono text-textMuted uppercase tracking-widest mt-1">
-                    {isEditingModules ? '// RECONFIGURING LABELS' : 'AI-Synthesis Matrix Active'}
-                  </p>
+            {/* SECTOR 1: AI VAULT PORTAL */}
+            <section className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 ${isEditingModules ? 'border-amber-500/30 ring-4 ring-amber-500/5' : 'border-black/5 dark:border-white/5'}`}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">🎙️</div>
+                  <div>
+                    <h2 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight">NotebookLM IELTS Vault</h2>
+                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">
+                      {isEditingModules ? 'Reconfiguring Matrix' : 'AI-Synthesis Active'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex gap-2 lg:gap-3 w-full md:w-auto">
-                {isEditingModules ? (
-                  <>
-                    <button onClick={commitModules} className="flex-1 md:flex-none bg-[var(--statusGreen)] text-black font-black text-[9px] lg:text-[10px] px-4 lg:px-6 py-3 rounded-xl uppercase tracking-widest transition-all">Commit</button>
-                    <button onClick={() => setIsEditingModules(false)} className="flex-1 md:flex-none border border-borderline text-textMuted font-black text-[9px] lg:text-[10px] px-4 lg:px-6 py-3 rounded-xl uppercase tracking-widest hover:text-textPri transition-all">Abort</button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => { setTempModules([...modules]); setIsEditingModules(true); }} className="px-3 lg:px-4 py-3 rounded-xl border border-borderline text-[9px] lg:text-[10px] font-black uppercase text-textMuted hover:text-[var(--accentAmber)] transition-all whitespace-nowrap">Edit Matrix</button>
-                    <a href="https://notebooklm.google.com/notebook/6b628a58-9950-4fa9-918b-111fc6953777" target="_blank" className="flex-1 md:flex-none bg-[var(--accentViolet)] text-white font-black text-[10px] lg:text-[11px] px-6 lg:px-8 py-3 rounded-xl shadow-[0_0_15px_var(--accentViolet)] transition-all uppercase tracking-[0.2em] text-center">Engage ↗</a>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mt-8 lg:mt-10 relative z-10">
-              {(isEditingModules ? tempModules : modules).map((mod, i) => (
-                <div key={mod.id} className="bg-base/40 border border-borderline rounded-xl p-3 lg:p-4 flex flex-col gap-1 lg:gap-2 relative overflow-hidden group/mod hover:border-[var(--accentViolet)]/50 transition-all">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-[var(--accentViolet)] opacity-20 group-hover/mod:opacity-100 transition-opacity"></div>
-                  <span className="text-[8px] lg:text-[9px] text-[var(--accentViolet)] font-mono font-black tracking-widest uppercase">M_0{mod.id}</span>
+                
+                <div className="flex gap-3 w-full md:w-auto">
                   {isEditingModules ? (
-                    <input 
-                      type="text" 
-                      value={mod.text} 
-                      onChange={(e) => {
-                        const next = [...tempModules];
-                        next[i].text = e.target.value;
-                        setTempModules(next);
-                      }}
-                      className="bg-base border border-[var(--accentAmber)]/30 rounded px-2 py-1 text-[11px] lg:text-[13px] text-textPri font-bold outline-none"
-                    />
+                    <>
+                      <button onClick={commitModules} className="flex-1 md:flex-none bg-emerald-500 text-white font-bold text-[11px] px-6 py-3 rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-md">Commit</button>
+                      <button onClick={() => setIsEditingModules(false)} className="flex-1 md:flex-none bg-black/5 dark:bg-white/5 text-neutral-500 font-bold text-[11px] px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-black/10 transition-all">Abort</button>
+                    </>
                   ) : (
-                    <span className="text-[11px] lg:text-[13px] text-textPri font-bold leading-tight truncate">{mod.text}</span>
+                    <>
+                      <button onClick={() => { setTempModules([...modules]); setIsEditingModules(true); }} className="px-4 py-3 rounded-xl border border-black/5 dark:border-white/10 text-[11px] font-bold uppercase text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 transition-all active:scale-95">Edit Labels</button>
+                      <a href="https://notebooklm.google.com/notebook/6b628a58-9950-4fa9-918b-111fc6953777" target="_blank" className="flex-1 md:flex-none bg-purple-500 text-white font-bold text-[11px] px-8 py-3 rounded-xl shadow-lg hover:bg-purple-600 transition-all active:scale-95 uppercase tracking-widest text-center">Engage Vault</a>
+                    </>
                   )}
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
 
-          {/* SECTOR 2: GRID WRAPPER FOR LEXICON & VAULTS */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            
-            {/* LEXICON TERMINAL */}
-            <div className="lg:col-span-8 bg-surface/40 border border-borderline rounded-[22px] shadow-xl overflow-hidden flex flex-col">
-              <div className="bg-base/80 px-5 lg:px-6 py-4 border-b border-borderline flex justify-between items-center shrink-0">
-                <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-[var(--accentViolet)] animate-pulse shadow-[0_0_8px_var(--accentViolet)]"></span>
-                  <span className="font-mono text-[10px] lg:text-[11px] font-black uppercase tracking-[0.3em] text-textPri">Lexicon Engine</span>
-                </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {(isEditingModules ? tempModules : modules).map((mod, i) => (
+                  <div key={mod.id} className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl p-4 flex flex-col gap-2 transition-all hover:bg-black/10 active:scale-[0.98]">
+                    <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 tracking-widest uppercase">M-0{mod.id}</span>
+                    {isEditingModules ? (
+                      <input type="text" value={mod.text} onChange={(e) => { const next = [...tempModules]; next[i].text = e.target.value; setTempModules(next); }} className="bg-white dark:bg-neutral-800 border border-amber-500/30 rounded-lg px-3 py-2 text-[13px] text-neutral-900 dark:text-white font-bold outline-none focus:ring-2 ring-amber-500/20" />
+                    ) : (
+                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 font-bold tracking-tight truncate">{mod.text}</span>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div className="p-6 lg:p-8 flex flex-col gap-6 flex-1 min-h-[400px]">
-                <div className="flex gap-2 lg:gap-3">
-                  <input 
-                    type="text" 
-                    placeholder="Input token..." 
-                    value={lexiconQuery} 
-                    onChange={(e) => setLexiconQuery(e.target.value)} 
-                    onKeyDown={(e) => e.key === 'Enter' && handleLexiconSearch()} 
-                    className="flex-1 bg-base/50 border border-borderline rounded-xl px-4 lg:px-5 py-3 lg:py-4 text-[12px] lg:text-[13px] text-textPri outline-none focus:border-[var(--accentViolet)]/50 transition-all font-mono" 
-                  />
-                  <button onClick={handleLexiconSearch} className="bg-[var(--accentViolet)]/10 border border-[var(--accentViolet)]/50 text-[var(--accentViolet)] px-4 lg:px-6 rounded-xl text-[10px] lg:text-[11px] font-black uppercase tracking-widest">Query</button>
-                </div>
-                <div className="bg-base/30 border border-borderline rounded-xl p-5 lg:p-6 flex-1 overflow-y-auto">
-                  {lexiconData ? (
-                    <div className="space-y-6 animate-in fade-in duration-500">
-                      <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 lg:gap-4 border-b border-borderline pb-4">
-                        <h3 className="text-2xl lg:text-3xl font-orbitron font-black text-textPri">{lexiconData.word}</h3>
-                        <span className="text-[12px] lg:text-[14px] text-[var(--accentViolet)] font-mono tracking-widest uppercase">{lexiconData.phonetic}</span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         {lexiconData.meanings.slice(0, 2).map((meaning: any, idx: number) => (
-                           <div key={idx} className="space-y-2">
-                             <div className="text-[9px] font-black uppercase tracking-widest text-[var(--accentViolet)] bg-[var(--accentViolet)]/10 w-fit px-2 py-0.5 rounded">{meaning.partOfSpeech}</div>
-                             <p className="text-[12px] lg:text-[13px] text-textSec leading-relaxed font-medium">{meaning.definitions[0].definition}</p>
-                           </div>
-                         ))}
-                      </div>
-                    </div>
-                  ) : <div className="h-full flex items-center justify-center text-textMuted text-[9px] font-mono uppercase tracking-[0.4em] opacity-30 text-center px-4">{searchError || 'Awaiting Uplink...'}</div>}
-                </div>
-              </div>
-            </div>
+            </section>
 
-            {/* SIDE VAULTS */}
-            <div className="lg:col-span-4 flex flex-col gap-6 lg:gap-8 pb-12 lg:pb-0">
-              <div className="bg-surface/30 border border-borderline rounded-[22px] p-5 lg:p-6 shadow-xl">
-                 <div className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-textMuted mb-5">Internal Vaults</div>
-                 <div className="space-y-3">
-                    <DriveTile title="Mock Tests by Kaiau" url="https://drive.google.com/drive/folders/1vPEPiASm7gRVLuE-KJr0ce1094eI0CjE" icon="📝" />
-                    <DriveTile title="IELTS Master Vault" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" icon="📂" />
-                 </div>
+            {/* SECTOR 2: LEXICON & THESAURUS ENGINE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              <div className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col transition-colors duration-700">
+                <div className="px-8 py-6 border-b border-black/5 dark:border-white/5 flex items-center gap-3">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Lexicon & Thesaurus Engine</h3>
+                </div>
+
+                <div className="p-8 space-y-8 flex-1 min-h-[500px]">
+                  <div className="flex gap-3">
+                    <input type="text" placeholder="Input token for synthesis..." value={lexiconQuery} onChange={(e) => setLexiconQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLexiconSearch()} className="flex-1 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl px-6 py-4 text-[15px] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/30 transition-all font-medium placeholder:text-neutral-400" />
+                    <button onClick={handleLexiconSearch} className="bg-purple-500 text-white px-8 rounded-2xl text-[11px] font-bold uppercase tracking-widest active:scale-95 shadow-md">Query</button>
+                  </div>
+
+                  <div className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl p-6 lg:p-8 flex-1 overflow-y-auto">
+                    {lexiconData ? (
+                      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline gap-4 border-b border-black/5 dark:border-white/10 pb-6">
+                          <h3 className="text-[32px] lg:text-[42px] font-black text-neutral-900 dark:text-white tracking-tighter leading-none">{lexiconData.word}</h3>
+                          <span className="text-[14px] lg:text-[16px] text-purple-600 dark:text-purple-400 font-bold italic tracking-wide">{lexiconData.phonetic}</span>
+                        </div>
+
+                        {/* Definitions */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          {lexiconData.meanings.slice(0, 2).map((meaning: any, idx: number) => (
+                            <div key={idx} className="space-y-3">
+                              <div className="text-[10px] font-bold uppercase tracking-widest text-purple-500 bg-purple-500/10 w-fit px-2.5 py-1 rounded-md">{meaning.partOfSpeech}</div>
+                              <p className="text-[15px] text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">{meaning.definitions[0].definition}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* THESAURUS SUB-SECTION */}
+                        <div className="pt-6 border-t border-black/5 dark:border-white/10 space-y-6">
+                          <div>
+                            <h4 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-4">Thesaurus: Synonyms</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {lexiconData.meanings[0].synonyms.length > 0 ? (
+                                lexiconData.meanings[0].synonyms.slice(0, 8).map((syn: string) => (
+                                  <button key={syn} onClick={() => { setLexiconQuery(syn); setTimeout(handleLexiconSearch, 50); }} className="px-4 py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl text-[13px] font-bold hover:bg-emerald-500 hover:text-white transition-all active:scale-95 border border-transparent dark:border-emerald-500/20">
+                                    {syn}
+                                  </button>
+                                ))
+                              ) : <span className="text-[13px] italic text-neutral-400">No primary synonyms found.</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-40">
+                         <span className="text-4xl mb-4">📖</span>
+                         <p className="text-[13px] font-bold uppercase tracking-[0.3em]">{searchError || 'Awaiting Linguistic Uplink'}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="bg-surface/30 border border-borderline rounded-[22px] p-5 lg:p-6 shadow-xl">
-                 <div className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-textMuted mb-5">Practice Matrix</div>
-                 <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { name: 'British', icon: '🇬🇧', url: 'https://takeielts.britishcouncil.org' },
-                      { name: 'Cambridge', icon: '🏛️', url: 'https://www.cambridgeenglish.org' },
-                      { name: 'Online', icon: '💻', url: 'https://ieltsonlinetests.com' },
-                      { name: 'Liz', icon: '👩‍🏫', url: 'https://ieltsliz.com' },
-                    ].map(site => (
-                      <a key={site.name} href={site.url} target="_blank" className="flex flex-col items-center justify-center p-4 bg-base/40 border border-borderline rounded-xl hover:border-[var(--accentViolet)]/40 transition-all group">
-                        <span className="text-xl lg:text-2xl mb-2 group-hover:scale-125 transition-transform">{site.icon}</span>
-                        <span className="text-[8px] font-black uppercase text-textMuted group-hover:text-textPri tracking-tighter text-center">{site.name}</span>
-                      </a>
-                    ))}
-                 </div>
+
+              {/* SIDE VAULTS */}
+              <div className="lg:col-span-4 flex flex-col gap-6 lg:gap-8">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                   <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-6">Internal Vaults</h3>
+                   <div className="space-y-4">
+                      <DriveTile title="Mock Tests by Kaiau" icon="📝" url="https://drive.google.com/drive/folders/1vPEPiASm7gRVLuE-KJr0ce1094eI0CjE" />
+                      <DriveTile title="IELTS Master Vault" icon="📂" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" />
+                   </div>
+                </div>
+                
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                   <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-6">Practice Matrix</h3>
+                   <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { name: 'British', icon: '🇬🇧', url: 'https://takeielts.britishcouncil.org' },
+                        { name: 'Cambridge', icon: '🏛️', url: 'https://www.cambridgeenglish.org' },
+                        { name: 'Online', icon: '💻', url: 'https://ieltsonlinetests.com' },
+                        { name: 'Liz', icon: '👩‍🏫', url: 'https://ieltsliz.com' },
+                      ].map(site => (
+                        <a key={site.name} href={site.url} target="_blank" className="flex flex-col items-center justify-center p-5 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 transition-all active:scale-95 group">
+                          <span className="text-2xl mb-2 group-hover:scale-110 transition-transform">{site.icon}</span>
+                          <span className="text-[10px] font-bold uppercase text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white tracking-tight text-center">{site.name}</span>
+                        </a>
+                      ))}
+                   </div>
+                </div>
               </div>
             </div>
           </div>
         </main>
 
-        {/* --- MOBILE HUD NAV BAR --- */}
-        <nav className="lg:hidden fixed bottom-4 left-4 right-4 h-[64px] bg-base/80 backdrop-blur-2xl border border-borderline rounded-2xl z-[100] flex items-center justify-around px-2 shadow-2xl">
+        {/* --- MOBILE NAVIGATION --- */}
+        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-2xl w-[95%] sm:w-auto">
           {navItems.slice(0, 4).map((item) => (
-            <Link key={item.name} href={item.href} className="flex flex-col items-center justify-center gap-1 group">
-               <span className={`${item.color} text-[18px] ${item.active ? 'drop-shadow-[0_0_8px_currentColor]' : 'opacity-40'}`}>
-                 {item.icon}
-               </span>
-               <span className={`text-[8px] font-black uppercase tracking-tighter ${item.active ? 'text-textPri' : 'text-textMuted'}`}>
-                 {item.name.split(' ')[0]}
-               </span>
+            <Link key={item.name} href={item.href} className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all shrink-0 ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-neutral-500'}`}>
+               <span className="text-[16px]">{item.icon}</span>
+               {item.active && <span className="text-[11px] font-bold tracking-tight">{item.name}</span>}
             </Link>
           ))}
-          <Link href="/identity" className="w-10 h-10 rounded-full bg-surface border border-borderline flex items-center justify-center text-[18px] text-[var(--accentCyan)]">
-            ⚇
-          </Link>
         </nav>
 
       </div>
@@ -262,13 +268,13 @@ export default function IELTSHub() {
   );
 }
 
-function DriveTile({ title, url, icon }: { title: string, url: string, icon: string }) {
+function DriveTile({ title, icon, url }: { title: string, icon: string, url: string }) {
   return (
-    <a href={url} target="_blank" className="flex items-center gap-3 lg:gap-4 p-4 bg-base/40 border border-borderline rounded-xl hover:border-[var(--accentViolet)]/30 transition-all group min-w-0">
-      <div className="text-xl lg:text-2xl grayscale group-hover:grayscale-0 transition-all shrink-0">{icon}</div>
+    <a href={url} target="_blank" className="flex items-center gap-4 p-4 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-[20px] hover:bg-black/10 transition-all active:scale-[0.98] group">
+      <div className="text-2xl group-hover:scale-110 transition-transform shrink-0">{icon}</div>
       <div className="flex-1 min-w-0">
-        <div className="text-[12px] lg:text-[13px] font-bold text-textPri truncate">{title}</div>
-        <div className="text-[8px] lg:text-[9px] font-mono text-textMuted uppercase tracking-widest whitespace-nowrap">Cloud_Uplink</div>
+        <div className="text-[14px] font-bold text-neutral-900 dark:text-neutral-100 truncate">{title}</div>
+        <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-0.5">Uplink Active</div>
       </div>
     </a>
   );

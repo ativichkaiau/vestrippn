@@ -1,80 +1,100 @@
 @import "tailwindcss";
 
+/* 
+  CRITICAL V4 FIX: This is the official stable syntax for manual dark mode in Tailwind v4.
+  This tells Tailwind to activate 'dark:' classes whenever the <html> has class="dark".
+*/
+@variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
-    /* LIGHT MODE (Day) */
-    --base: #F1F5F9;
-    --surface: #FFFFFF;
-    --borderline: #E2E8F0;
-    
-    --accentCyan: #0EA5E9;
-    --accentFuchsia: #D946EF;
-    --accentAmber: #F59E0B;
-    --accentEmerald: #10B981;
-    --accentIndigo: #6366F1;
-    --accentViolet: #8B5CF6;
-    
-    --statusGreen: #22C55E;
-    --statusRed: #EF4444;
-    
-    --textPri: #0F172A;
-    --textSec: #475569;
-    --textMuted: #94A3B8;
+    /* LIGHT MODE (Pristine White) */
+    --background: 240 10% 98%;    /* #FAFAFA */
+    --foreground: 240 10% 3.9%;
+    --border: 240 5.9% 90%;
   }
-  
+
+  .dark {
+    /* DARK MODE (Deep Carbon) */
+    --background: 0 0% 2%;        /* #050505 */
+    --foreground: 0 0% 98%;
+    --border: 0 0% 10%;           /* #1A1A1A */
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
   body {
-    background-color: var(--base);
-    color: var(--textPri);
-    transition: background-color 0.4s ease, color 0.4s ease;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    transition-property: color, background-color, border-color;
+    transition-duration: 700ms;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* DARK MODE (Tactical Night) */
-.dark {
-  --base: #05070a;
-  --surface: #0b0e14;
-  --borderline: #1e293b;
-  
-  --accentCyan: #00C2FF;
-  --accentFuchsia: #A78BFA;
-  --accentAmber: #FBBF24;
-  --accentEmerald: #34D399;
-  --accentIndigo: #818CF8;
-  --accentViolet: #C084FC;
-  
-  --statusGreen: #4ADE80;
-  --statusRed: #FB7185;
-  
-  --textPri: #F8FAFC;
-    /* Only transition on theme changes to avoid jank */
-    transition: background-color 0.4s ease, color 0.4s ease;
-  --textMuted: #475569;
+/* --- REFINED HUD ANIMATIONS --- */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-1deg); }
 }
 
-/* SCANLINE ANIMATION */
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
 @keyframes scanline {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
+  0% { transform: translateY(-20%); opacity: 0; }
+  50% { opacity: 0.05; }
+  100% { transform: translateY(120%); opacity: 0; }
 }
+
 .animate-scanline {
-  animation: scanline 12s linear infinite;
+  animation: scanline 10s linear infinite;
+  pointer-events: none;
 }
-/* CUSTOM SCROLLBAR FOR MEDICAL HUD */
+
+/* --- ULTRA-MINIMAL SCROLLBAR --- */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--borderline) transparent;
+  scrollbar-color: rgba(0, 165, 152, 0.2) transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--borderline);
-  border-radius: 10px;
-  transition: background 0.3s;
+  background-color: rgba(163, 163, 163, 0.5);
+  border-radius: 9999px;
+  transition: all 0.3s;
 }
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(38, 38, 38, 0.5);
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--accentCyan);
+  background-color: rgba(0, 165, 152, 0.5);
+}
+
+/* HIDE SCROLLBARS BUT ALLOW SCROLLING */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* --- TYPOGRAPHY OPTIMIZATION --- */
+h1, h2, h3, .font-orbitron {
+  letter-spacing: -0.02em;
+  text-rendering: optimizeLegibility;
 }

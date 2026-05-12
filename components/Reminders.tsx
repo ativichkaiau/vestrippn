@@ -21,7 +21,8 @@ export default function Reminders() {
   useEffect(() => {
     setIsMounted(true);
     try {
-      const saved = localStorage.getItem('vestrippn-reminders-v2');
+      // Bumped to v3 for a clean state match with the new UI
+      const saved = localStorage.getItem('vestrippn-reminders-v3');
       if (saved) setReminders(JSON.parse(saved));
     } catch (e) { console.error("Buffer Load Failure", e); }
   }, []);
@@ -33,60 +34,67 @@ export default function Reminders() {
     const updated = [...reminders, newReminder];
     setReminders(updated);
     setInputValue('');
-    localStorage.setItem('vestrippn-reminders-v2', JSON.stringify(updated));
+    localStorage.setItem('vestrippn-reminders-v3', JSON.stringify(updated));
   };
 
   const removeReminder = (id: string) => {
     const updated = reminders.filter(r => r.id !== id);
     setReminders(updated);
-    localStorage.setItem('vestrippn-reminders-v2', JSON.stringify(updated));
+    localStorage.setItem('vestrippn-reminders-v3', JSON.stringify(updated));
   };
 
-  if (!isMounted) return <div className="h-[250px] bg-[var(--surface)]/20 border border-[var(--borderline)] rounded-[22px] animate-pulse" />;
+  // Minimal skeleton matching Day/Night surface
+  if (!isMounted) return (
+    <div className="flex flex-col gap-4 animate-pulse transition-colors duration-700">
+      <div className="flex justify-between items-center mb-2">
+        <div className="h-6 w-32 bg-black/5 dark:bg-white/5 rounded-full"></div>
+      </div>
+      {[1, 2, 3].map(i => <div key={i} className="h-10 bg-black/5 dark:bg-white/5 rounded-xl"></div>)}
+      <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-xl mt-4"></div>
+    </div>
+  );
 
   return (
-    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex-1 flex flex-col min-h-[300px] relative overflow-hidden group transition-all hover:border-[var(--accentIndigo)]/30">
+    <div className="flex flex-col h-full w-full relative transition-colors duration-700">
       
-      {/* TACTICAL OVERLAYS */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-
       {/* HEADER */}
-      <div className="relative z-10 flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 bg-[var(--accentIndigo)] shadow-[0_0_10px_var(--accentIndigo)]"></div>
-          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--textPri)]">
-            Utility Reminders
-          </span>
+          <div className="text-[16px] transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12">
+            🔔
+          </div>
+          <h2 className="font-bold text-[18px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">
+            Utility Alerts
+          </h2>
         </div>
-        <span className="text-[9px] font-mono text-[var(--textMuted)] uppercase tracking-widest tabular-nums border border-[var(--borderline)]/40 px-2 py-0.5 rounded">
+        <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest tabular-nums px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
           {reminders.length} Active
         </span>
       </div>
 
       {/* REMINDER LIST */}
-      <ul className="relative z-10 flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 mb-6">
+      <ul className="flex-1 overflow-y-auto space-y-2.5 custom-scrollbar pr-2 mb-6 min-h-[150px]">
         {reminders.length === 0 ? (
-          <li className="h-full flex items-center justify-center text-[var(--textMuted)] text-[10px] font-mono uppercase tracking-[0.2em] opacity-40 italic">
-            Buffer Empty // No Alerts
+          <li className="h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500 text-[12px] font-medium italic transition-colors duration-700">
+            Buffer empty. No alerts active.
           </li>
         ) : (
           reminders.map((reminder) => (
             <li 
               key={reminder.id} 
-              className="group/item flex items-center justify-between gap-3 p-2.5 bg-[var(--base)]/20 border border-transparent hover:border-[var(--accentIndigo)]/20 hover:bg-[var(--base)]/40 rounded-lg transition-all cursor-default"
+              className="group/item flex items-center justify-between gap-3 px-3.5 py-2.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl transition-all duration-300 active:scale-[0.98] select-none cursor-default border border-transparent dark:border-white/5"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accentIndigo)]/40 group-hover/item:bg-[var(--accentIndigo)] transition-colors shadow-[0_0_5px_var(--accentIndigo)]"></span>
-                <span className="text-[13px] text-[var(--textSec)] group-hover/item:text-[var(--textPri)] transition-colors truncate tracking-tight font-medium">
+                <span className="w-2 h-2 rounded-full bg-blue-500/50 group-hover/item:bg-blue-500 dark:bg-blue-400/50 dark:group-hover/item:bg-blue-400 transition-colors duration-300"></span>
+                <span className="text-[14px] text-neutral-700 dark:text-neutral-200 group-hover/item:text-neutral-900 dark:group-hover/item:text-white transition-colors duration-300 truncate tracking-tight font-medium">
                   {reminder.text}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => removeReminder(reminder.id)}
-                className="text-[var(--textMuted)] hover:text-[var(--statusRed)] opacity-0 group-hover/item:opacity-100 transition-all px-2 font-black text-[14px]"
-                title="Purge"
+                className="text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all duration-300 px-2 font-black text-[18px] leading-none"
+                title="Purge Alert"
               >
                 ×
               </button>
@@ -96,20 +104,20 @@ export default function Reminders() {
       </ul>
 
       {/* INPUT SECTOR */}
-      <form onSubmit={addReminder} className="relative z-10 shrink-0">
+      <form onSubmit={addReminder} className="relative shrink-0 flex items-center">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="New system alert..."
-          className="w-full bg-[var(--base)]/50 border border-[var(--borderline)] rounded-xl px-4 py-3 text-[12px] text-[var(--textPri)] placeholder:text-[var(--textMuted)] focus:outline-none focus:border-[var(--accentIndigo)]/50 transition-all font-mono shadow-inner"
+          placeholder="Inject new alert..."
+          className="w-full bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-xl pl-4 pr-16 py-3.5 text-[13px] text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all font-medium"
         />
         <button
           type="submit"
           disabled={!inputValue.trim()}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-black font-mono text-[var(--textSec)] hover:text-[var(--accentIndigo)] disabled:opacity-30 transition-all px-2 tracking-widest"
+          className="absolute right-2 text-[11px] uppercase font-bold text-blue-600 dark:text-blue-400 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all duration-300 px-3 py-1.5 rounded-lg tracking-widest"
         >
-          Inject
+          Add
         </button>
       </form>
     </div>

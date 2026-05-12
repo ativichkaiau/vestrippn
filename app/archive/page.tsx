@@ -8,48 +8,60 @@ import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
 
 export default function ArchiveHub() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  useEffect(() => { setIsLoaded(true); }, []);
+  const [isMounted, setIsMounted] = useState(false);
+  const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
-  if (!isLoaded) return null;
+  useEffect(() => { 
+    setIsMounted(true); 
+    const currentHour = new Date().getHours();
+    setCycleTime(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
+  }, []);
+
+  if (!isMounted) return null;
 
   const navItems = [
-    { name: 'Dashboard', icon: '◉', href: '/', color: 'text-[var(--accentCyan)]' },
-    { name: 'Academics', icon: '▲', href: '/academics', color: 'text-[var(--accentFuchsia)]' },
-    { name: 'Research', icon: '◆', href: '/research', color: 'text-[var(--accentAmber)]' },
-    { name: 'Fitness', icon: '◈', href: '/fitness', color: 'text-[var(--accentEmerald)]' },
-    { name: 'Archive', icon: '▥', href: '/archive', color: 'text-textPri', active: true },
-    { name: 'IELTS', icon: '◎', href: '/ielts', color: 'text-[var(--accentViolet)]' },
-    { name: 'Tools', icon: '⚙', href: '/tools', color: 'text-[var(--accentIndigo)]' },
-    { name: 'Identity', icon: '⚇', href: '/identity', color: 'text-[var(--accentIndigo)]' },
+    { name: 'Dashboard', icon: '◉', href: '/', active: false },
+    { name: 'Academics', icon: '▲', href: '/academics', active: false },
+    { name: 'Research', icon: '◆', href: '/research', active: false },
+    { name: 'Fitness', icon: '◈', href: '/fitness', active: false },
+    { name: 'Archive', icon: '▥', href: '/archive', active: true },
+    { name: 'IELTS', icon: '◎', href: '/ielts', active: false },
+    { name: 'Tools', icon: '⚙', href: '/tools', active: false },
+    { name: 'Identity', icon: '⚇', href: '/identity', active: false },
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-base text-textPri relative overflow-hidden transition-colors duration-500">
+    <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
       
-      {/* HUD ATMOSPHERE */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--accentCyan)]/5 rounded-full blur-[120px]"></div>
-        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accentCyan)]/20 to-transparent absolute top-0 animate-scanline opacity-40"></div>
+      {/* --- CUSTOM ANIMATION STYLES --- */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
+        @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
+        .animate-float-slow { animation: floatSlow 6s ease-in-out infinite; }
+        .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
+      `}} />
+
+      {/* --- DAY/NIGHT ATMOSPHERE --- */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
+        <div className="absolute top-[-10%] right-[10%] w-[60%] h-[60%] bg-gradient-to-br from-cyan-400/20 to-blue-400/20 dark:from-cyan-600/15 dark:to-[#00A598]/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-60 transition-all duration-1000"></div>
+        <div className="absolute bottom-[-10%] left-[5%] w-[50%] h-[50%] bg-gradient-to-tr from-slate-400/20 to-cyan-300/20 dark:from-blue-600/10 dark:to-teal-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
       </div>
 
-      {/* --- HUD HEADER --- */}
-      <header className="h-[56px] lg:h-[64px] border-b border-borderline flex items-center justify-between px-4 lg:px-6 shrink-0 bg-base/80 backdrop-blur-xl z-50">
-        <div className="flex items-center gap-4 lg:gap-6">
-          <Link href="/" className="font-orbitron font-black text-[15px] lg:text-[18px] tracking-[0.2em] flex items-center gap-2">
-            <div className="w-1 h-4 lg:w-1.5 lg:h-5 bg-[var(--accentCyan)] shadow-[0_0_12px_var(--accentCyan)]"></div>
-            <span>VEST<span className="text-[var(--accentCyan)]">3.0</span></span>
+      {/* --- MINIMALIST HEADER --- */}
+      <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
+        <div className="flex items-center gap-4 lg:gap-8">
+          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className="hidden lg:flex items-center justify-center p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-neutral-500 dark:text-neutral-400 active:scale-95">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="14" y2="18"></line></svg>
+          </button>
+          <Link href="/" className="font-black text-[20px] lg:text-[22px] tracking-tighter flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">V</div>
+            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="text-cyan-500 dark:text-cyan-400 transition-colors duration-700">3.0</span></div>
           </Link>
-          <div className="hidden lg:flex gap-4 border-l border-borderline pl-6 font-mono text-[9px] uppercase tracking-widest text-textMuted">
-            <div className="flex flex-col">
-              <span>ARCHIVE_OS: <span className="text-statusGreen">STABLE</span></span>
-              <span>INDEX: <span className="text-[var(--accentCyan)]">ENCRYPTED</span></span>
-            </div>
-          </div>
         </div>
-        <div className="hidden sm:block font-mono text-[10px] lg:text-[11px] tracking-[0.2em] text-textPri uppercase"><ArcDate /></div>
-        <div className="flex gap-3 lg:gap-4 items-center">
+        <div className="flex gap-4 lg:gap-6 items-center">
+          <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
+          <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
           <TopNavProfile />
           <ThemeToggle />
         </div>
@@ -57,155 +69,164 @@ export default function ArchiveHub() {
 
       <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* --- DESKTOP SIDEBAR --- */}
-        <aside className="hidden lg:flex w-[230px] border-r border-borderline flex flex-col justify-between p-5 bg-surface/20 shrink-0 backdrop-blur-md">
-          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
+        {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
+        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarExpanded ? 'w-[240px] px-6' : 'w-[88px] px-4'}`}>
+          <nav className="space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
             {navItems.map((item) => (
-              <Link 
-                key={item.name} 
-                href={item.href} 
-                className={`flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all group border border-transparent ${
-                  item.active 
-                  ? 'bg-surface border-borderline shadow-[0_0_15px_rgba(255,255,255,0.05)] font-bold' 
-                  : 'hover:bg-surface'
-                }`}
-              >
-                <span className={`${item.active ? item.color : 'text-textMuted opacity-40'} text-[14px] transition-all group-hover:opacity-100`}>
-                  {item.icon}
-                </span>
-                <span className={`text-[12px] tracking-tight transition-colors ${item.active ? 'text-textPri font-bold' : 'text-textSec group-hover:text-textPri'}`}>
-                  {item.name}
-                </span>
+              <Link key={item.name} href={item.href} className={`flex items-center ${isSidebarExpanded ? 'px-4' : 'justify-center'} py-3 rounded-2xl transition-all duration-300 group relative ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
+                <span className={`text-[18px] shrink-0 transition-opacity duration-300 ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
+                <span className={`text-[13px] font-bold tracking-tight whitespace-nowrap transition-all duration-500 ${isSidebarExpanded ? 'max-w-[150px] opacity-100 ml-4' : 'max-w-0 opacity-0 ml-0'}`}>{item.name}</span>
               </Link>
             ))}
           </nav>
-          <div className="p-4 rounded-2xl bg-surface border border-borderline mt-4"><Clock /></div>
+          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className={`mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${isSidebarExpanded ? 'p-5' : 'p-4 aspect-square'}`}>
+            {isSidebarExpanded ? <Clock /> : <span className="text-xl group-hover:rotate-12 transition-transform duration-300">⏱️</span>}
+          </button>
         </aside>
 
-        {/* --- MAIN HUD: F1 COCKPIT ARCHIVE --- */}
-        <main className="flex-1 flex flex-col gap-4 lg:gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden pb-24 lg:pb-8"> 
+        {/* --- MAIN WORKSPACE --- */}
+        <main className="flex-1 flex flex-col gap-6 lg:gap-8 p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 overflow-y-auto custom-scrollbar relative">
           
-          <div className="group flex-1 bg-[#05070a] border border-white/10 rounded-[22px] shadow-2xl flex flex-col overflow-hidden relative"> 
+          <div className="max-w-[1400px] w-full mx-auto space-y-8 lg:space-y-10">
             
-            {/* RPM LED Strip (Adaptive width) */} 
-            <div className="h-4 bg-[#0a0a0a] border-b border-white/5 flex justify-center items-center gap-1 lg:gap-1.5 px-2 pt-1 shrink-0"> 
-              {[...Array(8)].map((_, i) => ( 
-                <div key={`g-${i}`} className="flex-1 lg:w-6 h-1.5 rounded-full bg-white/5 transition-all duration-300 group-hover:bg-[var(--statusGreen)] group-hover:shadow-[0_0_8px_var(--statusGreen)]" style={{ transitionDelay: `${i * 30}ms` }}></div> 
-              ))} 
-              {[...Array(3)].map((_, i) => ( 
-                <div key={`a-${i}`} className="flex-1 lg:w-6 h-1.5 rounded-full bg-white/5 transition-all duration-300 group-hover:bg-[var(--accentAmber)] group-hover:shadow-[0_0_8px_var(--accentAmber)]" style={{ transitionDelay: `${(i + 8) * 30}ms` }}></div> 
-              ))} 
-              {[...Array(2)].map((_, i) => ( 
-                <div key={`r-${i}`} className="flex-1 lg:w-6 h-1.5 rounded-full bg-white/5 transition-all duration-300 group-hover:bg-[var(--statusRed)] group-hover:shadow-[0_0_8px_var(--statusRed)]" style={{ transitionDelay: `${(i + 11) * 30}ms` }}></div> 
-              ))} 
-            </div> 
-
-            {/* Steering Wheel Dashboard Data (Grid on Mobile, Flex on Desktop) */} 
-            <div className="grid grid-cols-2 lg:flex lg:justify-between items-center bg-[#0a0a0a] px-4 lg:px-8 py-4 lg:py-6 border-b border-white/5 shrink-0 gap-4"> 
-              <div className="flex gap-6 lg:gap-10 font-mono order-2 lg:order-1"> 
-                <div> 
-                  <div className="text-[8px] lg:text-[9px] text-white/30 mb-0.5 uppercase tracking-widest">SPD</div> 
-                  <div className="text-[18px] lg:text-[24px] text-[var(--accentCyan)] font-black leading-none font-orbitron">314</div> 
-                </div> 
-                <div> 
-                  <div className="text-[8px] lg:text-[9px] text-white/30 mb-0.5 uppercase tracking-widest">IDX</div> 
-                  <div className="text-[18px] lg:text-[24px] text-white/80 font-black leading-none font-orbitron">56.5<span className="text-[10px] opacity-40 ml-0.5">%</span></div> 
-                </div> 
-              </div> 
-              
-              <div className="flex flex-col items-center col-span-2 lg:col-span-1 order-1 lg:order-2 border-b lg:border-none border-white/5 pb-3 lg:pb-0"> 
-                <div className="text-[8px] lg:text-[9px] text-white/30 mb-1 uppercase tracking-widest">TIER</div> 
-                <div className="text-4xl lg:text-5xl text-[var(--statusGreen)] drop-shadow-[0_0_15px_var(--statusGreen)] font-black leading-none font-orbitron">8</div> 
-              </div> 
-
-              <div className="flex gap-6 lg:gap-10 font-mono text-right justify-end order-3"> 
-                <div> 
-                  <div className="text-[8px] lg:text-[9px] text-white/30 mb-0.5 uppercase tracking-widest">MODE</div> 
-                  <div className="text-[18px] lg:text-[24px] text-white/80 font-black leading-none font-orbitron uppercase">V3.0</div> 
-                </div> 
-                <div> 
-                  <div className="text-[8px] lg:text-[9px] text-white/30 mb-0.5 uppercase tracking-widest">BAT</div> 
-                  <div className="text-[18px] lg:text-[24px] text-[var(--accentAmber)] font-black leading-none font-orbitron">82<span className="text-[10px] opacity-40 ml-0.5">%</span></div> 
-                </div> 
-              </div> 
-            </div> 
-
-            {/* Action Bar */} 
-            <div className="bg-white/[0.02] px-4 lg:px-8 py-3 flex flex-col md:flex-row justify-between items-center border-b border-white/5 shrink-0 gap-3"> 
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-[var(--accentCyan)] rounded-full animate-pulse shadow-[0_0_8px_var(--accentCyan)]"></div>
-                <span className="text-[9px] lg:text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Target: Master Database Registry</span> 
+            {/* HERO SECTION */}
+            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
+              <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
+                <span className="text-lg">📁</span>
+                <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Database Index</span>
               </div>
-              <a 
-                href="https://linktr.ee/shankusu.studygram" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-full md:w-auto bg-[var(--accentCyan)]/10 hover:bg-[var(--accentCyan)]/20 border border-[var(--accentCyan)]/50 text-[var(--accentCyan)] px-6 py-2 rounded-lg text-[9px] lg:text-[10px] font-black tracking-[0.2em] uppercase transition-all text-center" 
-              > 
-                Launch Linktree ↗ 
-              </a> 
-            </div> 
+              <div className="absolute right-[5%] xl:right-[10%] bottom-0 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
+                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-500">Vault Secure</span>
+              </div>
 
-            {/* DIRECTORY GRID (Responsive Columns) */} 
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 flex flex-col gap-8 lg:gap-10 custom-scrollbar relative"> 
+              <h1 className="font-black tracking-tighter leading-none mb-6 flex flex-col xl:flex-row items-center justify-center gap-3 sm:gap-4 xl:gap-5 relative z-10">
+                <div className="flex items-baseline text-[42px] sm:text-[64px] lg:text-[76px]">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">ARCHIVE</span>
+                </div>
+                <div className="flex items-center gap-3 sm:gap-4 mt-2 xl:mt-0 text-[32px] sm:text-[50px] lg:text-[60px]">
+                  <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-4 py-1 sm:py-2 rounded-[16px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-black/5 leading-none transition-colors duration-700">HUB</span>
+                </div>
+              </h1>
+              <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
+                {cycleTime} // <span className="text-cyan-500 dark:text-cyan-400 font-bold">System Nominal</span>
+              </p>
+            </section>
+
+            {/* --- MAIN HUD: F1 COCKPIT ARCHIVE (Neo-Glassmorphic) --- */}
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative transition-colors duration-700"> 
               
-              {/* Sector A */} 
-              <section> 
-                <h3 className="font-orbitron text-[10px] lg:text-[11px] text-[var(--accentCyan)] mb-4 border-b border-white/10 pb-2 tracking-[0.3em] uppercase flex items-center gap-3"> 
-                  <span className="w-1.5 h-4 bg-[var(--accentCyan)] shadow-[0_0_8px_var(--accentCyan)]"></span> Sector A: Medical Foundations 
-                </h3> 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4"> 
-                  <ArchiveLink title="University Summaries" url="https://drive.google.com/drive/folders/1Wp9C_rP2ybeVUPgfXJCOganRNjuWaViS" icon="📁" /> 
-                  <ArchiveLink title="Portfolio Showcase" url="https://drive.google.com/drive/folders/1-34E1ClpDxzP5-3Hr_b52svDZX7J2ucF" icon="🎯" /> 
-                </div> 
-              </section> 
+              {/* RPM LED Strip (Adaptive width) */} 
+              <div className="h-4 lg:h-6 bg-black/5 dark:bg-white/5 border-b border-black/5 dark:border-white/5 flex justify-center items-center gap-1.5 lg:gap-2 px-4 shrink-0 transition-colors duration-700 group cursor-default"> 
+                {[...Array(8)].map((_, i) => ( 
+                  <div key={`g-${i}`} className="flex-1 max-w-[40px] h-1.5 lg:h-2 rounded-full bg-black/10 dark:bg-white/10 transition-all duration-300 group-hover:bg-emerald-500 group-hover:shadow-[0_0_12px_rgba(16,185,129,0.5)]" style={{ transitionDelay: `${i * 30}ms` }}></div> 
+                ))} 
+                {[...Array(3)].map((_, i) => ( 
+                  <div key={`a-${i}`} className="flex-1 max-w-[40px] h-1.5 lg:h-2 rounded-full bg-black/10 dark:bg-white/10 transition-all duration-300 group-hover:bg-amber-500 group-hover:shadow-[0_0_12px_rgba(245,158,11,0.5)]" style={{ transitionDelay: `${(i + 8) * 30}ms` }}></div> 
+                ))} 
+                {[...Array(2)].map((_, i) => ( 
+                  <div key={`r-${i}`} className="flex-1 max-w-[40px] h-1.5 lg:h-2 rounded-full bg-black/10 dark:bg-white/10 transition-all duration-300 group-hover:bg-red-500 group-hover:shadow-[0_0_12px_rgba(239,68,68,0.5)]" style={{ transitionDelay: `${(i + 11) * 30}ms` }}></div> 
+                ))} 
+              </div> 
 
-              {/* Sector B */} 
-              <section> 
-                <h3 className="font-orbitron text-[10px] lg:text-[11px] text-[var(--accentAmber)] mb-4 border-b border-white/10 pb-2 tracking-[0.3em] uppercase flex items-center gap-3"> 
-                  <span className="w-1.5 h-4 bg-[var(--accentAmber)] shadow-[0_0_8px_var(--accentAmber)]"></span> Sector B: Olympiad Intelligence 
-                </h3> 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4"> 
-                  <ArchiveLink title="Astrophysics" url="https://drive.google.com/drive/folders/1ta_ydTUk8YLe91z_tgBWawMAlxHxqs06" icon="🌌" /> 
-                  <ArchiveLink title="Astronomy" url="https://drive.google.com/drive/folders/1FIy_K00EC4I9UGy-LyP0_eRxHGGkqtJZ" icon="🔭" /> 
-                  <ArchiveLink title="Earth Science" url="https://drive.google.com/drive/folders/1--FnoZZe4GWo4i7YYXyzSZNjwIX5HHks" icon="🌍" /> 
+              {/* Steering Wheel Dashboard Data */} 
+              <div className="grid grid-cols-2 lg:flex lg:justify-between items-center bg-transparent px-6 lg:px-10 py-6 lg:py-8 border-b border-black/5 dark:border-white/5 shrink-0 gap-6 transition-colors duration-700"> 
+                
+                <div className="flex gap-8 lg:gap-12 order-2 lg:order-1"> 
+                  <div> 
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Speed</div> 
+                    <div className="text-[28px] lg:text-[36px] text-cyan-600 dark:text-cyan-400 font-black leading-none tracking-tighter transition-colors duration-700">314</div> 
+                  </div> 
+                  <div> 
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Index</div> 
+                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none tracking-tighter transition-colors duration-700">56.5<span className="text-[14px] text-neutral-400 ml-1">%</span></div> 
+                  </div> 
                 </div> 
-              </section> 
-
-              {/* Sector C */} 
-              <section> 
-                <h3 className="font-orbitron text-[10px] lg:text-[11px] text-[var(--statusGreen)] mb-4 border-b border-white/10 pb-2 tracking-[0.3em] uppercase flex items-center gap-3"> 
-                  <span className="w-1.5 h-4 bg-[var(--statusGreen)] shadow-[0_0_8px_var(--statusGreen)]"></span> Sector C: Preparation Vault 
-                </h3> 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4"> 
-                  <ArchiveLink title="High School Notes" url="https://drive.google.com/drive/folders/1rs2HtVZBXJ_4IOf_HkPMIRCW0XwuMSk5" icon="🎒" /> 
-                  <ArchiveLink title="Linguistics" url="https://drive.google.com/drive/folders/1-2RoL8dU8UjiSJZqQRIVZhh1LJ_yRgBw" icon="📝" /> 
-                  <ArchiveLink title="IELTS Master" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" icon="🇬🇧" /> 
+                
+                <div className="flex flex-col items-center col-span-2 lg:col-span-1 order-1 lg:order-2 border-b lg:border-none border-black/5 dark:border-white/5 pb-6 lg:pb-0 transition-colors duration-700"> 
+                  <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-2 uppercase tracking-widest transition-colors duration-700">Vault Tier</div> 
+                  <div className="text-[48px] lg:text-[64px] text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] font-black leading-none tracking-tighter transition-colors duration-700">8</div> 
                 </div> 
-              </section> 
 
+                <div className="flex gap-8 lg:gap-12 text-right justify-end order-3"> 
+                  <div> 
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Mode</div> 
+                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none uppercase tracking-tighter transition-colors duration-700">V3.0</div> 
+                  </div> 
+                  <div> 
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Battery</div> 
+                    <div className="text-[28px] lg:text-[36px] text-amber-500 dark:text-amber-400 font-black leading-none tracking-tighter transition-colors duration-700">82<span className="text-[14px] text-neutral-400 ml-1">%</span></div> 
+                  </div> 
+                </div> 
+              </div> 
+
+              {/* Action Bar */} 
+              <div className="bg-black/5 dark:bg-white/5 px-6 lg:px-10 py-4 flex flex-col md:flex-row justify-between items-center border-b border-black/5 dark:border-white/5 shrink-0 gap-4 transition-colors duration-700"> 
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.6)]"></div>
+                  <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest transition-colors duration-700">Target: Master Database Registry</span> 
+                </div>
+                <a 
+                  href="https://linktr.ee/shankusu.studygram" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-full md:w-auto bg-cyan-500 text-white px-8 py-3 rounded-xl text-[11px] font-bold tracking-widest uppercase transition-all text-center hover:bg-cyan-600 active:scale-95 shadow-md hover:shadow-lg" 
+                > 
+                  Launch Linktree ↗ 
+                </a> 
+              </div> 
+
+              {/* DIRECTORY GRID (Responsive Columns) */} 
+              <div className="flex-1 p-6 md:p-8 lg:p-10 flex flex-col gap-10 lg:gap-12 custom-scrollbar relative"> 
+                
+                {/* Sector A */} 
+                <section> 
+                  <h3 className="text-[12px] font-bold text-cyan-600 dark:text-cyan-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
+                    <span className="w-1.5 h-4 bg-cyan-500 rounded-full"></span> Sector A: Medical Foundations 
+                  </h3> 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6"> 
+                    <ArchiveLink title="University Summaries" url="https://drive.google.com/drive/folders/1Wp9C_rP2ybeVUPgfXJCOganRNjuWaViS" icon="📁" theme="cyan" /> 
+                    <ArchiveLink title="Portfolio Showcase" url="https://drive.google.com/drive/folders/1-34E1ClpDxzP5-3Hr_b52svDZX7J2ucF" icon="🎯" theme="cyan" /> 
+                  </div> 
+                </section> 
+
+                {/* Sector B */} 
+                <section> 
+                  <h3 className="text-[12px] font-bold text-amber-600 dark:text-amber-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
+                    <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span> Sector B: Olympiad Intelligence 
+                  </h3> 
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"> 
+                    <ArchiveLink title="Astrophysics" url="https://drive.google.com/drive/folders/1ta_ydTUk8YLe91z_tgBWawMAlxHxqs06" icon="🌌" theme="amber" /> 
+                    <ArchiveLink title="Astronomy" url="https://drive.google.com/drive/folders/1FIy_K00EC4I9UGy-LyP0_eRxHGGkqtJZ" icon="🔭" theme="amber" /> 
+                    <ArchiveLink title="Earth Science" url="https://drive.google.com/drive/folders/1--FnoZZe4GWo4i7YYXyzSZNjwIX5HHks" icon="🌍" theme="amber" /> 
+                  </div> 
+                </section> 
+
+                {/* Sector C */} 
+                <section> 
+                  <h3 className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
+                    <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span> Sector C: Preparation Vault 
+                  </h3> 
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"> 
+                    <ArchiveLink title="High School Notes" url="https://drive.google.com/drive/folders/1rs2HtVZBXJ_4IOf_HkPMIRCW0XwuMSk5" icon="🎒" theme="emerald" /> 
+                    <ArchiveLink title="Linguistics" url="https://drive.google.com/drive/folders/1-2RoL8dU8UjiSJZqQRIVZhh1LJ_yRgBw" icon="📝" theme="emerald" /> 
+                    <ArchiveLink title="IELTS Master" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" icon="🇬🇧" theme="emerald" /> 
+                  </div> 
+                </section> 
+
+              </div> 
             </div> 
 
-            {/* Bottom Trim */}
-            <div className="h-1.5 bg-gradient-to-r from-[var(--accentCyan)] to-transparent opacity-20"></div> 
-          </div> 
+          </div>
         </main>
 
         {/* --- MOBILE HUD NAV BAR --- */}
-        <nav className="lg:hidden fixed bottom-4 left-4 right-4 h-[64px] bg-base/80 backdrop-blur-2xl border border-borderline rounded-2xl z-[100] flex items-center justify-around px-2 shadow-2xl">
-          {navItems.slice(0, 4).map((item) => (
-            <Link key={item.name} href={item.href} className="flex flex-col items-center justify-center gap-1 group">
-               <span className={`${item.color} text-[18px] ${item.active ? 'drop-shadow-[0_0_8px_currentColor]' : 'opacity-40'}`}>
-                 {item.icon}
-               </span>
-               <span className={`text-[8px] font-black uppercase tracking-tighter ${item.active ? 'text-textPri' : 'text-textMuted'}`}>
-                 {item.name.split(' ')[0]}
-               </span>
+        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
+          {navItems.map((item) => (
+            <Link key={item.name} href={item.href} className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 shrink-0 group ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
+               <span className={`text-[16px] ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
+               {item.active && <span className="text-[11px] font-bold tracking-tight pr-1 animate-in fade-in zoom-in duration-300">{item.name}</span>}
             </Link>
           ))}
-          <Link href="/identity" className="w-10 h-10 rounded-full bg-surface border border-borderline flex items-center justify-center text-[18px] text-[var(--accentCyan)] shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-            ⚇
-          </Link>
         </nav>
 
       </div>
@@ -213,20 +234,31 @@ export default function ArchiveHub() {
   ); 
 } 
 
-function ArchiveLink({ title, url, icon }: { title: string, url: string, icon: string }) { 
+function ArchiveLink({ title, url, icon, theme }: { title: string, url: string, icon: string, theme: 'cyan' | 'amber' | 'emerald' }) { 
+  const textColors = {
+    cyan: 'group-hover/link:text-cyan-600 dark:group-hover/link:text-cyan-400',
+    amber: 'group-hover/link:text-amber-600 dark:group-hover/link:text-amber-400',
+    emerald: 'group-hover/link:text-emerald-600 dark:group-hover/link:text-emerald-400',
+  };
+
+  const bgColors = {
+    cyan: 'group-hover/link:bg-cyan-50 dark:group-hover/link:bg-cyan-500/10 hover:border-cyan-500/30',
+    amber: 'group-hover/link:bg-amber-50 dark:group-hover/link:bg-amber-500/10 hover:border-amber-500/30',
+    emerald: 'group-hover/link:bg-emerald-50 dark:group-hover/link:bg-emerald-500/10 hover:border-emerald-500/30',
+  };
+
   return ( 
     <a 
       href={url} 
       target="_blank" 
       rel="noopener noreferrer" 
-      className="group/link bg-white/[0.03] border border-white/10 p-4 lg:p-5 rounded-xl flex items-center justify-between hover:border-[var(--accentCyan)]/50 hover:bg-white/[0.05] transition-all relative overflow-hidden" 
+      className={`group/link bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 p-5 lg:p-6 rounded-2xl flex items-center justify-between transition-all duration-300 active:scale-[0.98] ${bgColors[theme]}`} 
     > 
-      <div className="absolute top-0 left-0 w-1 h-full bg-white/10 group-hover/link:bg-[var(--accentCyan)] transition-all"></div> 
-      <div className="flex items-center gap-3 lg:gap-4 relative z-10 min-w-0"> 
-        <span className="text-xl lg:text-2xl group-hover/link:scale-125 transition-transform shrink-0">{icon}</span> 
-        <span className="text-[13px] lg:text-[14px] text-white font-bold tracking-tight truncate">{title}</span> 
+      <div className="flex items-center gap-4 lg:gap-5 relative z-10 min-w-0"> 
+        <span className="text-2xl lg:text-3xl group-hover/link:scale-110 transition-transform duration-300 shrink-0">{icon}</span> 
+        <span className={`text-[14px] lg:text-[15px] text-neutral-900 dark:text-white font-bold tracking-tight truncate transition-colors duration-300 ${textColors[theme]}`}>{title}</span> 
       </div> 
-      <span className="text-white/20 group-hover/link:text-[var(--accentCyan)] transition-colors font-mono text-[8px] lg:text-[9px] uppercase tracking-widest relative z-10 shrink-0 ml-2"> 
+      <span className="text-neutral-400 dark:text-neutral-500 font-bold text-[10px] uppercase tracking-widest relative z-10 shrink-0 ml-2 transition-colors duration-700"> 
         Access ↗ 
       </span> 
     </a> 

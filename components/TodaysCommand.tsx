@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useState, useEffect } from "react";
 
 type Task = { id: string; text: string; done: boolean };
@@ -61,52 +61,67 @@ export default function TodaysCommand() {
     }
   };
 
-  if (!isMounted) return <div className="bg-[var(--surface)]/20 border border-[var(--borderline)] rounded-[22px] p-6 h-[350px] animate-pulse" />;
+  // Sleek Glassmorphic Skeleton
+  if (!isMounted) return (
+    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-[350px] animate-pulse flex flex-col gap-4">
+      <div className="h-6 w-48 bg-black/5 dark:bg-white/5 rounded-full mb-4"></div>
+      <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-2xl"></div>
+      <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-2xl"></div>
+    </div>
+  );
 
   const displayDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
   return (
-    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex flex-col h-full min-h-[350px] relative overflow-hidden group transition-all hover:border-[var(--accentCyan)]/30">
+    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col h-full min-h-[350px] transition-colors duration-700 group text-left">
       
-      {/* TACTICAL OVERLAYS */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-
       {/* HEADER */}
-      <div className="relative z-10 font-mono font-bold text-[11px] uppercase tracking-[0.3em] text-[var(--accentCyan)] flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 bg-[var(--accentCyan)] shadow-[0_0_10px_var(--accentCyan)]"></div>
-          <span className="text-[var(--textPri)]">Tactical Objectives</span>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm transition-colors duration-700">
+            🎯
+          </div>
+          <h2 className="font-bold text-[18px] lg:text-[20px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">
+            Tactical Objectives
+          </h2>
         </div>
-        <span className="text-[var(--textMuted)] tracking-widest">{displayDate}</span>
+        <span className="text-[12px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">
+          {displayDate}
+        </span>
       </div>
       
       {/* TASK LIST */}
-      <div className="relative z-10 flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2">
+      <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 min-h-[150px]">
         {isLoading ? (
-          <div className="flex flex-col gap-3">
-            {[1, 2, 3].map(i => <div key={i} className="h-8 bg-[var(--borderline)]/10 rounded-lg animate-pulse" />)}
+          <div className="flex flex-col gap-3 mt-2">
+            {[1, 2, 3].map(i => <div key={i} className="h-10 bg-black/5 dark:bg-white/5 rounded-xl animate-pulse transition-colors duration-700" />)}
           </div>
         ) : tasks.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-[10px] font-mono text-[var(--textMuted)] uppercase tracking-[0.3em] opacity-40">
-            Sector Clear // All Objectives Complete
+          <div className="h-full flex items-center justify-center text-[13px] font-medium text-neutral-400 dark:text-neutral-500 italic transition-colors duration-700">
+            Sector Clear. All objectives complete.
           </div>
         ) : (
           tasks.map(task => (
-            <label key={task.id} className="flex items-start gap-4 cursor-pointer group/task py-1 transition-all">
-              <div className="relative flex items-center mt-0.5">
+            <label key={task.id} className="flex items-start gap-4 cursor-pointer group/task p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 active:scale-[0.99] select-none">
+              
+              {/* Custom Animated Checkbox */}
+              <div className="relative flex items-center justify-center shrink-0 mt-0.5">
                 <input 
                   type="checkbox" 
                   checked={task.done}
                   onChange={() => toggleTask(task.id, task.done)}
-                  className="peer appearance-none w-[18px] h-[18px] border border-[var(--borderline)] rounded bg-[var(--base)] checked:bg-[var(--accentCyan)] checked:border-[var(--accentCyan)] transition-all cursor-pointer shadow-inner" 
+                  className="peer appearance-none w-5 h-5 border-[1.5px] border-neutral-300 dark:border-neutral-600 rounded-md bg-transparent checked:bg-blue-500 checked:border-blue-500 dark:checked:bg-blue-500 dark:checked:border-blue-500 transition-all duration-300 cursor-pointer" 
                 />
-                <svg className="absolute w-3.5 h-3.5 text-[var(--base)] pointer-events-none hidden peer-checked:block left-[2px] top-[2px] drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-300 drop-shadow-sm scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className={`text-[13px] leading-snug transition-all duration-300 font-medium ${
-                task.done ? 'text-[var(--textMuted)] line-through opacity-40' : 'text-[var(--textPri)] group-hover/task:text-[var(--accentCyan)]'
+
+              {/* Task Text */}
+              <span className={`text-[15px] leading-snug transition-all duration-300 tracking-tight ${
+                task.done 
+                  ? 'text-neutral-400 dark:text-neutral-600 line-through' 
+                  : 'text-neutral-700 dark:text-neutral-200 font-medium group-hover/task:text-neutral-900 dark:group-hover/task:text-white'
               }`}>
                 {task.text}
               </span>
@@ -116,15 +131,19 @@ export default function TodaysCommand() {
       </div>
 
       {/* INPUT FIELD */}
-      <form onSubmit={addTask} className="relative z-10 mt-6 flex bg-[var(--base)]/50 border border-[var(--borderline)] rounded-xl overflow-hidden focus-within:border-[var(--accentCyan)]/50 transition-all shadow-inner">
+      <form onSubmit={addTask} className="mt-6 flex bg-black/5 dark:bg-white/5 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/30 border border-transparent dark:border-white/5 transition-all duration-300">
         <input 
           type="text" 
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
           placeholder="Deploy new command..." 
-          className="bg-transparent w-full px-4 py-3 text-[12px] text-[var(--textPri)] outline-none placeholder:text-[var(--textMuted)] font-mono tracking-tight"
+          className="bg-transparent w-full px-5 py-3.5 text-[14px] text-neutral-900 dark:text-white outline-none placeholder:text-neutral-400 dark:placeholder:text-neutral-500 font-medium transition-colors duration-700"
         />
-        <button type="submit" className="bg-[var(--borderline)]/20 hover:bg-[var(--accentCyan)] hover:text-[var(--base)] text-[var(--accentCyan)] px-5 text-[16px] font-bold transition-all border-l border-[var(--borderline)]">
+        <button 
+          type="submit" 
+          disabled={!newTask.trim()}
+          className="px-6 text-blue-600 dark:text-blue-400 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors font-black text-[20px]"
+        >
           +
         </button>
       </form>

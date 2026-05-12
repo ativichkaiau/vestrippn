@@ -4,51 +4,67 @@ import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 
 export default function TopNavProfile() {
-  // This hook pulls the active session from the AuthProvider
   const { data: session, status } = useSession();
 
-  // STATE 1: Loading (Checking the cookie)
+  // STATE 1: Glassmorphic Loading Skeleton
   if (status === "loading") {
     return (
-      <div className="animate-pulse bg-gray-700 h-8 w-24 rounded"></div>
+      <div className="animate-pulse bg-black/5 dark:bg-white/5 h-[40px] w-[140px] rounded-full transition-colors duration-700"></div>
     );
   }
 
-  // STATE 2: Authenticated Operator
+  // STATE 2: Authenticated W05 Operator
   if (session?.user) {
     return (
-      <div className="flex items-center gap-3">
-        <div className="flex flex-col text-right">
-          <span className="text-sm font-bold text-textPri">Operator Active</span>
-          <span className="text-xs text-green-400">{session.user.name}</span>
+      <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 pl-4 pr-1 py-1 rounded-full border border-transparent dark:border-white/5 transition-colors duration-700">
+        
+        {/* User Info (Hidden on ultra-small mobile screens to save space) */}
+        <div className="flex flex-col text-right hidden sm:flex pr-1">
+          <span className="text-[11px] font-bold text-neutral-900 dark:text-white leading-none tracking-tight transition-colors duration-700">
+            {session.user.name}
+          </span>
+          <span className="text-[9px] font-bold text-[#00A598] uppercase tracking-widest mt-0.5 transition-colors duration-700">
+            Verified
+          </span>
         </div>
         
-        {/* Displays your Google Profile Picture */}
-        {session.user.image && (
+        {/* Profile Avatar with Day/Night Adaptive Ring */}
+        {session.user.image ? (
           <Image 
             src={session.user.image} 
             alt="Profile Picture" 
-            width={36} 
-            height={36} 
-            className="rounded-full border border-green-500"
+            width={32} 
+            height={32} 
+            className="rounded-full ring-2 ring-white dark:ring-[#111111] shadow-sm transition-all duration-700"
           />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold transition-colors duration-700">
+            {session.user.name?.charAt(0) || 'V'}
+          </div>
         )}
         
-        {/* Optional: A subtle way to sign out */}
+        {/* Sleek Disconnect Button */}
         <button 
           onClick={() => signOut()}
-          className="ml-2 text-xs text-red-500 hover:text-red-400"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 dark:text-neutral-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-300 ml-1"
+          title="Secure Disconnect"
         >
-          [DISCONNECT]
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
         </button>
+
       </div>
     );
   }
 
-  // STATE 3: Unauthenticated (Fallback)
+  // STATE 3: Unauthenticated (Clean Locked State)
   return (
-    <div className="text-sm text-red-500 font-mono">
-      SYSTEM LOCKED
+    <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-black/5 dark:border-white/10 bg-white/50 dark:bg-black/50 backdrop-blur-md transition-colors duration-700">
+      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+      <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest transition-colors duration-700">
+        Locked
+      </span>
     </div>
   );
 }

@@ -1,21 +1,33 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
 
 const inter = Inter({ 
   subsets: ["latin"],
-  variable: '--font-inter'
+  variable: '--font-sans',
+  display: 'swap',
 });
 
 const jetbrainsMono = JetBrains_Mono({ 
   subsets: ["latin"],
-  variable: '--font-mono'
+  variable: '--font-mono',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "vestrippn3point0 | Command Center",
-  description: "Personal Operating System",
+  title: "VESTRIPPN 3.0 // W05 Hybrid",
+  description: "Personal Telemetry & Operating System",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FAFAFA' },
+    { media: '(prefers-color-scheme: dark)', color: '#050505' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -24,12 +36,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/* 
-         CRITICAL: We must include BOTH inter.className AND jetbrainsMono.variable 
-         so your CSS can see the --font-mono variable.
-      */}
-      <body className={`${inter.className} ${jetbrainsMono.variable} bg-base text-textPri h-screen flex flex-col overflow-hidden transition-colors duration-300`}>
+    // suppressHydrationWarning is CRITICAL here so Next.js doesn't throw errors 
+    // when your ThemeToggle flips the HTML class from light to dark on load.
+    <html lang="en" suppressHydrationWarning>
+      <body 
+        className={`
+          ${inter.variable} ${jetbrainsMono.variable} font-sans 
+          bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 
+          antialiased h-screen flex flex-col overflow-hidden 
+          transition-colors duration-700 
+          selection:bg-[#00A598]/30 selection:text-[#00A598] dark:selection:text-white
+        `}
+      >
         <AuthProvider>
           {children}
         </AuthProvider>

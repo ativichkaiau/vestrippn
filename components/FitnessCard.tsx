@@ -9,10 +9,14 @@ export default function FitnessCard() {
   const [streak, setStreak] = useState(5);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
+  // Calendar State
+  const [currentDate, setCurrentDate] = useState(new Date());
+
   useEffect(() => {
     setIsMounted(true);
+    setCurrentDate(new Date()); // Ensures hydration matches client time
     try {
-      const saved = localStorage.getItem('vestrippn-fitness');
+      const saved = localStorage.getItem('vestrippn-fitness-v2');
       if (saved) {
         const data = JSON.parse(saved);
         if (data.workoutDays && data.workoutDays.length === 7) setWorkoutDays(data.workoutDays);
@@ -24,7 +28,7 @@ export default function FitnessCard() {
 
   const saveData = (updates: any) => {
     const newData = { workoutDays, lastWorkout, streak, ...updates };
-    localStorage.setItem('vestrippn-fitness', JSON.stringify(newData));
+    localStorage.setItem('vestrippn-fitness-v2', JSON.stringify(newData));
   };
 
   const checkStreakReset = (days: boolean[]) => {
@@ -69,83 +73,156 @@ export default function FitnessCard() {
     setIsUnlocked(true);
   };
 
-  if (!isMounted) return <div className="h-[200px] bg-[var(--surface)]/20 border border-[var(--borderline)] rounded-[22px] animate-pulse" />;
+  // --- Calendar Logic ---
+  const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
+  const currentYear = currentDate.getFullYear();
+  const daysInMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentDate.getMonth(), 1).getDay();
+  const todayDate = currentDate.getDate();
+
+  const calendarSlots: (number | null)[] = [
+    ...Array.from({ length: firstDayOfMonth }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1)
+  ];
+
+  // --- Skeleton Loader ---
+  if (!isMounted) return (
+    <div className="w-full flex items-center justify-between animate-pulse">
+       <div className="h-10 w-1/2 bg-black/5 dark:bg-white/5 rounded-xl"></div>
+       <div className="h-24 w-[200px] bg-black/5 dark:bg-white/5 rounded-xl"></div>
+    </div>
+  );
 
   const completedCount = workoutDays.filter(Boolean).length;
 
   return (
-    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex flex-col h-full relative overflow-hidden group transition-all hover:border-[var(--accentEmerald)]/30">
+    <div className="flex flex-col xl:flex-row w-full h-full gap-8 xl:gap-10 xl:items-center justify-between group transition-colors duration-700">
       
-      {/* TACTICAL OVERLAYS */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-
-      {/* HEADER */}
-      <div className="relative z-10 flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 bg-[var(--accentEmerald)] shadow-[0_0_10px_var(--accentEmerald)]"></div>
-          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--textPri)]">Vitality Monitor</span>
+      {/* --------------------------------------------------- */}
+      {/* PANE 1: Interactive Module (Bars & Input)           */}
+      {/* --------------------------------------------------- */}
+      <div className="flex-1 flex flex-col gap-5 min-w-0">
+        
+        {/* Header & Status */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm transition-colors duration-700">
+              ⚡
+            </div>
+            <h2 className="font-bold text-[18px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">
+              Vitality Monitor
+            </h2>
+          </div>
+          <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest tabular-nums transition-colors duration-700">
+            {completedCount}/7 Active
+          </span>
         </div>
-        <span className="text-[10px] font-mono text-[var(--textMuted)] uppercase tracking-widest tabular-nums">
-          {completedCount}/7 Modules_Active
-        </span>
+
+        {/* Interactive Bars */}
+        <div className="flex gap-1.5 h-[10px] w-full shrink-0">
+          {workoutDays.map((isDone, idx) => (
+            <button
+              key={idx}
+              onClick={() => toggleDay(idx)}
+              title={`Module ${idx + 1}`}
+              className={`flex-1 rounded-full transition-all duration-300 ${
+                isDone 
+                  ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] opacity-100 active:scale-95' 
+                  : isUnlocked
+                      ? 'bg-transparent border border-blue-500 animate-pulse'
+                      : 'bg-black/5 dark:bg-white/10 opacity-60 cursor-not-allowed'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Input & Calendar Sync */}
+        <div className="flex w-full items-center gap-2 p-1.5 pl-4 bg-black/5 dark:bg-white/5 rounded-xl border border-transparent hover:border-black/5 dark:hover:border-white/10 transition-colors duration-300 focus-within:ring-2 focus-within:ring-emerald-500/30">
+          <input
+            type="text"
+            value={lastWorkout}
+            onChange={(e) => { setLastWorkout(e.target.value); saveData({ lastWorkout: e.target.value }); }}
+            className="bg-transparent outline-none text-[13px] text-neutral-700 dark:text-neutral-200 font-bold truncate w-full transition-colors duration-700"
+            placeholder="Session type..."
+          />
+          <button
+            onClick={handleSyncCalendar}
+            className={`p-2 rounded-lg transition-all duration-300 flex items-center gap-2 font-bold text-[11px] uppercase tracking-wider ${
+              isUnlocked 
+                ? 'bg-blue-500 text-white shadow-md hover:bg-blue-600' 
+                : 'bg-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+            }`}
+            title="Sync to Google Calendar"
+          >
+            <span className="hidden sm:block">{isUnlocked ? 'Ready' : 'Sync'}</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+
       </div>
 
-      <div className="relative z-10 flex flex-1 items-end justify-between">
-        <div className="w-full mr-8 flex flex-col justify-end h-full">
-          
-          {/* INTERACTIVE BIOMETRIC BARS */}
-          <div className="flex gap-1.5 mb-6 h-[10px]">
-            {workoutDays.map((isDone, idx) => (
-              <button
-                key={idx}
-                onClick={() => toggleDay(idx)}
-                className={`flex-1 rounded-sm transition-all duration-500 ${
-                  isDone 
-                    ? 'bg-[var(--accentEmerald)] shadow-[0_0_12px_var(--accentEmerald)] opacity-90' 
-                    : isUnlocked
-                        ? 'bg-[var(--base)] border border-[var(--accentCyan)] animate-pulse shadow-[0_0_8px_var(--accentCyan)]'
-                        : 'bg-[var(--borderline)]/10 border border-[var(--borderline)]/20 opacity-40 cursor-not-allowed'
-                }`}
-              />
-            ))}
+      {/* --------------------------------------------------- */}
+      {/* PANE 2: The Streak Counter (Centered on Desktop)    */}
+      {/* --------------------------------------------------- */}
+      <div className="shrink-0 flex items-center gap-3 xl:px-8 xl:border-x border-black/5 dark:border-white/5 transition-colors duration-700">
+        <div className="flex flex-col items-end xl:items-center">
+          <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1 transition-colors duration-700">
+            Bio Streak
           </div>
-
-          {/* LAST WORKOUT TERMINAL FIELD */}
-          <div className="flex items-center gap-3 p-3 bg-[var(--base)]/30 border border-[var(--borderline)] rounded-xl group/sync transition-all hover:border-[var(--accentEmerald)]/30">
-            <div className="flex flex-col flex-1 min-w-0">
-               <span className="text-[8px] font-mono text-[var(--textMuted)] uppercase tracking-widest mb-1">Last_Session</span>
-               <input
-                 type="text"
-                 value={lastWorkout}
-                 onChange={(e) => { setLastWorkout(e.target.value); saveData({ lastWorkout: e.target.value }); }}
-                 className="bg-transparent outline-none text-[12px] text-[var(--textPri)] font-bold truncate w-full"
-               />
-            </div>
-            
-            <button
-              onClick={handleSyncCalendar}
-              className={`p-2 rounded-lg border transition-all ${isUnlocked ? 'bg-[var(--accentCyan)]/10 border-[var(--accentCyan)] text-[var(--accentCyan)]' : 'bg-[var(--borderline)]/20 border-transparent text-[var(--textMuted)] hover:text-[var(--accentCyan)] hover:border-[var(--accentCyan)]'}`}
-              title="Sync to Cloud to Unlock"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* STREAK COUNTER (Orbitron Match) */}
-        <div className="text-right shrink-0 flex flex-col items-end pb-1">
-          <div className="flex items-baseline font-orbitron text-[36px] font-black text-[var(--textPri)] leading-none drop-shadow-[0_0_15px_rgba(34,211,153,0.2)]">
-            <span className={streak === 0 ? 'text-[var(--statusRed)] animate-pulse' : 'text-[var(--accentEmerald)]'}>
+          <div className="flex items-baseline text-[42px] font-black leading-none tracking-tighter">
+            <span className={`transition-colors duration-700 ${streak === 0 ? 'text-red-500 animate-pulse' : 'text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]'}`}>
               {streak}
             </span>
-            <span className={`ml-1 text-[24px] ${streak === 0 ? 'grayscale opacity-30' : ''}`}>🔥</span>
+            <span className={`text-[28px] ml-1 transition-all ${streak === 0 ? 'grayscale opacity-30' : 'drop-shadow-md'}`}>🔥</span>
           </div>
-          <div className="text-[9px] font-mono text-[var(--textMuted)] mt-2 uppercase tracking-[0.2em]">Bio_Streak</div>
         </div>
       </div>
+
+      {/* --------------------------------------------------- */}
+      {/* PANE 3: Live Calendar Integration                   */}
+      {/* --------------------------------------------------- */}
+      <div className="shrink-0 w-full xl:w-[220px] flex flex-col justify-center">
+        
+        <div className="flex justify-between items-center mb-3 px-1">
+          <span className="text-[12px] font-bold text-neutral-900 dark:text-white transition-colors duration-700 tracking-tight">
+            {currentMonth} {currentYear}
+          </span>
+          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest transition-colors duration-700">
+            Live
+          </span>
+        </div>
+
+        {/* Days of the Week Header */}
+        <div className="grid grid-cols-7 gap-1 mb-1">
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+            <div key={i} className="text-[9px] font-bold text-neutral-400 text-center uppercase">
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {calendarSlots.map((day, idx) => (
+            <div 
+              key={idx} 
+              className={`w-full aspect-square flex items-center justify-center text-[11px] font-bold rounded-full transition-all duration-300 ${
+                day === todayDate 
+                  ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)] scale-110' 
+                  : day 
+                    ? 'text-neutral-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/10 cursor-default' 
+                    : 'bg-transparent'
+              }`}
+            >
+              {day || ''}
+            </div>
+          ))}
+        </div>
+
+      </div>
+
     </div>
   );
 }

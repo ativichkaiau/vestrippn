@@ -19,8 +19,8 @@ export default function DomainHealth() {
   useEffect(() => {
     setIsMounted(true);
     try {
-      // Changed the memory key to 'v2' to force it to bypass any corrupted old data
-      const savedData = localStorage.getItem('vestrippn-domain-health-v2');
+      // Bumped to v3 to ensure a clean state with the new aesthetic
+      const savedData = localStorage.getItem('vestrippn-domain-health-v3');
       if (savedData) {
         setDomains(JSON.parse(savedData));
       }
@@ -38,58 +38,64 @@ export default function DomainHealth() {
     else newDomains[index].status = 'good';
     
     setDomains(newDomains);
-    localStorage.setItem('vestrippn-domain-health-v2', JSON.stringify(newDomains));
+    localStorage.setItem('vestrippn-domain-health-v3', JSON.stringify(newDomains));
   };
 
   const getStatusDot = (status: string) => {
     switch (status) {
       case 'good': 
-        // Using standard green-500 instead of statusGreen
-        return 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]';
+        return 'bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.5)] border-transparent';
       case 'warning': 
-        // Using standard amber-500 instead of accentAmber
-        return 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]';
+        return 'bg-amber-500 dark:bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.5)] border-transparent';
       case 'inactive': 
-        // Using standard neutral-500 for the hollow circle
-        return 'bg-transparent border border-neutral-500 opacity-50';
+        return 'bg-transparent border-[1.5px] border-neutral-300 dark:border-neutral-600 opacity-60';
       default: 
-        return 'bg-neutral-400';
+        return 'bg-neutral-400 border-transparent';
     }
   };
 
-  // Sleek loading skeleton that perfectly matches your surface color
+  // Sleek loading skeleton seamlessly matching the Day/Night surface colors
   if (!isMounted) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-center mb-1 pb-2 border-b border-black/5 dark:border-white/5">
+          <div className="h-3 w-16 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
+          <div className="h-3 w-12 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
+        </div>
         {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <div key={i} className="h-6 w-full bg-borderline/20 rounded animate-pulse"></div>
+          <div key={i} className="h-8 w-full bg-black/5 dark:bg-white/5 rounded-xl animate-pulse"></div>
         ))}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1 -mt-2">
-      <div className="flex justify-between items-center mb-2 pb-1 border-b border-borderline">
-        <span className="text-[10px] font-mono text-textSec uppercase tracking-widest">System</span>
-        <span className="text-[10px] font-mono text-textSec uppercase tracking-widest">Status</span>
+    <div className="flex flex-col gap-1 -mt-2 w-full transition-colors duration-700">
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-2 pb-2 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
+        <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">System</span>
+        <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status</span>
       </div>
 
-      {domains.map((domain, index) => (
-        <div 
-          key={domain.name} 
-          onClick={() => toggleStatus(index)}
-          // Uses your custom variables so hover works in both Dark and Light mode
-          className="flex justify-between items-center group cursor-pointer p-1.5 -mx-1.5 rounded hover:bg-borderline/30 transition-colors"
-        >
-          <span className="text-[13px] font-medium text-textSec group-hover:text-textPri transition-colors duration-200">
-            {domain.name}
-          </span>
-          <div className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full ${getStatusDot(domain.status)} transition-all duration-300 group-hover:scale-125`}></div>
+      {/* INTERACTIVE DOMAIN LIST */}
+      <div className="flex flex-col gap-0.5">
+        {domains.map((domain, index) => (
+          <div 
+            key={domain.name} 
+            onClick={() => toggleStatus(index)}
+            className="flex justify-between items-center group cursor-pointer p-2.5 -mx-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 active:scale-[0.98] select-none"
+          >
+            <span className="text-[13px] font-semibold tracking-tight text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors duration-300">
+              {domain.name}
+            </span>
+            <div className="flex items-center gap-3">
+              <div className={`w-2.5 h-2.5 rounded-full border ${getStatusDot(domain.status)} transition-all duration-300 group-hover:scale-125`}></div>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
+      
     </div>
   );
 }

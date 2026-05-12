@@ -33,81 +33,88 @@ export default function NotificationCenter() {
   }, []);
 
   return (
-    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex-1 flex flex-col min-h-[320px] relative overflow-hidden group transition-all hover:border-[var(--accentCyan)]/30">
+    <div className="flex flex-col h-full w-full relative group">
       
-      {/* TACTICAL OVERLAYS */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-
-      {/* HEADER (Screenshot Matched) */}
-      <div className="relative z-10 flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 bg-[var(--accentCyan)] shadow-[0_0_10px_var(--accentCyan)]"></div>
-          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--textPri)]">
-            Comms Intelligence
-          </span>
-        </div>
+      {/* HEADER: W05 Neo-Glassmorphic Style */}
+      <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          {error && <span className="text-[var(--statusRed)] text-[9px] font-mono animate-pulse uppercase">Link_Err: {error}</span>}
-          <span className="text-[var(--statusGreen)] text-[9px] font-mono uppercase tracking-widest flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-[var(--statusGreen)] rounded-full animate-pulse shadow-[0_0_5px_var(--statusGreen)]"></span>
-            Live_Feed
-          </span>
+          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-lg transition-colors duration-700">
+            📡
+          </div>
+          <h2 className="font-bold text-[20px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">
+            Comms Intel
+          </h2>
+        </div>
+
+        {/* Dynamic Status Indicator */}
+        <div className="flex items-center gap-2">
+          {error ? (
+            <span className="text-red-500 text-[10px] font-bold tracking-widest uppercase animate-pulse">Err: {error}</span>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
+              <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`}></span>
+              <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase transition-colors duration-700">
+                {isLoading ? 'Syncing' : 'Live Feed'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* FEED */}
-      <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar relative z-10">
+      {/* FEED CONTENT */}
+      <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative z-10 min-h-[250px]">
         {isLoading ? (
-          <div className="h-full flex flex-col gap-4">
+          // Glassmorphic Skeleton Loader
+          <div className="h-full flex flex-col gap-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 w-full bg-[var(--borderline)]/10 rounded-lg animate-pulse" />
+              <div key={i} className="h-[84px] w-full bg-black/5 dark:bg-white/5 rounded-2xl animate-pulse transition-colors duration-700" />
             ))}
           </div>
         ) : notifications.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-[var(--textMuted)] text-[10px] font-mono uppercase tracking-[0.2em] opacity-40">
+          // Empty State
+          <div className="h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500 text-[12px] font-medium italic transition-colors duration-700">
             No active alerts in sector.
           </div>
         ) : (
+          // Active Notifications
           notifications.map((note) => (
             <div 
               key={note.id} 
-              className="relative pl-4 border-l-[3px] py-3 px-4 bg-white/[0.01] hover:bg-white/[0.03] border-white/5 rounded-r-lg transition-all group/note cursor-default overflow-hidden"
-              style={{ borderLeftColor: note.source === 'CANVAS' ? 'var(--statusRed)' : 'var(--accentCyan)' }}
+              className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 flex flex-col gap-2 group/note"
             >
-              {/* Source-specific Glow */}
-              <div className={`absolute top-0 left-0 w-16 h-full blur-2xl opacity-0 group-hover/note:opacity-10 transition-opacity pointer-events-none ${
-                note.source === 'CANVAS' ? 'bg-[var(--statusRed)]' : 'bg-[var(--accentCyan)]'
-              }`}></div>
-
-              <div className="flex justify-between items-center mb-2">
-                <span className={`text-[8px] font-black font-mono uppercase px-2 py-0.5 rounded border ${
+              {/* Note Header: Source Pill & Time */}
+              <div className="flex justify-between items-center">
+                <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full transition-colors duration-700 ${
                   note.source === 'CANVAS' 
-                    ? 'border-[var(--statusRed)]/30 bg-[var(--statusRed)]/10 text-[var(--statusRed)]' 
-                    : 'border-[var(--accentCyan)]/30 bg-[var(--accentCyan)]/10 text-[var(--accentCyan)]'
+                    ? 'bg-pink-500/10 text-pink-600 dark:text-pink-400' 
+                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                 }`}>
                   {note.source}
                 </span>
-                <span className="text-[9px] text-[var(--textMuted)] font-mono tracking-tighter uppercase">{note.time}</span>
+                <span className="text-[11px] text-neutral-400 dark:text-neutral-500 font-medium tracking-tight transition-colors duration-700">
+                  {note.time}
+                </span>
               </div>
 
-              <div className="text-[10px] text-[var(--textSec)] font-bold truncate mb-1 uppercase tracking-tight group-hover/note:text-[var(--textPri)] transition-colors">
-                {note.title}
-              </div>
-              
-              <div className="text-[13px] text-[var(--textPri)] font-medium leading-relaxed line-clamp-2">
-                {note.message}
+              {/* Note Body: Title & Message */}
+              <div>
+                <div className="text-[14px] font-bold tracking-tight text-neutral-900 dark:text-white truncate transition-colors duration-700">
+                  {note.title}
+                </div>
+                <div className="text-[13px] text-neutral-500 dark:text-neutral-400 leading-snug line-clamp-2 mt-0.5 transition-colors duration-700">
+                  {note.message}
+                </div>
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* FOOTER SCAN STATUS */}
+      {/* SUBTLE FOOTER */}
       {!isLoading && (
-        <div className="mt-4 pt-3 border-t border-[var(--borderline)]/30 flex justify-end relative z-10">
-          <div className="text-[8px] font-mono text-[var(--textMuted)] uppercase tracking-[0.3em]">
-            Frequency: <span className="text-[var(--textPri)]">Secure_SSL</span>
+        <div className="mt-4 pt-4 border-t border-black/5 dark:border-white/5 flex justify-end transition-colors duration-700">
+          <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">
+            SSL Secure
           </div>
         </div>
       )}

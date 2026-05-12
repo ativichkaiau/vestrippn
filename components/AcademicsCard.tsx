@@ -38,98 +38,117 @@ export default function AcademicsCard() {
     ? Math.round(data.subjects.reduce((sum, sub) => sum + sub.progress, 0) / data.subjects.length)
     : 0;
 
-  if (!isMounted) return <div className="h-[260px] bg-[var(--surface)]/20 border border-[var(--borderline)] rounded-[22px] animate-pulse" />;
+  // Clean, day/night compatible skeleton loader
+  if (!isMounted) return (
+    <div className="flex flex-col gap-6 w-full animate-pulse">
+      <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+      <div className="h-12 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+    </div>
+  );
 
-  const radius = 30;
+  const radius = 38;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (circumference * overallProgress) / 100;
 
   return (
-    <div className="bg-[var(--surface)]/40 border border-[var(--borderline)] rounded-[22px] p-6 shadow-2xl flex flex-col h-full relative overflow-hidden transition-all duration-500 hover:border-[var(--accentCyan)]/50 group">
+    <div className="flex flex-col h-full w-full relative group">
       
-      {/* HUD SCANLINES */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-6 relative z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 bg-[var(--accentCyan)] shadow-[0_0_12px_var(--accentCyan)]"></div>
-          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--textPri)]">Academics</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {error ? (
-            <span className="text-[var(--statusRed)] text-[9px] font-mono animate-pulse uppercase">{error}</span>
-          ) : (
-            <span className="text-[var(--textMuted)] text-[9px] font-mono uppercase tracking-[0.2em]">{isLoading ? 'Syncing...' : 'Canvas_Link: OK'}</span>
-          )}
-        </div>
+      {/* STATUS INDICATOR */}
+      <div className="absolute -top-12 right-0 flex items-center gap-2">
+        {error ? (
+          <span className="text-red-500 text-[10px] font-bold tracking-widest uppercase animate-pulse">{error}</span>
+        ) : (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5">
+            <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`}></span>
+            <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase">
+              {isLoading ? 'Syncing' : 'Live'}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* MAIN TELEMETRY SECTOR */}
-      <div className="flex gap-8 items-center mb-8 relative z-10">
+      <div className="flex flex-col sm:flex-row gap-8 items-center mb-8">
         
-        {/* PROGRESS RING (The Glow Center) */}
+        {/* PROGRESS RING */}
         <div className="relative flex items-center justify-center shrink-0">
-          <svg className="w-24 h-24 transform -rotate-90">
-            <circle cx="48" cy="48" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" className="text-[var(--borderline)]/20" />
+          <svg className="w-28 h-28 transform -rotate-90">
+            {/* Background Track */}
+            <circle 
+              cx="56" cy="56" r={radius} 
+              stroke="currentColor" strokeWidth="6" fill="transparent" 
+              className="text-black/5 dark:text-white/10 transition-colors duration-700" 
+            />
+            {/* Progress Fill */}
             <circle
-              cx="48" cy="48" r={radius} stroke="currentColor" strokeWidth="5" fill="transparent"
+              cx="56" cy="56" r={radius} 
+              stroke="currentColor" strokeWidth="6" fill="transparent"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
-              className="text-[var(--accentCyan)] transition-all duration-1000 ease-in-out drop-shadow-[0_0_10px_var(--accentCyan)]"
+              className="text-blue-600 dark:text-blue-400 transition-all duration-1000 ease-out"
             />
           </svg>
-          <div className="absolute flex flex-col items-center">
-            <span className="text-[22px] font-orbitron font-black text-[var(--textPri)] drop-shadow-[0_0_8px_var(--accentCyan)]">{overallProgress}%</span>
+          <div className="absolute flex flex-col items-center justify-center">
+            <span className="text-[26px] font-black tracking-tighter text-neutral-900 dark:text-white transition-colors duration-700">
+              {overallProgress}%
+            </span>
           </div>
         </div>
 
-        {/* LIVE SUBJECT BARS (Hardcoded for Vibrance) */}
-        <div className="flex-1 space-y-4">
+        {/* LIVE SUBJECT BARS */}
+        <div className="flex-1 w-full space-y-5">
           {data.subjects.length > 0 ? data.subjects.map((sub) => (
             <div key={sub.id} className="group/item">
-              <div className="flex justify-between text-[10px] font-mono mb-1.5 uppercase font-bold">
-                <span className="text-[var(--textSec)] tracking-tighter truncate max-w-[120px] group-hover/item:text-[var(--textPri)] transition-colors">{sub.name}</span>
-                <span className="text-[var(--accentCyan)] drop-shadow-[0_0_4px_var(--accentCyan)]">{sub.progress}%</span>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-300 truncate pr-4 transition-colors duration-700">
+                  {sub.name}
+                </span>
+                <span className="text-[12px] font-black text-blue-600 dark:text-blue-400 transition-colors duration-700">
+                  {sub.progress}%
+                </span>
               </div>
-              <div className="h-[3px] w-full bg-[var(--borderline)]/20 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden transition-colors duration-700">
                 <div 
-                  className="h-full bg-[var(--accentCyan)] shadow-[0_0_8px_var(--accentCyan)] transition-all duration-1000"
+                  className="h-full bg-blue-600 dark:bg-blue-400 transition-all duration-1000 ease-out rounded-full"
                   style={{ width: `${sub.progress}%` }}
                 ></div>
               </div>
             </div>
           )) : (
-            <div className="text-[10px] font-mono text-[var(--textMuted)] italic py-2">Establishing Uplink...</div>
+            <div className="text-[12px] font-medium text-neutral-400 dark:text-neutral-500 italic py-4 text-center sm:text-left">
+              Establishing Uplink...
+            </div>
           )}
         </div>
       </div>
 
-      {/* SUB-METRICS: The Neon Finish */}
-      <div className="grid grid-cols-2 gap-6 mt-auto pt-5 border-t border-[var(--borderline)]/30 relative z-10">
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between text-[9px] font-mono font-black uppercase tracking-widest">
-            <span className="text-[var(--textMuted)]">Quizzes</span>
-            <span className="text-[var(--accentFuchsia)] drop-shadow-[0_0_5px_var(--accentFuchsia)]">{data.metrics.quizzes}%</span>
+      {/* SUB-METRICS: Quizzes & Assignments */}
+      <div className="grid grid-cols-2 gap-6 mt-auto pt-6 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
+        
+        {/* Quizzes (Fuchsia/Pink Accent) */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex justify-between items-end">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Quizzes</span>
+            <span className="text-[14px] font-black text-pink-500 dark:text-pink-400 transition-colors duration-700">{data.metrics.quizzes}%</span>
           </div>
-          <div className="h-1.5 w-full bg-[var(--borderline)]/20 rounded-full overflow-hidden">
-            <div className="h-full bg-[var(--accentFuchsia)] shadow-[0_0_8px_var(--accentFuchsia)] transition-all duration-1000" style={{ width: `${data.metrics.quizzes}%` }}></div>
+          <div className="h-1.5 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden transition-colors duration-700">
+            <div className="h-full bg-pink-500 dark:bg-pink-400 transition-all duration-1000 ease-out rounded-full" style={{ width: `${data.metrics.quizzes}%` }}></div>
           </div>
         </div>
         
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between text-[9px] font-mono font-black uppercase tracking-widest">
-            <span className="text-[var(--textMuted)]">Assignments</span>
-            <span className="text-[var(--accentAmber)] drop-shadow-[0_0_5px_var(--accentAmber)]">{data.metrics.assignments}%</span>
+        {/* Assignments (Amber/Orange Accent) */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex justify-between items-end">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Assignments</span>
+            <span className="text-[14px] font-black text-amber-500 dark:text-amber-400 transition-colors duration-700">{data.metrics.assignments}%</span>
           </div>
-          <div className="h-1.5 w-full bg-[var(--borderline)]/20 rounded-full overflow-hidden">
-            <div className="h-full bg-[var(--accentAmber)] shadow-[0_0_8px_var(--accentAmber)] transition-all duration-1000" style={{ width: `${data.metrics.assignments}%` }}></div>
+          <div className="h-1.5 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden transition-colors duration-700">
+            <div className="h-full bg-amber-500 dark:bg-amber-400 transition-all duration-1000 ease-out rounded-full" style={{ width: `${data.metrics.assignments}%` }}></div>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
   );
 }
