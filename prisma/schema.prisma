@@ -5,8 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" 
-  // Note: url is handled via prisma.config.ts for Prisma v7 compatibility
+  provider  = "postgresql"
+  url       = env("VESTRIPPN_PRISMA_DATABASE_URL")
+  directUrl = env("VESTRIPPN_DATABASE_URL")
 }
 
 // ==========================================
