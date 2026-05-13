@@ -6,8 +6,6 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("VESTRIPPN_PRISMA_DATABASE_URL")
-  directUrl = env("VESTRIPPN_DATABASE_URL")
 }
 
 // ==========================================
