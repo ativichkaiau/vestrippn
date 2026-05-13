@@ -183,8 +183,9 @@ export default function ArchiveHub() {
                   <h3 className="text-[12px] font-bold text-cyan-600 dark:text-cyan-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
                     <span className="w-1.5 h-4 bg-cyan-500 rounded-full"></span> Sector A: Medical Foundations 
                   </h3> 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6"> 
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"> 
                     <ArchiveLink title="University Summaries" url="https://drive.google.com/drive/folders/1Wp9C_rP2ybeVUPgfXJCOganRNjuWaViS" icon="📁" theme="cyan" /> 
+                    <ArchiveLink title="Clinical Mock Exams" url="#" icon="🩺" theme="cyan" />
                     <ArchiveLink title="Portfolio Showcase" url="https://drive.google.com/drive/folders/1-34E1ClpDxzP5-3Hr_b52svDZX7J2ucF" icon="🎯" theme="cyan" /> 
                   </div> 
                 </section> 
@@ -213,6 +214,17 @@ export default function ArchiveHub() {
                   </div> 
                 </section> 
 
+                {/* Sector D */} 
+                <section> 
+                  <h3 className="text-[12px] font-bold text-purple-600 dark:text-purple-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
+                    <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span> Sector D: Projects & Architecture
+                  </h3> 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6"> 
+                    <ArchiveLink title="A Dance Through Time" url="#" icon="🎭" theme="purple" /> 
+                    <ArchiveLink title="Next.js Core Architecture" url="#" icon="💻" theme="purple" /> 
+                  </div> 
+                </section>
+
               </div> 
             </div> 
 
@@ -234,17 +246,19 @@ export default function ArchiveHub() {
   ); 
 } 
 
-function ArchiveLink({ title, url, icon, theme }: { title: string, url: string, icon: string, theme: 'cyan' | 'amber' | 'emerald' }) { 
+function ArchiveLink({ title, url, icon, theme }: { title: string, url: string, icon: string, theme: 'cyan' | 'amber' | 'emerald' | 'purple' }) { 
   const textColors = {
     cyan: 'group-hover/link:text-cyan-600 dark:group-hover/link:text-cyan-400',
     amber: 'group-hover/link:text-amber-600 dark:group-hover/link:text-amber-400',
     emerald: 'group-hover/link:text-emerald-600 dark:group-hover/link:text-emerald-400',
+    purple: 'group-hover/link:text-purple-600 dark:group-hover/link:text-purple-400',
   };
 
   const bgColors = {
     cyan: 'group-hover/link:bg-cyan-50 dark:group-hover/link:bg-cyan-500/10 hover:border-cyan-500/30',
     amber: 'group-hover/link:bg-amber-50 dark:group-hover/link:bg-amber-500/10 hover:border-amber-500/30',
     emerald: 'group-hover/link:bg-emerald-50 dark:group-hover/link:bg-emerald-500/10 hover:border-emerald-500/30',
+    purple: 'group-hover/link:bg-purple-50 dark:group-hover/link:bg-purple-500/10 hover:border-purple-500/30',
   };
 
   return ( 

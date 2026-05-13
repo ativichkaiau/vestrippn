@@ -75,6 +75,14 @@ export default function IELTSHub() {
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-purple-500/30">
       
+      {/* --- CUSTOM ANIMATION STYLES --- */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
+        @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
+        .animate-float-slow { animation: floatSlow 6s ease-in-out infinite; }
+        .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
+      `}} />
+
       {/* --- DAY/NIGHT ATMOSPHERE --- */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
         <div className="absolute top-[-10%] right-[10%] w-[60%] h-[60%] bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-purple-600/15 dark:to-[#00A598]/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-60 transition-all duration-1000"></div>
@@ -119,66 +127,104 @@ export default function IELTSHub() {
 
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
-          <div className="max-w-[1400px] mx-auto space-y-8 lg:space-y-10">
+          <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
-            {/* SECTOR 1: AI VAULT PORTAL */}
-            <section className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 ${isEditingModules ? 'border-amber-500/30 ring-4 ring-amber-500/5' : 'border-black/5 dark:border-white/5'}`}>
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">🎙️</div>
-                  <div>
-                    <h2 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight">NotebookLM IELTS Vault</h2>
-                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">
-                      {isEditingModules ? 'Reconfiguring Matrix' : 'AI-Synthesis Active'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 w-full md:w-auto">
-                  {isEditingModules ? (
-                    <>
-                      <button onClick={commitModules} className="flex-1 md:flex-none bg-emerald-500 text-white font-bold text-[11px] px-6 py-3 rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-md">Commit</button>
-                      <button onClick={() => setIsEditingModules(false)} className="flex-1 md:flex-none bg-black/5 dark:bg-white/5 text-neutral-500 font-bold text-[11px] px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-black/10 transition-all">Abort</button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => { setTempModules([...modules]); setIsEditingModules(true); }} className="px-4 py-3 rounded-xl border border-black/5 dark:border-white/10 text-[11px] font-bold uppercase text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 transition-all active:scale-95">Edit Labels</button>
-                      <a href="https://notebooklm.google.com/notebook/6b628a58-9950-4fa9-918b-111fc6953777" target="_blank" className="flex-1 md:flex-none bg-purple-500 text-white font-bold text-[11px] px-8 py-3 rounded-xl shadow-lg hover:bg-purple-600 transition-all active:scale-95 uppercase tracking-widest text-center">Engage Vault</a>
-                    </>
-                  )}
-                </div>
+            {/* HERO SECTION */}
+            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
+              <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
+                <span className="text-lg">🌐</span>
+                <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Linguistic Core</span>
+              </div>
+              <div className="absolute right-[5%] xl:right-[10%] bottom-0 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
+                <span className="text-[10px] font-black uppercase tracking-widest text-purple-500">Lexicon Active</span>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {(isEditingModules ? tempModules : modules).map((mod, i) => (
-                  <div key={mod.id} className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl p-4 flex flex-col gap-2 transition-all hover:bg-black/10 active:scale-[0.98]">
-                    <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 tracking-widest uppercase">M-0{mod.id}</span>
-                    {isEditingModules ? (
-                      <input type="text" value={mod.text} onChange={(e) => { const next = [...tempModules]; next[i].text = e.target.value; setTempModules(next); }} className="bg-white dark:bg-neutral-800 border border-amber-500/30 rounded-lg px-3 py-2 text-[13px] text-neutral-900 dark:text-white font-bold outline-none focus:ring-2 ring-amber-500/20" />
-                    ) : (
-                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 font-bold tracking-tight truncate">{mod.text}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <h1 className="font-black tracking-tighter leading-none mb-6 flex flex-col xl:flex-row items-center justify-center gap-3 sm:gap-4 xl:gap-5 relative z-10">
+                <div className="flex items-baseline text-[42px] sm:text-[64px] lg:text-[76px]">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">
+                    IELTS
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 sm:gap-4 mt-2 xl:mt-0 text-[32px] sm:text-[50px] lg:text-[60px]">
+                  <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-4 py-1 sm:py-2 rounded-[16px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-black/5 leading-none transition-colors duration-700">
+                    VAULT
+                  </span>
+                </div>
+              </h1>
+              <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
+                {cycleTime} // <span className="text-purple-600 dark:text-purple-400 font-bold">System Nominal</span>
+              </p>
             </section>
 
-            {/* SECTOR 2: LEXICON & THESAURUS ENGINE */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              
-              <div className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col transition-colors duration-700">
-                <div className="px-8 py-6 border-b border-black/5 dark:border-white/5 flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Lexicon & Thesaurus Engine</h3>
+            {/* SECTOR 1: AI VAULT PORTAL */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 px-2">
+                <span className="w-1.5 h-4 bg-purple-500 rounded-full animate-pulse"></span>
+                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Intelligence Buffer</h3>
+              </div>
+              <section className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 ${isEditingModules ? 'border-amber-500/30 ring-4 ring-amber-500/5' : 'border-black/5 dark:border-white/5'}`}>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">🎙️</div>
+                    <div>
+                      <h2 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight">NotebookLM Integration</h2>
+                      <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">
+                        {isEditingModules ? 'Reconfiguring Matrix' : 'AI-Synthesis Active'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 w-full md:w-auto">
+                    {isEditingModules ? (
+                      <>
+                        <button onClick={commitModules} className="flex-1 md:flex-none bg-emerald-500 text-white font-bold text-[11px] px-6 py-3 rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-md">Commit</button>
+                        <button onClick={() => setIsEditingModules(false)} className="flex-1 md:flex-none bg-black/5 dark:bg-white/5 text-neutral-500 font-bold text-[11px] px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-black/10 transition-all">Abort</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setTempModules([...modules]); setIsEditingModules(true); }} className="px-4 py-3 rounded-xl border border-black/5 dark:border-white/10 text-[11px] font-bold uppercase text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 transition-all active:scale-95">Edit Labels</button>
+                        <a href="https://notebooklm.google.com/notebook/6b628a58-9950-4fa9-918b-111fc6953777" target="_blank" className="flex-1 md:flex-none bg-purple-500 text-white font-bold text-[11px] px-8 py-3 rounded-xl shadow-lg hover:bg-purple-600 transition-all active:scale-95 uppercase tracking-widest text-center">Engage Vault</a>
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                <div className="p-8 space-y-8 flex-1 min-h-[500px]">
-                  <div className="flex gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {(isEditingModules ? tempModules : modules).map((mod, i) => (
+                    <div key={mod.id} className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl p-4 flex flex-col gap-2 transition-all hover:bg-black/10 active:scale-[0.98]">
+                      <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 tracking-widest uppercase">M-0{mod.id}</span>
+                      {isEditingModules ? (
+                        <input type="text" value={mod.text} onChange={(e) => { const next = [...tempModules]; next[i].text = e.target.value; setTempModules(next); }} className="bg-white dark:bg-neutral-800 border border-amber-500/30 rounded-lg px-3 py-2 text-[13px] text-neutral-900 dark:text-white font-bold outline-none focus:ring-2 ring-amber-500/20" />
+                      ) : (
+                        <span className="text-[14px] text-neutral-800 dark:text-neutral-200 font-bold tracking-tight truncate">{mod.text}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            {/* SECTOR 2: LEXICON & THESAURUS ENGINE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+              
+              <div className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col transition-colors duration-700">
+                <div className="px-6 lg:px-8 py-6 border-b border-black/5 dark:border-white/5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                    <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Lexicon & Thesaurus</h3>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                     <span className="text-[10px] font-bold uppercase tracking-widest">Uplink</span>
+                  </div>
+                </div>
+
+                <div className="p-6 lg:p-8 space-y-8 flex-1 min-h-[500px]">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <input type="text" placeholder="Input token for synthesis..." value={lexiconQuery} onChange={(e) => setLexiconQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLexiconSearch()} className="flex-1 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl px-6 py-4 text-[15px] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/30 transition-all font-medium placeholder:text-neutral-400" />
-                    <button onClick={handleLexiconSearch} className="bg-purple-500 text-white px-8 rounded-2xl text-[11px] font-bold uppercase tracking-widest active:scale-95 shadow-md">Query</button>
+                    <button onClick={handleLexiconSearch} className="bg-purple-500 text-white px-8 py-4 sm:py-0 rounded-2xl text-[11px] font-bold uppercase tracking-widest active:scale-95 shadow-md">Query</button>
                   </div>
 
-                  <div className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl p-6 lg:p-8 flex-1 overflow-y-auto">
+                  <div className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-[24px] p-6 lg:p-8 flex-1 overflow-y-auto custom-scrollbar">
                     {lexiconData ? (
                       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <div className="flex flex-col sm:flex-row sm:items-baseline gap-4 border-b border-black/5 dark:border-white/10 pb-6">
@@ -203,7 +249,7 @@ export default function IELTSHub() {
                             <div className="flex flex-wrap gap-2">
                               {lexiconData.meanings[0].synonyms.length > 0 ? (
                                 lexiconData.meanings[0].synonyms.slice(0, 8).map((syn: string) => (
-                                  <button key={syn} onClick={() => { setLexiconQuery(syn); setTimeout(handleLexiconSearch, 50); }} className="px-4 py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl text-[13px] font-bold hover:bg-emerald-500 hover:text-white transition-all active:scale-95 border border-transparent dark:border-emerald-500/20">
+                                  <button key={syn} onClick={() => { setLexiconQuery(syn); setTimeout(handleLexiconSearch, 50); }} className="px-4 py-2 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl text-[13px] font-bold hover:bg-purple-500 hover:text-white transition-all active:scale-95 border border-transparent dark:border-purple-500/20">
                                     {syn}
                                   </button>
                                 ))
@@ -224,7 +270,7 @@ export default function IELTSHub() {
 
               {/* SIDE VAULTS */}
               <div className="lg:col-span-4 flex flex-col gap-6 lg:gap-8">
-                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full">
                    <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-6">Internal Vaults</h3>
                    <div className="space-y-4">
                       <DriveTile title="Mock Tests by Kaiau" icon="📝" url="https://drive.google.com/drive/folders/1vPEPiASm7gRVLuE-KJr0ce1094eI0CjE" />
@@ -232,7 +278,7 @@ export default function IELTSHub() {
                    </div>
                 </div>
                 
-                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full">
                    <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-6">Practice Matrix</h3>
                    <div className="grid grid-cols-2 gap-4">
                       {[
@@ -254,11 +300,11 @@ export default function IELTSHub() {
         </main>
 
         {/* --- MOBILE NAVIGATION --- */}
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-2xl w-[95%] sm:w-auto">
-          {navItems.slice(0, 4).map((item) => (
-            <Link key={item.name} href={item.href} className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all shrink-0 ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-neutral-500'}`}>
-               <span className="text-[16px]">{item.icon}</span>
-               {item.active && <span className="text-[11px] font-bold tracking-tight">{item.name}</span>}
+        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-2xl w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
+          {navItems.map((item) => (
+            <Link key={item.name} href={item.href} className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all shrink-0 group ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
+               <span className={`text-[16px] ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
+               {item.active && <span className="text-[11px] font-bold tracking-tight pr-1 animate-in fade-in zoom-in duration-300">{item.name}</span>}
             </Link>
           ))}
         </nav>

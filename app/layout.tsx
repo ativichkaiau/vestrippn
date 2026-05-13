@@ -16,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VESTRIPPN 3.0 // W05 Hybrid",
+  title: "VESTRIPPN 3.0 // W06 Hybrid",
   description: "Personal Telemetry & Operating System",
 };
 

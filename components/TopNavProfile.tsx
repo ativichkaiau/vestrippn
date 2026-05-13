@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 
 export default function TopNavProfile() {
@@ -21,7 +21,7 @@ export default function TopNavProfile() {
         {/* User Info (Hidden on ultra-small mobile screens to save space) */}
         <div className="flex flex-col text-right hidden sm:flex pr-1">
           <span className="text-[11px] font-bold text-neutral-900 dark:text-white leading-none tracking-tight transition-colors duration-700">
-            {session.user.name}
+            {session.user.name?.split(' ')[0] || "Operator"}
           </span>
           <span className="text-[9px] font-bold text-[#00A598] uppercase tracking-widest mt-0.5 transition-colors duration-700">
             Verified
@@ -58,13 +58,16 @@ export default function TopNavProfile() {
     );
   }
 
-  // STATE 3: Unauthenticated (Clean Locked State)
+  // STATE 3: Unauthenticated (Interactive Ignition)
   return (
-    <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-black/5 dark:border-white/10 bg-white/50 dark:bg-black/50 backdrop-blur-md transition-colors duration-700">
-      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-      <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest transition-colors duration-700">
-        Locked
+    <button 
+      onClick={() => signIn('google')}
+      className="flex items-center gap-2 px-5 py-2 rounded-full border border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-500 hover:border-transparent dark:hover:bg-blue-600 transition-all duration-300 group shadow-sm active:scale-95"
+    >
+      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:bg-white animate-pulse transition-colors duration-300"></div>
+      <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 group-hover:text-white uppercase tracking-widest transition-colors duration-300">
+        Sign In
       </span>
-    </div>
+    </button>
   );
 }

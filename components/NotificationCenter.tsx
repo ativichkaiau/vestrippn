@@ -4,32 +4,34 @@ import { useState, useEffect } from 'react';
 
 interface Notification {
   id: string;
-  source: 'CANVAS' | 'GMAIL';
+  source: 'CANVAS' | 'GMAIL' | string;
   title: string;
   message: string;
   time: string;
 }
 
-export default function NotificationCenter() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+interface NotificationCenterProps {
+  initialNotifications?: Notification[];
+}
 
+export default function NotificationCenter({ initialNotifications = [] }: NotificationCenterProps) {
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Smart Sync: Only update if the cloud pushes fresh intelligence
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch('/api/notifications');
-        if (!response.ok) throw new Error(`${response.status}`);
-        const data = await response.json();
-        setNotifications(Array.isArray(data) ? data : []);
-      } catch (e: any) {
-        console.error("Hub Sync Error:", e);
-        setError(e.message || 'OFFLINE'); 
-      } finally {
-        setIsLoading(false);
+    setNotifications(prev => {
+      if (JSON.stringify(prev) === JSON.stringify(initialNotifications)) {
+        return prev;
       }
-    };
-    fetchNotifications();
+      return initialNotifications;
+    });
+  }, [initialNotifications]);
+
+  // Simulate a brief secure decryption handshake for UI fidelity
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -48,16 +50,12 @@ export default function NotificationCenter() {
 
         {/* Dynamic Status Indicator */}
         <div className="flex items-center gap-2">
-          {error ? (
-            <span className="text-red-500 text-[10px] font-bold tracking-widest uppercase animate-pulse">Err: {error}</span>
-          ) : (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
-              <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`}></span>
-              <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase transition-colors duration-700">
-                {isLoading ? 'Syncing' : 'Live Feed'}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
+            <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`}></span>
+            <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase transition-colors duration-700">
+              {isLoading ? 'Decrypting' : 'Live Feed'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -87,7 +85,9 @@ export default function NotificationCenter() {
                 <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full transition-colors duration-700 ${
                   note.source === 'CANVAS' 
                     ? 'bg-pink-500/10 text-pink-600 dark:text-pink-400' 
-                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                    : note.source === 'GMAIL'
+                      ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                      : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                 }`}>
                   {note.source}
                 </span>

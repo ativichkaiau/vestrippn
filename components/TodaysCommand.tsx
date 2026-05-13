@@ -1,63 +1,59 @@
 'use client';
+
 import { useState, useEffect } from "react";
+import { addTask, toggleTask } from "@/app/actions"; // <-- The Cloud Uplink
 
-type Task = { id: string; text: string; done: boolean };
+// This matches your Prisma Database schema
+type Task = { id: string; title: string; completed: boolean };
 
-export default function TodaysCommand() {
+interface TodaysCommandProps {
+  initialTasks?: Task[];
+}
+
+export default function TodaysCommand({ initialTasks = [] }: TodaysCommandProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTask, setNewTask] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Smart Sync: Only update if the actual data changed from the cloud
   useEffect(() => {
-    setIsMounted(true);
-    fetchTasks();
-  }, []);
+    setTasks(prevTasks => {
+      // Compare the current UI tasks with the incoming cloud tasks
+      if (JSON.stringify(prevTasks) === JSON.stringify(initialTasks)) {
+        return prevTasks; // They are the same, break the loop!
+      }
+      return initialTasks; // They are different, update the UI!
+    });
+  }, [initialTasks]);
 
-  const fetchTasks = async () => {
+  const handleToggle = async (id: string, currentStatus: boolean) => {
+    // 1. Instant Optimistic UI Update
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !currentStatus } : t));
+    
+    // 2. Silent Cloud Sync
     try {
-      const res = await fetch('/api/tasks');
-      const data = await res.json();
-      setTasks(Array.isArray(data) ? data : []);
+      await toggleTask(id, !currentStatus);
     } catch (error) {
-      setTasks([]);
-    } finally {
-      setIsLoading(false);
+      console.error("Telemetry sync failed", error);
     }
   };
 
-  const toggleTask = async (id: string, currentStatus: boolean) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !currentStatus } : t));
-    try {
-      await fetch('/api/tasks', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, done: !currentStatus }),
-      });
-    } catch (e) {
-      fetchTasks();
-    }
-  };
-
-  const addTask = async (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.trim()) return;
     
     const tempText = newTask;
-    const tempId = Date.now().toString();
     setNewTask("");
-    setTasks(prev => [{ id: tempId, text: tempText, done: false }, ...prev]);
+    
+    // 1. Instant Optimistic UI Update
+    const tempId = `temp-${Date.now()}`;
+    setTasks(prev => [{ id: tempId, title: tempText, completed: false }, ...prev]);
 
+    // 2. Silent Cloud Sync
     try {
-      const res = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: tempText }),
-      });
-      const savedTask = await res.json();
-      setTasks(prev => prev.map(t => t.id === tempId ? { ...t, id: savedTask.id } : t));
-    } catch (e) {
-      fetchTasks();
+      await addTask(tempText, "COMMAND");
+    } catch (error) {
+      console.error("Telemetry sync failed", error);
     }
   };
 
@@ -92,11 +88,7 @@ export default function TodaysCommand() {
       
       {/* TASK LIST */}
       <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 min-h-[150px]">
-        {isLoading ? (
-          <div className="flex flex-col gap-3 mt-2">
-            {[1, 2, 3].map(i => <div key={i} className="h-10 bg-black/5 dark:bg-white/5 rounded-xl animate-pulse transition-colors duration-700" />)}
-          </div>
-        ) : tasks.length === 0 ? (
+        {tasks.length === 0 ? (
           <div className="h-full flex items-center justify-center text-[13px] font-medium text-neutral-400 dark:text-neutral-500 italic transition-colors duration-700">
             Sector Clear. All objectives complete.
           </div>
@@ -108,8 +100,8 @@ export default function TodaysCommand() {
               <div className="relative flex items-center justify-center shrink-0 mt-0.5">
                 <input 
                   type="checkbox" 
-                  checked={task.done}
-                  onChange={() => toggleTask(task.id, task.done)}
+                  checked={task.completed}
+                  onChange={() => handleToggle(task.id, task.completed)}
                   className="peer appearance-none w-5 h-5 border-[1.5px] border-neutral-300 dark:border-neutral-600 rounded-md bg-transparent checked:bg-blue-500 checked:border-blue-500 dark:checked:bg-blue-500 dark:checked:border-blue-500 transition-all duration-300 cursor-pointer" 
                 />
                 <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-300 drop-shadow-sm scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
@@ -119,11 +111,11 @@ export default function TodaysCommand() {
 
               {/* Task Text */}
               <span className={`text-[15px] leading-snug transition-all duration-300 tracking-tight ${
-                task.done 
+                task.completed 
                   ? 'text-neutral-400 dark:text-neutral-600 line-through' 
                   : 'text-neutral-700 dark:text-neutral-200 font-medium group-hover/task:text-neutral-900 dark:group-hover/task:text-white'
               }`}>
-                {task.text}
+                {task.title}
               </span>
             </label>
           ))
@@ -131,7 +123,7 @@ export default function TodaysCommand() {
       </div>
 
       {/* INPUT FIELD */}
-      <form onSubmit={addTask} className="mt-6 flex bg-black/5 dark:bg-white/5 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/30 border border-transparent dark:border-white/5 transition-all duration-300">
+      <form onSubmit={handleAddTask} className="mt-6 flex bg-black/5 dark:bg-white/5 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/30 border border-transparent dark:border-white/5 transition-all duration-300">
         <input 
           type="text" 
           value={newTask}

@@ -1,0 +1,167 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" 
+  // Note: url is handled via prisma.config.ts for Prisma v7 compatibility
+}
+
+// ==========================================
+// CORE SYSTEM: NEXTAUTH REQUIRED TABLES
+// ==========================================
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  
+  // System Links
+  accounts      Account[]
+  sessions      Session[]
+  
+  // ==========================================
+  // W05 TELEMETRY: CUSTOM USER DATA
+  // ==========================================
+  ieltsModules       IeltsModule[]
+  tasks              Task[]                
+  dailyCommand       DailyCommand?         
+  researchItems      ResearchExtraction[]  
+  fitnessLog         FitnessLog?           // Sector Epsilon Link
+  researchProject    ResearchProject?      // Sector Delta Link
+  notifications      Notification[]        // Sector Zeta Link
+}
+
+
+// ==========================================
+// SECTOR ALPHA: IELTS VAULT
+// ==========================================
+model IeltsModule {
+  id        String   @id @default(cuid())
+  text      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// SECTOR BETA: DASHBOARD REMINDERS & TASKS
+// ==========================================
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  category  String   @default("GENERAL") 
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// SECTOR GAMMA: TODAYS COMMAND
+// ==========================================
+model DailyCommand {
+  id        String   @id @default(cuid())
+  intent    String   
+  userId    String   @unique 
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// SECTOR DELTA: RESEARCH HUB MATRIX
+// ==========================================
+model ResearchExtraction {
+  id        String   @id @default(cuid())
+  pmid      String?  
+  title     String
+  authors   String?
+  journal   String?
+  url       String?
+  status    String   @default("UNSCREENED") 
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// SECTOR DELTA: COVIDENCE STATS
+// ==========================================
+model ResearchProject {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String   @default("Local Estrogen Formulations and rUTI")
+  screening   Int      @default(45)
+  fullText    Int      @default(12)
+  extraction  Int      @default(0)
+  
+  updatedAt   DateTime @updatedAt
+}
+
+// ==========================================
+// SECTOR EPSILON: VITALITY MONITOR
+// ==========================================
+model FitnessLog {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Stored as a JSON string: "[true, false, ...]"
+  workoutDays String   @default("[false,false,false,false,false,false,false]") 
+  lastWorkout String   @default("Upper Body Hypertrophy")
+  streak      Int      @default(0)
+
+  // Hub Telemetry (V3)
+  activeCycle  Int      @default(1)
+  metrics      String   @default("{\"sleepHours\":7,\"sleepMinutes\":30,\"weight\":72.4,\"height\":175,\"water\":2.1}")
+  mealsPayload String   @default("{\"date\":\"\",\"meals\":[]}")
+  
+  updatedAt   DateTime @updatedAt
+}
+
+// ==========================================
+// SECTOR ZETA: COMMS INTEL
+// ==========================================
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  source    String   // e.g., "CANVAS", "GMAIL", "SYSTEM"
+  title     String
+  message   String
+  time      String   // e.g., "10 mins ago" or "10:45 AM"
+  
+  createdAt DateTime @default(now())
+}

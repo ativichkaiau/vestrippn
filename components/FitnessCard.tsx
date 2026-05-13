@@ -1,34 +1,48 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { updateFitnessData } from '@/app/actions';
 
-export default function FitnessCard() {
+interface FitnessCardProps {
+  initialWorkoutDays?: boolean[];
+  initialLastWorkout?: string;
+  initialStreak?: number;
+}
+
+export default function FitnessCard({
+  // Defaulting to absolute zero / 0% state
+  initialWorkoutDays = [false, false, false, false, false, false, false],
+  initialLastWorkout = "Awaiting Log...",
+  initialStreak = 0
+}: FitnessCardProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [workoutDays, setWorkoutDays] = useState<boolean[]>([true, true, true, true, true, false, true]);
-  const [lastWorkout, setLastWorkout] = useState('Upper Body Hypertrophy');
-  const [streak, setStreak] = useState(5);
+  const [workoutDays, setWorkoutDays] = useState<boolean[]>(initialWorkoutDays);
+  const [lastWorkout, setLastWorkout] = useState(initialLastWorkout);
+  const [streak, setStreak] = useState(initialStreak);
   const [isUnlocked, setIsUnlocked] = useState(false);
-
-  // Calendar State
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Smart Sync: Prevent Infinite Loops while fetching fresh cloud data
+  useEffect(() => {
+    setWorkoutDays(prevDays => {
+      if (JSON.stringify(prevDays) === JSON.stringify(initialWorkoutDays)) return prevDays;
+      return initialWorkoutDays;
+    });
+    setLastWorkout(prev => prev === initialLastWorkout ? prev : initialLastWorkout);
+    setStreak(prev => prev === initialStreak ? prev : initialStreak);
+  }, [initialWorkoutDays, initialLastWorkout, initialStreak]);
 
   useEffect(() => {
     setIsMounted(true);
-    setCurrentDate(new Date()); // Ensures hydration matches client time
-    try {
-      const saved = localStorage.getItem('vestrippn-fitness-v2');
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.workoutDays && data.workoutDays.length === 7) setWorkoutDays(data.workoutDays);
-        if (data.lastWorkout) setLastWorkout(data.lastWorkout);
-        if (data.streak !== undefined) setStreak(data.streak);
-      }
-    } catch (e) { console.error("Bio-Link Error", e); }
+    setCurrentDate(new Date());
   }, []);
 
-  const saveData = (updates: any) => {
-    const newData = { workoutDays, lastWorkout, streak, ...updates };
-    localStorage.setItem('vestrippn-fitness-v2', JSON.stringify(newData));
+  const handleCloudSync = async (newDays: boolean[], newLastWorkout: string, newStreak: number) => {
+    try {
+      await updateFitnessData(newDays, newLastWorkout, newStreak);
+    } catch (e) {
+      console.error("Bio-Link Error", e);
+    }
   };
 
   const checkStreakReset = (days: boolean[]) => {
@@ -46,16 +60,27 @@ export default function FitnessCard() {
     const isTryingToCheck = !workoutDays[index];
     if (isTryingToCheck && !isUnlocked) return; 
 
+    // 1. Optimistic UI Update
     const newDays = [...workoutDays];
     newDays[index] = !newDays[index];
     setWorkoutDays(newDays);
 
     let newStreak = streak;
     if (checkStreakReset(newDays)) newStreak = 0; 
-
     setStreak(newStreak);
-    saveData({ workoutDays: newDays, streak: newStreak });
+
     if (isTryingToCheck) setIsUnlocked(false);
+
+    // 2. Sync to Cloud
+    handleCloudSync(newDays, lastWorkout, newStreak);
+  };
+
+  const handleWorkoutTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLastWorkout(e.target.value);
+  };
+
+  const handleWorkoutTextBlur = () => {
+    handleCloudSync(workoutDays, lastWorkout, streak);
   };
 
   const handleSyncCalendar = () => {
@@ -98,12 +123,9 @@ export default function FitnessCard() {
   return (
     <div className="flex flex-col xl:flex-row w-full h-full gap-8 xl:gap-10 xl:items-center justify-between group transition-colors duration-700">
       
-      {/* --------------------------------------------------- */}
-      {/* PANE 1: Interactive Module (Bars & Input)           */}
-      {/* --------------------------------------------------- */}
+      {/* PANE 1: Interactive Module */}
       <div className="flex-1 flex flex-col gap-5 min-w-0">
         
-        {/* Header & Status */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm transition-colors duration-700">
@@ -118,7 +140,6 @@ export default function FitnessCard() {
           </span>
         </div>
 
-        {/* Interactive Bars */}
         <div className="flex gap-1.5 h-[10px] w-full shrink-0">
           {workoutDays.map((isDone, idx) => (
             <button
@@ -136,12 +157,12 @@ export default function FitnessCard() {
           ))}
         </div>
 
-        {/* Input & Calendar Sync */}
         <div className="flex w-full items-center gap-2 p-1.5 pl-4 bg-black/5 dark:bg-white/5 rounded-xl border border-transparent hover:border-black/5 dark:hover:border-white/10 transition-colors duration-300 focus-within:ring-2 focus-within:ring-emerald-500/30">
           <input
             type="text"
             value={lastWorkout}
-            onChange={(e) => { setLastWorkout(e.target.value); saveData({ lastWorkout: e.target.value }); }}
+            onChange={handleWorkoutTextChange}
+            onBlur={handleWorkoutTextBlur}
             className="bg-transparent outline-none text-[13px] text-neutral-700 dark:text-neutral-200 font-bold truncate w-full transition-colors duration-700"
             placeholder="Session type..."
           />
@@ -163,9 +184,7 @@ export default function FitnessCard() {
 
       </div>
 
-      {/* --------------------------------------------------- */}
-      {/* PANE 2: The Streak Counter (Centered on Desktop)    */}
-      {/* --------------------------------------------------- */}
+      {/* PANE 2: The Streak Counter */}
       <div className="shrink-0 flex items-center gap-3 xl:px-8 xl:border-x border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="flex flex-col items-end xl:items-center">
           <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1 transition-colors duration-700">
@@ -180,9 +199,7 @@ export default function FitnessCard() {
         </div>
       </div>
 
-      {/* --------------------------------------------------- */}
-      {/* PANE 3: Live Calendar Integration                   */}
-      {/* --------------------------------------------------- */}
+      {/* PANE 3: Live Calendar Integration */}
       <div className="shrink-0 w-full xl:w-[220px] flex flex-col justify-center">
         
         <div className="flex justify-between items-center mb-3 px-1">
@@ -194,7 +211,6 @@ export default function FitnessCard() {
           </span>
         </div>
 
-        {/* Days of the Week Header */}
         <div className="grid grid-cols-7 gap-1 mb-1">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
             <div key={i} className="text-[9px] font-bold text-neutral-400 text-center uppercase">
@@ -203,7 +219,6 @@ export default function FitnessCard() {
           ))}
         </div>
 
-        {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-1">
           {calendarSlots.map((day, idx) => (
             <div 

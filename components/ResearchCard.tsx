@@ -1,49 +1,62 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { updateResearchStats } from '@/app/actions';
 
 interface PubMedResult {
   id: string; title: string; authors: string; pubdate: string;
 }
 
-export default function ResearchCard() {
+interface ResearchCardProps {
+  initialTitle?: string;
+  initialStats?: { screening: number; fullText: number; extraction: number };
+}
+
+export default function ResearchCard({
+  initialTitle = 'Local Estrogen Formulations and rUTI',
+  initialStats = { screening: 45, fullText: 12, extraction: 0 }
+}: ResearchCardProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  const [projectName, setProjectName] = useState('Local Estrogen Formulations and rUTI');
-  const [stats, setStats] = useState({ screening: 45, fullText: 12, extraction: 0 });
+  const [projectName, setProjectName] = useState(initialTitle);
+  const [stats, setStats] = useState(initialStats);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [papers, setPapers] = useState<PubMedResult[]>([]);
 
+// Smart Sync: Only update if the actual data changed from the cloud
+  useEffect(() => {
+    setProjectName(initialTitle);
+    
+    setStats(prevStats => {
+      // Compare the current UI stats with the incoming cloud stats
+      if (JSON.stringify(prevStats) === JSON.stringify(initialStats)) {
+        return prevStats; // They are the same, break the loop!
+      }
+      return initialStats; // They are different, update the UI!
+    });
+  }, [initialTitle, initialStats]);
+
   useEffect(() => {
     setIsMounted(true);
-    const initializeData = async () => {
-      try {
-        const res = await fetch('/api/research');
-        if (res.ok) {
-          const data = await res.json();
-          setProjectName(data.title);
-          setStats(data.stats);
-        } else {
-          // Bumped local storage key to v2 for clean state
-          const saved = localStorage.getItem('vestrippn-research-stats-v2');
-          if (saved) setStats(JSON.parse(saved));
-        }
-      } catch (e) {
-        console.warn("Covidence Bridge Offline");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    initializeData();
   }, []);
 
-  const updateManualStat = (key: string, val: number) => {
-    const newStats = { ...stats, [key]: val };
+  const handleUpdateStat = async (key: string, currentVal: number) => {
+    const newVal = window.prompt(`Update ${key} %:`, currentVal.toString());
+    if (!newVal || isNaN(parseInt(newVal))) return;
+
+    const parsedVal = parseInt(newVal);
+    
+    // 1. Optimistic UI Update
+    const newStats = { ...stats, [key]: parsedVal };
     setStats(newStats);
-    localStorage.setItem('vestrippn-research-stats-v2', JSON.stringify(newStats));
+
+    // 2. Silent Cloud Sync
+    try {
+      await updateResearchStats(projectName, newStats.screening, newStats.fullText, newStats.extraction);
+    } catch (e) {
+      console.error("Covidence Bridge Offline", e);
+    }
   };
 
   const searchPubMed = async (e: React.FormEvent) => {
@@ -83,9 +96,9 @@ export default function ResearchCard() {
       {/* STATUS INDICATOR */}
       <div className="absolute -top-12 right-0 flex items-center gap-2">
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
-          <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`}></span>
+          <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse`}></span>
           <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase transition-colors duration-700">
-            {isLoading ? 'Syncing' : 'Covidence Live'}
+            Covidence Live
           </span>
         </div>
       </div>
@@ -107,10 +120,7 @@ export default function ResearchCard() {
             { id: 'fullText', label: 'Full Text', val: stats.fullText, color: 'bg-amber-500 dark:bg-amber-400' },
             { id: 'extraction', label: 'Extraction', val: stats.extraction, color: 'bg-emerald-500 dark:bg-emerald-400' }
           ].map((stat) => (
-            <div key={stat.id} className="group/stat cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 -mx-2 px-2 py-1 rounded-lg transition-all duration-300" onClick={() => {
-              const newVal = window.prompt(`Update ${stat.label} %:`, stat.val.toString());
-              if (newVal) updateManualStat(stat.id, parseInt(newVal));
-            }}>
+            <div key={stat.id} className="group/stat cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 -mx-2 px-2 py-1 rounded-lg transition-all duration-300" onClick={() => handleUpdateStat(stat.id, stat.val)}>
               <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest mb-1.5 transition-colors duration-700">
                 <span className="text-neutral-500 dark:text-neutral-400 group-hover/stat:text-neutral-700 dark:group-hover/stat:text-neutral-200 transition-colors duration-300">
                   {stat.label}

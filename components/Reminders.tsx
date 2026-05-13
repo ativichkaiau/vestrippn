@@ -1,51 +1,76 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { addTask, deleteTask } from '@/app/actions'; // <-- Cloud Uplinks
 
-interface Reminder {
+// Aligning with your Prisma Database Schema
+interface Task {
   id: string;
-  text: string;
+  title: string;
+  completed: boolean;
+  category: string;
 }
 
-const defaultReminders: Reminder[] = [
-  { id: '1', text: 'Laundry Protocol — Sunday' },
-  { id: '2', text: 'Research Sync — 15:00' },
-  { id: '3', text: 'IELTS Prep: Reading — 10:00' }
-];
+interface RemindersProps {
+  initialTasks?: Task[];
+}
 
-export default function Reminders() {
-  const [reminders, setReminders] = useState<Reminder[]>(defaultReminders);
+export default function Reminders({ initialTasks = [] }: RemindersProps) {
+  const [reminders, setReminders] = useState<Task[]>(initialTasks);
   const [inputValue, setInputValue] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
+  // Mount check for safe rendering
+  // Smart Sync: Only update if the actual data changed from the cloud
   useEffect(() => {
-    setIsMounted(true);
-    try {
-      // Bumped to v3 for a clean state match with the new UI
-      const saved = localStorage.getItem('vestrippn-reminders-v3');
-      if (saved) setReminders(JSON.parse(saved));
-    } catch (e) { console.error("Buffer Load Failure", e); }
-  }, []);
+    setReminders(prevReminders => {
+      if (JSON.stringify(prevReminders) === JSON.stringify(initialTasks)) {
+        return prevReminders;
+      }
+      return initialTasks;
+    });
+  }, [initialTasks]);
 
-  const addReminder = (e: React.FormEvent) => {
+  const handleAddReminder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    const newReminder = { id: Date.now().toString(), text: inputValue.trim() };
-    const updated = [...reminders, newReminder];
-    setReminders(updated);
+
+    const tempText = inputValue.trim();
+    const tempId = `temp-${Date.now()}`;
     setInputValue('');
-    localStorage.setItem('vestrippn-reminders-v3', JSON.stringify(updated));
+
+    // 1. Instant Optimistic UI Update
+    const newReminder: Task = { 
+      id: tempId, 
+      title: tempText, 
+      completed: false, 
+      category: "ALERT" 
+    };
+    setReminders(prev => [...prev, newReminder]);
+
+    // 2. Silent Cloud Sync
+    try {
+      await addTask(tempText, "ALERT");
+    } catch (error) {
+      console.error("Failed to inject alert to cloud", error);
+    }
   };
 
-  const removeReminder = (id: string) => {
-    const updated = reminders.filter(r => r.id !== id);
-    setReminders(updated);
-    localStorage.setItem('vestrippn-reminders-v3', JSON.stringify(updated));
+  const handleRemoveReminder = async (id: string) => {
+    // 1. Instant Optimistic UI Update
+    setReminders(prev => prev.filter(r => r.id !== id));
+
+    // 2. Silent Cloud Sync
+    try {
+      await deleteTask(id);
+    } catch (error) {
+      console.error("Failed to purge alert from cloud", error);
+    }
   };
 
   // Minimal skeleton matching Day/Night surface
   if (!isMounted) return (
-    <div className="flex flex-col gap-4 animate-pulse transition-colors duration-700">
+    <div className="flex flex-col gap-4 animate-pulse transition-colors duration-700 h-full min-h-[250px]">
       <div className="flex justify-between items-center mb-2">
         <div className="h-6 w-32 bg-black/5 dark:bg-white/5 rounded-full"></div>
       </div>
@@ -87,12 +112,12 @@ export default function Reminders() {
               <div className="flex items-center gap-3 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-blue-500/50 group-hover/item:bg-blue-500 dark:bg-blue-400/50 dark:group-hover/item:bg-blue-400 transition-colors duration-300"></span>
                 <span className="text-[14px] text-neutral-700 dark:text-neutral-200 group-hover/item:text-neutral-900 dark:group-hover/item:text-white transition-colors duration-300 truncate tracking-tight font-medium">
-                  {reminder.text}
+                  {reminder.title}
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => removeReminder(reminder.id)}
+                onClick={() => handleRemoveReminder(reminder.id)}
                 className="text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all duration-300 px-2 font-black text-[18px] leading-none"
                 title="Purge Alert"
               >
@@ -104,7 +129,7 @@ export default function Reminders() {
       </ul>
 
       {/* INPUT SECTOR */}
-      <form onSubmit={addReminder} className="relative shrink-0 flex items-center">
+      <form onSubmit={handleAddReminder} className="relative shrink-0 flex items-center">
         <input
           type="text"
           value={inputValue}
