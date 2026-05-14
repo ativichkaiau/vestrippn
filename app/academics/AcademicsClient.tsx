@@ -12,7 +12,7 @@ interface Exam { name: string; date: Date; color: string; }
 
 // --- 1. ADD THE PROPS INTERFACE ---
 interface AcademicsProps {
-  initialCanvasData: {
+  initialCanvasData?: {
     subjects: Subject[];
     metrics: any;
   }
@@ -23,17 +23,16 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-
-  // --- 3. SET STATE DIRECTLY FROM THE SERVER PROP ---
-  const [canvasData, setCanvasData] = useState(initialCanvasData);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
+
+  // FIX: Remove useState for canvas data. Read directly from the server prop so it is always live!
+  // We also add a safe fallback in case the server payload is delayed.
+  const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
 
   useEffect(() => {
     setIsMounted(true);
     const currentHour = new Date().getHours();
     setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
-    
-    // REMOVED the fetch('/api/canvas') block because the server handles it now!
   }, []);
 
   useEffect(() => {
@@ -246,11 +245,11 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
                 <div className="mt-10 pt-8 border-t border-black/5 dark:border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 transition-colors duration-700">
                   <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300">
                     <div className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-2 transition-colors duration-700">Global Quiz Average</div>
-                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-pink-500 dark:text-pink-400 transition-colors duration-700">{canvasData.metrics.quizzes}%</div>
+                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-pink-500 dark:text-pink-400 transition-colors duration-700">{canvasData.metrics?.quizzes || 0}%</div>
                   </div>
                   <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300">
                     <div className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-2 transition-colors duration-700">Assignment Completion</div>
-                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-amber-500 dark:text-amber-400 transition-colors duration-700">{canvasData.metrics.assignments}%</div>
+                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-amber-500 dark:text-amber-400 transition-colors duration-700">{canvasData.metrics?.assignments || 0}%</div>
                   </div>
                 </div>
               </div>

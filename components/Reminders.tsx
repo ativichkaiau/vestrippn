@@ -20,7 +20,11 @@ export default function Reminders({ initialTasks = [] }: RemindersProps) {
   const [inputValue, setInputValue] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
-  // Mount check for safe rendering
+  // FIX: Inject the mount signal to remove the skeleton
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Smart Sync: Only update if the actual data changed from the cloud
   useEffect(() => {
     setReminders(prevReminders => {

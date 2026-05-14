@@ -15,6 +15,11 @@ export default function TodaysCommand({ initialTasks = [] }: TodaysCommandProps)
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTask, setNewTask] = useState("");
 
+  // FIX: This wakes up the component and removes the skeleton loader
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Smart Sync: Only update if the actual data changed from the cloud
   useEffect(() => {
     setTasks(prevTasks => {
