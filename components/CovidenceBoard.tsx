@@ -13,7 +13,6 @@ interface CovidenceBoardProps {
   initialStats?: CovidenceStats;
 }
 
-// 1. Move the default outside so its memory reference never changes
 const DEFAULT_STATS = { screening: 0, fullText: 0, extraction: 0 };
 
 export default function CovidenceBoard({ 
@@ -25,10 +24,8 @@ export default function CovidenceBoard({
   const [title, setTitle] = useState(initialTitle);
   const [activeTab, setActiveTab] = useState<'PICO' | 'PROGRESS'>('PROGRESS'); 
 
-  // 2. The Fix: Deep comparison to break the infinite loop
   useEffect(() => {
     setStats(prev => {
-      // If the actual numbers match, bail out of the update completely!
       if (JSON.stringify(prev) === JSON.stringify(initialStats)) {
         return prev; 
       }
@@ -41,8 +38,25 @@ export default function CovidenceBoard({
     });
   }, [initialStats, initialTitle]);
 
+  // --- NEW: EDIT LOGIC ---
+  const handleEditStat = (key: keyof CovidenceStats) => {
+    const currentVal = stats[key];
+    const input = window.prompt(`Update ${key.toUpperCase()} count:`, currentVal.toString());
+    
+    if (input !== null) {
+      const newVal = parseInt(input, 10);
+      if (!isNaN(newVal)) {
+        setStats(prev => ({
+          ...prev,
+          [key]: newVal
+        }));
+        // Note: You can trigger a server action here to sync with Postgres/Prisma
+        console.log(`Syncing ${key}: ${newVal} to cloud...`);
+      }
+    }
+  };
+
   const total = stats.screening + stats.fullText + stats.extraction;
-  // Prevent division by zero if all stats are empty
   const progress = total === 0 ? 0 : Math.round(((stats.extraction) / total) * 100);
 
   return (
@@ -64,7 +78,7 @@ export default function CovidenceBoard({
           </a>
         </div>
         <h2 className="font-black text-[22px] lg:text-[24px] text-neutral-900 dark:text-white leading-tight tracking-tight pr-4 transition-colors duration-700">
-          {title} {/* Use the synced title here */}
+          {title}
         </h2>
       </div>
 
@@ -110,111 +124,100 @@ export default function CovidenceBoard({
               </div>
             </div>
             
-            {/* Funnel Stats Grid */}
+            {/* Funnel Stats Grid - NOW EDITABLE */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
               {/* Screening */}
-              <div className="flex flex-col p-6 rounded-2xl border bg-blue-50 dark:bg-blue-500/5 border-blue-100 dark:border-blue-500/10 transition-all duration-300 hover:scale-[1.02]">
+              <div 
+                onClick={() => handleEditStat('screening')}
+                className="flex flex-col p-6 rounded-2xl border bg-blue-50 dark:bg-blue-500/5 border-blue-100 dark:border-blue-500/10 transition-all duration-300 hover:scale-[1.02] cursor-pointer group active:scale-95"
+              >
                 <div className="flex justify-between items-center mb-4">
                   <div className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest transition-colors duration-700">Screening</div>
                   <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
                 </div>
                 <div className="text-[42px] font-black leading-none tracking-tighter text-blue-600 dark:text-blue-400 transition-colors duration-700">{stats.screening}</div>
-                <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest transition-colors duration-700">Pending Review</div>
+                <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest flex items-center justify-between">
+                  <span>Pending Review</span>
+                  <span className="opacity-0 group-hover:opacity-100 text-[9px] font-black transition-opacity">Click to Edit</span>
+                </div>
               </div>
 
               {/* Full Text */}
-              <div className="flex flex-col p-6 rounded-2xl border bg-amber-50 dark:bg-amber-500/5 border-amber-100 dark:border-amber-500/10 transition-all duration-300 hover:scale-[1.02]">
+              <div 
+                onClick={() => handleEditStat('fullText')}
+                className="flex flex-col p-6 rounded-2xl border bg-amber-50 dark:bg-amber-500/5 border-amber-100 dark:border-amber-500/10 transition-all duration-300 hover:scale-[1.02] cursor-pointer group active:scale-95"
+              >
                 <div className="flex justify-between items-center mb-4">
                   <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest transition-colors duration-700">Full Text</div>
                   <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
                 </div>
                 <div className="text-[42px] font-black leading-none tracking-tighter text-amber-600 dark:text-amber-400 transition-colors duration-700">{stats.fullText}</div>
-                <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest transition-colors duration-700">Awaiting PDF</div>
+                <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest flex items-center justify-between">
+                  <span>Awaiting PDF</span>
+                  <span className="opacity-0 group-hover:opacity-100 text-[9px] font-black transition-opacity">Click to Edit</span>
+                </div>
               </div>
 
               {/* Extraction */}
-              <div className="flex flex-col p-6 rounded-2xl border bg-emerald-50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/10 transition-all duration-300 hover:scale-[1.02]">
+              <div 
+                onClick={() => handleEditStat('extraction')}
+                className="flex flex-col p-6 rounded-2xl border bg-emerald-50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/10 transition-all duration-300 hover:scale-[1.02] cursor-pointer group active:scale-95"
+              >
                 <div className="flex justify-between items-center mb-4">
                   <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest transition-colors duration-700">Extraction</div>
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                 </div>
                 <div className="text-[42px] font-black leading-none tracking-tighter text-emerald-600 dark:text-emerald-400 transition-colors duration-700">{stats.extraction}</div>
-                <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest transition-colors duration-700">Data Pulled</div>
+                <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest flex items-center justify-between">
+                  <span>Data Pulled</span>
+                  <span className="opacity-0 group-hover:opacity-100 text-[9px] font-black transition-opacity">Click to Edit</span>
+                </div>
               </div>
             </div>
           </div>
         )}
 
+        {/* ... PICO Tab ... */}
         {activeTab === 'PICO' && (
           <div className="animate-in fade-in duration-500">
-            {/* ACTIVE QUERIES / FLAGS */}
-            <div className="mb-8 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[24px] p-6 transition-colors duration-700">
+            {/* PICO Grid Content */}
+            <div className="mb-8 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[24px] p-6">
               <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-[11px] uppercase tracking-widest mb-3">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 Pending Protocol Decision
               </div>
-              <p className="text-[14px] text-neutral-900 dark:text-white font-bold tracking-tight transition-colors duration-700">
+              <p className="text-[14px] text-neutral-900 dark:text-white font-bold tracking-tight">
                 Population Definition: Postmenopausal Women
               </p>
-              <p className="text-[13px] text-neutral-600 dark:text-neutral-400 mt-1.5 font-medium leading-relaxed transition-colors duration-700">
-                Does this include both natural and surgical menopause? Are patients with premature menopause included?{' '}
-                <span className="text-blue-600 dark:text-blue-400 font-bold cursor-pointer hover:underline transition-all active:scale-95 inline-block">
-                  Resolve with PI
-                </span>
+              <p className="text-[13px] text-neutral-600 dark:text-neutral-400 mt-1.5 font-medium leading-relaxed">
+                Does this include both natural and surgical menopause? Are patients with premature menopause included?
               </p>
             </div>
 
-            {/* PICO GRID */}
             <div className="grid grid-cols-2 gap-6 lg:gap-8">
-              
-              {/* INCLUSION COLUMN */}
               <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-[12px] uppercase tracking-widest border-b border-black/5 dark:border-white/5 pb-3 mb-2 transition-colors duration-700">
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-[12px] uppercase tracking-widest border-b border-black/5 dark:border-white/5 pb-3 mb-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
                   Inclusion Criteria
                 </div>
-
-                <PicoCard letter="P" title="Population">
-                  Postmenopausal women diagnosed with rUTIs (&gt;2 episodes/6mo OR &gt;3 episodes/12mo).
-                </PicoCard>
-                <PicoCard letter="I" title="Intervention">
-                  Local (vaginal) estrogen therapy (any formulation or molecule).
-                </PicoCard>
-                <PicoCard letter="C" title="Comparison">
-                  Different vaginal estrogen formulations, placebo, or no treatment.
-                </PicoCard>
-                <PicoCard letter="O" title="Outcomes">
-                  ≥1 objective urinary outcome (e.g., number of UTI recurrences, time to first recurrence).
-                </PicoCard>
-                <PicoCard letter="S" title="Study Design">
-                  RCTs and analytical observational studies (prospective/retrospective cohort, case-control).
-                </PicoCard>
+                <PicoCard letter="P" title="Population">Postmenopausal women diagnosed with rUTIs.</PicoCard>
+                <PicoCard letter="I" title="Intervention">Local (vaginal) estrogen therapy.</PicoCard>
+                <PicoCard letter="C" title="Comparison">Placebo or no treatment.</PicoCard>
+                <PicoCard letter="O" title="Outcomes">≥1 objective urinary outcome.</PicoCard>
+                <PicoCard letter="S" title="Study Design">RCTs and observational studies.</PicoCard>
               </div>
 
-              {/* EXCLUSION COLUMN */}
               <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold text-[12px] uppercase tracking-widest border-b border-black/5 dark:border-white/5 pb-3 mb-2 transition-colors duration-700">
+                <div className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold text-[12px] uppercase tracking-widest border-b border-black/5 dark:border-white/5 pb-3 mb-2">
                   <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
                   Exclusion Criteria
                 </div>
-
-                <PicoCard letter="P" title="Population" isExclusion>
-                  Major urogenital abnormalities (e.g., advanced pelvic organ prolapse, catheters) independently increasing UTI risk; DM patients.
-                </PicoCard>
-                <PicoCard letter="I" title="Intervention" isExclusion>
-                  Systemic estrogen therapy (oral/transdermal) without a local arm, or combined systemic + local therapy.
-                </PicoCard>
-                <PicoCard letter="C" title="Comparison" isExclusion>
-                  Studies comparing estrogen directly against antibiotics.
-                </PicoCard>
-                <PicoCard letter="O" title="Outcomes" isExclusion>
-                  Does not report any objective measures of rUTIs.
-                </PicoCard>
-                <PicoCard letter="S" title="Study Design" isExclusion>
-                  Case reports, case series, narrative reviews, editorials, abstracts (insufficient data), animal/in-vitro, systematic reviews/meta-analyses.
-                </PicoCard>
+                <PicoCard letter="P" title="Population" isExclusion>Major urogenital abnormalities; DM patients.</PicoCard>
+                <PicoCard letter="I" title="Intervention" isExclusion>Systemic estrogen therapy without local arm.</PicoCard>
+                <PicoCard letter="C" title="Comparison" isExclusion>Direct comparisons against antibiotics.</PicoCard>
+                <PicoCard letter="O" title="Outcomes" isExclusion>No report of objective rUTI measures.</PicoCard>
+                <PicoCard letter="S" title="Study Design" isExclusion>Case reports, case series, narrative reviews.</PicoCard>
               </div>
-
             </div>
           </div>
         )}
@@ -223,9 +226,7 @@ export default function CovidenceBoard({
   );
 }
 
-// Sub-component for clean PICO formatting
 function PicoCard({ letter, title, children, isExclusion = false }: { letter: string, title: string, children: React.ReactNode, isExclusion?: boolean }) {
-  // Dynamic color routing based on Inclusion vs Exclusion
   const badgeColor = isExclusion 
     ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10' 
     : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10';

@@ -23,7 +23,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
   const [results, setResults] = useState<LitResult[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
   
-  // Track which PMIDs have already been saved to the Postgres cloud
   const [savedIds, setSavedIds] = useState<Set<string>>(
     new Set(cloudExtractions.map(ext => ext.pmid))
   );
@@ -50,7 +49,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
     finally { setIsExtracting(false); }
   };
 
-  // Securely save to the VESTRIPPN Cloud
   const handleSaveToVault = async (result: LitResult, e: React.MouseEvent) => {
     e.preventDefault(); 
     if (savedIds.has(result.id)) return;
@@ -91,7 +89,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
       
-      {/* --- CUSTOM ANIMATION STYLES --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
         @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
@@ -99,13 +96,11 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
         .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
       `}} />
 
-      {/* --- DAY/NIGHT ATMOSPHERE --- */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
         <div className="absolute top-[-10%] right-[10%] w-[60%] h-[60%] bg-gradient-to-br from-amber-400/20 to-orange-400/20 dark:from-amber-600/15 dark:to-[#00A598]/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-60 transition-all duration-1000"></div>
         <div className="absolute bottom-[-10%] left-[5%] w-[50%] h-[50%] bg-gradient-to-tr from-blue-400/20 to-teal-300/20 dark:from-purple-600/10 dark:to-teal-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
       </div>
 
-      {/* --- MINIMALIST HEADER --- */}
       <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="flex items-center gap-4 lg:gap-8">
           <button 
@@ -136,7 +131,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
 
       <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
         <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
           isSidebarExpanded ? 'w-[240px] px-6' : 'w-[88px] px-4'
         }`}>
@@ -173,11 +167,9 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
           </button>
         </aside>
 
-        {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
-            {/* HERO SECTION */}
             <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
               <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-lg">🔬</span>
@@ -204,7 +196,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               </p>
             </section>
 
-            {/* SECTOR 1: OMNI-SEARCH EXTRACTION TERMINAL */}
             <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 relative overflow-hidden group">
               <div className="flex items-center gap-2 mb-6 px-2">
                 <span className="w-1.5 h-4 bg-amber-500 rounded-full animate-pulse"></span>
@@ -229,7 +220,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                   </button>
                 </div>
 
-                {/* SECTOR JUMPS (Responsive Grid) */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                    <button type="button" onClick={() => pivotSearch('scopus')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
                      🏛️ Scopus
@@ -240,14 +230,20 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                    <button type="button" onClick={() => pivotSearch('cochrane')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-pink-500/30 hover:bg-pink-50 dark:hover:bg-pink-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
                      📚 Cochrane
                    </button>
-                   <div className="hidden md:flex bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 p-3.5 rounded-xl text-[10px] font-bold text-neutral-400 dark:text-neutral-500 items-center justify-center uppercase tracking-widest transition-colors duration-700">
-                     Institutional Uplink
-                   </div>
+                   
+                   {/* 🤖 UPGRADED: SRMA MACHINE UPLINK */}
+                   <a 
+                     href="https://vestrippn-srma-telemetry.vercel.app" 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     className="bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400"
+                   >
+                     🤖 SRMA Machine
+                   </a>
                 </div>
               </form>
             </section>
 
-            {/* SECTOR 2: LIVE EXTRACTION FEED (Adaptive Columns) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               {results.map((result) => {
                 const isSaved = savedIds.has(result.id);
@@ -296,7 +292,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               )}
             </div>
 
-            {/* SECTOR 3: COVIDENCE WORKSPACE */}
             <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-h-[500px] overflow-x-auto custom-scrollbar no-scrollbar transition-colors duration-700">
                <div className="flex items-center gap-2 mb-8 px-2">
                   <span className="w-1.5 h-4 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -317,7 +312,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
           </div>
         </main>
 
-        {/* --- MOBILE-ONLY FLOATING NAVIGATION HUD --- */}
         <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
           {navItems.map((item) => (
             <Link 
