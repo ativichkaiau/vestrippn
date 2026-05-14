@@ -1,46 +1,41 @@
-import { auth } from "@/auth";
+export const dynamic = 'force-dynamic';
 import AcademicsClient from "./AcademicsClient";
 
-/**
- * SECTOR ALPHA: CANVAS TELEMETRY ENGINE
- * Strictly pulls live data from Mango-CMU servers.
- */
+const TARGET_COURSES = ['26141', '26393', '26349'];
+
 async function fetchCanvasTelemetry() {
   const token = process.env.CANVAS_TOKEN;
+  const emptyState = { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
 
-  // Initialize empty state to prevent client-side .map() crashes
-  const emptyState = {
-    subjects: [],
-    metrics: { quizzes: 0, assignments: 0 }
-  };
-
-  if (!token) {
-    console.warn("Uplink Aborted: CANVAS_TOKEN is missing in environment variables.");
-    return emptyState;
-  }
+  if (!token) return emptyState;
 
   try {
-    const res = await fetch('https://mango-cmu.instructure.com/api/v1/courses?enrollment_state=active&include[]=total_scores', {
+    const res = await fetch('https://mango-cmu.instructure.com/api/v1/courses?per_page=100&include[]=total_scores', {
       headers: { Authorization: `Bearer ${token}` },
-      next: { revalidate: 3600 } // Cache results for 1 hour
+      cache: 'no-store' 
     });
 
     if (!res.ok) throw new Error(`Canvas_Uplink_Error: ${res.status}`);
-    
     const courses = await res.json();
 
-    // Map raw Canvas data to the VESTRIPPN Interface
     const subjects = courses
-      .filter((c: any) => c.name && !c.access_restricted_by_date)
-      .map((c: any) => ({
-        id: c.id.toString(),
-        name: c.course_code || c.name, 
-        progress: Math.round(c.enrollments?.[0]?.computed_current_score || 0) 
-      }))
-      .slice(0, 4);
+      .filter((c: any) => c.id && TARGET_COURSES.includes(c.id.toString()))
+      .map((c: any) => {
+        const enrollment = c.enrollments?.find((e: any) => e.type === 'student' || e.role === 'StudentEnrollment') || c.enrollments?.[0];
+        
+        // Let it be null if the professors hid it!
+        const rawScore = enrollment?.computed_current_score ?? enrollment?.computed_final_score;
 
-    // Calculate dynamic sub-metrics
-    const validScores = subjects.map((s: any) => s.progress).filter((p: number) => p > 0);
+        return {
+          id: c.id.toString(),
+          name: c.course_code || c.name, 
+          // If rawScore is null, pass null. Otherwise, round the number.
+          progress: rawScore != null ? Math.round(Number(rawScore)) : null 
+        };
+      });
+
+    // Only calculate averages using subjects that actually HAVE a score
+    const validScores = subjects.map((s: any) => s.progress).filter((p: any) => p !== null && p > 0);
     const avg = validScores.length > 0 
       ? validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length 
       : 0;
@@ -48,32 +43,20 @@ async function fetchCanvasTelemetry() {
     return {
       subjects,
       metrics: {
-        quizzes: Number((avg * 0.98).toFixed(1)), 
-        assignments: Number((avg * 1.02).toFixed(1))
+        quizzes: validScores.length > 0 ? Number((avg * 0.98).toFixed(1)) : 0, 
+        assignments: validScores.length > 0 ? Number((avg * 1.02).toFixed(1)) : 0
       }
     };
 
   } catch (error) {
-    console.error("Critical: Live Canvas Sync Failed", error);
     return emptyState;
   }
 }
 
 export default async function AcademicsPage() {
-  const session = await auth();
-  
-  // Execute pure telemetry fetch
   const liveCanvasData = await fetchCanvasTelemetry();
-
   return (
     <div className="relative h-full w-full">
-      {/* Session Security Indicator */}
-      {!session?.user && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] bg-red-500/10 backdrop-blur-md border border-red-500/30 text-red-600 dark:text-red-400 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-lg">
-          Live Sync: Authorization Required
-        </div>
-      )}
-      
       <AcademicsClient initialCanvasData={liveCanvasData} />
     </div>
   );

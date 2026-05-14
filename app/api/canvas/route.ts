@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const CANVAS_URL = process.env.CANVAS_BASE_URL;
-  const TOKEN = process.env.CANVAS_API_TOKEN;
+  const TOKEN = process.env.CANVAS_TOKEN;
 
   // SAFETY 1: Check credentials before even trying
   if (!CANVAS_URL || !TOKEN) {

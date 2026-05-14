@@ -18,9 +18,20 @@ export default function AcademicsCard() {
     setIsMounted(true);
     const fetchCanvasData = async () => {
       try {
-        const response = await fetch('/api/canvas');
+        // 🚨 THE FIX: Aggressive Cache Busting
+        // This forces Next.js and Vercel's CDN to bypass all cached files and fetch fresh telemetry.
+        const response = await fetch(`/api/canvas?t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
         if (!response.ok) throw new Error(`${response.status}`);
+        
         const json = await response.json();
+        
         setData({
           subjects: Array.isArray(json.subjects) ? json.subjects : [],
           metrics: json.metrics || { quizzes: 0, assignments: 0 }
@@ -31,6 +42,7 @@ export default function AcademicsCard() {
         setIsLoading(false);
       }
     };
+    
     fetchCanvasData();
   }, []);
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+// 🚨 THE FIX: Imported useRef to safely track server changes without triggering renders
+import { useState, useEffect, useRef } from 'react';
 import { updateResearchStats } from '@/app/actions';
 
 interface PubMedResult {
@@ -24,22 +25,27 @@ export default function ResearchCard({
   const [isSearching, setIsSearching] = useState(false);
   const [papers, setPapers] = useState<PubMedResult[]>([]);
 
-// Smart Sync: Only update if the actual data changed from the cloud
-  useEffect(() => {
-    setProjectName(initialTitle);
-    
-    setStats(prevStats => {
-      // Compare the current UI stats with the incoming cloud stats
-      if (JSON.stringify(prevStats) === JSON.stringify(initialStats)) {
-        return prevStats; // They are the same, break the loop!
-      }
-      return initialStats; // They are different, update the UI!
-    });
-  }, [initialTitle, initialStats]);
+  // 🚨 THE FIX: Create a memory bank of the last known Server state
+  const prevInitialStatsRef = useRef(initialStats);
+  const prevTitleRef = useRef(initialTitle);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // 🚨 THE FIX: True Smart Sync. 
+  // We only overwrite the UI if the Server actually sends a payload that is DIFFERENT from its last payload.
+  useEffect(() => {
+    if (JSON.stringify(initialStats) !== JSON.stringify(prevInitialStatsRef.current)) {
+      setStats(initialStats);
+      prevInitialStatsRef.current = initialStats; 
+    }
+    
+    if (initialTitle !== prevTitleRef.current) {
+      setProjectName(initialTitle);
+      prevTitleRef.current = initialTitle;
+    }
+  }, [initialStats, initialTitle]);
 
   const handleUpdateStat = async (key: string, currentVal: number) => {
     const newVal = window.prompt(`Update ${key} %:`, currentVal.toString());
@@ -47,7 +53,7 @@ export default function ResearchCard({
 
     const parsedVal = parseInt(newVal);
     
-    // 1. Optimistic UI Update
+    // 1. Instant Optimistic UI Update (This will no longer be destroyed!)
     const newStats = { ...stats, [key]: parsedVal };
     setStats(newStats);
 

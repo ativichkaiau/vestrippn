@@ -7,10 +7,10 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
 
-interface Subject { id: string; name: string; progress: number; }
+// 🚨 THE FIX: Allow progress to be 'null' for hidden grades
+interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
 
-// --- 1. ADD THE PROPS INTERFACE ---
 interface AcademicsProps {
   initialCanvasData?: {
     subjects: Subject[];
@@ -18,15 +18,12 @@ interface AcademicsProps {
   }
 }
 
-// --- 2. ACCEPT THE PROPS IN THE FUNCTION ---
 export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
-  // FIX: Remove useState for canvas data. Read directly from the server prop so it is always live!
-  // We also add a safe fallback in case the server payload is delayed.
   const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
 
   useEffect(() => {
@@ -228,15 +225,31 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
                   {canvasData.subjects.length > 0 ? canvasData.subjects.map(sub => (
-                    <div key={sub.id} className="group/sub min-w-0">
+                    // 🚨 THE FIX: Clickable hyperlink connecting directly to Mango-CMU
+                    <a 
+                      key={sub.id} 
+                      href={`https://mango-cmu.instructure.com/courses/${sub.id}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="group/sub min-w-0 block"
+                    >
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-[13px] font-bold text-neutral-700 dark:text-neutral-300 group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400 transition-colors truncate pr-2">{sub.name}</span>
-                        <span className="text-blue-600 dark:text-blue-400 font-black shrink-0 transition-colors duration-700">{sub.progress}%</span>
+                        <span className="text-[13px] font-bold text-neutral-700 dark:text-neutral-300 group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400 transition-colors truncate pr-2 flex items-center gap-1.5">
+                          {sub.name}
+                          {/* Subtle External Link Icon on Hover */}
+                          <svg className="w-3.5 h-3.5 opacity-0 group-hover/sub:opacity-100 transition-opacity text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                             <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </span>
+                        {/* 🚨 THE FIX: Tactical UI Grace. Render --% if the score is null */}
+                        <span className="text-blue-600 dark:text-blue-400 font-black shrink-0 transition-colors duration-700">
+                          {sub.progress !== null ? `${sub.progress}%` : '--%'}
+                        </span>
                       </div>
                       <div className="h-[4px] w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden transition-colors duration-700">
-                        <div className="h-full bg-blue-600 dark:bg-blue-400 transition-all duration-1000 rounded-full" style={{ width: `${sub.progress}%` }}></div>
+                        <div className="h-full bg-blue-600 dark:bg-blue-400 transition-all duration-1000 rounded-full" style={{ width: `${sub.progress || 0}%` }}></div>
                       </div>
-                    </div>
+                    </a>
                   )) : (
                     <div className="col-span-full text-center py-10 text-neutral-400 dark:text-neutral-500 font-medium italic text-[13px] transition-colors duration-700">Awaiting Mango Cloud Sync...</div>
                   )}
