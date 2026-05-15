@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -10,7 +10,6 @@ import TopNavProfile from '../../components/TopNavProfile';
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
 
-// 🚨 UPGRADE: Added AnkiWeb Telemetry Interface
 interface AcademicsProps {
   initialCanvasData?: {
     subjects: Subject[];
@@ -24,6 +23,8 @@ interface AcademicsProps {
   };
 }
 
+const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
+
 export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
@@ -32,14 +33,41 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
 
   const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
   
-  // Fallback for Anki data if server hasn't synced yet
-  const liveAnki = ankiData || { due: 0, new: 0, reviewedToday: 0, streak: 0 };
+  // 🚀 UPGRADE: Local State for Interactive Anki
+  const [liveAnki, setLiveAnki] = useState(ankiData || DEFAULT_ANKI);
+  const prevAnkiRef = useRef(ankiData);
 
   useEffect(() => {
     setIsMounted(true);
     const currentHour = new Date().getHours();
     setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
   }, []);
+
+  // 🚀 UPGRADE: Smart Sync Protection
+  useEffect(() => {
+    if (JSON.stringify(ankiData) !== JSON.stringify(prevAnkiRef.current)) {
+      setLiveAnki(ankiData || DEFAULT_ANKI);
+      prevAnkiRef.current = ankiData;
+    }
+  }, [ankiData]);
+
+  // 🚀 UPGRADE: Edit Handler
+  const handleEditAnki = (key: keyof typeof DEFAULT_ANKI) => {
+    const currentVal = liveAnki[key];
+    const input = window.prompt(`Update ANKI ${key.toUpperCase()} count:`, currentVal.toString());
+    
+    if (input !== null) {
+      const newVal = parseInt(input, 10);
+      if (!isNaN(newVal)) {
+        setLiveAnki(prev => ({
+          ...prev,
+          [key]: newVal
+        }));
+        // Note: You can wire up a server action here to push manual overrides back to Postgres
+        console.log(`[UPLINK] Manual Override: Syncing ${key} -> ${newVal} to cloud...`);
+      }
+    }
+  };
 
   useEffect(() => {
     const exams: Exam[] = [
@@ -267,10 +295,8 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 </div>
               </div>
 
-              {/* 🚀 UPGRADE: Clinical & Storage Hub */}
+              {/* Clinical & Storage Hub */}
               <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-5 h-full">
-                
-                {/* Access Medicine */}
                 <a 
                   href="https://accessmedicine.mhmedical.com/" 
                   target="_blank" 
@@ -284,7 +310,6 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                   </div>
                 </a>
 
-                {/* Osmosis */}
                 <a 
                   href="https://www.osmosis.org/" 
                   target="_blank" 
@@ -298,7 +323,6 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                   </div>
                 </a>
 
-                {/* Shared Drive */}
                 <a 
                   href="https://drive.google.com/drive/folders/1tfZ8mT6WLWOjRezS9wkdwiltd2Ov4wuB" 
                   target="_blank" 
@@ -311,11 +335,10 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Shared Vault</div>
                   </div>
                 </a>
-
               </div>
             </div>
 
-            {/* 🚀 UPGRADE: SECTOR 3: ANKIWEB TELEMETRY */}
+            {/* 🚀 UPGRADE: SECTOR 3: ANKIWEB TELEMETRY (NOW EDITABLE) */}
             <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden">
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-2">
                  <div className="flex items-center gap-2">
@@ -333,29 +356,46 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                </div>
                
                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+                 
                  {/* Due Cards */}
-                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-emerald-500/30">
-                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Review Due</div>
+                 <div onClick={() => handleEditAnki('due')} className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 cursor-pointer group active:scale-95 shadow-sm hover:shadow-md">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                     <span>Review Due</span>
+                     <span className="opacity-0 group-hover:opacity-100 text-[9px] font-black text-emerald-500 transition-opacity">Edit</span>
+                   </div>
                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-emerald-500">{liveAnki.due}</div>
                  </div>
+                 
                  {/* New Cards */}
-                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-blue-500/30">
-                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">New Cards</div>
+                 <div onClick={() => handleEditAnki('new')} className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer group active:scale-95 shadow-sm hover:shadow-md">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                     <span>New Cards</span>
+                     <span className="opacity-0 group-hover:opacity-100 text-[9px] font-black text-blue-500 transition-opacity">Edit</span>
+                   </div>
                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-blue-500">{liveAnki.new}</div>
                  </div>
+                 
                  {/* Reviewed Today */}
-                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-purple-500/30">
-                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Studied Today</div>
+                 <div onClick={() => handleEditAnki('reviewedToday')} className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-purple-500/30 hover:bg-purple-50 dark:hover:bg-purple-500/10 cursor-pointer group active:scale-95 shadow-sm hover:shadow-md">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                     <span>Studied Today</span>
+                     <span className="opacity-0 group-hover:opacity-100 text-[9px] font-black text-purple-500 transition-opacity">Edit</span>
+                   </div>
                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-purple-500">{liveAnki.reviewedToday}</div>
                  </div>
+                 
                  {/* Streak */}
-                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-amber-500/30">
-                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Day Streak</div>
+                 <div onClick={() => handleEditAnki('streak')} className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-amber-500/30 hover:bg-amber-50 dark:hover:bg-amber-500/10 cursor-pointer group active:scale-95 shadow-sm hover:shadow-md">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                     <span>Day Streak</span>
+                     <span className="opacity-0 group-hover:opacity-100 text-[9px] font-black text-amber-500 transition-opacity">Edit</span>
+                   </div>
                    <div className="flex items-baseline gap-1">
                      <span className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-amber-500">{liveAnki.streak}</span>
                      <span className="text-xl">🔥</span>
                    </div>
                  </div>
+
                </div>
             </section>
 
