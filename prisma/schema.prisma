@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 // ==========================================
@@ -25,6 +25,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -42,24 +43,23 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  
+
   // System Links
-  accounts      Account[]
-  sessions      Session[]
-  
+  accounts Account[]
+  sessions Session[]
+
   // ==========================================
   // W05 TELEMETRY: CUSTOM USER DATA
   // ==========================================
-  ieltsModules       IeltsModule[]
-  tasks              Task[]                
-  dailyCommand       DailyCommand?         
-  researchItems      ResearchExtraction[]  
-  fitnessLog         FitnessLog?           // Sector Epsilon Link
-  researchProject    ResearchProject?      // Sector Delta Link
-  notifications      Notification[]        // Sector Zeta Link
-  ankiTelemetry AnkiTelemetry?
+  ieltsModules    IeltsModule[]
+  tasks           Task[]
+  dailyCommand    DailyCommand?
+  researchItems   ResearchExtraction[]
+  fitnessLog      FitnessLog? // Sector Epsilon Link
+  researchProject ResearchProject? // Sector Delta Link
+  notifications   Notification[] // Sector Zeta Link
+  ankiTelemetry   AnkiTelemetry?
 }
-
 
 // ==========================================
 // SECTOR ALPHA: IELTS VAULT
@@ -79,7 +79,7 @@ model Task {
   id        String   @id @default(cuid())
   title     String
   completed Boolean  @default(false)
-  category  String   @default("GENERAL") 
+  category  String   @default("GENERAL")
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -91,8 +91,8 @@ model Task {
 // ==========================================
 model DailyCommand {
   id        String   @id @default(cuid())
-  intent    String   
-  userId    String   @unique 
+  intent    String
+  userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   updatedAt DateTime @updatedAt
 }
@@ -102,12 +102,12 @@ model DailyCommand {
 // ==========================================
 model ResearchExtraction {
   id        String   @id @default(cuid())
-  pmid      String?  
+  pmid      String?
   title     String
   authors   String?
   journal   String?
   url       String?
-  status    String   @default("UNSCREENED") 
+  status    String   @default("UNSCREENED")
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -117,62 +117,62 @@ model ResearchExtraction {
 // SECTOR DELTA: COVIDENCE STATS
 // ==========================================
 model ResearchProject {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  title       String   @default("Local Estrogen Formulations and rUTI")
-  screening   Int      @default(45)
-  fullText    Int      @default(12)
-  extraction  Int      @default(0)
-  
-  updatedAt   DateTime @updatedAt
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title      String @default("Local Estrogen Formulations and rUTI")
+  screening  Int    @default(45)
+  fullText   Int    @default(12)
+  extraction Int    @default(0)
+
+  updatedAt DateTime @updatedAt
 }
 
 // ==========================================
 // SECTOR EPSILON: VITALITY MONITOR
 // ==========================================
 model FitnessLog {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Stored as a JSON string: "[true, false, ...]"
-  workoutDays String   @default("[false,false,false,false,false,false,false]") 
-  lastWorkout String   @default("Upper Body Hypertrophy")
-  streak      Int      @default(0)
+  workoutDays String @default("[false,false,false,false,false,false,false]")
+  lastWorkout String @default("Upper Body Hypertrophy")
+  streak      Int    @default(0)
 
   // Hub Telemetry (V3)
-  activeCycle  Int      @default(1)
-  metrics      String   @default("{\"sleepHours\":7,\"sleepMinutes\":30,\"weight\":72.4,\"height\":175,\"water\":2.1}")
-  mealsPayload String   @default("{\"date\":\"\",\"meals\":[]}")
-  
-  updatedAt   DateTime @updatedAt
+  activeCycle  Int    @default(1)
+  metrics      String @default("{\"sleepHours\":7,\"sleepMinutes\":30,\"weight\":72.4,\"height\":175,\"water\":2.1}")
+  mealsPayload String @default("{\"date\":\"\",\"meals\":[]}")
+
+  updatedAt DateTime @updatedAt
 }
 
 // ==========================================
 // SECTOR ZETA: COMMS INTEL
 // ==========================================
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  source    String   // e.g., "CANVAS", "GMAIL", "SYSTEM"
-  title     String
-  message   String
-  time      String   // e.g., "10 mins ago" or "10:45 AM"
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  source  String // e.g., "CANVAS", "GMAIL", "SYSTEM"
+  title   String
+  message String
+  time    String // e.g., "10 mins ago" or "10:45 AM"
+
   createdAt DateTime @default(now())
 }
 
 model AnkiTelemetry {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  
+  id     String @id @default(cuid())
+  userId String @unique
+
   // 🤝 Handshake with User (Hand holds the ID)
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // 📊 Study Metrics
   dueCards      Int      @default(0)
   newCards      Int      @default(0)
