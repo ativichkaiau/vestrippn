@@ -7,7 +7,7 @@ export default defineConfig({
   // THE CLI (MIGRATIONS) USES THIS.
   // Use the Direct URL so 'prisma migrate deploy' can talk to the DB during build.
   datasource: {
-    url: process.env.VESTRIPPN_DATABASE_URL,
+    url: process.env.DATABASE_URL,
   },
 
   migrations: {

@@ -7,24 +7,33 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
 
-// 🚨 THE FIX: Allow progress to be 'null' for hidden grades
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
 
+// 🚨 UPGRADE: Added AnkiWeb Telemetry Interface
 interface AcademicsProps {
   initialCanvasData?: {
     subjects: Subject[];
     metrics: any;
-  }
+  };
+  ankiData?: {
+    due: number;
+    new: number;
+    reviewedToday: number;
+    streak: number;
+  };
 }
 
-export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
+export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
   const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
+  
+  // Fallback for Anki data if server hasn't synced yet
+  const liveAnki = ankiData || { due: 0, new: 0, reviewedToday: 0, streak: 0 };
 
   useEffect(() => {
     setIsMounted(true);
@@ -71,7 +80,6 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
       
-      {/* --- CUSTOM ANIMATION STYLES --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
         @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
@@ -79,13 +87,11 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
         .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
       `}} />
 
-      {/* --- DAY/NIGHT ATMOSPHERE --- */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
         <div className="absolute top-[-10%] right-[10%] w-[60%] h-[60%] bg-gradient-to-br from-pink-400/20 to-purple-400/20 dark:from-pink-600/15 dark:to-[#00A598]/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-60 transition-all duration-1000"></div>
         <div className="absolute bottom-[-10%] left-[5%] w-[50%] h-[50%] bg-gradient-to-tr from-blue-400/20 to-teal-300/20 dark:from-purple-600/10 dark:to-teal-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
       </div>
 
-      {/* --- MINIMALIST HEADER --- */}
       <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="flex items-center gap-4 lg:gap-8">
           <button 
@@ -116,7 +122,6 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
 
       <div className="flex flex-1 overflow-hidden relative z-10">
         
-        {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
         <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
           isSidebarExpanded ? 'w-[240px] px-6' : 'w-[88px] px-4'
         }`}>
@@ -153,11 +158,9 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
           </button>
         </aside>
 
-        {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
-            {/* HERO SECTION */}
             <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
               <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-lg">📚</span>
@@ -210,11 +213,11 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
               </section>
             </div>
 
-            {/* SECTOR 2: CANVAS TELEMETRY & DRIVE HUB */}
+            {/* SECTOR 2: CANVAS TELEMETRY & CLINICAL HUB */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
               
               {/* Live Subject Telemetry */}
-              <div className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700">
+              <div className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 flex flex-col">
                 <div className="flex justify-between items-center mb-8 px-2">
                   <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Canvas Telemetry</h3>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -223,9 +226,8 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10 flex-1">
                   {canvasData.subjects.length > 0 ? canvasData.subjects.map(sub => (
-                    // 🚨 THE FIX: Clickable hyperlink connecting directly to Mango-CMU
                     <a 
                       key={sub.id} 
                       href={`https://mango-cmu.instructure.com/courses/${sub.id}`} 
@@ -236,12 +238,10 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-[13px] font-bold text-neutral-700 dark:text-neutral-300 group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400 transition-colors truncate pr-2 flex items-center gap-1.5">
                           {sub.name}
-                          {/* Subtle External Link Icon on Hover */}
                           <svg className="w-3.5 h-3.5 opacity-0 group-hover/sub:opacity-100 transition-opacity text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                         </span>
-                        {/* 🚨 THE FIX: Tactical UI Grace. Render --% if the score is null */}
                         <span className="text-blue-600 dark:text-blue-400 font-black shrink-0 transition-colors duration-700">
                           {sub.progress !== null ? `${sub.progress}%` : '--%'}
                         </span>
@@ -251,11 +251,11 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
                       </div>
                     </a>
                   )) : (
-                    <div className="col-span-full text-center py-10 text-neutral-400 dark:text-neutral-500 font-medium italic text-[13px] transition-colors duration-700">Awaiting Mango Cloud Sync...</div>
+                    <div className="col-span-full flex items-center justify-center py-10 text-neutral-400 dark:text-neutral-500 font-medium italic text-[13px] transition-colors duration-700">Awaiting Mango Cloud Sync...</div>
                   )}
                 </div>
 
-                <div className="mt-10 pt-8 border-t border-black/5 dark:border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 transition-colors duration-700">
+                <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 transition-colors duration-700">
                   <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300">
                     <div className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-2 transition-colors duration-700">Global Quiz Average</div>
                     <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-pink-500 dark:text-pink-400 transition-colors duration-700">{canvasData.metrics?.quizzes || 0}%</div>
@@ -267,29 +267,106 @@ export default function AcademicsClient({ initialCanvasData }: AcademicsProps) {
                 </div>
               </div>
 
-              {/* Google Drive Hub */}
-              <div className="lg:col-span-4 flex flex-col gap-6 h-full">
+              {/* 🚀 UPGRADE: Clinical & Storage Hub */}
+              <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-5 h-full">
+                
+                {/* Access Medicine */}
+                <a 
+                  href="https://accessmedicine.mhmedical.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-500/30 transition-all duration-300 group active:scale-[0.98] shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                >
+                  <div className="w-14 h-14 bg-rose-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">⚕️</div>
+                  <div>
+                    <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">AccessMedicine</div>
+                    <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Clinical Library</div>
+                  </div>
+                </a>
+
+                {/* Osmosis */}
+                <a 
+                  href="https://www.osmosis.org/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-teal-50 dark:hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-300 group active:scale-[0.98] shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                >
+                  <div className="w-14 h-14 bg-teal-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">🧠</div>
+                  <div>
+                    <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">Osmosis</div>
+                    <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Visual Medicine</div>
+                  </div>
+                </a>
+
+                {/* Shared Drive */}
                 <a 
                   href="https://drive.google.com/drive/folders/1tfZ8mT6WLWOjRezS9wkdwiltd2Ov4wuB" 
                   target="_blank" 
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 hover:bg-white/90 dark:hover:bg-white/10 transition-all duration-300 group flex flex-col justify-center items-center text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300 group active:scale-[0.98] shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                 >
-                  <div className="w-16 h-16 lg:w-20 lg:h-20 bg-emerald-500/10 dark:bg-emerald-400/10 rounded-[24px] flex items-center justify-center text-3xl lg:text-4xl mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300">📂</div>
-                  <div className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight leading-tight transition-colors duration-700">Textbook Hub</div>
-                  <div className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest transition-colors duration-700">Shared Vault</div>
-                  <div className="mt-8 px-5 py-2.5 bg-emerald-500 text-white rounded-full text-[11px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-md">Access Cloud</div>
+                  <div className="w-14 h-14 bg-blue-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 transition-all duration-300">📂</div>
+                  <div>
+                    <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">Textbook Hub</div>
+                    <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Shared Vault</div>
+                  </div>
                 </a>
+
               </div>
             </div>
 
-            {/* SECTOR 3: INTELLIGENCE BUFFER (NotebookLM) */}
+            {/* 🚀 UPGRADE: SECTOR 3: ANKIWEB TELEMETRY */}
+            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden">
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-2">
+                 <div className="flex items-center gap-2">
+                   <span className="w-1.5 h-4 bg-sky-500 rounded-full animate-pulse"></span>
+                   <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Spaced Repetition Telemetry</h3>
+                 </div>
+                 <a 
+                   href="https://ankiweb.net/decks" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-500 text-white hover:bg-sky-600 transition-all text-[10px] font-bold uppercase tracking-widest shadow-md active:scale-95"
+                 >
+                   Launch AnkiWeb ↗
+                 </a>
+               </div>
+               
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+                 {/* Due Cards */}
+                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-emerald-500/30">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Review Due</div>
+                   <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-emerald-500">{liveAnki.due}</div>
+                 </div>
+                 {/* New Cards */}
+                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-blue-500/30">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">New Cards</div>
+                   <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-blue-500">{liveAnki.new}</div>
+                 </div>
+                 {/* Reviewed Today */}
+                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-purple-500/30">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Studied Today</div>
+                   <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-purple-500">{liveAnki.reviewedToday}</div>
+                 </div>
+                 {/* Streak */}
+                 <div className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-all duration-300 hover:border-amber-500/30">
+                   <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Day Streak</div>
+                   <div className="flex items-baseline gap-1">
+                     <span className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-amber-500">{liveAnki.streak}</span>
+                     <span className="text-xl">🔥</span>
+                   </div>
+                 </div>
+               </div>
+            </section>
+
+            {/* SECTOR 4: INTELLIGENCE BUFFER (NotebookLM) */}
             <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden">
                <div className="flex items-center gap-2 mb-8 px-2">
                  <span className="w-1.5 h-4 bg-pink-500 rounded-full animate-pulse"></span>
                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">AI Grounding Matrix</h3>
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8">
-                  <a href="https://notebooklm.google.com/notebook/db9fd595-41ad-4c0d-848c-783a972904b1" target="_blank" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                  <a href="https://notebooklm.google.com/notebook/db9fd595-41ad-4c0d-848c-783a972904b1" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
                      <div className="flex justify-between items-center mb-4">
                         <div className="text-[10px] font-bold text-pink-600 dark:text-pink-400 uppercase tracking-widest transition-colors duration-700">Endocrine Vault</div>
                         <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">📔</span>

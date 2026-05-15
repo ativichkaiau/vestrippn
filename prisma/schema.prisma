@@ -57,6 +57,7 @@ model User {
   fitnessLog         FitnessLog?           // Sector Epsilon Link
   researchProject    ResearchProject?      // Sector Delta Link
   notifications      Notification[]        // Sector Zeta Link
+  ankiTelemetry AnkiTelemetry?
 }
 
 
@@ -163,4 +164,19 @@ model Notification {
   time      String   // e.g., "10 mins ago" or "10:45 AM"
   
   createdAt DateTime @default(now())
+}
+
+model AnkiTelemetry {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  
+  // 🤝 Handshake with User (Hand holds the ID)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // 📊 Study Metrics
+  dueCards      Int      @default(0)
+  newCards      Int      @default(0)
+  reviewedToday Int      @default(0)
+  streak        Int      @default(0)
+  lastSync      DateTime @default(now())
 }
