@@ -112,7 +112,7 @@ export default function IdentityHub() {
               </p>
             </section>
 
-            {/* --- MAIN HUD: THE IDENTITY MFD (Neo-Glassmorphic) --- */}
+            {/* --- MAIN HUD: THE IDENTITY MFD --- */}
             <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative transition-colors duration-700"> 
               
               {/* RPM LED Strip (Adaptive width) */} 
@@ -128,52 +128,80 @@ export default function IdentityHub() {
                 ))} 
               </div> 
 
-              <div className="flex-1 flex flex-col lg:flex-row relative z-10">
+              <div className="flex-1 flex flex-col xl:flex-row relative z-10">
                 
-                {/* LEFT ZONE: OPERATOR MANIFESTO */}
-                <div className="w-full lg:w-[35%] flex flex-col gap-6 p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] shrink-0 transition-colors duration-700">
+                {/* 🚀 LEFT ZONE: UPDATED OPERATOR MANIFESTO */}
+                <div className="w-full xl:w-[40%] flex flex-col gap-6 p-6 lg:p-10 border-b xl:border-b-0 xl:border-r border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] shrink-0 transition-colors duration-700">
+                  
+                  {/* Operator ID */}
                   <div className="space-y-3 mb-2">
-                    <h2 className="font-black text-[24px] lg:text-[28px] text-neutral-900 dark:text-white tracking-tight uppercase transition-colors duration-700">VESTRIPPN 3.0</h2>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="text-[10px] font-bold px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 rounded-lg uppercase tracking-widest transition-colors duration-700">MED_STUDENT</span>
-                      <span className="text-[10px] font-bold px-3 py-1 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/10 text-neutral-600 dark:text-neutral-400 rounded-lg uppercase tracking-widest transition-colors duration-700">SYSTEMS_OP</span>
+                    <h2 className="font-black text-[28px] lg:text-[34px] text-neutral-900 dark:text-white tracking-tighter leading-none transition-colors duration-700">
+                      KAIAU,<br/>
+                      <span className="text-[20px] lg:text-[24px] text-neutral-500 dark:text-neutral-400">ATIVICH VICHITTRAGOONTHAVON</span>
+                    </h2>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <span className="text-[10px] font-bold px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 rounded-lg uppercase tracking-widest transition-colors duration-700">MD_CANDIDATE</span>
+                      <span className="text-[10px] font-bold px-3 py-1 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/10 text-neutral-600 dark:text-neutral-400 rounded-lg uppercase tracking-widest transition-colors duration-700">FULL_STACK_ENG</span>
                     </div>
                   </div>
 
-                  <div className="p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl space-y-4 transition-colors duration-700">
-                     <div className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest transition-colors duration-700"># DAS_SYSTEM_v3</div>
-                     <p className="text-[14px] text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium italic transition-colors duration-700">"Transforming chaos into clarity through discipline, failure, adaptation, and relentless iteration."</p>
+                  {/* Bio block */}
+                  <div className="space-y-4 text-[13px] text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium transition-colors duration-700">
+                    <p>
+                      3rd-Year Medical Student at Chiang Mai University, currently focused on Cardiac Electrophysiology, clinical research systems, and full-stack engineering.
+                    </p>
+                    <p>
+                      Former Academic President and Research Club President of MedCMU, with international Olympiad experience across Astronomy, Astrophysics, Earth Science, and Linguistics.
+                    </p>
+                    <p>
+                      Builder of the <span className="font-bold text-cyan-600 dark:text-cyan-400">VESTRIPPN3.0-AMG W06 Hybrid</span> ecosystem — a cloud-integrated operational platform designed for research telemetry, academic management, workflow automation, and AI-assisted medical infrastructure.
+                    </p>
                   </div>
 
-                  <div className="space-y-4 mt-4">
-                     <h4 className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest border-b border-black/5 dark:border-white/5 pb-3 transition-colors duration-700">Institutional Station</h4>
-                     <div className="space-y-3">
-                        <div className="p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl transition-colors duration-700">
-                          <div className="text-[13px] font-black text-emerald-700 dark:text-emerald-400 uppercase leading-tight tracking-tight transition-colors duration-700">Faculty of Medicine, CMU</div>
-                          <div className="text-[10px] font-bold text-emerald-600/80 dark:text-emerald-400/80 mt-1.5 uppercase tracking-widest transition-colors duration-700">Portfolio // Olympiad (ตัวจริง)</div>
-                        </div>
-                        <div className="p-5 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl opacity-70 transition-colors duration-700">
-                          <div className="text-[13px] font-bold text-neutral-900 dark:text-white uppercase leading-tight tracking-tight transition-colors duration-700">Medicine Siriraj, Mahidol</div>
-                          <div className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1.5 uppercase tracking-widest transition-colors duration-700">Portfolio // Olympiad (ตัวจริง)</div>
-                        </div>
-                        <div className="p-5 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl opacity-70 transition-colors duration-700">
-                          <div className="text-[13px] font-bold text-neutral-900 dark:text-white uppercase leading-tight tracking-tight transition-colors duration-700">Medicine, Khon Kaen</div>
-                          <div className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1.5 uppercase tracking-widest transition-colors duration-700">MDX-1 (Interview)</div>
-                        </div>
+                  {/* Special Interests */}
+                  <div className="space-y-3 mt-2">
+                     <h4 className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest border-b border-black/5 dark:border-white/5 pb-2 transition-colors duration-700">Special Interests</h4>
+                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] font-bold text-neutral-600 dark:text-neutral-400 transition-colors duration-700">
+                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-cyan-500"></span> Cardiac Electrophysiology</li>
+                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-cyan-500"></span> Clinical Research Systems</li>
+                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-emerald-500"></span> Full-Stack Development</li>
+                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-emerald-500"></span> Medical AI & Automation</li>
+                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-amber-500"></span> Workflow Engineering</li>
+                        <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-amber-500"></span> Human Performance Opt.</li>
+                     </ul>
+                  </div>
+
+                  {/* Mission Status */}
+                  <div className="p-5 mt-2 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-center gap-4 transition-colors duration-700">
+                     <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse shrink-0"></div>
+                     <div>
+                       <div className="text-[10px] font-bold text-cyan-700/80 dark:text-cyan-400/80 uppercase tracking-widest transition-colors duration-700">Mission Status</div>
+                       <div className="text-[14px] font-black text-cyan-800 dark:text-cyan-300 uppercase tracking-tight transition-colors duration-700">Keep Building. Keep Winning.</div>
                      </div>
                   </div>
 
-                  <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5 text-center hidden lg:block transition-colors duration-700">
-                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-[0.4em] mb-4 transition-colors duration-700">Final Directive</div>
-                     <div className="text-[15px] font-black text-neutral-900 dark:text-white tracking-widest space-y-2 uppercase transition-colors duration-700">
-                        <div>Plan Intelligently</div>
-                        <div>Execute Calmly</div>
-                        <div className="text-cyan-600 dark:text-cyan-400">Adapt Relentlessly</div>
-                     </div>
+                  {/* Tech Stack Array */}
+                  <div className="space-y-5 mt-4">
+                     <h4 className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest border-b border-black/5 dark:border-white/5 pb-2 transition-colors duration-700">Languages & Engineering Stack</h4>
+                     
+                     <StackRow title="FRONTEND SYSTEMS" color="blue" items={['Next.js', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'HTML/CSS', 'Swift']} />
+                     <StackRow title="BACKEND & INFRASTRUCTURE" color="emerald" items={['Python', 'Node.js', 'Prisma ORM', 'REST APIs', 'Google OAuth', 'PostgreSQL']} />
+                     <StackRow title="AI & AUTOMATION" color="pink" items={['OpenAI API', 'Custom GPT Systems', 'PyTorch', 'Research Workflow Automation']} />
+                     <StackRow title="DEVOPS & TOOLING" color="amber" items={['Git', 'GitHub Actions', 'Vercel Deployment', 'Cloud Environment Config']} />
+                     <StackRow title="RESEARCH & MEDICAL" color="indigo" items={['Systematic Review Ops', 'Covidence Workflows', 'PubMed / Scopus / ClinicalKey', 'Clinical Telemetry Arch']} />
                   </div>
+
+                  {/* Network Uplinks */}
+                  <div className="mt-6 pt-6 border-t border-black/5 dark:border-white/5 grid grid-cols-2 gap-3 transition-colors duration-700">
+                     <NetworkLink name="Instagram" href="https://www.instagram.com/kaiau.atv" />
+                     <NetworkLink name="Facebook" href="https://www.facebook.com/kaiau.atv/" />
+                     <NetworkLink name="GitHub" href="https://github.com/ativichkaiau" />
+                     <NetworkLink name="LinkedIn" href="https://www.linkedin.com/in/ativich-vichittragoonthavon-b08b01258/" />
+                  </div>
+
                 </div>
 
-                {/* RIGHT ZONE: DATA MATRIX */}
+                {/* RIGHT ZONE: DATA MATRIX (Unchanged) */}
                 <div className="flex-1 flex flex-col p-6 lg:p-10 bg-transparent transition-colors duration-700">
                   
                   {/* Sector A: Science Olympiads */}
@@ -319,7 +347,7 @@ export default function IdentityHub() {
                      </div>
                   </div>
 
-                  {/* Sector D: Archetype Archive (F1 LEGENDS WITH TELEMETRY) */}
+                  {/* Sector D: Archetype Archive */}
                   <h3 className="text-[12px] font-bold text-red-500 dark:text-red-400 uppercase tracking-widest mb-6 flex items-center gap-3 transition-colors duration-700">
                     <div className="w-1.5 h-4 bg-red-500 rounded-full"></div>
                     Sector Sigma: Legacy Archetypes // F1 Hall of Fame
@@ -434,7 +462,47 @@ export default function IdentityHub() {
   );
 }
 
-// --- SUB-COMPONENTS (With Enforced Tactical Colors) ---
+// --- SUB-COMPONENTS ---
+
+function StackRow({ title, items, color }: { title: string, items: string[], color: string }) {
+  const badgeColors: Record<string, string> = {
+    blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+    emerald: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    pink: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20',
+    amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    indigo: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+  };
+
+  const textColors: Record<string, string> = {
+    blue: 'text-blue-500',
+    emerald: 'text-emerald-500',
+    pink: 'text-pink-500',
+    amber: 'text-amber-500',
+    indigo: 'text-indigo-500',
+  };
+
+  return (
+    <div>
+      <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${textColors[color]}`}>{title}</div>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item, i) => (
+          <span key={i} className={`text-[10px] font-bold px-2 py-1 border rounded-md transition-colors duration-700 whitespace-nowrap ${badgeColors[color]}`}>
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NetworkLink({ name, href }: { name: string, href: string }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 lg:p-4 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl transition-all duration-300 group active:scale-95">
+       <span className="text-[11px] lg:text-[12px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-widest transition-colors duration-700 group-hover:text-neutral-900 dark:group-hover:text-white">{name}</span>
+       <span className="text-[14px] text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">↗</span>
+    </a>
+  );
+}
 
 function AchievementNode({ title, rank, medal, details, theme }: { title: string, rank: string, medal: string, details: string[], theme: 'amber' | 'emerald' | 'neutral' | 'pink' | 'cyan' | 'red' }) {
   const borderColors = {
