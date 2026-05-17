@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Clock from "../components/Clock";
 import ThemeToggle from "../components/ThemeToggle"; 
 import TodaysCommand from "../components/TodaysCommand";
@@ -30,6 +31,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -39,9 +41,14 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
     } else {
       setCycle('DAY_CYCLE');
     }
+
+    // Boot sequence plays on every page load
+    setShowIntro(true);
+    const t = setTimeout(() => setShowIntro(false), 7000);
+    return () => clearTimeout(t);
   }, []);
 
-  if (!isMounted) return null;
+  if (!isMounted) return <LoadingScreen />;
 
   const navItems = [
     { name: 'Dashboard', icon: '◉', href: '/', active: true },
@@ -56,7 +63,11 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
 
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
-      
+
+      <AnimatePresence>
+        {showIntro && <IntroOverlay cycle={cycle} />}
+      </AnimatePresence>
+
       {/* --- CUSTOM ANIMATION STYLES --- */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes floatSlow {
@@ -162,8 +173,12 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
           <div className="max-w-[1400px] mx-auto space-y-6 lg:space-y-8">
             
             {/* COMPACT HERO SECTION */}
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-10 pb-4 relative">
-              
+            <motion.section
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-10 pb-4 relative"
+            >
               <div className="absolute left-[5%] xl:left-[10%] top-2 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-4 py-2 rounded-full shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-sm">🧠</span>
                 <span className="text-[11px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Cognitive Focus</span>
@@ -189,90 +204,120 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     ///AMG
                   </span>
                   <span className="text-[#00A598] drop-shadow-[0_0_15px_rgba(0,165,152,0.3)] dark:drop-shadow-[0_0_20px_rgba(0,165,152,0.5)] transition-all duration-700">
-                    W06 Hybrid
+                    W07 Hybrid
                   </span>
                 </div>
               </h1>
 
+              <p className="mb-3 text-[11px] sm:text-[12px] font-bold tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500 transition-colors duration-700 relative z-10">
+                Powered by <span className="text-[#D97757]">Claude</span>
+              </p>
+
               <p className="max-w-2xl font-mono text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.3em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
                 {cycle} // <span className="text-[#00A598] font-bold">System Nominal</span>
               </p>
-              
+
               <div className="mt-6 w-full max-w-xl mx-auto px-4 relative z-10">
-                {/* INJECTED PROPS HERE */}
                 <TodaysCommand initialTasks={cloudTasks} />
               </div>
-            </section>
+            </motion.section>
 
             {/* THE COMPACT BENTO BOX GRID */}
-            <div className="flex flex-col gap-4 lg:gap-6">
-              
+            <motion.div
+              className="flex flex-col gap-4 lg:gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.09, delayChildren: 0.15 } } }}
+            >
               {/* ROW 1: PRIMARY FOCUS */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                <div className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-white dark:bg-[#0A0A0A] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(255,255,255,0.02)] border border-black/5 dark:border-white/5 transition-all hover:scale-[1.01] duration-500">
+                <motion.div
+                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                  whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-white dark:bg-[#0A0A0A] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(255,255,255,0.02)] border border-black/5 dark:border-white/5 cursor-default"
+                >
                   <div className="flex items-center gap-2.5 mb-5">
                     <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm transition-colors duration-700">📚</div>
                     <h2 className="font-bold text-[18px] tracking-tight">Academic Overview</h2>
                   </div>
                   <AcademicsCard />
-                </div>
+                </motion.div>
 
-                <div className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-neutral-50 dark:bg-[#050505] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-black/5 dark:border-white/5 transition-all hover:scale-[1.01] duration-500">
+                <motion.div
+                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                  whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-neutral-50 dark:bg-[#050505] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-black/5 dark:border-white/5 cursor-default"
+                >
                   <div className="flex items-center gap-2.5 mb-5">
                     <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-white/10 flex items-center justify-center text-neutral-700 dark:text-white text-sm transition-colors duration-700">🔬</div>
                     <h2 className="font-bold text-[18px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">Research Ops</h2>
                   </div>
                   <div className="flex-1 flex flex-col text-neutral-700 dark:text-neutral-200 transition-colors duration-700">
-                     <ResearchCard 
+                     <ResearchCard
                        initialTitle={cloudResearch?.title}
-                       initialStats={cloudResearch ? { 
-                         screening: cloudResearch.screening, 
-                         fullText: cloudResearch.fullText, 
-                         extraction: cloudResearch.extraction 
+                       initialStats={cloudResearch ? {
+                         screening: cloudResearch.screening,
+                         fullText: cloudResearch.fullText,
+                         extraction: cloudResearch.extraction
                        } : undefined}
                      />
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               {/* ROW 2: SECONDARY FOCUS */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-                
-                <div className="lg:col-span-8 flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 h-full">
-                  <FitnessCard 
+                <motion.div
+                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                  whileHover={{ y: -6, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  className="lg:col-span-8 flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 h-full cursor-default"
+                >
+                  <FitnessCard
                     initialWorkoutDays={cloudFitness?.workoutDays ? JSON.parse(cloudFitness.workoutDays) : undefined}
                     initialLastWorkout={cloudFitness?.lastWorkout}
                     initialStreak={cloudFitness?.streak}
                   />
-                </div>
+                </motion.div>
 
                 <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-6">
-                  <div className="flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700">
+                  <motion.div
+                    variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                    whileHover={{ y: -5, boxShadow: '0 16px 40px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    className="flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 cursor-default"
+                  >
                     <h3 className="font-bold text-[14px] tracking-tight mb-4 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#00A598] animate-pulse"></span> Domain Health
                     </h3>
                     <DomainHealth />
-                  </div>
-                  <div className="flex-1 flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700">
+                  </motion.div>
+                  <motion.div
+                    variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                    whileHover={{ y: -5, boxShadow: '0 16px 40px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    className="flex-1 flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 cursor-default"
+                  >
                     <Reminders initialTasks={cloudTasks} />
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
               {/* ROW 3: UTILITY FOOTER */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-                <div className="flex flex-col h-full rounded-[24px] lg:rounded-[32px] bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 p-5 lg:p-6 backdrop-blur-md transition-colors duration-700 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                  <QuickAccess />
-                </div>
-                <div className="flex flex-col h-full rounded-[24px] lg:rounded-[32px] bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 p-5 lg:p-6 backdrop-blur-md transition-colors duration-700 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                  <NotificationCenter initialNotifications={cloudNotifications} />
-                </div>
-                <div className="flex flex-col h-full rounded-[24px] lg:rounded-[32px] bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 p-5 lg:p-6 backdrop-blur-md transition-colors duration-700 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                  <IdentityAnchor />
-                </div>
+                {[<QuickAccess key="qa" />, <NotificationCenter key="nc" initialNotifications={cloudNotifications} />, <IdentityAnchor key="ia" />].map((child, i) => (
+                  <motion.div
+                    key={i}
+                    variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                    whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 40px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex flex-col h-full rounded-[24px] lg:rounded-[32px] bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 p-5 lg:p-6 backdrop-blur-md shadow-[0_4px_20px_rgb(0,0,0,0.02)] cursor-default"
+                  >
+                    {child}
+                  </motion.div>
+                ))}
               </div>
 
-            </div>
+            </motion.div>
           </div>
         </main>
 
@@ -302,5 +347,146 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
 
       </div>
     </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
+   LOADING SCREEN — brief pre-mount state
+   ════════════════════════════════════════════════════════════ */
+function LoadingScreen() {
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-700">
+      <div className="flex flex-col items-center gap-6">
+        <motion.div
+          className="w-14 h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center text-[26px] font-black"
+          animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          V
+        </motion.div>
+        <div className="h-[3px] w-32 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full w-1/3 bg-[#00A598] rounded-full"
+            animate={{ x: ['-120%', '380%'] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
+   INTRO OVERLAY — boot sequence (every page load, ~7s)
+   ════════════════════════════════════════════════════════════ */
+function IntroOverlay({ cycle }: { cycle: string }) {
+  const word = 'VESTRIPPN'.split('');
+  const status = [
+    { t: 'INITIALIZING TELEMETRY CORE', at: 1.8 },
+    { t: 'SYNCING CLOUD UPLINK', at: 3.2 },
+    { t: 'CALIBRATING NEURAL MATRIX', at: 4.6 },
+    { t: `${cycle} // SYSTEM ONLINE`, at: 6.0 },
+  ];
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#050505] overflow-hidden"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
+      transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+    >
+      {/* Ambient glow */}
+      <motion.div
+        className="absolute w-[60%] h-[60%] bg-[#00A598]/20 rounded-full blur-[140px]"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: [0, 1, 0.7, 1], scale: 1 }}
+        transition={{ duration: 6, ease: 'easeOut', times: [0, 0.25, 0.6, 1] }}
+      />
+
+      {/* Logo + Wordmark */}
+      <div className="relative z-10 flex flex-col items-center">
+        <motion.div
+          className="w-16 h-16 lg:w-20 lg:h-20 bg-white text-black rounded-2xl flex items-center justify-center text-[34px] lg:text-[42px] font-black mb-8 shadow-[0_0_50px_rgba(0,165,152,0.4)]"
+          initial={{ scale: 0, rotate: -120, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 17, delay: 0.4 }}
+        >
+          V
+        </motion.div>
+
+        <div className="flex items-baseline tracking-tighter font-black text-[44px] sm:text-[64px] lg:text-[80px] leading-none">
+          {word.map((ch, i) => (
+            <motion.span
+              key={i}
+              className="text-white inline-block"
+              initial={{ y: 60, opacity: 0, rotateX: -90 }}
+              animate={{ y: 0, opacity: 1, rotateX: 0 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.9 + i * 0.09 }}
+            >
+              {ch}
+            </motion.span>
+          ))}
+          <motion.span
+            className="text-blue-400 inline-block"
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.9 }}
+          >
+            3.0
+          </motion.span>
+        </div>
+
+        <motion.div
+          className="mt-4 flex items-center gap-3 text-[10px] sm:text-[12px] font-bold uppercase tracking-[0.4em] text-neutral-500"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.3, duration: 0.5 }}
+        >
+          <span className="italic text-black bg-white px-3 py-1 rounded-[10px] tracking-tight">///AMG</span>
+          <span className="text-[#00A598]">W07 Hybrid</span>
+        </motion.div>
+
+        <motion.div
+          className="mt-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-600"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.7, duration: 0.5 }}
+        >
+          Powered by <span className="text-[#D97757]">Claude</span>
+        </motion.div>
+
+        {/* Telemetry progress bar */}
+        <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-[#00A598] to-blue-400 rounded-full"
+            initial={{ width: '0%' }}
+            animate={{ width: ['0%', '38%', '64%', '100%'] }}
+            transition={{ delay: 1.6, duration: 4.6, ease: 'easeInOut', times: [0, 0.35, 0.7, 1] }}
+          />
+        </div>
+
+        {/* Boot status */}
+        <div className="mt-5 h-4 relative w-full text-center">
+          {status.map((s, i) => {
+            const isLast = i === status.length - 1;
+            return (
+              <motion.span
+                key={i}
+                className="absolute inset-0 font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isLast ? [0, 1, 1] : [0, 1, 1, 0] }}
+                transition={{
+                  delay: s.at,
+                  duration: isLast ? 1.0 : 1.3,
+                  times: isLast ? [0, 0.4, 1] : [0, 0.2, 0.75, 1],
+                }}
+              >
+                {s.t}
+              </motion.span>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
   );
 }

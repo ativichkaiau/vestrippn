@@ -16,8 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VESTRIPPN 3.0 // W06 Hybrid",
-  description: "Personal Telemetry & Operating System",
+  title: "VESTRIPPN 3.0 // W07 Hybrid",
+  description: "Personal Telemetry & Operating System · Powered by Claude",
   // 🚨 THE FIX: This injects the Google site verification tag into your <head>
   verification: {
     google: "googlecd69efda792e89e4",

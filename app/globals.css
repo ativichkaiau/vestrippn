@@ -98,3 +98,22 @@ h1, h2, h3, .font-orbitron {
   letter-spacing: -0.02em;
   text-rendering: optimizeLegibility;
 }
+
+/* --- ANIMATE GLOW PULSE (status dots) --- */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 4px  currentColor; opacity: 0.8; }
+  50%       { box-shadow: 0 0 14px currentColor; opacity: 1;   }
+}
+.animate-glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
+
+/* --- ROUTE LOADING SCREEN --- */
+@keyframes loaderSweep {
+  0%   { transform: translateX(-130%); }
+  100% { transform: translateX(420%);  }
+}
+@keyframes loaderPulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.97); }
+  50%      { opacity: 1;    transform: scale(1);    }
+}
+.animate-loader-sweep { animation: loaderSweep 1.1s ease-in-out infinite; }
+.animate-loader-pulse { animation: loaderPulse 1.4s ease-in-out infinite; }

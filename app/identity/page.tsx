@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -90,7 +91,11 @@ export default function IdentityHub() {
           <div className="max-w-[1400px] w-full mx-auto space-y-8 lg:space-y-10">
             
             {/* HERO SECTION */}
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
+            <motion.section
+              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative"
+            >
               <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-lg">⚇</span>
                 <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Operator Manifest</span>
@@ -110,10 +115,14 @@ export default function IdentityHub() {
               <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
                 {cycleTime} // <span className="text-cyan-500 dark:text-cyan-400 font-bold">MFD Active</span>
               </p>
-            </section>
+            </motion.section>
 
             {/* --- MAIN HUD: THE IDENTITY MFD --- */}
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative transition-colors duration-700"> 
+            <motion.div
+              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 240, damping: 26, delay: 0.1 }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative transition-colors duration-700"
+            >
               
               {/* RPM LED Strip (Adaptive width) */} 
               <div className="h-4 lg:h-6 bg-black/5 dark:bg-white/5 border-b border-black/5 dark:border-white/5 flex justify-center items-center gap-1.5 lg:gap-2 px-4 shrink-0 transition-colors duration-700 group cursor-default"> 
@@ -154,7 +163,7 @@ export default function IdentityHub() {
                       Former Academic President and Research Club President of MedCMU, with international Olympiad experience across Astronomy, Astrophysics, Earth Science, and Linguistics.
                     </p>
                     <p>
-                      Builder of the <span className="font-bold text-cyan-600 dark:text-cyan-400">VESTRIPPN3.0-AMG W06 Hybrid</span> ecosystem — a cloud-integrated operational platform designed for research telemetry, academic management, workflow automation, and AI-assisted medical infrastructure.
+                      Builder of the <span className="font-bold text-cyan-600 dark:text-cyan-400">VESTRIPPN3.0-AMG W07 Hybrid</span> ecosystem — a cloud-integrated operational platform designed for research telemetry, academic management, workflow automation, and AI-assisted medical infrastructure, <span className="font-bold text-[#D97757]">powered by Claude</span>.
                     </p>
                   </div>
 
@@ -439,7 +448,7 @@ export default function IdentityHub() {
                   <div className="h-12 lg:h-24"></div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </main>
 
@@ -497,10 +506,15 @@ function StackRow({ title, items, color }: { title: string, items: string[], col
 
 function NetworkLink({ name, href }: { name: string, href: string }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 lg:p-4 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl transition-all duration-300 group active:scale-95">
+    <motion.a
+      href={href} target="_blank" rel="noopener noreferrer"
+      whileHover={{ y: -3, scale: 1.02, boxShadow: '0 8px 24px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+      whileTap={{ scale: 0.97 }}
+      className="flex items-center justify-between p-3 lg:p-4 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl transition-colors duration-300 group"
+    >
        <span className="text-[11px] lg:text-[12px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-widest transition-colors duration-700 group-hover:text-neutral-900 dark:group-hover:text-white">{name}</span>
        <span className="text-[14px] text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">↗</span>
-    </a>
+    </motion.a>
   );
 }
 
@@ -524,7 +538,11 @@ function AchievementNode({ title, rank, medal, details, theme }: { title: string
   };
 
   return (
-    <div className={`group/node p-6 lg:p-8 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl transition-all duration-300 relative overflow-hidden hover:shadow-md active:scale-[0.99] ${borderColors[theme]}`}>
+    <motion.div
+      whileHover={{ y: -5, scale: 1.01, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 360, damping: 28 } }}
+      whileTap={{ scale: 0.99 }}
+      className={`group/node p-6 lg:p-8 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl relative overflow-hidden cursor-default ${borderColors[theme]}`}
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start mb-5 gap-2">
         <span className="text-[16px] lg:text-[18px] font-black text-neutral-900 dark:text-white uppercase tracking-tight leading-tight transition-colors duration-700">{title}</span>
         <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-md transition-colors duration-700 whitespace-nowrap">{rank}</span>
@@ -537,7 +555,7 @@ function AchievementNode({ title, rank, medal, details, theme }: { title: string
            ))}
         </ul>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -570,7 +588,11 @@ function LegendTile({ name, titles, wins, poles, podiums, theme, epicMoment, fac
   };
 
   return (
-    <div className={`group/legend p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl transition-all duration-300 relative overflow-hidden hover:shadow-md active:scale-[0.98] ${borderHover[theme]}`}>
+    <motion.div
+      whileHover={{ y: -6, scale: 1.02, boxShadow: '0 20px 48px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 360, damping: 28 } }}
+      whileTap={{ scale: 0.98 }}
+      className={`group/legend p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl relative overflow-hidden cursor-default ${borderHover[theme]}`}
+    >
       
       {/* Header */}
       <div className="flex justify-between items-start mb-5 gap-2">
@@ -606,6 +628,6 @@ function LegendTile({ name, titles, wins, poles, podiums, theme, epicMoment, fac
       <p className="text-[12px] text-neutral-500 dark:text-neutral-400 leading-relaxed group-hover/legend:text-neutral-700 dark:group-hover/legend:text-neutral-300 transition-colors duration-300 italic font-medium">
         "{fact}"
       </p>
-    </div>
+    </motion.div>
   );
 }

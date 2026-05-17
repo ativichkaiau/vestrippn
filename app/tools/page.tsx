@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -89,7 +90,11 @@ export default function ToolsHub() {
           <div className="max-w-[1400px] mx-auto space-y-8 lg:space-y-12">
             
             {/* HERO SECTION */}
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
+            <motion.section
+              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative"
+            >
               <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-lg">⚙️</span>
                 <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">System Core</span>
@@ -109,10 +114,15 @@ export default function ToolsHub() {
               <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
                 {cycleTime} // <span className="text-indigo-500 dark:text-indigo-400 font-bold">System Nominal</span>
               </p>
-            </section>
-          
+            </motion.section>
+
             {/* MASTER IGNITION: NOTION PLANNER */}
-            <section className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden group transition-all duration-700">
+            <motion.section
+              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
+              whileHover={{ y: -5, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden cursor-default transition-colors duration-700"
+            >
               <div className="flex flex-col md:flex-row justify-between items-center relative z-10 gap-6 lg:gap-10 text-center md:text-left">
                 <div className="flex flex-col md:flex-row items-center gap-4 lg:gap-8">
                   <div className="w-16 h-16 lg:w-20 lg:h-20 bg-indigo-50 dark:bg-indigo-500/10 rounded-[24px] flex items-center justify-center text-3xl lg:text-4xl shadow-sm transition-all duration-700">📓</div>
@@ -129,7 +139,7 @@ export default function ToolsHub() {
                   Ignite Engine ↗
                 </a>
               </div>
-            </section>
+            </motion.section>
 
             {/* THE TOOL MATRIX */}
             <div className="space-y-12 lg:space-y-16">
@@ -217,9 +227,15 @@ function SectorContainer({ label, theme, children }: { label: string, theme: 'fu
         <div className={`w-1.5 h-4 lg:w-1.5 lg:h-5 rounded-full ${dotColors[theme]} transition-colors duration-700`}></div>
         <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">{label}</h3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-40px' }}
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
+      >
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -243,17 +259,20 @@ function ToolTile({ title, url, icon, theme }: { title: string, url: string, ico
   };
 
   return (
-    <a 
-      href={url} 
-      target="_blank" 
+    <motion.a
+      href={url}
+      target="_blank"
       rel="noopener noreferrer"
-      className={`group bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 lg:p-6 flex items-center justify-between transition-all duration-300 hover:bg-white/90 dark:hover:bg-white/10 hover:shadow-md active:scale-95 ${borderColors[theme]}`}
+      variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+      whileHover={{ y: -6, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+      whileTap={{ scale: 0.97 }}
+      className={`group bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 lg:p-6 flex items-center justify-between hover:bg-white/90 dark:hover:bg-white/10 transition-colors duration-300 ${borderColors[theme]}`}
     >
       <div className="flex items-center gap-4 lg:gap-5 relative z-10 min-w-0">
         <span className="text-2xl lg:text-3xl group-hover:scale-110 transition-transform duration-500 shrink-0">{icon}</span>
         <span className={`text-[14px] lg:text-[15px] text-neutral-700 dark:text-neutral-300 font-bold tracking-tight transition-colors duration-300 truncate ${textColors[theme]}`}>{title}</span>
       </div>
       <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10 shrink-0 ml-2">Open ↗</span>
-    </a>
+    </motion.a>
   );
 }

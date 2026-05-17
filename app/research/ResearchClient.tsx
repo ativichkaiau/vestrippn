@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -178,7 +179,11 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
+            <motion.section
+              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative"
+            >
               <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-lg">🔬</span>
                 <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Systematic Review</span>
@@ -202,10 +207,15 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
                 {cycle} // <span className="text-amber-500 dark:text-amber-400 font-bold">Terminal Online</span>
               </p>
-            </section>
+            </motion.section>
 
             {/* SECTOR 1: EXTRACTION MATRIX */}
-            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 relative overflow-hidden group">
+            <motion.section
+              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
+              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default"
+            >
               <div className="flex items-center gap-2 mb-6 px-2">
                 <span className="w-1.5 h-4 bg-amber-500 rounded-full animate-pulse"></span>
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Omni-Search Extraction Matrix</h3>
@@ -268,18 +278,25 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                    </a>
                 </div>
               </form>
-            </section>
+            </motion.section>
 
             {/* SECTOR 2: RESULTS FEED */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6"
+              initial="hidden" animate="visible"
+              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07, delayChildren: 0.2 } } }}
+            >
               {results.map((result) => {
                 const isSaved = savedIds.has(result.id);
                 return (
-                  <a 
-                    key={result.id} 
-                    href={result.url} 
-                    target="_blank" 
-                    className="group flex flex-col justify-between p-6 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] hover:border-amber-500/30 hover:bg-white/90 dark:hover:bg-white/10 transition-all duration-300 active:scale-[0.99] shadow-sm relative overflow-hidden"
+                  <motion.a
+                    key={result.id}
+                    href={result.url}
+                    target="_blank"
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 28 } } }}
+                    whileHover={{ y: -5, scale: 1.01, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group flex flex-col justify-between p-6 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] hover:border-amber-500/30 hover:bg-white/90 dark:hover:bg-white/10 shadow-sm relative overflow-hidden"
                   >
                     <div>
                       <div className="flex justify-between items-center mb-4">
@@ -307,19 +324,26 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                       <span className="truncate pr-4 leading-tight">{result.authors}</span>
                       <span className="italic shrink-0 font-bold bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md leading-tight">{result.journal}</span>
                     </div>
-                  </a>
+                  </motion.a>
                 );
               })}
-              
+
               {results.length === 0 && !isExtracting && (
                  <div className="md:col-span-2 py-16 lg:py-24 border-[2px] border-dashed border-black/10 dark:border-white/10 rounded-[32px] flex flex-col items-center justify-center opacity-60 transition-colors duration-700">
                     <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Awaiting Extraction Command</span>
                  </div>
               )}
-            </div>
+            </motion.div>
 
             {/* SECTOR 3: COVIDENCE WORKSPACE */}
-            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-h-[500px] overflow-x-auto custom-scrollbar no-scrollbar transition-colors duration-700">
+            <motion.section
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-h-[500px] overflow-x-auto custom-scrollbar no-scrollbar cursor-default"
+            >
                <div className="flex items-center gap-2 mb-8 px-2">
                   <span className="w-1.5 h-4 bg-emerald-500 rounded-full animate-pulse"></span>
                   <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Review Matrix</h3>
@@ -334,10 +358,17 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                    } : undefined}
                  />
                </div>
-            </section>
+            </motion.section>
 
             {/* 📋 SECTOR 4: CLINICAL SIMULATION GUIDE (BRUGADA SYNDROME) */}
-            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 relative overflow-hidden group">
+            <motion.section
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default"
+            >
               <div className="flex items-center gap-2 mb-6 px-2">
                 <span className="w-1.5 h-4 bg-pink-500 rounded-full animate-pulse"></span>
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Clinical Application Guide</h3>
@@ -478,7 +509,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                 </div>
 
               </div>
-            </section>
+            </motion.section>
 
           </div>
         </main>

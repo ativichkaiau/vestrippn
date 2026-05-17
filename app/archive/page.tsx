@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -175,57 +176,68 @@ export default function ArchiveHub() {
                 </a> 
               </div> 
 
-              {/* DIRECTORY GRID (Responsive Columns) */} 
-              <div className="flex-1 p-6 md:p-8 lg:p-10 flex flex-col gap-10 lg:gap-12 custom-scrollbar relative"> 
-                
-                {/* Sector A */} 
-                <section> 
-                  <h3 className="text-[12px] font-bold text-cyan-600 dark:text-cyan-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
-                    <span className="w-1.5 h-4 bg-cyan-500 rounded-full"></span> Sector A: Medical Foundations 
-                  </h3> 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"> 
-                    <ArchiveLink title="University Summaries" url="https://drive.google.com/drive/folders/1Wp9C_rP2ybeVUPgfXJCOganRNjuWaViS" icon="📁" theme="cyan" /> 
+              {/* DIRECTORY GRID (Responsive Columns) */}
+              <motion.div
+                className="flex-1 p-6 md:p-8 lg:p-10 flex flex-col gap-10 lg:gap-12 custom-scrollbar relative"
+                initial="hidden" animate="visible"
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } } }}
+              >
+                {/* Sector A */}
+                <motion.section
+                  variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                >
+                  <h3 className="text-[12px] font-bold text-cyan-600 dark:text-cyan-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
+                    <span className="w-1.5 h-4 bg-cyan-500 rounded-full"></span> Sector A: Medical Foundations
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                    <ArchiveLink title="University Summaries" url="https://drive.google.com/drive/folders/1Wp9C_rP2ybeVUPgfXJCOganRNjuWaViS" icon="📁" theme="cyan" />
                     <ArchiveLink title="Clinical Mock Exams" url="#" icon="🩺" theme="cyan" />
-                    <ArchiveLink title="Portfolio Showcase" url="https://drive.google.com/drive/folders/1-34E1ClpDxzP5-3Hr_b52svDZX7J2ucF" icon="🎯" theme="cyan" /> 
-                  </div> 
-                </section> 
+                    <ArchiveLink title="Portfolio Showcase" url="https://drive.google.com/drive/folders/1-34E1ClpDxzP5-3Hr_b52svDZX7J2ucF" icon="🎯" theme="cyan" />
+                  </div>
+                </motion.section>
 
-                {/* Sector B */} 
-                <section> 
-                  <h3 className="text-[12px] font-bold text-amber-600 dark:text-amber-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
-                    <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span> Sector B: Olympiad Intelligence 
-                  </h3> 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"> 
-                    <ArchiveLink title="Astrophysics" url="https://drive.google.com/drive/folders/1ta_ydTUk8YLe91z_tgBWawMAlxHxqs06" icon="🌌" theme="amber" /> 
-                    <ArchiveLink title="Astronomy" url="https://drive.google.com/drive/folders/1FIy_K00EC4I9UGy-LyP0_eRxHGGkqtJZ" icon="🔭" theme="amber" /> 
-                    <ArchiveLink title="Earth Science" url="https://drive.google.com/drive/folders/1--FnoZZe4GWo4i7YYXyzSZNjwIX5HHks" icon="🌍" theme="amber" /> 
-                  </div> 
-                </section> 
+                {/* Sector B */}
+                <motion.section
+                  variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                >
+                  <h3 className="text-[12px] font-bold text-amber-600 dark:text-amber-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
+                    <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span> Sector B: Olympiad Intelligence
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                    <ArchiveLink title="Astrophysics" url="https://drive.google.com/drive/folders/1ta_ydTUk8YLe91z_tgBWawMAlxHxqs06" icon="🌌" theme="amber" />
+                    <ArchiveLink title="Astronomy" url="https://drive.google.com/drive/folders/1FIy_K00EC4I9UGy-LyP0_eRxHGGkqtJZ" icon="🔭" theme="amber" />
+                    <ArchiveLink title="Earth Science" url="https://drive.google.com/drive/folders/1--FnoZZe4GWo4i7YYXyzSZNjwIX5HHks" icon="🌍" theme="amber" />
+                  </div>
+                </motion.section>
 
-                {/* Sector C */} 
-                <section> 
-                  <h3 className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
-                    <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span> Sector C: Preparation Vault 
-                  </h3> 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"> 
-                    <ArchiveLink title="High School Notes" url="https://drive.google.com/drive/folders/1rs2HtVZBXJ_4IOf_HkPMIRCW0XwuMSk5" icon="🎒" theme="emerald" /> 
-                    <ArchiveLink title="Linguistics" url="https://drive.google.com/drive/folders/1-2RoL8dU8UjiSJZqQRIVZhh1LJ_yRgBw" icon="📝" theme="emerald" /> 
-                    <ArchiveLink title="IELTS Master" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" icon="🇬🇧" theme="emerald" /> 
-                  </div> 
-                </section> 
+                {/* Sector C */}
+                <motion.section
+                  variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                >
+                  <h3 className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
+                    <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span> Sector C: Preparation Vault
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                    <ArchiveLink title="High School Notes" url="https://drive.google.com/drive/folders/1rs2HtVZBXJ_4IOf_HkPMIRCW0XwuMSk5" icon="🎒" theme="emerald" />
+                    <ArchiveLink title="Linguistics" url="https://drive.google.com/drive/folders/1-2RoL8dU8UjiSJZqQRIVZhh1LJ_yRgBw" icon="📝" theme="emerald" />
+                    <ArchiveLink title="IELTS Master" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" icon="🇬🇧" theme="emerald" />
+                  </div>
+                </motion.section>
 
-                {/* Sector D */} 
-                <section> 
-                  <h3 className="text-[12px] font-bold text-purple-600 dark:text-purple-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700"> 
+                {/* Sector D */}
+                <motion.section
+                  variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                >
+                  <h3 className="text-[12px] font-bold text-purple-600 dark:text-purple-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
                     <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span> Sector D: Projects & Architecture
-                  </h3> 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6"> 
-                    <ArchiveLink title="A Dance Through Time" url="#" icon="🎭" theme="purple" /> 
-                    <ArchiveLink title="Next.js Core Architecture" url="#" icon="💻" theme="purple" /> 
-                  </div> 
-                </section>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                    <ArchiveLink title="Food Screener" url="https://vestrippn-food-screener.vercel.app" icon="🍳" theme="purple" />
+                    <ArchiveLink title="SRMA Screener" url="https://vestrippn-srma-telemetry.vercel.app" icon="📊" theme="purple" />
+                  </div>
+                </motion.section>
 
-              </div> 
+              </motion.div> 
             </div> 
 
           </div>
@@ -261,20 +273,22 @@ function ArchiveLink({ title, url, icon, theme }: { title: string, url: string, 
     purple: 'group-hover/link:bg-purple-50 dark:group-hover/link:bg-purple-500/10 hover:border-purple-500/30',
   };
 
-  return ( 
-    <a 
-      href={url} 
-      target="_blank" 
-      rel="noopener noreferrer" 
-      className={`group/link bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 p-5 lg:p-6 rounded-2xl flex items-center justify-between transition-all duration-300 active:scale-[0.98] ${bgColors[theme]}`} 
-    > 
-      <div className="flex items-center gap-4 lg:gap-5 relative z-10 min-w-0"> 
-        <span className="text-2xl lg:text-3xl group-hover/link:scale-110 transition-transform duration-300 shrink-0">{icon}</span> 
-        <span className={`text-[14px] lg:text-[15px] text-neutral-900 dark:text-white font-bold tracking-tight truncate transition-colors duration-300 ${textColors[theme]}`}>{title}</span> 
-      </div> 
-      <span className="text-neutral-400 dark:text-neutral-500 font-bold text-[10px] uppercase tracking-widest relative z-10 shrink-0 ml-2 transition-colors duration-700"> 
-        Access ↗ 
-      </span> 
-    </a> 
+  return (
+    <motion.a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 36px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+      whileTap={{ scale: 0.97 }}
+      className={`group/link bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 p-5 lg:p-6 rounded-2xl flex items-center justify-between ${bgColors[theme]}`}
+    >
+      <div className="flex items-center gap-4 lg:gap-5 relative z-10 min-w-0">
+        <span className="text-2xl lg:text-3xl group-hover/link:scale-110 transition-transform duration-300 shrink-0">{icon}</span>
+        <span className={`text-[14px] lg:text-[15px] text-neutral-900 dark:text-white font-bold tracking-tight truncate transition-colors duration-300 ${textColors[theme]}`}>{title}</span>
+      </div>
+      <span className="text-neutral-400 dark:text-neutral-500 font-bold text-[10px] uppercase tracking-widest relative z-10 shrink-0 ml-2 transition-colors duration-700">
+        Access ↗
+      </span>
+    </motion.a>
   ); 
 }

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -189,7 +190,11 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
+            <motion.section
+              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative"
+            >
               <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-lg">📚</span>
                 <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Knowledge Base</span>
@@ -213,7 +218,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
                 {cycle} // <span className="text-blue-600 dark:text-blue-400 font-bold">System Nominal</span>
               </p>
-            </section>
+            </motion.section>
 
             {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
             <div className="space-y-6">
@@ -221,13 +226,23 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 <span className="w-1.5 h-4 bg-blue-500 rounded-full animate-pulse"></span>
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Critical Milestones</h3>
               </div>
-              <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8">
+              <motion.section
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8"
+                initial="hidden" animate="visible"
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
+              >
                 {[
                   { name: 'HEN-2', date: '09 JUN', color: 'text-pink-500 dark:text-pink-400' },
                   { name: 'HMS-2', date: '12 JUN', color: 'text-amber-500 dark:text-amber-400' },
                   { name: 'HNS-2', date: '16 JUN', color: 'text-blue-500 dark:text-blue-400' }
                 ].map(exam => (
-                  <div key={exam.name} className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all hover:scale-[1.02] duration-300 relative overflow-hidden group">
+                  <motion.div
+                    key={exam.name}
+                    variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 24 } } }}
+                    whileHover={{ y: -8, scale: 1.03, boxShadow: '0 24px 56px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    whileTap={{ scale: 0.97 }}
+                    className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default"
+                  >
                     <div className="flex justify-between items-start mb-6 relative z-10">
                       <span className={`font-black tracking-tight text-[20px] lg:text-[22px] ${exam.color} transition-colors duration-700`}>{exam.name}</span>
                       <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{exam.date} // 09:00</span>
@@ -236,16 +251,21 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                       {timers[exam.name] || "--D --H --M"}
                     </div>
                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest opacity-80 transition-colors duration-700">T-Minus Terminal</div>
-                  </div>
+                  </motion.div>
                 ))}
-              </section>
+              </motion.section>
             </div>
 
             {/* SECTOR 2: CANVAS TELEMETRY & CLINICAL HUB */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-              
+
               {/* Live Subject Telemetry */}
-              <div className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 flex flex-col">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.2 }}
+                whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col cursor-default"
+              >
                 <div className="flex justify-between items-center mb-8 px-2">
                   <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Canvas Telemetry</h3>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -293,53 +313,69 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                     <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-amber-500 dark:text-amber-400 transition-colors duration-700">{canvasData.metrics?.assignments || 0}%</div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Clinical & Storage Hub */}
-              <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-5 h-full">
-                <a 
-                  href="https://accessmedicine.mhmedical.com/" 
-                  target="_blank" 
+              <motion.div
+                initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.35 }}
+                className="lg:col-span-4 flex flex-col gap-4 lg:gap-5 h-full"
+              >
+                <motion.a
+                  href="https://accessmedicine.mhmedical.com/"
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-500/30 transition-all duration-300 group active:scale-[0.98] shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                 >
                   <div className="w-14 h-14 bg-rose-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">⚕️</div>
                   <div>
                     <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">AccessMedicine</div>
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Clinical Library</div>
                   </div>
-                </a>
+                </motion.a>
 
-                <a 
-                  href="https://www.osmosis.org/" 
-                  target="_blank" 
+                <motion.a
+                  href="https://www.osmosis.org/"
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-teal-50 dark:hover:bg-teal-500/10 hover:border-teal-500/30 transition-all duration-300 group active:scale-[0.98] shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-teal-50 dark:hover:bg-teal-500/10 hover:border-teal-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                 >
                   <div className="w-14 h-14 bg-teal-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">🧠</div>
                   <div>
                     <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">Osmosis</div>
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Visual Medicine</div>
                   </div>
-                </a>
+                </motion.a>
 
-                <a 
-                  href="https://drive.google.com/drive/folders/1tfZ8mT6WLWOjRezS9wkdwiltd2Ov4wuB" 
-                  target="_blank" 
+                <motion.a
+                  href="https://drive.google.com/drive/folders/1tfZ8mT6WLWOjRezS9wkdwiltd2Ov4wuB"
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300 group active:scale-[0.98] shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                 >
                   <div className="w-14 h-14 bg-blue-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 transition-all duration-300">📂</div>
                   <div>
                     <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">Textbook Hub</div>
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Shared Vault</div>
                   </div>
-                </a>
-              </div>
+                </motion.a>
+              </motion.div>
             </div>
 
             {/* 🚀 UPGRADE: SECTOR 3: ANKIWEB TELEMETRY (NOW EDITABLE) */}
-            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden">
+            <motion.section
+              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+              whileHover={{ y: -4, boxShadow: '0 24px 56px rgb(0,0,0,0.08)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden cursor-default"
+            >
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-2">
                  <div className="flex items-center gap-2">
                    <span className="w-1.5 h-4 bg-sky-500 rounded-full animate-pulse"></span>
@@ -397,10 +433,16 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                  </div>
 
                </div>
-            </section>
+            </motion.section>
 
             {/* SECTOR 4: INTELLIGENCE BUFFER (NotebookLM) */}
-            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden">
+            <motion.section
+              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+              whileHover={{ y: -4, boxShadow: '0 24px 56px rgb(0,0,0,0.08)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden cursor-default"
+            >
                <div className="flex items-center gap-2 mb-8 px-2">
                  <span className="w-1.5 h-4 bg-pink-500 rounded-full animate-pulse"></span>
                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">AI Grounding Matrix</h3>
@@ -419,7 +461,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                      <div className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">HNS-2 Matrix Awaiting Sync</div>
                   </div>
                </div>
-            </section>
+            </motion.section>
 
           </div>
         </main>

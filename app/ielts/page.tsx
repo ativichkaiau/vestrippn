@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -130,7 +131,11 @@ export default function IELTSHub() {
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
             {/* HERO SECTION */}
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
+            <motion.section
+              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative"
+            >
               <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-lg">🌐</span>
                 <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Linguistic Core</span>
@@ -154,7 +159,7 @@ export default function IELTSHub() {
               <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
                 {cycleTime} // <span className="text-purple-600 dark:text-purple-400 font-bold">System Nominal</span>
               </p>
-            </section>
+            </motion.section>
 
             {/* SECTOR 1: AI VAULT PORTAL */}
             <div className="space-y-6">
@@ -162,7 +167,12 @@ export default function IELTSHub() {
                 <span className="w-1.5 h-4 bg-purple-500 rounded-full animate-pulse"></span>
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Intelligence Buffer</h3>
               </div>
-              <section className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 ${isEditingModules ? 'border-amber-500/30 ring-4 ring-amber-500/5' : 'border-black/5 dark:border-white/5'}`}>
+              <motion.section
+                initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
+                whileHover={{ y: -4, boxShadow: '0 24px 56px rgb(0,0,0,0.08)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] cursor-default ${isEditingModules ? 'border-amber-500/30 ring-4 ring-amber-500/5' : 'border-black/5 dark:border-white/5'}`}
+              >
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">🎙️</div>
@@ -201,13 +211,18 @@ export default function IELTSHub() {
                     </div>
                   ))}
                 </div>
-              </section>
+              </motion.section>
             </div>
 
             {/* SECTOR 2: LEXICON & THESAURUS ENGINE */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-              
-              <div className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col transition-colors duration-700">
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.2 }}
+                whileHover={{ y: -4, boxShadow: '0 24px 56px rgb(0,0,0,0.08)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col transition-colors duration-700 cursor-default"
+              >
                 <div className="px-6 lg:px-8 py-6 border-b border-black/5 dark:border-white/5 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
@@ -266,19 +281,29 @@ export default function IELTSHub() {
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* SIDE VAULTS */}
-              <div className="lg:col-span-4 flex flex-col gap-6 lg:gap-8">
-                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.35 }}
+                className="lg:col-span-4 flex flex-col gap-6 lg:gap-8"
+              >
+                <motion.div
+                  whileHover={{ y: -5, boxShadow: '0 20px 48px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full cursor-default"
+                >
                    <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-6">Internal Vaults</h3>
                    <div className="space-y-4">
                       <DriveTile title="Mock Tests by Kaiau" icon="📝" url="https://drive.google.com/drive/folders/1vPEPiASm7gRVLuE-KJr0ce1094eI0CjE" />
                       <DriveTile title="IELTS Master Vault" icon="📂" url="https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR" />
                    </div>
-                </div>
-                
-                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full">
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ y: -5, boxShadow: '0 20px 48px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full cursor-default"
+                >
                    <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-6">Practice Matrix</h3>
                    <div className="grid grid-cols-2 gap-4">
                       {[
@@ -287,14 +312,18 @@ export default function IELTSHub() {
                         { name: 'Online', icon: '💻', url: 'https://ieltsonlinetests.com' },
                         { name: 'Liz', icon: '👩‍🏫', url: 'https://ieltsliz.com' },
                       ].map(site => (
-                        <a key={site.name} href={site.url} target="_blank" className="flex flex-col items-center justify-center p-5 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 transition-all active:scale-95 group">
+                        <motion.a key={site.name} href={site.url} target="_blank"
+                          whileHover={{ y: -4, scale: 1.04, boxShadow: '0 12px 28px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                          whileTap={{ scale: 0.96 }}
+                          className="flex flex-col items-center justify-center p-5 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 transition-colors group"
+                        >
                           <span className="text-2xl mb-2 group-hover:scale-110 transition-transform">{site.icon}</span>
                           <span className="text-[10px] font-bold uppercase text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white tracking-tight text-center">{site.name}</span>
-                        </a>
+                        </motion.a>
                       ))}
                    </div>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
         </main>
@@ -316,12 +345,17 @@ export default function IELTSHub() {
 
 function DriveTile({ title, icon, url }: { title: string, icon: string, url: string }) {
   return (
-    <a href={url} target="_blank" className="flex items-center gap-4 p-4 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-[20px] hover:bg-black/10 transition-all active:scale-[0.98] group">
+    <motion.a
+      href={url} target="_blank"
+      whileHover={{ y: -4, scale: 1.02, boxShadow: '0 12px 32px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+      whileTap={{ scale: 0.97 }}
+      className="flex items-center gap-4 p-4 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-[20px] hover:bg-black/10 transition-colors group"
+    >
       <div className="text-2xl group-hover:scale-110 transition-transform shrink-0">{icon}</div>
       <div className="flex-1 min-w-0">
         <div className="text-[14px] font-bold text-neutral-900 dark:text-neutral-100 truncate">{title}</div>
         <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-0.5">Uplink Active</div>
       </div>
-    </a>
+    </motion.a>
   );
 }

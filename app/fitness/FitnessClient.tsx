@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -156,16 +157,26 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
             </section>
 
             {/* SECTOR 1: VITALITY MONITOR (3-PANE) */}
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 h-full w-full">
-              <FitnessCard 
+            <motion.div
+              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
+              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full w-full cursor-default"
+            >
+              <FitnessCard
                 initialWorkoutDays={cloudFitness?.workoutDays ? JSON.parse(cloudFitness.workoutDays) : undefined}
                 initialLastWorkout={cloudFitness?.lastWorkout}
                 initialStreak={cloudFitness?.streak}
               />
-            </div>
+            </motion.div>
 
             {/* SECTOR 2: NUTRITIONAL PROTOCOL */}
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.2 }}
+              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] cursor-default"
+            >
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -183,28 +194,33 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
                   <MacroBar label="Fats" val={current.fats} target={targets.fats} theme="amber" />
                </div>
 
-               <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5 flex justify-between items-center transition-colors duration-700">
-                  <div className="flex gap-3">
+               <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 transition-colors duration-700">
+                  <div className="flex flex-wrap items-center gap-3">
                     <button onClick={() => setIsLogging(true)} className="px-6 py-3 bg-emerald-500 text-white rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-95 shadow-md">Log Intake +</button>
-                    
-                    {/* 🚀 TACTICAL FOOD SCREENER LINK */}
-                    <a 
-                      href="https://vestrippn-food-screener.vercel.app" 
-                      target="_blank" 
+                    <motion.a
+                      href="https://vestrippn-food-screener.vercel.app"
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className="hidden sm:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-4 py-3 rounded-full border border-black/5 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/10 transition-all active:scale-95 group"
+                      whileHover={{ y: -3, scale: 1.03, boxShadow: '0 14px 32px rgba(16,185,129,0.28)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                      whileTap={{ scale: 0.96 }}
+                      className="flex items-center gap-2 px-6 py-3 bg-black/5 dark:bg-white/5 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-500/10 transition-colors"
                     >
-                      <span className="text-[14px] group-hover:rotate-12 transition-transform duration-300">🔍</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-400">Screener Matrix</span>
-                    </a>
+                      <span className="text-[14px] leading-none">🍳</span>
+                      Food Screener
+                      <span className="text-[12px] leading-none">↗</span>
+                    </motion.a>
                   </div>
-
-                  <button onClick={() => setMeals([])} className="text-[10px] font-bold text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 transition-colors uppercase tracking-widest px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95">Flush Buffer</button>
+                  <button onClick={() => setMeals([])} className="text-[10px] font-bold text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 transition-colors uppercase tracking-widest px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 self-end sm:self-auto">Flush Buffer</button>
                </div>
-            </div>
+            </motion.div>
 
             {/* SECTOR 3: TACTICAL MESOCYCLE SWITCHER */}
-            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 overflow-hidden">
+            <motion.section
+              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.3 }}
+              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden cursor-default"
+            >
                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-purple-500 rounded-full animate-pulse"></span>
@@ -229,14 +245,30 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
                     </div>
                   ))}
                </div>
-            </section>
+            </motion.section>
 
             {/* SECTOR 4: INTERACTIVE BIO RECOVERY */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-              <SleepCard metrics={metrics} setMetrics={setMetrics} />
-              <WeightCard metrics={metrics} setMetrics={setMetrics} />
-              <WaterCard metrics={metrics} setMetrics={setMetrics} />
-            </div>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
+              initial="hidden"
+              animate="visible"
+              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.4 } } }}
+            >
+              {[
+                <SleepCard key="sleep" metrics={metrics} setMetrics={setMetrics} />,
+                <WeightCard key="weight" metrics={metrics} setMetrics={setMetrics} />,
+                <WaterCard key="water" metrics={metrics} setMetrics={setMetrics} />,
+              ].map((card, i) => (
+                <motion.div
+                  key={i}
+                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.96 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                  whileHover={{ y: -6, scale: 1.02, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {card}
+                </motion.div>
+              ))}
+            </motion.div>
 
           </div>
         </main>
