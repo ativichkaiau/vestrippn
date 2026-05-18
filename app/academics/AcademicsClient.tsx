@@ -456,10 +456,14 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                      <div className="text-[16px] font-bold text-neutral-900 dark:text-white mb-2 truncate pr-4 transition-colors duration-700">HEN-2: Endocrine Synthesis</div>
                      <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
                   </a>
-                  <div className="p-5 lg:p-6 bg-transparent border-[2px] border-dashed border-black/10 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center text-center transition-colors duration-700">
-                     <span className="text-2xl mb-3 opacity-50 grayscale">⌛</span>
-                     <div className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">HNS-2 Matrix Awaiting Sync</div>
-                  </div>
+                  <a href="https://notebooklm.google.com/notebook/d3cb8676-b859-4263-b5ff-65afaaf665e5" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                     <div className="flex justify-between items-center mb-4">
+                        <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest transition-colors duration-700">Neuro &amp; Senses Vault</div>
+                        <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🧠</span>
+                     </div>
+                     <div className="text-[16px] font-bold text-neutral-900 dark:text-white mb-2 truncate pr-4 transition-colors duration-700">HNS-2: Nervous &amp; Special Senses</div>
+                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
+                  </a>
                </div>
             </motion.section>
 
