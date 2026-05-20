@@ -365,6 +365,24 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Shared Vault</div>
                   </div>
                 </motion.a>
+
+                <motion.a
+                  href="https://vestrippn-pokedex.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgba(168,85,247,0.18)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:border-purple-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden"
+                >
+                  <div className="w-14 h-14 bg-purple-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">🦠</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight truncate">Microbiology Pokédex</div>
+                      <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 uppercase tracking-widest shrink-0">Beta</span>
+                    </div>
+                    <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Pathogen Codex</div>
+                  </div>
+                </motion.a>
               </motion.div>
             </div>
 
