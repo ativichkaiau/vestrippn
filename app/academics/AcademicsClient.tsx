@@ -365,24 +365,66 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Shared Vault</div>
                   </div>
                 </motion.a>
+              </motion.div>
+            </div>
 
-                <motion.a
-                  href="https://vestrippn-pokedex.vercel.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgba(168,85,247,0.18)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:border-purple-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden"
-                >
-                  <div className="w-14 h-14 bg-purple-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">🦠</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight truncate">Microbiology Pokédex</div>
-                      <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 uppercase tracking-widest shrink-0">Beta</span>
+            {/* SECTOR 2.5: INTERACTIVE CODEX — SELF-BUILT STUDY ENGINES */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 px-2">
+                <span className="w-1.5 h-4 bg-purple-500 rounded-full animate-pulse"></span>
+                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Interactive Codex</h3>
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 uppercase tracking-widest">Self-Built</span>
+              </div>
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"
+                initial="hidden" whileInView="visible"
+                viewport={{ once: true, margin: '-60px' }}
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }}
+              >
+                {[
+                  {
+                    href: 'https://vestrippn-pokedex.vercel.app',
+                    icon: '🦠',
+                    title: 'Microbiology Pokédex',
+                    desc: 'Searchable pathogen codex — bacteria, viruses, fungi & parasites with high-yield clinical profiles.',
+                    tag: 'Pathogen Codex',
+                    accent: 'purple',
+                    glow: 'rgba(168,85,247,0.20)',
+                  },
+                  {
+                    href: 'https://vestrippn-biochem-pathway.vercel.app',
+                    icon: '🧬',
+                    title: 'Biochem Pathway Engine',
+                    desc: 'Interactive metabolic map — trace glycolysis, TCA, and enzyme cascades node by node.',
+                    tag: 'Metabolic Map',
+                    accent: 'amber',
+                    glow: 'rgba(245,158,11,0.20)',
+                  },
+                ].map((app) => (
+                  <motion.a
+                    key={app.href}
+                    href={app.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variants={{ hidden: { opacity: 0, y: 30, scale: 0.96 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
+                    whileHover={{ y: -8, scale: 1.02, boxShadow: `0 24px 56px ${app.glow}`, transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`group/codex relative overflow-hidden bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col ${app.accent === 'purple' ? 'hover:border-purple-500/30' : 'hover:border-amber-500/30'}`}
+                  >
+                    <div className="flex justify-between items-start mb-6">
+                      <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center text-3xl group-hover/codex:scale-110 group-hover/codex:rotate-6 transition-transform duration-300 ${app.accent === 'purple' ? 'bg-purple-500/10' : 'bg-amber-500/10'}`}>{app.icon}</div>
+                      <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest ${app.accent === 'purple' ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'}`}>Beta</span>
                     </div>
-                    <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Pathogen Codex</div>
-                  </div>
-                </motion.a>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight leading-tight">{app.title}</h4>
+                    </div>
+                    <p className="text-[13px] text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed mb-6 flex-1">{app.desc}</p>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${app.accent === 'purple' ? 'text-purple-600 dark:text-purple-400' : 'text-amber-600 dark:text-amber-400'}`}>{app.tag}</span>
+                      <span className="text-[11px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest group-hover/codex:translate-x-1 transition-transform duration-300">Launch ↗</span>
+                    </div>
+                  </motion.a>
+                ))}
               </motion.div>
             </div>
 
