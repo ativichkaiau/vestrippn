@@ -8,50 +8,89 @@ const TARGET_COURSES = ['26141', '26393', '26349'];
 
 async function fetchCanvasTelemetry() {
   const token = process.env.CANVAS_TOKEN;
+  const base = process.env.CANVAS_BASE_URL || 'https://mango-cmu.instructure.com';
   const emptyState = { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
 
   if (!token) return emptyState;
 
+  const headers = { Authorization: `Bearer ${token}` };
+
   try {
-    const res = await fetch('https://mango-cmu.instructure.com/api/v1/courses?per_page=100&include[]=total_scores', {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store' 
+    // 1. Pull the target courses (for names + a fallback total score)
+    const res = await fetch(`${base}/api/v1/courses?per_page=100&include[]=total_scores`, {
+      headers,
+      cache: 'no-store',
     });
 
     if (!res.ok) throw new Error(`Canvas_Uplink_Error: ${res.status}`);
-    const courses = await res.json();
+    const allCourses = await res.json();
 
-    const subjects = courses
-      .filter((c: any) => c.id && TARGET_COURSES.includes(c.id.toString()))
-      .map((c: any) => {
-        const enrollment = c.enrollments?.find((e: any) => e.type === 'student' || e.role === 'StudentEnrollment') || c.enrollments?.[0];
-        
-        // Let it be null if the professors hid it!
-        const rawScore = enrollment?.computed_current_score ?? enrollment?.computed_final_score;
+    const courses = (Array.isArray(allCourses) ? allCourses : []).filter(
+      (c: any) => c.id && TARGET_COURSES.includes(c.id.toString())
+    );
 
-        return {
-          id: c.id.toString(),
-          name: c.course_code || c.name, 
-          // If rawScore is null, pass null. Otherwise, round the number.
-          progress: rawScore != null ? Math.round(Number(rawScore)) : null 
-        };
-      });
+    // Global accumulators for the two summary metrics
+    let quizEarned = 0, quizTotal = 0;
+    let assEarned = 0, assTotal = 0;
 
-    // Only calculate averages using subjects that actually HAVE a score
-    const validScores = subjects.map((s: any) => s.progress).filter((p: any) => p !== null && p > 0);
-    const avg = validScores.length > 0 
-      ? validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length 
-      : 0;
+    // 2. For each course, derive the real grade from graded submissions.
+    //    This bypasses hidden course totals (computed_current_score = null).
+    const subjects = await Promise.all(
+      courses.map(async (c: any) => {
+        const id = c.id.toString();
+        let earned = 0, total = 0;
+
+        try {
+          const aRes = await fetch(
+            `${base}/api/v1/courses/${id}/assignments?include[]=submission&per_page=100`,
+            { headers, cache: 'no-store' }
+          );
+          const assignments = aRes.ok ? await aRes.json() : [];
+
+          (Array.isArray(assignments) ? assignments : []).forEach((a: any) => {
+            const sub = a?.submission;
+            if (sub && sub.score !== null && sub.workflow_state === 'graded' && a.points_possible > 0) {
+              earned += sub.score;
+              total += a.points_possible;
+
+              const isQuiz =
+                a.submission_types?.includes('online_quiz') ||
+                a.is_quiz_assignment ||
+                a.name?.toLowerCase().includes('quiz');
+
+              if (isQuiz) { quizEarned += sub.score; quizTotal += a.points_possible; }
+              else { assEarned += sub.score; assTotal += a.points_possible; }
+            }
+          });
+        } catch {
+          /* fall through to the enrollment-based fallback below */
+        }
+
+        // Real grade from graded work; else fall back to Canvas's computed score
+        let progress: number | null = null;
+        if (total > 0) {
+          progress = Math.round((earned / total) * 100);
+        } else {
+          const enrollment =
+            c.enrollments?.find((e: any) => e.type === 'student' || e.role === 'StudentEnrollment') ||
+            c.enrollments?.[0];
+          const rawScore = enrollment?.computed_current_score ?? enrollment?.computed_final_score;
+          progress = rawScore != null ? Math.round(Number(rawScore)) : null;
+        }
+
+        return { id, name: c.course_code || c.name, progress };
+      })
+    );
 
     return {
       subjects,
       metrics: {
-        quizzes: validScores.length > 0 ? Number((avg * 0.98).toFixed(1)) : 0, 
-        assignments: validScores.length > 0 ? Number((avg * 1.02).toFixed(1)) : 0
-      }
+        quizzes: quizTotal > 0 ? Math.round((quizEarned / quizTotal) * 100) : 0,
+        assignments: assTotal > 0 ? Math.round((assEarned / assTotal) * 100) : 0,
+      },
     };
-
   } catch (error) {
+    console.error('[CANVAS] Telemetry sync failed:', error);
     return emptyState;
   }
 }
