@@ -26,7 +26,7 @@ export default function ArcDate() {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
     setCurrentDate(formattedDate);
-    setArcDay(diffDays > 30 ? 30 : diffDays);
+    setArcDay(diffDays > 120 ? 120 : diffDays);
   }, []);
 
   // UPGRADE: The skeleton loader now matches the glassmorphic aesthetic
@@ -46,7 +46,7 @@ export default function ArcDate() {
       {/* The Active Arc Pill Badge */}
       <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-600/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 font-bold transition-colors duration-500">
         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse"></span>
-        Day {arcDay} of 30
+        Day {arcDay} of 120
       </span>
       
     </div>
