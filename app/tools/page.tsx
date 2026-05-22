@@ -174,12 +174,31 @@ export default function ToolsHub() {
                 <ToolTile title="Research" url="https://docs.google.com/spreadsheets/d/1E-KPCBw3d7voDo72VYgfvEIc-TCf4gGXtmTVymA-_z8" icon="📋" theme="amber" />
               </SectorContainer>
 
-              <SectorContainer label="Sector Delta: MSCA Operations" theme="rose">
-                <ToolTile title="One Stop" url="https://docs.google.com/spreadsheets/d/1ciQIcqZ6fQwPqdSU3mEK3aasHcXb-yqMt1IoBlWotrU" icon="🗃️" theme="rose" />
-                <ToolTile title="Central PR" url="https://docs.google.com/spreadsheets/d/1A1ATJuO-NXwWzdz5KFnDtw3N_6zPufOpd-FAbwAabgA" icon="📢" theme="rose" />
-                <ToolTile title="CMU-IMC" url="https://docs.google.com/spreadsheets/d/1OuNCnY9GfjvLCYN8S73mUSuRs0ah0igucEA6-ROWiyI" icon="⚙️" theme="rose" />
-                <ToolTile title="GetSetGO" url="https://docs.google.com/spreadsheets/d/1CvvGvq0FooBNW60Khy9aO8eJ81aOT52cNbppysnCHeg" icon="🚀" theme="rose" />
-              </SectorContainer>
+              {/* SECTOR DELTA: MSCA — sub-classified */}
+              <div className="relative space-y-8 lg:space-y-10">
+                <div className="flex items-center gap-3 px-2">
+                  <div className="w-1.5 h-4 lg:h-5 rounded-full bg-rose-500 transition-colors duration-700"></div>
+                  <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Sector Delta: MSCA</h3>
+                </div>
+
+                <MscaGroup label="Get Set Go" icon="🚀">
+                  <ToolTile title="Sheet 01" url="https://docs.google.com/spreadsheets/d/1CvvGvq0FooBNW60Khy9aO8eJ81aOT52cNbppysnCHeg" icon="📊" theme="rose" />
+                  <ToolTile title="Sheet 02" url="https://docs.google.com/spreadsheets/d/1mwSeuYYJl9DDeBZIcWRH7QkT0EAo-4TeINIGTvkATiI/edit?gid=0#gid=0" icon="📊" theme="rose" />
+                  <ToolTile title="Sheet 03" url="https://docs.google.com/spreadsheets/d/10Cscw_PVeE4LtdxjE9q1d16uJ0eQqD3Yg5Wq8nzoTYw/edit?gid=0#gid=0" icon="📊" theme="rose" />
+                  <ToolTile title="Sheet 04" url="https://docs.google.com/spreadsheets/d/1SJUO_SYMcXbPzd4AAYCwaaIXORKeFC7y_DKB9JhXstI/edit?gid=0#gid=0" icon="📊" theme="rose" />
+                </MscaGroup>
+
+                <MscaGroup label="CMU-IMC" icon="⚙️">
+                  <ToolTile title="Sheet 01" url="https://docs.google.com/spreadsheets/d/1OuNCnY9GfjvLCYN8S73mUSuRs0ah0igucEA6-ROWiyI" icon="📊" theme="rose" />
+                  <ToolTile title="Sheet 02" url="https://docs.google.com/spreadsheets/d/1zcv9TKx-22aemvog2LSGeULfkFulN0KSCL1rZcvolOE/edit?gid=1681603729#gid=1681603729" icon="📊" theme="rose" />
+                  <ToolTile title="Sheet 03" url="https://docs.google.com/spreadsheets/d/1uRwloyKqWXcDpa_JWZIedGGw6D5OGbBCTat8rZjo2zE/edit?gid=1312765885#gid=1312765885" icon="📊" theme="rose" />
+                </MscaGroup>
+
+                <MscaGroup label="Core Ops" icon="📌">
+                  <ToolTile title="One Stop" url="https://docs.google.com/spreadsheets/d/1ciQIcqZ6fQwPqdSU3mEK3aasHcXb-yqMt1IoBlWotrU" icon="🗃️" theme="rose" />
+                  <ToolTile title="Central PR" url="https://docs.google.com/spreadsheets/d/1A1ATJuO-NXwWzdz5KFnDtw3N_6zPufOpd-FAbwAabgA" icon="📢" theme="rose" />
+                </MscaGroup>
+              </div>
 
               <SectorContainer label="Sector Epsilon: Utilities" theme="emerald">
                 <ToolTile title="Gmail" url="https://mail.google.com" icon="✉️" theme="emerald" />
@@ -211,6 +230,26 @@ export default function ToolsHub() {
 }
 
 // --- REFACTORED SUB-COMPONENTS ---
+
+function MscaGroup({ label, icon, children }: { label: string, icon: string, children: React.ReactNode }) {
+  return (
+    <div className="pl-3 lg:pl-5 border-l-2 border-rose-500/20 space-y-5">
+      <div className="flex items-center gap-2 px-1">
+        <span className="text-[15px] leading-none">{icon}</span>
+        <h4 className="text-[11px] lg:text-[12px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 transition-colors duration-700">{label}</h4>
+      </div>
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-40px' }}
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
 
 function SectorContainer({ label, theme, children }: { label: string, theme: 'fuchsia' | 'indigo' | 'amber' | 'rose' | 'emerald', children: React.ReactNode }) {
   const dotColors = {
