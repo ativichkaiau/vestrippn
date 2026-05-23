@@ -117,3 +117,49 @@ h1, h2, h3, .font-orbitron {
 }
 .animate-loader-sweep { animation: loaderSweep 1.1s ease-in-out infinite; }
 .animate-loader-pulse { animation: loaderPulse 1.4s ease-in-out infinite; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   MONZA LIVERY — carbon-fibre base + Petronas cyan accent
+   Activated by `html.monza` (also carries `.dark`).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Carbon-fibre weave on the page backdrop */
+html.monza body {
+  background-color: #08080a;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.028) 0, rgba(255, 255, 255, 0.028) 1px, transparent 1px, transparent 4px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.5) 0, rgba(0, 0, 0, 0.5) 1px, transparent 1px, transparent 4px),
+    radial-gradient(ellipse at 28% -10%, rgba(0, 210, 190, 0.10), transparent 55%),
+    radial-gradient(ellipse at 100% 110%, rgba(0, 210, 190, 0.06), transparent 50%);
+  background-attachment: fixed;
+}
+
+/* 2. Let the weave show through the opaque page shells / panels */
+html.monza .dark\:bg-\[\#050505\],
+html.monza .dark\:bg-\[\#0A0A0A\],
+html.monza .dark\:bg-black\/40,
+html.monza .dark\:bg-black\/20 {
+  background-color: rgba(10, 11, 13, 0.55) !important;
+}
+
+/* 3. Glass cards pick up a faint carbon tint + cyan edge */
+html.monza .dark\:bg-white\/5 {
+  background-color: rgba(0, 210, 190, 0.035) !important;
+}
+html.monza .dark\:border-white\/5,
+html.monza .dark\:border-white\/10 {
+  border-color: rgba(0, 210, 190, 0.14) !important;
+}
+
+/* 4. Retint the AMG teal accent to Petronas cyan (#00D2BE) */
+html.monza .text-\[\#00A598\] { color: #00d2be !important; }
+html.monza .bg-\[\#00A598\] { background-color: #00d2be !important; }
+html.monza .border-\[\#00A598\] { border-color: #00d2be !important; }
+html.monza .from-\[\#00A598\] { --tw-gradient-from: #00d2be var(--tw-gradient-from-position) !important; }
+html.monza .to-\[\#00A598\] { --tw-gradient-to: #00d2be var(--tw-gradient-to-position) !important; }
+html.monza .fill-\[\#00A598\] { fill: #00d2be !important; }
+
+/* 5. Selection + scrollbar in cyan */
+html.monza ::selection { background-color: rgba(0, 210, 190, 0.35); color: #ffffff; }
+html.monza .custom-scrollbar { scrollbar-color: rgba(0, 210, 190, 0.4) transparent; }
+html.monza .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 210, 190, 0.6); }

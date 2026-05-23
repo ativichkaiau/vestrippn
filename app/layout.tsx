@@ -52,6 +52,11 @@ export default function RootLayout({
           selection:bg-[#00A598]/30 selection:text-[#00A598] dark:selection:text-white
         `}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var lv=localStorage.getItem('vest_livery');var md=localStorage.getItem('vest_mode');var h=new Date().getHours();if(md!=='day'&&md!=='night'){md=(h<6||h>=18)?'night':'day';}var el=document.documentElement;if(lv==='monza'){el.classList.add('dark','monza');}else{if(md==='night'){el.classList.add('dark');}else{el.classList.remove('dark');}}}catch(e){}})();`,
+          }}
+        />
         <AuthProvider>
           {children}
         </AuthProvider>
