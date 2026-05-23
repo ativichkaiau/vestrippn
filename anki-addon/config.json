@@ -1,0 +1,6 @@
+{
+  "endpoint": "https://vestrippn.vercel.app/api/anki",
+  "secret": "",
+  "interval_minutes": 15,
+  "notify": false
+}

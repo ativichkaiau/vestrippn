@@ -42,6 +42,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   // 🔌 AnkiConnect live bridge state
   const [bridge, setBridge] = useState<'idle' | 'syncing' | 'online' | 'offline'>('idle');
   const [lastSync, setLastSync] = useState<string | null>(null);
+  const [isSafari, setIsSafari] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -154,9 +155,13 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
     }
   };
 
-  // 🔌 Auto-attempt a silent live sync on mount (no-op if Anki Desktop isn't running)
+  // 🔌 Auto-attempt a silent live sync on mount.
+  // Safari blocks HTTPS->127.0.0.1, so we skip the browser bridge there and
+  // rely on the desktop add-on (which pushes straight to Postgres instead).
   useEffect(() => {
-    syncFromAnki(true);
+    const safari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
+    setIsSafari(safari);
+    if (!safari) syncFromAnki(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -532,33 +537,49 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                      <span className="w-1.5 h-4 bg-sky-500 rounded-full animate-pulse"></span>
                      <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Spaced Repetition Telemetry</h3>
                    </div>
-                   {/* Live bridge status pill */}
-                   <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors ${
-                     bridge === 'online' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                     : bridge === 'syncing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
-                     : bridge === 'offline' ? 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
-                     : 'bg-neutral-500/10 text-neutral-400'
-                   }`}>
-                     <span className={`w-1.5 h-1.5 rounded-full ${
-                       bridge === 'online' ? 'bg-emerald-500 animate-pulse'
-                       : bridge === 'syncing' ? 'bg-sky-500 animate-pulse'
-                       : 'bg-neutral-400'
-                     }`}></span>
-                     {bridge === 'online' ? `Live${lastSync ? ` · ${lastSync}` : ''}`
-                       : bridge === 'syncing' ? 'Syncing…'
-                       : bridge === 'offline' ? 'Bridge Offline'
-                       : 'Bridge Idle'}
-                   </span>
+                   {/* Status pill */}
+                   {isSafari ? (
+                     <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-sky-500/10 text-sky-600 dark:text-sky-400" title="Safari blocks the in-browser bridge. The desktop add-on pushes your stats automatically.">
+                       <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                       Add-on Sync
+                     </span>
+                   ) : (
+                     <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors ${
+                       bridge === 'online' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                       : bridge === 'syncing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+                       : bridge === 'offline' ? 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
+                       : 'bg-neutral-500/10 text-neutral-400'
+                     }`}>
+                       <span className={`w-1.5 h-1.5 rounded-full ${
+                         bridge === 'online' ? 'bg-emerald-500 animate-pulse'
+                         : bridge === 'syncing' ? 'bg-sky-500 animate-pulse'
+                         : 'bg-neutral-400'
+                       }`}></span>
+                       {bridge === 'online' ? `Live${lastSync ? ` · ${lastSync}` : ''}`
+                         : bridge === 'syncing' ? 'Syncing…'
+                         : bridge === 'offline' ? 'Bridge Offline'
+                         : 'Bridge Idle'}
+                     </span>
+                   )}
                  </div>
                  <div className="flex items-center gap-2">
-                   <button
-                     onClick={() => syncFromAnki(false)}
-                     disabled={bridge === 'syncing'}
-                     className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all text-[10px] font-bold uppercase tracking-widest active:scale-95 disabled:opacity-50 disabled:cursor-wait"
-                   >
-                     <span className={bridge === 'syncing' ? 'animate-spin' : ''}>⟳</span>
-                     {bridge === 'syncing' ? 'Syncing' : 'Sync Live'}
-                   </button>
+                   {isSafari ? (
+                     <span
+                       title="Safari blocks HTTPS→localhost. Install the VESTRIPPN Anki add-on for automatic background sync."
+                       className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 text-neutral-500 dark:text-neutral-400 text-[10px] font-bold uppercase tracking-widest cursor-help"
+                     >
+                       ⤵ Desktop Add-on Mode
+                     </span>
+                   ) : (
+                     <button
+                       onClick={() => syncFromAnki(false)}
+                       disabled={bridge === 'syncing'}
+                       className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all text-[10px] font-bold uppercase tracking-widest active:scale-95 disabled:opacity-50 disabled:cursor-wait"
+                     >
+                       <span className={bridge === 'syncing' ? 'animate-spin' : ''}>⟳</span>
+                       {bridge === 'syncing' ? 'Syncing' : 'Sync Live'}
+                     </button>
+                   )}
                    <a
                      href="https://ankiweb.net/decks"
                      target="_blank"
