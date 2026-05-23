@@ -39,6 +39,10 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const [liveAnki, setLiveAnki] = useState(ankiData || DEFAULT_ANKI);
   const prevAnkiRef = useRef(ankiData);
 
+  // 🔌 AnkiConnect live bridge state
+  const [bridge, setBridge] = useState<'idle' | 'syncing' | 'online' | 'offline'>('idle');
+  const [lastSync, setLastSync] = useState<string | null>(null);
+
   useEffect(() => {
     setIsMounted(true);
     const currentHour = new Date().getHours();
@@ -78,6 +82,83 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
       prevAnkiRef.current = liveAnki;
     }
   };
+
+  // 🔌 Low-level AnkiConnect call (talks to Anki Desktop on 127.0.0.1:8765)
+  const ankiConnect = async (action: string, params: object = {}) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1800);
+    try {
+      const res = await fetch('http://127.0.0.1:8765', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, version: 6, params }),
+        signal: controller.signal,
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data.result;
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
+  // Build streak by walking back from today over reviewed days
+  const computeStreak = (byDay: [string, number][]): number => {
+    const reviewed = new Set(byDay.filter(([, n]) => n > 0).map(([d]) => d));
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    let streak = 0;
+    const cur = new Date();
+    // If today hasn't been studied yet, start counting from yesterday
+    if (!reviewed.has(fmt(cur))) cur.setDate(cur.getDate() - 1);
+    while (reviewed.has(fmt(cur))) {
+      streak++;
+      cur.setDate(cur.getDate() - 1);
+    }
+    return streak;
+  };
+
+  // 🔌 Pull live stats from Anki Desktop and persist them to Postgres
+  const syncFromAnki = async (silent = false) => {
+    setBridge('syncing');
+    try {
+      const [due, fresh, reviewedToday, byDay] = await Promise.all([
+        ankiConnect('findCards', { query: 'is:due' }),
+        ankiConnect('findCards', { query: 'is:new' }),
+        ankiConnect('getNumCardsReviewedToday'),
+        ankiConnect('getNumCardsReviewedByDay'),
+      ]);
+
+      const next = {
+        due: Array.isArray(due) ? due.length : 0,
+        new: Array.isArray(fresh) ? fresh.length : 0,
+        reviewedToday: typeof reviewedToday === 'number' ? reviewedToday : 0,
+        streak: Array.isArray(byDay) ? computeStreak(byDay) : 0,
+      };
+
+      setLiveAnki(next);
+      prevAnkiRef.current = next;
+      await syncAnkiData(next.due, next.new, next.reviewedToday, next.streak);
+
+      setBridge('online');
+      setLastSync(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      console.log('[ANKI BRIDGE] Live sync complete:', next);
+    } catch (e) {
+      setBridge('offline');
+      if (!silent) {
+        console.warn('[ANKI BRIDGE] Could not reach Anki Desktop on 127.0.0.1:8765.', e);
+        window.alert(
+          'Anki Bridge offline.\n\nMake sure Anki Desktop is OPEN with the AnkiConnect add-on installed, and that this site is allowed in AnkiConnect\'s "webCorsOriginList".'
+        );
+      }
+    }
+  };
+
+  // 🔌 Auto-attempt a silent live sync on mount (no-op if Anki Desktop isn't running)
+  useEffect(() => {
+    syncFromAnki(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const exams: Exam[] = [
@@ -446,18 +527,47 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden cursor-default"
             >
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-2">
-                 <div className="flex items-center gap-2">
-                   <span className="w-1.5 h-4 bg-sky-500 rounded-full animate-pulse"></span>
-                   <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Spaced Repetition Telemetry</h3>
+                 <div className="flex items-center gap-3 flex-wrap">
+                   <div className="flex items-center gap-2">
+                     <span className="w-1.5 h-4 bg-sky-500 rounded-full animate-pulse"></span>
+                     <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Spaced Repetition Telemetry</h3>
+                   </div>
+                   {/* Live bridge status pill */}
+                   <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors ${
+                     bridge === 'online' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                     : bridge === 'syncing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+                     : bridge === 'offline' ? 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
+                     : 'bg-neutral-500/10 text-neutral-400'
+                   }`}>
+                     <span className={`w-1.5 h-1.5 rounded-full ${
+                       bridge === 'online' ? 'bg-emerald-500 animate-pulse'
+                       : bridge === 'syncing' ? 'bg-sky-500 animate-pulse'
+                       : 'bg-neutral-400'
+                     }`}></span>
+                     {bridge === 'online' ? `Live${lastSync ? ` · ${lastSync}` : ''}`
+                       : bridge === 'syncing' ? 'Syncing…'
+                       : bridge === 'offline' ? 'Bridge Offline'
+                       : 'Bridge Idle'}
+                   </span>
                  </div>
-                 <a 
-                   href="https://ankiweb.net/decks" 
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-500 text-white hover:bg-sky-600 transition-all text-[10px] font-bold uppercase tracking-widest shadow-md active:scale-95"
-                 >
-                   Launch AnkiWeb ↗
-                 </a>
+                 <div className="flex items-center gap-2">
+                   <button
+                     onClick={() => syncFromAnki(false)}
+                     disabled={bridge === 'syncing'}
+                     className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all text-[10px] font-bold uppercase tracking-widest active:scale-95 disabled:opacity-50 disabled:cursor-wait"
+                   >
+                     <span className={bridge === 'syncing' ? 'animate-spin' : ''}>⟳</span>
+                     {bridge === 'syncing' ? 'Syncing' : 'Sync Live'}
+                   </button>
+                   <a
+                     href="https://ankiweb.net/decks"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-500 text-white hover:bg-sky-600 transition-all text-[10px] font-bold uppercase tracking-widest shadow-md active:scale-95"
+                   >
+                     Launch AnkiWeb ↗
+                   </a>
+                 </div>
                </div>
                
                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
