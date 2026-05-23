@@ -39,8 +39,9 @@ export async function POST(req: Request) {
   const reviewedToday = clamp(body.reviewedToday);
   const streak = clamp(body.streak);
 
-  const user = await prisma.user.findUnique({
-    where: { email: ownerEmail },
+  // Robust lookup: tolerate stray whitespace and casing from env var entry
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: ownerEmail.trim(), mode: 'insensitive' } },
     select: { id: true },
   });
   if (!user) {
@@ -56,8 +57,25 @@ export async function POST(req: Request) {
   return NextResponse.json({ ok: true, synced: { due, new: newCards, reviewedToday, streak } });
 }
 
-// Lightweight health check (no secret leaked)
-export function GET() {
-  const configured = Boolean(process.env.ANKI_SYNC_SECRET && process.env.ANKI_SYNC_EMAIL);
-  return NextResponse.json({ ok: true, service: 'anki-sync', method: 'POST', configured });
+// Lightweight health check (no secret/email leaked).
+// Reports whether the configured owner email actually resolves to a user.
+export async function GET() {
+  const secret = process.env.ANKI_SYNC_SECRET;
+  const ownerEmail = process.env.ANKI_SYNC_EMAIL;
+  const configured = Boolean(secret && ownerEmail);
+
+  let ownerResolved = false;
+  if (ownerEmail) {
+    try {
+      const user = await prisma.user.findFirst({
+        where: { email: { equals: ownerEmail.trim(), mode: 'insensitive' } },
+        select: { id: true },
+      });
+      ownerResolved = Boolean(user);
+    } catch {
+      ownerResolved = false;
+    }
+  }
+
+  return NextResponse.json({ ok: true, service: 'anki-sync', method: 'POST', configured, ownerResolved });
 }
