@@ -177,3 +177,25 @@ export async function saveLiteratureResult(pmid: string, title: string, authors:
     }
   });
 }
+
+// ==========================================
+// SECTOR EPSILON: ANKI SPACED-REPETITION TELEMETRY
+// ==========================================
+export async function syncAnkiData(due: number, newCards: number, reviewedToday: number, streak: number) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized Access");
+
+  await prisma.ankiTelemetry.upsert({
+    where: { userId: session.user.id },
+    update: { dueCards: due, newCards, reviewedToday, streak, lastSync: new Date() },
+    create: {
+      userId: session.user.id,
+      dueCards: due,
+      newCards,
+      reviewedToday,
+      streak,
+    },
+  });
+
+  revalidatePath("/academics");
+}

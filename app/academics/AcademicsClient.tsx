@@ -7,6 +7,7 @@ import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
+import { syncAnkiData } from '@/app/actions';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
@@ -52,21 +53,29 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
     }
   }, [ankiData]);
 
-  // 🚀 UPGRADE: Edit Handler
-  const handleEditAnki = (key: keyof typeof DEFAULT_ANKI) => {
+  // 🚀 UPGRADE: Edit Handler — now persists to Postgres
+  const handleEditAnki = async (key: keyof typeof DEFAULT_ANKI) => {
     const currentVal = liveAnki[key];
     const input = window.prompt(`Update ANKI ${key.toUpperCase()} count:`, currentVal.toString());
-    
-    if (input !== null) {
-      const newVal = parseInt(input, 10);
-      if (!isNaN(newVal)) {
-        setLiveAnki(prev => ({
-          ...prev,
-          [key]: newVal
-        }));
-        // Note: You can wire up a server action here to push manual overrides back to Postgres
-        console.log(`[UPLINK] Manual Override: Syncing ${key} -> ${newVal} to cloud...`);
-      }
+    if (input === null) return;
+
+    const newVal = parseInt(input, 10);
+    if (isNaN(newVal)) return;
+
+    // Optimistic UI update
+    const next = { ...liveAnki, [key]: newVal };
+    setLiveAnki(next);
+    // Keep the sync-protection ref in step so the revalidated prop doesn't clobber the edit
+    prevAnkiRef.current = next;
+
+    try {
+      await syncAnkiData(next.due, next.new, next.reviewedToday, next.streak);
+      console.log(`[UPLINK] ANKI ${key} -> ${newVal} synced to Postgres`);
+    } catch (e) {
+      console.error('[UPLINK] ANKI sync failed:', e);
+      // Roll back on failure
+      setLiveAnki(liveAnki);
+      prevAnkiRef.current = liveAnki;
     }
   };
 
