@@ -123,6 +123,29 @@ h1, h2, h3, .font-orbitron {
    Activated by `html.monza` (also carries `.dark`).
    ════════════════════════════════════════════════════════════════════════ */
 
+/* 0. Monochrome remap — collapse every chromatic accent onto one Petronas
+   cyan ramp so only neutral grays + cyan remain. Tailwind v4 utilities read
+   --color-* variables, so these overrides cascade to text/bg/border/gradient/
+   ring/fill across both base and dark: variants (incl. /10 /20 opacity tints). */
+html.monza {
+  --pc-50:#ecfdfb; --pc-100:#cffaf4; --pc-200:#9ff3ea; --pc-300:#5fe6da; --pc-400:#22d0c2;
+  --pc-500:#00d2be; --pc-600:#00a99a; --pc-700:#067e74; --pc-800:#0a635c; --pc-900:#0d524d; --pc-950:#04302d;
+
+  --color-red-50:var(--pc-50); --color-red-100:var(--pc-100); --color-red-200:var(--pc-200); --color-red-300:var(--pc-300); --color-red-400:var(--pc-400); --color-red-500:var(--pc-500); --color-red-600:var(--pc-600); --color-red-700:var(--pc-700); --color-red-800:var(--pc-800); --color-red-900:var(--pc-900); --color-red-950:var(--pc-950);
+  --color-orange-50:var(--pc-50); --color-orange-100:var(--pc-100); --color-orange-200:var(--pc-200); --color-orange-300:var(--pc-300); --color-orange-400:var(--pc-400); --color-orange-500:var(--pc-500); --color-orange-600:var(--pc-600); --color-orange-700:var(--pc-700); --color-orange-800:var(--pc-800); --color-orange-900:var(--pc-900); --color-orange-950:var(--pc-950);
+  --color-amber-50:var(--pc-50); --color-amber-100:var(--pc-100); --color-amber-200:var(--pc-200); --color-amber-300:var(--pc-300); --color-amber-400:var(--pc-400); --color-amber-500:var(--pc-500); --color-amber-600:var(--pc-600); --color-amber-700:var(--pc-700); --color-amber-800:var(--pc-800); --color-amber-900:var(--pc-900); --color-amber-950:var(--pc-950);
+  --color-emerald-50:var(--pc-50); --color-emerald-100:var(--pc-100); --color-emerald-200:var(--pc-200); --color-emerald-300:var(--pc-300); --color-emerald-400:var(--pc-400); --color-emerald-500:var(--pc-500); --color-emerald-600:var(--pc-600); --color-emerald-700:var(--pc-700); --color-emerald-800:var(--pc-800); --color-emerald-900:var(--pc-900); --color-emerald-950:var(--pc-950);
+  --color-teal-50:var(--pc-50); --color-teal-100:var(--pc-100); --color-teal-200:var(--pc-200); --color-teal-300:var(--pc-300); --color-teal-400:var(--pc-400); --color-teal-500:var(--pc-500); --color-teal-600:var(--pc-600); --color-teal-700:var(--pc-700); --color-teal-800:var(--pc-800); --color-teal-900:var(--pc-900); --color-teal-950:var(--pc-950);
+  --color-cyan-50:var(--pc-50); --color-cyan-100:var(--pc-100); --color-cyan-200:var(--pc-200); --color-cyan-300:var(--pc-300); --color-cyan-400:var(--pc-400); --color-cyan-500:var(--pc-500); --color-cyan-600:var(--pc-600); --color-cyan-700:var(--pc-700); --color-cyan-800:var(--pc-800); --color-cyan-900:var(--pc-900); --color-cyan-950:var(--pc-950);
+  --color-sky-50:var(--pc-50); --color-sky-100:var(--pc-100); --color-sky-200:var(--pc-200); --color-sky-300:var(--pc-300); --color-sky-400:var(--pc-400); --color-sky-500:var(--pc-500); --color-sky-600:var(--pc-600); --color-sky-700:var(--pc-700); --color-sky-800:var(--pc-800); --color-sky-900:var(--pc-900); --color-sky-950:var(--pc-950);
+  --color-blue-50:var(--pc-50); --color-blue-100:var(--pc-100); --color-blue-200:var(--pc-200); --color-blue-300:var(--pc-300); --color-blue-400:var(--pc-400); --color-blue-500:var(--pc-500); --color-blue-600:var(--pc-600); --color-blue-700:var(--pc-700); --color-blue-800:var(--pc-800); --color-blue-900:var(--pc-900); --color-blue-950:var(--pc-950);
+  --color-indigo-50:var(--pc-50); --color-indigo-100:var(--pc-100); --color-indigo-200:var(--pc-200); --color-indigo-300:var(--pc-300); --color-indigo-400:var(--pc-400); --color-indigo-500:var(--pc-500); --color-indigo-600:var(--pc-600); --color-indigo-700:var(--pc-700); --color-indigo-800:var(--pc-800); --color-indigo-900:var(--pc-900); --color-indigo-950:var(--pc-950);
+  --color-purple-50:var(--pc-50); --color-purple-100:var(--pc-100); --color-purple-200:var(--pc-200); --color-purple-300:var(--pc-300); --color-purple-400:var(--pc-400); --color-purple-500:var(--pc-500); --color-purple-600:var(--pc-600); --color-purple-700:var(--pc-700); --color-purple-800:var(--pc-800); --color-purple-900:var(--pc-900); --color-purple-950:var(--pc-950);
+  --color-fuchsia-50:var(--pc-50); --color-fuchsia-100:var(--pc-100); --color-fuchsia-200:var(--pc-200); --color-fuchsia-300:var(--pc-300); --color-fuchsia-400:var(--pc-400); --color-fuchsia-500:var(--pc-500); --color-fuchsia-600:var(--pc-600); --color-fuchsia-700:var(--pc-700); --color-fuchsia-800:var(--pc-800); --color-fuchsia-900:var(--pc-900); --color-fuchsia-950:var(--pc-950);
+  --color-pink-50:var(--pc-50); --color-pink-100:var(--pc-100); --color-pink-200:var(--pc-200); --color-pink-300:var(--pc-300); --color-pink-400:var(--pc-400); --color-pink-500:var(--pc-500); --color-pink-600:var(--pc-600); --color-pink-700:var(--pc-700); --color-pink-800:var(--pc-800); --color-pink-900:var(--pc-900); --color-pink-950:var(--pc-950);
+  --color-rose-50:var(--pc-50); --color-rose-100:var(--pc-100); --color-rose-200:var(--pc-200); --color-rose-300:var(--pc-300); --color-rose-400:var(--pc-400); --color-rose-500:var(--pc-500); --color-rose-600:var(--pc-600); --color-rose-700:var(--pc-700); --color-rose-800:var(--pc-800); --color-rose-900:var(--pc-900); --color-rose-950:var(--pc-950);
+}
+
 /* 1. Carbon-fibre weave on the page backdrop */
 html.monza body {
   background-color: #08080a;
@@ -158,6 +181,7 @@ html.monza .border-\[\#00A598\] { border-color: #00d2be !important; }
 html.monza .from-\[\#00A598\] { --tw-gradient-from: #00d2be var(--tw-gradient-from-position) !important; }
 html.monza .to-\[\#00A598\] { --tw-gradient-to: #00d2be var(--tw-gradient-to-position) !important; }
 html.monza .fill-\[\#00A598\] { fill: #00d2be !important; }
+html.monza .text-\[\#D97757\] { color: #00d2be !important; }
 
 /* 5. Selection + scrollbar in cyan */
 html.monza ::selection { background-color: rgba(0, 210, 190, 0.35); color: #ffffff; }
