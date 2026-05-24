@@ -60,6 +60,14 @@ model User {
   researchProject ResearchProject? // Sector Delta Link
   notifications   Notification[] // Sector Zeta Link
   ankiTelemetry   AnkiTelemetry?
+
+  // ==========================================
+  // W08 SECTOR DAS: DOCUMENT/ASSESSMENT STORE
+  // ==========================================
+  studyDocuments StudyDocument[]
+  documentChunks DocumentChunk[]
+  attempts       UserAttempt[]
+  usage          UserUsage[]
 }
 
 // ==========================================
@@ -180,4 +188,123 @@ model AnkiTelemetry {
   reviewedToday Int      @default(0)
   streak        Int      @default(0)
   lastSync      DateTime @default(now())
+}
+
+// ==========================================
+// W08 SECTOR DAS: ENUMS
+// ==========================================
+enum SourceType {
+  pdf
+  text
+  url
+}
+
+enum IeltsSection {
+  reading
+  listening
+  writing
+  speaking
+}
+
+enum AttemptItemType {
+  ielts
+  case
+}
+
+// ==========================================
+// W08 SECTOR DAS: DOCUMENT INGEST + VECTOR STORE
+// ==========================================
+model StudyDocument {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  sourceType  SourceType
+  originalUrl String?
+  processedAt DateTime?
+  createdAt   DateTime   @default(now())
+
+  chunks DocumentChunk[]
+
+  @@index([userId])
+}
+
+model DocumentChunk {
+  id         String        @id @default(cuid())
+  documentId String
+  document   StudyDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  // Denormalized owner: lets Phase B filter by userId before the ANN scan
+  // (WHERE "userId" = $1 ORDER BY embedding <=> $2) without a join.
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content    String        @db.Text
+  // pgvector column. Prisma has no native vector type, so it is Unsupported;
+  // values are written via parameterized raw SQL ($n::vector) and the HNSW
+  // index is created in the migration (cannot be expressed in schema).
+  embedding  Unsupported("vector(1536)")
+  // Always supplied by the raw insert path, so no DB default (avoids drift).
+  metadata   Json
+  position   Int
+
+  @@index([userId])
+  @@index([documentId])
+}
+
+// ==========================================
+// W08 SECTOR DAS: IELTS ITEM BANK
+// ==========================================
+model IELTSItem {
+  id         String       @id @default(cuid())
+  section    IeltsSection
+  skill      String
+  prompt     String       @db.Text
+  answerKey  Json
+  difficulty Int
+  tags       String[]
+}
+
+// ==========================================
+// W08 SECTOR DAS: CLINICAL CASE BANK
+// ==========================================
+model ClinicalCase {
+  id        String   @id @default(cuid())
+  title     String
+  specialty String
+  scenario  String   @db.Text
+  branches  Json
+  citations String[]
+}
+
+// ==========================================
+// W08 SECTOR DAS: USER ATTEMPTS
+// ==========================================
+model UserAttempt {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType    AttemptItemType
+  // Polymorphic reference into IELTSItem.id or ClinicalCase.id (no FK by design).
+  itemId      String
+  response    Json
+  score       Float?
+  completedAt DateTime?
+
+  @@index([userId])
+  @@index([itemType, itemId])
+}
+
+// ==========================================
+// W08 SECTOR DAS: USAGE / BUDGET METERING
+// ==========================================
+model UserUsage {
+  id              String @id @default(cuid())
+  userId          String
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Billing window as "YYYY-MM".
+  month           String
+  embeddingTokens Int    @default(0)
+  chatTokens      Int    @default(0)
+
+  @@unique([userId, month])
+  @@index([userId])
 }
