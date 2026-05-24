@@ -161,6 +161,39 @@ export default function IELTSHub() {
               </p>
             </motion.section>
 
+            {/* SECTOR 0: IELTS MODULES (W08) */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 px-2">
+                <span className="w-1.5 h-4 bg-purple-500 rounded-full animate-pulse"></span>
+                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Modules</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+                <Link
+                  href="/das"
+                  className="group flex items-center gap-5 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_56px_rgb(0,0,0,0.08)] active:scale-[0.99]"
+                >
+                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">📑</div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight">DAS</h2>
+                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">Document Assistant</p>
+                  </div>
+                  <span className="text-neutral-300 dark:text-neutral-600 group-hover:text-purple-500 group-hover:translate-x-1 transition-all text-xl">→</span>
+                </Link>
+
+                <Link
+                  href="/learn/ielts"
+                  className="group flex items-center gap-5 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_56px_rgb(0,0,0,0.08)] active:scale-[0.99]"
+                >
+                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">🎯</div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight">Learn</h2>
+                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">Practice &amp; Clinical Cases</p>
+                  </div>
+                  <span className="text-neutral-300 dark:text-neutral-600 group-hover:text-purple-500 group-hover:translate-x-1 transition-all text-xl">→</span>
+                </Link>
+              </div>
+            </div>
+
             {/* SECTOR 1: AI VAULT PORTAL */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 px-2">

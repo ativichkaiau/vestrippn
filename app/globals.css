@@ -187,3 +187,98 @@ html.monza .text-\[\#D97757\] { color: #00d2be !important; }
 html.monza ::selection { background-color: rgba(0, 210, 190, 0.35); color: #ffffff; }
 html.monza .custom-scrollbar { scrollbar-color: rgba(0, 210, 190, 0.4) transparent; }
 html.monza .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 210, 190, 0.6); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   W08 THEME CONTRACT  —  see components/w08/THEME_CONTRACT.md
+   Additive. W07 is unaffected (it does not consume --w08-* variables).
+   Neutral defaults on :root (light) and .dark (dark). Liveries override via
+   .w08-monza / .w08-esther / .w08-senna on <html> OR any wrapper element.
+   ════════════════════════════════════════════════════════════════════════ */
+:root {
+  --w08-bg:             hsl(0 0% 100%);
+  --w08-surface:        hsl(0 0% 98%);
+  --w08-surface-raised: hsl(0 0% 100%);
+  --w08-border:         hsl(0 0% 90%);
+  --w08-text:           hsl(0 0% 12%);
+  --w08-text-muted:     hsl(0 0% 45%);
+  --w08-accent-primary:   hsl(222 14% 24%);
+  --w08-accent-secondary: hsl(222 10% 46%);
+  --w08-accent-contrast:  hsl(0 0% 100%);
+  --w08-success:        hsl(152 55% 38%);
+  --w08-danger:         hsl(0 65% 51%);
+  --w08-focus-ring:     hsl(222 14% 40%);
+  --w08-radius:         1rem;
+  --w08-shadow:         0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --w08-font-display:   var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  --w08-motion-duration: 200ms;
+  --w08-motion-ease:    cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Neutral when W07 dark mode is active. Class-only selector so a livery class
+   on the same <html> wins by source order. */
+.dark {
+  --w08-bg:             hsl(0 0% 5%);
+  --w08-surface:        hsl(0 0% 8%);
+  --w08-surface-raised: hsl(0 0% 11%);
+  --w08-border:         hsl(0 0% 18%);
+  --w08-text:           hsl(0 0% 96%);
+  --w08-text-muted:     hsl(0 0% 60%);
+  --w08-accent-primary:   hsl(0 0% 92%);
+  --w08-accent-secondary: hsl(0 0% 65%);
+  --w08-accent-contrast:  hsl(0 0% 8%);
+  --w08-focus-ring:     hsl(0 0% 70%);
+  --w08-shadow:         0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Livery: MONZA (carbon fibre · chrome · Petronas cyan · black-silver) ── */
+.w08-monza {
+  --w08-bg:             #08080a;
+  --w08-surface:        rgba(255, 255, 255, 0.04);
+  --w08-surface-raised: rgba(255, 255, 255, 0.07);
+  --w08-border:         rgba(0, 210, 190, 0.20);
+  --w08-text:           #f4f5f5;
+  --w08-text-muted:     #9aa3a2;
+  --w08-accent-primary:   #00d2be;
+  --w08-accent-secondary: #c4c8cc;
+  --w08-accent-contrast:  #042b28;
+  --w08-success:        #00d2be;
+  --w08-danger:         #ff5d5d;
+  --w08-focus-ring:     #00d2be;
+  --w08-shadow:         0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Livery: ESTHER BUNNY (pink · pastel · soft motion · cozy) ── */
+.w08-esther {
+  --w08-bg:             #fff4f8;
+  --w08-surface:        #ffffff;
+  --w08-surface-raised: #fffafc;
+  --w08-border:         #ffd6e6;
+  --w08-text:           #4a2c38;
+  --w08-text-muted:     #b07f90;
+  --w08-accent-primary:   #ff8fb1;
+  --w08-accent-secondary: #ffc2d6;
+  --w08-accent-contrast:  #4a2c38;
+  --w08-success:        #6fcf97;
+  --w08-danger:         #ef6f8b;
+  --w08-focus-ring:     #ff8fb1;
+  --w08-radius:         1.5rem;
+  --w08-shadow:         0 8px 24px rgba(255, 143, 177, 0.28);
+  --w08-motion-duration: 320ms;
+}
+
+/* ── Livery: SENNA (yellow · blue · green · analog motorsport) ── */
+.w08-senna {
+  --w08-bg:             #0d1b2a;
+  --w08-surface:        #13243a;
+  --w08-surface-raised: #182c46;
+  --w08-border:         #244b7a;
+  --w08-text:           #f1f5f9;
+  --w08-text-muted:     #9fb3c8;
+  --w08-accent-primary:   #ffd400;
+  --w08-accent-secondary: #00a651;
+  --w08-accent-contrast:  #0d1b2a;
+  --w08-success:        #00a651;
+  --w08-danger:         #e63946;
+  --w08-focus-ring:     #1f6feb;
+  --w08-shadow:         0 8px 24px rgba(0, 0, 0, 0.55);
+}
