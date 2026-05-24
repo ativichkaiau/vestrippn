@@ -68,6 +68,9 @@ model User {
   documentChunks DocumentChunk[]
   attempts       UserAttempt[]
   usage          UserUsage[]
+  chatThreads    ChatThread[]
+  chatMessages   ChatMessage[]
+  caseProgress   CaseProgress[]
 }
 
 // ==========================================
@@ -197,6 +200,18 @@ enum SourceType {
   pdf
   text
   url
+  docx
+}
+
+enum SourceStatus {
+  processing
+  ready
+  failed
+}
+
+enum ChatRole {
+  user
+  assistant
 }
 
 enum IeltsSection {
@@ -221,8 +236,10 @@ model StudyDocument {
   title       String
   sourceType  SourceType
   originalUrl String?
+  status      SourceStatus @default(ready)
+  pages       Int?
   processedAt DateTime?
-  createdAt   DateTime   @default(now())
+  createdAt   DateTime     @default(now())
 
   chunks DocumentChunk[]
 
@@ -258,6 +275,8 @@ model IELTSItem {
   section    IeltsSection
   skill      String
   prompt     String       @db.Text
+  // answerKey JSON shape: { options: [{ id, label }], correctId, explanation? }
+  // correctId is never sent to the client — grading is server-side.
   answerKey  Json
   difficulty Int
   tags       String[]
@@ -271,8 +290,11 @@ model ClinicalCase {
   title     String
   specialty String
   scenario  String   @db.Text
+  // branches JSON shape: { steps: [{ id, label, content }], summary? }
   branches  Json
   citations String[]
+
+  progress CaseProgress[]
 }
 
 // ==========================================
@@ -306,5 +328,56 @@ model UserUsage {
   chatTokens      Int    @default(0)
 
   @@unique([userId, month])
+  @@index([userId])
+}
+
+// ==========================================
+// W08 SECTOR DAS: CHAT THREADS + MESSAGES (Phase B)
+// ==========================================
+model ChatThread {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ChatMessage[]
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String     @id @default(cuid())
+  threadId  String
+  thread    ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  // Denormalized owner so the scoped client can enforce userId without a join.
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      ChatRole
+  content   String     @db.Text
+  // Citation[] = { title, source?, url?, snippet? }. Always set in code ([] for user turns).
+  citations Json
+  createdAt DateTime   @default(now())
+
+  @@index([userId])
+  @@index([threadId])
+}
+
+// ==========================================
+// W08 SECTOR LEARN: PER-USER CASE PROGRESS (Phase C)
+// ==========================================
+// Distinct from UserAttempt (append-only history): a single evolving
+// "current step" row per (user, case), so it gets its own table + unique key.
+model CaseProgress {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caseId    String
+  case      ClinicalCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  stepIndex Int          @default(0)
+  updatedAt DateTime     @updatedAt
+
+  @@unique([userId, caseId])
   @@index([userId])
 }

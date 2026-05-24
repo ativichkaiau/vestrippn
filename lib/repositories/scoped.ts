@@ -28,6 +28,9 @@ const USER_SCOPED_MODELS = new Set<string>([
   "DocumentChunk",
   "UserAttempt",
   "UserUsage",
+  "ChatThread",
+  "ChatMessage",
+  "CaseProgress",
   // W05–W07 telemetry
   "IeltsModule",
   "Task",
