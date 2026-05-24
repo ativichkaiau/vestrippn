@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { chunkText } from "@/lib/das/chunk";
 import { embedTexts, toVectorLiteral, EmbeddingError } from "@/lib/das/embeddings";
 import { extractPdfText, PdfError } from "@/lib/das/pdf";
+import { extractDocxText, DocxError } from "@/lib/das/docx";
 import { getUsage } from "@/lib/das/usage";
 
 export const runtime = "nodejs";
@@ -13,14 +14,18 @@ export const maxDuration = 60;
 
 const MAX_TITLE = 300;
 const MAX_TEXT_CHARS = 1_000_000;
-const MAX_PDF_BYTES = 15 * 1024 * 1024;
+const MAX_FILE_BYTES = 15 * 1024 * 1024;
 const MAX_CHUNKS = 800;
+
+const DOCX_MIME =
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 interface ParsedInput {
   title: string;
   text: string;
-  sourceType: "pdf" | "text";
+  sourceType: "pdf" | "text" | "docx";
   originalUrl: string | null;
+  pages: number | null;
 }
 
 function bad(message: string, status = 400) {
@@ -32,8 +37,9 @@ async function parseInput(req: Request): Promise<ParsedInput | NextResponse> {
 
   let title = "";
   let text = "";
-  let sourceType: "pdf" | "text" = "text";
+  let sourceType: "pdf" | "text" | "docx" = "text";
   let originalUrl: string | null = null;
+  let pages: number | null = null;
 
   if (contentType.includes("multipart/form-data")) {
     const form = await req.formData();
@@ -42,12 +48,22 @@ async function parseInput(req: Request): Promise<ParsedInput | NextResponse> {
     const file = form.get("file");
 
     if (file && typeof file !== "string") {
-      if (file.size > MAX_PDF_BYTES) return bad("PDF exceeds 15MB limit", 413);
-      const isPdf =
-        file.type === "application/pdf" || file.name?.toLowerCase().endsWith(".pdf");
-      if (!isPdf) return bad("Uploaded file must be a PDF");
-      text = await extractPdfText(await file.arrayBuffer());
-      sourceType = "pdf";
+      if (file.size > MAX_FILE_BYTES) return bad("File exceeds 15MB limit", 413);
+      const name = file.name?.toLowerCase() ?? "";
+      const isPdf = file.type === "application/pdf" || name.endsWith(".pdf");
+      const isDocx = file.type === DOCX_MIME || name.endsWith(".docx");
+      const buffer = await file.arrayBuffer();
+      if (isPdf) {
+        const extract = await extractPdfText(buffer);
+        text = extract.text;
+        pages = extract.pages;
+        sourceType = "pdf";
+      } else if (isDocx) {
+        text = await extractDocxText(buffer);
+        sourceType = "docx";
+      } else {
+        return bad("Uploaded file must be a PDF or DOCX");
+      }
     } else {
       text = String(form.get("text") ?? "");
       sourceType = "text";
@@ -70,7 +86,7 @@ async function parseInput(req: Request): Promise<ParsedInput | NextResponse> {
   if (!text) return bad("No text content to ingest");
   if (text.length > MAX_TEXT_CHARS) return bad("Document too large", 413);
 
-  return { title, text, sourceType, originalUrl };
+  return { title, text, sourceType, originalUrl, pages };
 }
 
 export async function POST(req: Request) {
@@ -92,6 +108,7 @@ export async function POST(req: Request) {
     parsed = await parseInput(req);
   } catch (err) {
     if (err instanceof PdfError) return bad(err.message, err.status);
+    if (err instanceof DocxError) return bad(err.message, err.status);
     return bad("Failed to read request body");
   }
   if (parsed instanceof NextResponse) return parsed;
@@ -122,6 +139,8 @@ export async function POST(req: Request) {
         title: parsed.title,
         sourceType: parsed.sourceType,
         originalUrl: parsed.originalUrl,
+        pages: parsed.pages,
+        status: "ready",
         processedAt: new Date(),
       },
       select: { id: true },
@@ -158,6 +177,8 @@ export async function POST(req: Request) {
   const usage = await getUsage(userId);
   const res = NextResponse.json(
     {
+      sourceId: documentId,
+      status: "ready",
       documentId,
       chunks: chunks.length,
       embeddingTokens: totalTokens,

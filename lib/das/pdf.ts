@@ -14,7 +14,12 @@ export class PdfError extends Error {
   }
 }
 
-export async function extractPdfText(buffer: ArrayBuffer): Promise<string> {
+export interface PdfExtract {
+  text: string;
+  pages: number;
+}
+
+export async function extractPdfText(buffer: ArrayBuffer): Promise<PdfExtract> {
   let unpdf: typeof import("unpdf");
   try {
     unpdf = await import("unpdf");
@@ -24,8 +29,11 @@ export async function extractPdfText(buffer: ArrayBuffer): Promise<string> {
 
   try {
     const pdf = await unpdf.getDocumentProxy(new Uint8Array(buffer));
-    const { text } = await unpdf.extractText(pdf, { mergePages: true });
-    return (Array.isArray(text) ? text.join("\n") : text).trim();
+    const { text, totalPages } = await unpdf.extractText(pdf, { mergePages: true });
+    return {
+      text: (Array.isArray(text) ? text.join("\n") : text).trim(),
+      pages: typeof totalPages === "number" ? totalPages : pdf.numPages ?? 0,
+    };
   } catch (err) {
     throw new PdfError(
       `Failed to parse PDF: ${err instanceof Error ? err.message : "unknown error"}`,

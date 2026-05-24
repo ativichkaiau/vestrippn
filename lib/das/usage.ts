@@ -63,3 +63,14 @@ export async function recordEmbeddingTokens(
   });
   return stateFrom(row.embeddingTokens, monthlyBudget());
 }
+
+/** Atomically add chat tokens for the current month (metering only, no cap). */
+export async function recordChatTokens(userId: string, tokens: number): Promise<void> {
+  if (!tokens) return;
+  const month = currentMonth();
+  await prisma.userUsage.upsert({
+    where: { userId_month: { userId, month } },
+    update: { chatTokens: { increment: tokens } },
+    create: { userId, month, chatTokens: tokens },
+  });
+}
