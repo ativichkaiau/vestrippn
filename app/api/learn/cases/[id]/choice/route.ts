@@ -117,5 +117,7 @@ export async function POST(
     score,
     status,
     node: nodeView(choice.next, nextNode), // terminal node has empty choices
+    vitals: nextNode.vitals,
+    patientStatus: nextNode.patientStatus,
   });
 }

@@ -254,13 +254,24 @@ async function main() {
 
   // ---- Interactive branching cases ----
   for (const b of branchingCases) {
-    const { id, title, specialty, scenario, citations, summary, startNodeId, nodes } = b;
+    const { id, title, specialty, scenario, citations } = b;
     const data = {
       title,
       specialty,
       scenario,
       citations,
-      branches: { type: "branching", summary, startNodeId, startScore: 100, nodes },
+      branches: {
+        type: "branching",
+        summary: b.summary,
+        subtitle: b.subtitle,
+        difficulty: b.difficulty,
+        icon: b.icon,
+        patient: b.patient,
+        stages: b.stages,
+        startNodeId: b.startNodeId,
+        startScore: 100,
+        nodes: b.nodes,
+      },
     };
     await prisma.clinicalCase.upsert({ where: { id }, update: data, create: { id, ...data } });
   }

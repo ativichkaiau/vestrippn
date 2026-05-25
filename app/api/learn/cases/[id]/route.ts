@@ -52,7 +52,12 @@ export async function GET(
       id: found.id,
       title: found.title,
       type: "branching",
+      subtitle: bc.subtitle,
+      patient: bc.patient,
+      stages: bc.stages,
       node: nodeView(state.currentNodeId, node),
+      vitals: node.vitals,
+      patientStatus: node.patientStatus,
       score: state.score,
       status: state.status,
     });

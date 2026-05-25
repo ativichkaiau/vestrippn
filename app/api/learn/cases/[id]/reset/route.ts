@@ -50,6 +50,8 @@ export async function POST(
     id,
     type: "branching",
     node: nodeView(state.currentNodeId, node),
+    vitals: node.vitals,
+    patientStatus: node.patientStatus,
     score: state.score,
     status: state.status,
   });

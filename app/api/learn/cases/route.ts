@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { caseSummary, caseType } from "@/lib/learn/content";
+import { caseSummary, caseType, parseBranchingCase, patientLabel } from "@/lib/learn/content";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,12 +35,19 @@ export async function GET(req: Request) {
           (c.scenario.length > SUMMARY_LEN
             ? `${c.scenario.slice(0, SUMMARY_LEN).trimEnd()}…`
             : c.scenario);
+        const type = caseType(c.branches);
+        const bc = type === "branching" ? parseBranchingCase(c.branches) : null;
         return {
           id: c.id,
           title: c.title,
           specialty: c.specialty,
-          type: caseType(c.branches), // "linear" | "branching"
+          type, // "linear" | "branching"
           summary,
+          // optional enrich (absent => UI falls back)
+          patient: bc ? patientLabel(bc.patient) : undefined,
+          difficulty: bc?.difficulty,
+          stages: bc?.stages?.length,
+          icon: bc?.icon,
         };
       }),
     );

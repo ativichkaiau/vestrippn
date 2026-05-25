@@ -71,6 +71,33 @@ export function parseBranches(value: unknown): CaseBranches {
 
 export type CaseType = "linear" | "branching";
 export type ChoiceOutcome = "optimal" | "suboptimal" | "deadly";
+export type PatientStatus =
+  | "stable"
+  | "guarded"
+  | "worsening"
+  | "critical"
+  | "improving"
+  | "unstable";
+
+export interface Vital {
+  id: string;
+  label: string;
+  value: string | number;
+  unit?: string;
+  trend?: "up" | "down" | "flat";
+  state?: "normal" | "warning" | "critical";
+}
+export interface PatientInfo {
+  name: string;
+  age?: number;
+  sex?: string;
+  presentation?: string;
+  tags?: string[];
+}
+export interface Stage {
+  id: string;
+  label: string;
+}
 
 export interface BranchingChoice {
   id: string;
@@ -79,14 +106,26 @@ export interface BranchingChoice {
   scoreDelta: number; // applied to the run score (deadly is also forced fatal)
   feedback: string; // consequence shown after the choice
   next: string; // id of the node to advance to
+  icon?: string;
+  detail?: string;
 }
 export interface BranchingNode {
   content: string;
   choices: BranchingChoice[]; // empty when terminal
   end?: "survived" | "died"; // set on terminal nodes
+  stageId?: string;
+  stageLabel?: string;
+  prompt?: string;
+  patientStatus?: PatientStatus; // patient state on arriving at this node
+  vitals?: Vital[];
 }
 export interface BranchingCase {
   summary?: string;
+  subtitle?: string;
+  difficulty?: string;
+  icon?: string;
+  patient?: PatientInfo;
+  stages?: Stage[];
   startNodeId: string;
   startScore: number;
   nodes: Record<string, BranchingNode>;
@@ -96,7 +135,10 @@ export interface BranchingCase {
 export interface NodeView {
   id: string;
   content: string;
-  choices: { id: string; label: string }[];
+  prompt?: string;
+  stageId?: string;
+  stageLabel?: string;
+  choices: { id: string; label: string; icon?: string; detail?: string }[];
   end?: "survived" | "died";
 }
 
@@ -128,6 +170,71 @@ export function caseSummary(branches: unknown): string | undefined {
   return undefined;
 }
 
+const str = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
+
+const PATIENT_STATUSES: PatientStatus[] = [
+  "stable",
+  "guarded",
+  "worsening",
+  "critical",
+  "improving",
+  "unstable",
+];
+function toPatientStatus(v: unknown): PatientStatus | undefined {
+  return PATIENT_STATUSES.includes(v as PatientStatus) ? (v as PatientStatus) : undefined;
+}
+
+function toVitals(raw: unknown): Vital[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const vitals = raw
+    .filter((v): v is Record<string, unknown> => !!v && typeof v === "object")
+    .filter((v) => typeof v.id === "string" && typeof v.label === "string")
+    .map((v) => ({
+      id: v.id as string,
+      label: v.label as string,
+      value: (typeof v.value === "number" || typeof v.value === "string"
+        ? v.value
+        : "") as string | number,
+      unit: str(v.unit),
+      trend:
+        v.trend === "up" || v.trend === "down" || v.trend === "flat" ? v.trend : undefined,
+      state:
+        v.state === "normal" || v.state === "warning" || v.state === "critical"
+          ? v.state
+          : undefined,
+    }));
+  return vitals.length ? vitals : undefined;
+}
+
+function toPatient(raw: unknown): PatientInfo | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const p = raw as Record<string, unknown>;
+  if (typeof p.name !== "string") return undefined;
+  return {
+    name: p.name,
+    age: typeof p.age === "number" ? p.age : undefined,
+    sex: str(p.sex),
+    presentation: str(p.presentation),
+    tags: Array.isArray(p.tags) ? p.tags.filter((t): t is string => typeof t === "string") : undefined,
+  };
+}
+
+function toStages(raw: unknown): Stage[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const stages = raw
+    .filter((s): s is Record<string, unknown> => !!s && typeof s === "object")
+    .filter((s) => typeof s.id === "string" && typeof s.label === "string")
+    .map((s) => ({ id: s.id as string, label: s.label as string }));
+  return stages.length ? stages : undefined;
+}
+
+/** A short patient descriptor for the case list (derived from PatientInfo). */
+export function patientLabel(patient?: PatientInfo): string | undefined {
+  if (!patient) return undefined;
+  const demo = [patient.age, patient.sex].filter(Boolean).join(" ");
+  return [demo || patient.name, patient.presentation].filter(Boolean).join(" · ") || patient.name;
+}
+
 function toChoice(raw: unknown): BranchingChoice | null {
   if (!raw || typeof raw !== "object") return null;
   const c = raw as Record<string, unknown>;
@@ -146,7 +253,9 @@ function toChoice(raw: unknown): BranchingChoice | null {
     outcome,
     next: c.next,
     scoreDelta: typeof c.scoreDelta === "number" ? c.scoreDelta : 0,
-    feedback: typeof c.feedback === "string" ? c.feedback : "",
+    feedback: str(c.feedback) ?? "",
+    icon: str(c.icon),
+    detail: str(c.detail),
   };
 }
 
@@ -165,12 +274,26 @@ export function parseBranchingCase(branches: unknown): BranchingCase | null {
       ? n.choices.map(toChoice).filter((c): c is BranchingChoice => c !== null)
       : [];
     const end = n.end === "survived" || n.end === "died" ? n.end : undefined;
-    nodes[id] = { content: n.content, choices, end };
+    nodes[id] = {
+      content: n.content,
+      choices,
+      end,
+      prompt: str(n.prompt),
+      stageId: str(n.stageId),
+      stageLabel: str(n.stageLabel),
+      patientStatus: toPatientStatus(n.patientStatus),
+      vitals: toVitals(n.vitals),
+    };
   }
   if (!nodes[v.startNodeId]) return null;
 
   return {
-    summary: typeof v.summary === "string" ? v.summary : undefined,
+    summary: str(v.summary),
+    subtitle: str(v.subtitle),
+    difficulty: str(v.difficulty),
+    icon: str(v.icon),
+    patient: toPatient(v.patient),
+    stages: toStages(v.stages),
     startNodeId: v.startNodeId,
     startScore: typeof v.startScore === "number" ? v.startScore : 100,
     nodes,
@@ -181,7 +304,15 @@ export function nodeView(id: string, node: BranchingNode): NodeView {
   return {
     id,
     content: node.content,
-    choices: node.choices.map((c) => ({ id: c.id, label: c.label })),
+    prompt: node.prompt,
+    stageId: node.stageId,
+    stageLabel: node.stageLabel,
+    choices: node.choices.map((c) => ({
+      id: c.id,
+      label: c.label,
+      icon: c.icon,
+      detail: c.detail,
+    })),
     end: node.end,
   };
 }
