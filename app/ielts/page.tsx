@@ -175,7 +175,7 @@ export default function IELTSHub() {
                   <div className="w-14 h-14 shrink-0 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">📑</div>
                   <div className="flex-1 min-w-0">
                     <h2 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight">DAS</h2>
-                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">Document Assistant</p>
+                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">IELTS AI Chat</p>
                   </div>
                   <span className="text-neutral-300 dark:text-neutral-600 group-hover:text-purple-500 group-hover:translate-x-1 transition-all text-xl">→</span>
                 </Link>
@@ -187,7 +187,7 @@ export default function IELTSHub() {
                   <div className="w-14 h-14 shrink-0 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl shadow-sm transition-colors duration-700">🎯</div>
                   <div className="flex-1 min-w-0">
                     <h2 className="font-black text-[18px] lg:text-[20px] text-neutral-900 dark:text-white tracking-tight">Learn</h2>
-                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">Practice &amp; Clinical Cases</p>
+                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">IELTS Practice</p>
                   </div>
                   <span className="text-neutral-300 dark:text-neutral-600 group-hover:text-purple-500 group-hover:translate-x-1 transition-all text-xl">→</span>
                 </Link>
