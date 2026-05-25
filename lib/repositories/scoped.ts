@@ -19,6 +19,12 @@ import { prisma } from "@/lib/prisma";
  *
  * Raw SQL ($queryRaw/$executeRaw) bypasses this layer — vector writes/searches
  * must include userId explicitly (see app/api/das/ingest/route.ts).
+ *
+ * Typing note: Prisma's generated create input still REQUIRES userId at compile
+ * time (the runtime injection doesn't rewrite input types), so create call sites
+ * pass userId in `data`. The value is harmless to pass — the query hook below
+ * normalizes it to the scope owner, so a wrong/forgotten value can't write
+ * cross-tenant. Reads (where filters) are auto-injected and need no userId.
  */
 
 // Models that belong to a specific user. Must match Prisma model names.

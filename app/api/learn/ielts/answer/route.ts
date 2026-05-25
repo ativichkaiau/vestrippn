@@ -49,6 +49,7 @@ export async function POST(req: Request) {
   // Persist the attempt (scoped — userId forced by the data layer).
   await forUser(userId).userAttempt.create({
     data: {
+      userId,
       itemType: "ielts",
       itemId: questionId,
       response: { optionId },
