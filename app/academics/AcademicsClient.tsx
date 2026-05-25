@@ -45,14 +45,15 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const [isSafari, setIsSafari] = useState(false);
 
   // W08 clinical cases — live entry into /learn/cases
-  const [clinicalCases, setClinicalCases] = useState<{ id: string; title: string; summary: string }[]>([]);
+  type ClinicalCase = { id: string; title: string; specialty: string | null; summary: string };
+  const [clinicalCases, setClinicalCases] = useState<ClinicalCase[]>([]);
   const [clinicalLoading, setClinicalLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
         const r = await fetch('/api/learn/cases');
-        if (r.ok) setClinicalCases((await r.json()) as { id: string; title: string; summary: string }[]);
+        if (r.ok) setClinicalCases((await r.json()) as ClinicalCase[]);
       } catch {
         /* leave the fallback entry card */
       } finally {
@@ -485,6 +486,9 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               <div className="flex items-center gap-2 px-2">
                 <span className="w-1.5 h-4 bg-rose-500 rounded-full animate-pulse"></span>
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Clinical Cases</h3>
+                {!clinicalLoading && clinicalCases.length > 0 && (
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 uppercase tracking-widest">{clinicalCases.length} Systems</span>
+                )}
                 <Link href="/learn/cases" className="ml-auto text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 hover:translate-x-0.5 transition-transform">Open all →</Link>
               </div>
 
@@ -500,11 +504,16 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                       href="/learn/cases"
                       className="group bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-[15px] font-bold text-neutral-900 dark:text-white tracking-tight truncate">{c.title}</div>
-                        <span className="text-rose-400 group-hover:translate-x-1 transition-transform">→</span>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          {c.specialty && (
+                            <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">{c.specialty}</div>
+                          )}
+                          <div className="text-[15px] font-bold text-neutral-900 dark:text-white tracking-tight">{c.title}</div>
+                        </div>
+                        <span className="shrink-0 text-rose-400 group-hover:translate-x-1 transition-transform">→</span>
                       </div>
-                      <div className="mt-1 text-[12px] text-neutral-500 dark:text-neutral-400 line-clamp-2">{c.summary}</div>
+                      <div className="mt-1.5 text-[12px] text-neutral-500 dark:text-neutral-400 line-clamp-2">{c.summary}</div>
                     </Link>
                   ))
                 ) : (
