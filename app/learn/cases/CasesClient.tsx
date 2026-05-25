@@ -1,11 +1,23 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import CaseStepper from '@/components/w08/CaseStepper';
 
 type CaseSummary = { id: string; title: string; specialty: string | null; summary: string };
 type CaseStep = { id: string; label: string; content: string };
 type CaseDetail = { id: string; title: string; steps: CaseStep[]; currentStep: number };
+
+// Vivid palette — each specialty gets a stable hue (deterministic by name).
+const PALETTE = [
+  '#f43f5e', '#f59e0b', '#10b981', '#0ea5e9', '#8b5cf6',
+  '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1',
+];
+function colorFor(specialty: string | null): string | null {
+  if (!specialty) return null;
+  let h = 0;
+  for (let i = 0; i < specialty.length; i++) h = (h * 31 + specialty.charCodeAt(i)) >>> 0;
+  return PALETTE[h % PALETTE.length];
+}
 
 export default function CasesClient() {
   const [cases, setCases] = useState<CaseSummary[]>([]);
@@ -39,6 +51,8 @@ export default function CasesClient() {
     () => (specialty === 'all' ? cases : cases.filter((c) => c.specialty === specialty)),
     [cases, specialty],
   );
+
+  const activeColor = detail ? colorFor(cases.find((c) => c.id === detail.id)?.specialty ?? null) : null;
 
   const openCase = async (id: string) => {
     setOpening(true);
@@ -75,22 +89,30 @@ export default function CasesClient() {
         <h1 className="text-2xl font-black tracking-tight [font-family:var(--w08-font-display)]">Clinical Cases</h1>
         <p className="mt-1 text-sm text-[color:var(--w08-text-muted)]">Pick a case and work through it step by step.</p>
 
-        {/* Specialty filter */}
+        {/* Specialty filter — colour-coded */}
         {specialties.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-2">
-            {['all', ...specialties].map((s) => (
-              <button
-                key={s}
-                onClick={() => setSpecialty(s)}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold capitalize transition-colors duration-[var(--w08-motion-duration)] ${
-                  specialty === s
-                    ? 'bg-[var(--w08-accent-primary)] text-[color:var(--w08-accent-contrast)]'
-                    : 'border border-[color:var(--w08-border)] bg-[var(--w08-surface)] text-[color:var(--w08-text-muted)] hover:bg-[var(--w08-surface-raised)]'
-                }`}
-              >
-                {s === 'all' ? 'All' : s}
-              </button>
-            ))}
+            {['all', ...specialties].map((s) => {
+              const active = specialty === s;
+              const color = s === 'all' ? null : colorFor(s);
+              return (
+                <button
+                  key={s}
+                  onClick={() => setSpecialty(s)}
+                  style={active && color ? { backgroundColor: color, color: '#fff', borderColor: color } : undefined}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold capitalize transition-colors duration-[var(--w08-motion-duration)] ${
+                    active
+                      ? color
+                        ? ''
+                        : 'border-transparent bg-[var(--w08-accent-primary)] text-[color:var(--w08-accent-contrast)]'
+                      : 'border-[color:var(--w08-border)] bg-[var(--w08-surface)] text-[color:var(--w08-text-muted)] hover:bg-[var(--w08-surface-raised)]'
+                  }`}
+                >
+                  {color && !active && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />}
+                  {s === 'all' ? 'All' : s}
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -111,21 +133,35 @@ export default function CasesClient() {
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((c) => {
               const selected = detail?.id === c.id;
+              const color = colorFor(c.specialty);
               return (
                 <button
                   key={c.id}
                   onClick={() => openCase(c.id)}
+                  style={{
+                    borderLeftColor: color ?? undefined,
+                    borderLeftWidth: color ? '3px' : undefined,
+                    ...(selected && color ? { boxShadow: `0 0 0 1px ${color}` } : {}),
+                  }}
                   className={`group flex flex-col rounded-[var(--w08-radius)] border bg-[var(--w08-surface)] p-4 text-left shadow-[var(--w08-shadow)] transition-all duration-[var(--w08-motion-duration)] hover:-translate-y-0.5 hover:bg-[var(--w08-surface-raised)] ${
                     selected ? 'border-[color:var(--w08-accent-primary)]' : 'border-[color:var(--w08-border)]'
                   }`}
                 >
                   {c.specialty && (
-                    <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-[color:var(--w08-accent-primary)]">{c.specialty}</div>
+                    <span
+                      className="mb-1.5 inline-flex w-fit items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color: color ?? undefined, backgroundColor: color ? `${color}1a` : undefined }}
+                    >
+                      {c.specialty}
+                    </span>
                   )}
                   <div className="text-sm font-semibold text-[color:var(--w08-text)]">{c.title}</div>
                   <div className="mt-1 line-clamp-2 text-xs text-[color:var(--w08-text-muted)]">{c.summary}</div>
-                  <span className="mt-3 text-[11px] font-semibold text-[color:var(--w08-accent-primary)] opacity-0 transition-opacity group-hover:opacity-100">
-                    {selected ? 'Open ·' : 'Open case →'}
+                  <span
+                    className="mt-3 text-[11px] font-semibold opacity-0 transition-opacity group-hover:opacity-100"
+                    style={{ color: color ?? 'var(--w08-accent-primary)' }}
+                  >
+                    Open case →
                   </span>
                 </button>
               );
@@ -133,16 +169,22 @@ export default function CasesClient() {
           </div>
         )}
 
-        {/* Player */}
+        {/* Player — wrapper re-points --w08-accent-primary to the case's specialty
+            colour, so CaseStepper + the Next button pick it up via the contract. */}
         {detail && (
           <section
             ref={playerRef}
-            className="mt-8 scroll-mt-4 rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-6 shadow-[var(--w08-shadow)]"
+            style={activeColor ? ({ '--w08-accent-primary': activeColor, '--w08-focus-ring': activeColor, '--w08-accent-contrast': '#ffffff' } as CSSProperties) : undefined}
+            className="mt-8 scroll-mt-4 overflow-hidden rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] shadow-[var(--w08-shadow)]"
           >
-            <div className="mb-5 flex items-start justify-between gap-4">
+            {/* Coloured header band */}
+            <div
+              className="flex items-start justify-between gap-4 border-b border-[color:var(--w08-border)] px-6 py-5"
+              style={activeColor ? { backgroundColor: `${activeColor}14` } : undefined}
+            >
               <div>
                 <h2 className="text-lg font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">{detail.title}</h2>
-                <p className="mt-0.5 text-xs font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">
+                <p className="mt-0.5 text-xs font-bold uppercase tracking-widest" style={{ color: activeColor ?? 'var(--w08-text-muted)' }}>
                   Step {current + 1} of {stepCount}
                   {detail.steps[current]?.label ? ` · ${detail.steps[current].label}` : ''}
                 </p>
@@ -156,27 +198,29 @@ export default function CasesClient() {
               </button>
             </div>
 
-            <CaseStepper steps={detail.steps} current={current} onStep={goToStep} />
+            <div className="p-6">
+              <CaseStepper steps={detail.steps} current={current} onStep={goToStep} />
 
-            <div className="mt-6 min-h-40 whitespace-pre-line rounded-[var(--w08-radius)] bg-[var(--w08-surface-raised)] p-5 text-sm leading-relaxed text-[color:var(--w08-text)]">
-              {opening ? 'Loading…' : detail.steps[current]?.content || 'No content for this step.'}
-            </div>
+              <div className="mt-6 min-h-40 whitespace-pre-line rounded-[var(--w08-radius)] bg-[var(--w08-surface-raised)] p-5 text-sm leading-relaxed text-[color:var(--w08-text)]">
+                {opening ? 'Loading…' : detail.steps[current]?.content || 'No content for this step.'}
+              </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              <button
-                onClick={() => goToStep(current - 1)}
-                disabled={current === 0}
-                className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-bg)] px-4 py-2 text-sm font-semibold text-[color:var(--w08-text)] transition-opacity active:scale-95 disabled:opacity-40"
-              >
-                ← Prev
-              </button>
-              <button
-                onClick={() => goToStep(current + 1)}
-                disabled={current >= stepCount - 1}
-                className="rounded-[var(--w08-radius)] bg-[var(--w08-accent-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--w08-accent-contrast)] transition-opacity active:scale-95 disabled:opacity-40"
-              >
-                Next →
-              </button>
+              <div className="mt-4 flex items-center justify-between">
+                <button
+                  onClick={() => goToStep(current - 1)}
+                  disabled={current === 0}
+                  className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-bg)] px-4 py-2 text-sm font-semibold text-[color:var(--w08-text)] transition-opacity active:scale-95 disabled:opacity-40"
+                >
+                  ← Prev
+                </button>
+                <button
+                  onClick={() => goToStep(current + 1)}
+                  disabled={current >= stepCount - 1}
+                  className="rounded-[var(--w08-radius)] bg-[var(--w08-accent-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--w08-accent-contrast)] transition-opacity active:scale-95 disabled:opacity-40"
+                >
+                  Next →
+                </button>
+              </div>
             </div>
           </section>
         )}
