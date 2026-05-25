@@ -24,6 +24,7 @@ every primitive with zero component edits.
 | `--w08-text-muted` | Secondary / supporting text |
 | `--w08-accent-primary` | Primary brand accent (buttons, active state) |
 | `--w08-accent-secondary` | Secondary accent (chrome / pastel / green, per livery) |
+| `--w08-accent-tertiary` | Optional third accent / sub-color (Monza: amber-gold, per livery) |
 | `--w08-accent-contrast` | Text/icon color that sits **on** an accent fill |
 | `--w08-success` | Positive state (correct answer, completed) |
 | `--w08-danger` | Negative state (wrong answer, error) |
