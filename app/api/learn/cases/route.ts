@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { parseBranches } from "@/lib/learn/content";
+import { caseSummary, caseType } from "@/lib/learn/content";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,11 +31,17 @@ export async function GET(req: Request) {
     return NextResponse.json(
       cases.map((c) => {
         const summary =
-          parseBranches(c.branches).summary ??
+          caseSummary(c.branches) ??
           (c.scenario.length > SUMMARY_LEN
             ? `${c.scenario.slice(0, SUMMARY_LEN).trimEnd()}…`
             : c.scenario);
-        return { id: c.id, title: c.title, specialty: c.specialty, summary };
+        return {
+          id: c.id,
+          title: c.title,
+          specialty: c.specialty,
+          type: caseType(c.branches), // "linear" | "branching"
+          summary,
+        };
       }),
     );
   } catch (err) {

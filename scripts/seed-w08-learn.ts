@@ -9,6 +9,7 @@
  * Run:  VESTRIPPN_PRISMA_DATABASE_URL=... npx tsx scripts/seed-w08-learn.ts
  */
 import { prisma } from "../lib/prisma";
+import { branchingCases } from "./branching-cases";
 
 const FIVE_STEP = (
   s: [string, string, string, string, string],
@@ -236,6 +237,19 @@ async function main() {
   for (const c of cases) {
     const { id, ...rest } = c;
     await prisma.clinicalCase.upsert({ where: { id }, update: rest, create: { id, ...rest } });
+  }
+
+  // ---- Interactive branching cases ----
+  for (const b of branchingCases) {
+    const { id, title, specialty, scenario, citations, summary, startNodeId, nodes } = b;
+    const data = {
+      title,
+      specialty,
+      scenario,
+      citations,
+      branches: { type: "branching", summary, startNodeId, startScore: 100, nodes },
+    };
+    await prisma.clinicalCase.upsert({ where: { id }, update: data, create: { id, ...data } });
   }
 
   const [iCount, cCount] = await Promise.all([

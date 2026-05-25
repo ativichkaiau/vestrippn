@@ -375,7 +375,9 @@ model CaseProgress {
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   caseId    String
   case      ClinicalCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  stepIndex Int          @default(0)
+  stepIndex Int          @default(0) // linear cases: current step
+  // branching cases: run state { currentNodeId, score, status, path } (CaseRunState)
+  state     Json?
   updatedAt DateTime     @updatedAt
 
   @@unique([userId, caseId])
