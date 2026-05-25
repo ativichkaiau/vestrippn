@@ -184,24 +184,25 @@ function toPatientStatus(v: unknown): PatientStatus | undefined {
   return PATIENT_STATUSES.includes(v as PatientStatus) ? (v as PatientStatus) : undefined;
 }
 
+function toTrend(v: unknown): Vital["trend"] {
+  return v === "up" || v === "down" || v === "flat" ? v : undefined;
+}
+function toVState(v: unknown): Vital["state"] {
+  return v === "normal" || v === "warning" || v === "critical" ? v : undefined;
+}
+
 function toVitals(raw: unknown): Vital[] | undefined {
   if (!Array.isArray(raw)) return undefined;
-  const vitals = raw
+  const vitals: Vital[] = raw
     .filter((v): v is Record<string, unknown> => !!v && typeof v === "object")
     .filter((v) => typeof v.id === "string" && typeof v.label === "string")
-    .map((v) => ({
+    .map((v): Vital => ({
       id: v.id as string,
       label: v.label as string,
-      value: (typeof v.value === "number" || typeof v.value === "string"
-        ? v.value
-        : "") as string | number,
+      value: typeof v.value === "number" || typeof v.value === "string" ? v.value : "",
       unit: str(v.unit),
-      trend:
-        v.trend === "up" || v.trend === "down" || v.trend === "flat" ? v.trend : undefined,
-      state:
-        v.state === "normal" || v.state === "warning" || v.state === "critical"
-          ? v.state
-          : undefined,
+      trend: toTrend(v.trend),
+      state: toVState(v.state),
     }));
   return vitals.length ? vitals : undefined;
 }
