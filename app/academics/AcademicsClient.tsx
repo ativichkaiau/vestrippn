@@ -8,7 +8,6 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
 import { syncAnkiData } from '@/app/actions';
-import CaseStepper from '@/components/w08/CaseStepper';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
@@ -44,6 +43,23 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const [bridge, setBridge] = useState<'idle' | 'syncing' | 'online' | 'offline'>('idle');
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [isSafari, setIsSafari] = useState(false);
+
+  // W08 clinical cases — live entry into /learn/cases
+  const [clinicalCases, setClinicalCases] = useState<{ id: string; title: string; summary: string }[]>([]);
+  const [clinicalLoading, setClinicalLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/learn/cases');
+        if (r.ok) setClinicalCases((await r.json()) as { id: string; title: string; summary: string }[]);
+      } catch {
+        /* leave the fallback entry card */
+      } finally {
+        setClinicalLoading(false);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -464,47 +480,46 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               </motion.div>
             </div>
 
-            {/* SECTOR 2.6: CLINICAL CASES (W08) */}
+            {/* SECTOR 2.6: CLINICAL CASES (W08) — live entry into /learn/cases */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 px-2">
                 <span className="w-1.5 h-4 bg-rose-500 rounded-full animate-pulse"></span>
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Clinical Cases</h3>
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 uppercase tracking-widest">Phase C</span>
+                <Link href="/learn/cases" className="ml-auto text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 hover:translate-x-0.5 transition-transform">Open all →</Link>
               </div>
 
-              {/* Case browser placeholder */}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {[1, 2, 3].map((n) => (
-                  <div
-                    key={n}
-                    className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700"
+                {clinicalLoading ? (
+                  [1, 2, 3].map((n) => (
+                    <div key={n} className="h-[92px] rounded-[24px] bg-black/5 dark:bg-white/5 animate-pulse" />
+                  ))
+                ) : clinicalCases.length > 0 ? (
+                  clinicalCases.slice(0, 6).map((c) => (
+                    <Link
+                      key={c.id}
+                      href="/learn/cases"
+                      className="group bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[15px] font-bold text-neutral-900 dark:text-white tracking-tight truncate">{c.title}</div>
+                        <span className="text-rose-400 group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                      <div className="mt-1 text-[12px] text-neutral-500 dark:text-neutral-400 line-clamp-2">{c.summary}</div>
+                    </Link>
+                  ))
+                ) : (
+                  <Link
+                    href="/learn/cases"
+                    className="group sm:col-span-2 lg:col-span-3 flex items-center justify-between gap-3 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
                   >
-                    <div className="text-[15px] font-bold text-neutral-900 dark:text-white tracking-tight">Case {n}</div>
-                    <div className="mt-1 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Awaiting Phase C content</div>
-                  </div>
-                ))}
+                    <div>
+                      <div className="text-[15px] font-bold text-neutral-900 dark:text-white tracking-tight">Browse Clinical Cases</div>
+                      <div className="mt-1 text-[12px] text-neutral-500 dark:text-neutral-400">Step through interactive cases →</div>
+                    </div>
+                    <span className="text-2xl group-hover:translate-x-1 transition-transform">⚕️</span>
+                  </Link>
+                )}
               </div>
-
-              {/* Case player placeholder — uses the W08 CaseStepper primitive */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700"
-              >
-                <CaseStepper
-                  steps={[
-                    { id: 'presentation', label: 'Presentation' },
-                    { id: 'history', label: 'History' },
-                    { id: 'exam', label: 'Examination' },
-                    { id: 'investigations', label: 'Investigations' },
-                    { id: 'diagnosis', label: 'Diagnosis' },
-                  ]}
-                />
-                <div className="mt-6 grid min-h-40 place-items-center rounded-[24px] bg-black/5 dark:bg-white/5 text-[13px] text-neutral-400 dark:text-neutral-500">
-                  Case player surface
-                </div>
-              </motion.div>
             </div>
 
             {/* SECTOR 2.5: INTERACTIVE CODEX — SELF-BUILT STUDY ENGINES */}
