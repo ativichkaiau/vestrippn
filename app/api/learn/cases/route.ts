@@ -8,8 +8,10 @@ export const dynamic = "force-dynamic";
 const SUMMARY_LEN = 180;
 
 /**
- * GET /api/learn/cases[?specialty=…] -> [{ id, title, specialty, summary }]
- * `specialty` lets the browser group/feature cases by system.
+ * GET /api/learn/cases[?specialty=…]
+ * -> [{ id, title, specialty, type, summary, patient?, difficulty?, stages?, icon?, tags? }]
+ * `specialty` lets the browser group/feature cases by system; `tags` carries
+ * badges like "Rare"; `stages` is the decision-layer count.
  * ClinicalCase is a shared bank (no userId); auth still required.
  */
 export async function GET(req: Request) {
@@ -41,8 +43,9 @@ export async function GET(req: Request) {
           // optional enrich (absent => UI falls back)
           patient: bc ? patientLabel(bc.patient) : undefined,
           difficulty: bc?.difficulty,
-          stages: bc?.stages?.length,
+          stages: bc?.stages?.length, // number of decision layers
           icon: bc?.icon,
+          tags: bc?.patient?.tags, // e.g. ["Rare", ...] for grid badges
         };
       }),
     );
