@@ -6,6 +6,13 @@
 */
 @variant dark (&:where(.dark, .dark *));
 
+/* Glassier surfaces app-wide — saturate any backdrop-blurred element so glass
+   panels pick up the colorful atmosphere behind them. Zero specificity (:where)
+   means explicit backdrop-saturate-* utilities still win where set. */
+*:where([class*="backdrop-blur"]) {
+  --tw-backdrop-saturate: saturate(1.4);
+}
+
 @layer base {
   :root {
     /* LIGHT MODE (Pristine White) */
