@@ -71,14 +71,16 @@ export async function POST(req: Request) {
     threadId = thread.id;
   } else {
     const thread = await db.chatThread.create({
-      data: { title: lastUser.content.slice(0, 80) },
+      data: { userId, title: lastUser.content.slice(0, 80) },
     });
     threadId = thread.id;
   }
 
   // Persist the incoming user turn before we start generating.
+  // (userId is also normalized to the scope owner by the scoped client; it is
+  // present here only because Prisma's create input type requires it.)
   await db.chatMessage.create({
-    data: { threadId, role: "user", content: lastUser.content, citations: [] },
+    data: { userId, threadId, role: "user", content: lastUser.content, citations: [] },
   });
 
   const assistantId = randomUUID();
@@ -117,6 +119,7 @@ export async function POST(req: Request) {
           db.chatMessage.create({
             data: {
               id: assistantId,
+              userId,
               threadId,
               role: "assistant",
               content: full,

@@ -15,14 +15,15 @@ import type { RetrievedChunk } from "@/lib/das/retrieval";
  */
 
 const MODEL = process.env.DAS_CHAT_MODEL || "claude-opus-4-7";
-const EFFORT = (process.env.DAS_CHAT_EFFORT || "medium") as
-  | "low"
-  | "medium"
-  | "high"
-  | "max";
-const THINKING = process.env.DAS_CHAT_THINKING || "adaptive"; // "adaptive" | "disabled"
 const MAX_TOKENS = Number(process.env.DAS_CHAT_MAX_TOKENS) || 8192;
 const SNIPPET_LEN = 240;
+
+// NOTE: adaptive thinking + output_config.effort are intentionally NOT sent.
+// The pinned @anthropic-ai/sdk (0.70.x) predates Opus 4.7 and only types
+// thinking as 'enabled' | 'disabled'. claude-opus-4-7 runs with thinking off by
+// default, so the basic request below is correct on this SDK. To enable
+// adaptive thinking / effort, bump the SDK to an Opus 4.7-capable release and
+// add `thinking: { type: "adaptive" }` + `output_config: { effort }` here.
 
 // Matches components/w08/CitationPopover.tsx Citation type.
 export interface Citation {
@@ -96,9 +97,6 @@ export function createChatStream(history: IncomingMessage[], contextText: string
     system: [
       { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
     ],
-    thinking:
-      THINKING === "disabled" ? { type: "disabled" } : { type: "adaptive" },
-    output_config: { effort: EFFORT },
     messages,
   });
 }
