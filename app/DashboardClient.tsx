@@ -203,8 +203,14 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-3 py-1 sm:py-1.5 rounded-[12px] shadow-sm border border-black/5 leading-none transition-colors duration-700">
                     ///AMG
                   </span>
-                  <span className="text-[#00A598] drop-shadow-[0_0_15px_rgba(0,165,152,0.3)] dark:drop-shadow-[0_0_20px_rgba(0,165,152,0.5)] transition-all duration-700">
-                    W07 Hybrid
+                  <span className="transition-all duration-700">
+                    <span className="text-[#00A598] drop-shadow-[0_0_15px_rgba(0,165,152,0.3)] dark:drop-shadow-[0_0_20px_rgba(0,165,152,0.5)]">W08</span>{' '}
+                    <span
+                      className="bg-clip-text text-transparent whitespace-nowrap drop-shadow-[0_0_18px_rgba(99,102,241,0.35)]"
+                      style={{ backgroundImage: 'linear-gradient(120deg, #14b8a6 0%, #0ea5e9 35%, #6366f1 70%, #d946ef 100%)' }}
+                    >
+                      EQ Power+
+                    </span>
                   </span>
                 </div>
               </h1>
@@ -443,7 +449,15 @@ function IntroOverlay({ cycle }: { cycle: string }) {
           transition={{ delay: 2.3, duration: 0.5 }}
         >
           <span className="italic text-black bg-white px-3 py-1 rounded-[10px] tracking-tight">///AMG</span>
-          <span className="text-[#00A598]">W07 Hybrid</span>
+          <span>
+            <span className="text-[#00A598]">W08</span>{' '}
+            <span
+              className="bg-clip-text text-transparent whitespace-nowrap"
+              style={{ backgroundImage: 'linear-gradient(120deg, #14b8a6 0%, #0ea5e9 35%, #6366f1 70%, #d946ef 100%)' }}
+            >
+              EQ Power+
+            </span>
+          </span>
         </motion.div>
 
         <motion.div
