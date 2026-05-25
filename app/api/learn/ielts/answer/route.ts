@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { resolveUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import { forUser } from "@/lib/repositories/scoped";
 import { parseAnswerKey } from "@/lib/learn/content";
@@ -13,8 +13,7 @@ export const dynamic = "force-dynamic";
  * Grading is server-side; the attempt is persisted per user (append-only).
  */
 export async function POST(req: Request) {
-  const session = await auth();
-  const userId = session?.user?.id;
+  const userId = await resolveUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await req.json().catch(() => null)) as {

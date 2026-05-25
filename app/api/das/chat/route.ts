@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { auth } from "@/auth";
+import { resolveUserId } from "@/lib/auth/owner";
 import { forUser } from "@/lib/repositories/scoped";
 import { retrieveChunks } from "@/lib/das/retrieval";
 import { buildContext, createChatStream, type IncomingMessage } from "@/lib/das/llm";
@@ -33,8 +33,7 @@ function sse(obj: unknown): Uint8Array {
  *   { type: "error", error }
  */
 export async function POST(req: Request) {
-  const session = await auth();
-  const userId = session?.user?.id;
+  const userId = await resolveUserId();
   if (!userId) return bad("Unauthorized", 401);
 
   const body = (await req.json().catch(() => null)) as {

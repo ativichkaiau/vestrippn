@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { resolveUserId } from "@/lib/auth/owner";
 import { forUser } from "@/lib/repositories/scoped";
 
 export const runtime = "nodejs";
@@ -10,8 +10,7 @@ export const dynamic = "force-dynamic";
  * -> [{ id, name, status, pages?, addedAt }]  (current user's documents)
  */
 export async function GET() {
-  const session = await auth();
-  const userId = session?.user?.id;
+  const userId = await resolveUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {

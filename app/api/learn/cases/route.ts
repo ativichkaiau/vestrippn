@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { caseSummary, caseType, parseBranchingCase, patientLabel } from "@/lib/learn/content";
 
@@ -14,11 +13,7 @@ const SUMMARY_LEN = 180;
  * ClinicalCase is a shared bank (no userId); auth still required.
  */
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  // Shared content bank — public read (sign-in skipped).
   const specialty = new URL(req.url).searchParams.get("specialty")?.trim() || null;
 
   try {

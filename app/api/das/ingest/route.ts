@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { auth } from "@/auth";
+import { resolveUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import { chunkText } from "@/lib/das/chunk";
 import { embedTexts, toVectorLiteral, EmbeddingError } from "@/lib/das/embeddings";
@@ -90,8 +90,7 @@ async function parseInput(req: Request): Promise<ParsedInput | NextResponse> {
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  const userId = session?.user?.id;
+  const userId = await resolveUserId();
   if (!userId) return bad("Unauthorized", 401);
 
   // Hard budget gate (429 once the month is at/over 100%).

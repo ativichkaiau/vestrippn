@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { parseAnswerKey } from "@/lib/learn/content";
 
@@ -17,11 +16,7 @@ type Section = (typeof SECTIONS)[number];
  * auth is still required.
  */
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  // Shared content bank — public read (sign-in skipped).
   const sectionParam = new URL(req.url).searchParams.get("section");
   if (sectionParam && !SECTIONS.includes(sectionParam as Section)) {
     return NextResponse.json({ error: "Invalid section" }, { status: 400 });
