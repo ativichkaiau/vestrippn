@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { forUser } from "@/lib/repositories/scoped";
@@ -89,11 +90,13 @@ export async function POST(
   };
 
   // Persist run state (base prisma — scoped client forbids upsert) + log the choice.
+  // Cast: a typed object isn't structurally assignable to Prisma's Json input.
+  const stateJson = newState as unknown as Prisma.InputJsonValue;
   await Promise.all([
     prisma.caseProgress.upsert({
       where: { userId_caseId: { userId, caseId: id } },
-      update: { state: newState },
-      create: { userId, caseId: id, state: newState },
+      update: { state: stateJson },
+      create: { userId, caseId: id, state: stateJson },
     }),
     forUser(userId).userAttempt.create({
       data: {

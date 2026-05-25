@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -37,10 +38,11 @@ export async function POST(
   if (!bc) return NextResponse.json({ error: "Case is misconfigured" }, { status: 422 });
 
   const state = initRunState(bc);
+  const stateJson = state as unknown as Prisma.InputJsonValue;
   await prisma.caseProgress.upsert({
     where: { userId_caseId: { userId, caseId: id } },
-    update: { state },
-    create: { userId, caseId: id, state },
+    update: { state: stateJson },
+    create: { userId, caseId: id, state: stateJson },
   });
 
   const node = bc.nodes[state.currentNodeId];
