@@ -8,6 +8,7 @@
  *
  * Run:  VESTRIPPN_PRISMA_DATABASE_URL=... npx tsx scripts/seed-w08-learn.ts
  */
+import "dotenv/config"; // loads .env (repo root) so the URL doesn't need exporting
 import { prisma } from "../lib/prisma";
 import { branchingCases } from "./branching-cases";
 
@@ -22,6 +23,18 @@ const FIVE_STEP = (
 ];
 
 async function main() {
+  if (!process.env.VESTRIPPN_PRISMA_DATABASE_URL) {
+    console.error(
+      "\nVESTRIPPN_PRISMA_DATABASE_URL is not set — cannot connect.\n" +
+        "Fix it one of two ways:\n" +
+        '  1) Create a .env file in the repo root with one line:\n' +
+        '       VESTRIPPN_PRISMA_DATABASE_URL="postgresql://USER:PASS@HOST:5432/DB?sslmode=require"\n' +
+        "     then: npx tsx scripts/seed-w08-learn.ts\n" +
+        "  2) Or inline: VESTRIPPN_PRISMA_DATABASE_URL='postgresql://…' npx tsx scripts/seed-w08-learn.ts\n",
+    );
+    process.exit(1);
+  }
+
   // ---- IELTS items (answerKey shape: { options, correctId, explanation? }) ----
   const ielts = [
     {
