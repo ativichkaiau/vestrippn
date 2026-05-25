@@ -1,662 +1,861 @@
 /**
- * W08 — 10 interactive ("choose-your-path") clinical cases, enriched for the
- * rich player UI (patient banner, vitals, decision-path stages, status).
+ * W08 — interactive ("choose-your-path") clinical cases.
  *
- * ⚠️ PLACEHOLDER TEACHING CONTENT — drafted for the engine; every "deadly"
+ * ⚠️ PLACEHOLDER TEACHING CONTENT — drafted for the engine. Every "deadly"
  * pathway and all vital signs MUST be clinically reviewed before production use.
  *
- * Shape mirrors lib/learn/content.ts (BranchingCase). The seed wraps each entry
- * in { type:"branching", startScore:100, ... } for ClinicalCase.branches.
- * Every field beyond the core graph is optional — the UI degrades gracefully.
+ * Depth scales with difficulty: Easy = 4 layers, Medium = 5, Hard = 6.
+ * Each layer is a decision point (optimal / suboptimal / deadly). `chain()`
+ * auto-wires the graph: optimal/suboptimal advance to the next layer (or
+ * survival on the last); deadly is always fatal. Shape mirrors
+ * lib/learn/content.ts (BranchingCase); the seed wraps it as branches JSON.
  */
 
 type Outcome = "optimal" | "suboptimal" | "deadly";
 type Trend = "up" | "down" | "flat";
 type VState = "normal" | "warning" | "critical";
 type PatientStatus =
-  | "stable"
-  | "guarded"
-  | "worsening"
-  | "critical"
-  | "improving"
-  | "unstable";
+  | "stable" | "guarded" | "worsening" | "critical" | "improving" | "unstable";
 
 interface Vital {
-  id: string;
-  label: string;
-  value: string | number;
-  unit?: string;
-  trend?: Trend;
-  state?: VState;
+  id: string; label: string; value: string | number;
+  unit?: string; trend?: Trend; state?: VState;
 }
 interface Choice {
-  id: string;
-  label: string;
-  outcome: Outcome;
-  scoreDelta: number;
-  feedback: string;
-  next: string;
-  icon?: string;
-  detail?: string;
+  id: string; label: string; outcome: Outcome;
+  scoreDelta: number; feedback: string; next: string; icon?: string;
 }
 interface Node {
-  content: string;
-  prompt?: string;
-  stageId?: string;
-  stageLabel?: string;
-  patientStatus?: PatientStatus;
-  vitals?: Vital[];
-  choices?: Choice[];
-  end?: "survived" | "died";
+  content: string; prompt?: string; stageId?: string; stageLabel?: string;
+  patientStatus?: PatientStatus; vitals?: Vital[];
+  choices?: Choice[]; end?: "survived" | "died";
 }
 export interface BranchingCaseSeed {
-  id: string;
-  title: string;
-  specialty: string;
-  scenario: string;
-  citations: string[];
-  summary: string;
-  subtitle: string;
-  difficulty: "Easy" | "Moderate" | "Hard";
-  icon: string;
+  id: string; title: string; specialty: string; scenario: string;
+  citations: string[]; summary: string; subtitle: string;
+  difficulty: "Easy" | "Medium" | "Hard"; icon: string;
   patient: { name: string; age?: number; sex?: string; presentation?: string; tags?: string[] };
   stages: { id: string; label: string }[];
   startNodeId: string;
   nodes: Record<string, Node>;
 }
 
-// --- compact builders ---
-const vit = (id: string, label: string, value: string | number, unit?: string, trend?: Trend, state?: VState): Vital =>
+// vital builder
+const v = (id: string, label: string, value: string | number, unit?: string, trend?: Trend, state?: VState): Vital =>
   ({ id, label, value, unit, trend, state });
-const ch = (
-  id: string,
-  label: string,
-  outcome: Outcome,
-  scoreDelta: number,
-  feedback: string,
-  next: string,
-  icon?: string,
-  detail?: string,
-): Choice => ({ id, label, outcome, scoreDelta, feedback, next, icon, detail });
-const survived = (content: string, vitals?: Vital[]): Node =>
-  ({ content, end: "survived", patientStatus: "improving", vitals });
-const died = (content: string): Node => ({ content, end: "died", patientStatus: "critical" });
-const DIED = died("The patient deteriorates into cardiac arrest. Review the decision points and try again.");
+
+// choice spec tuple: [label, feedback, icon?]
+type CS = [string, string, string?];
+interface LayerSpec {
+  stage: string; prompt: string; content: string;
+  status: PatientStatus; vitals: Vital[];
+  optimal: CS; suboptimal: CS; deadly: CS;
+}
+
+// Builds an N-layer graph + decision-path stages + terminals from layer specs.
+function chain(
+  layers: LayerSpec[],
+  ends: { survived: string; died: string },
+): Pick<BranchingCaseSeed, "stages" | "startNodeId" | "nodes"> {
+  const nodes: Record<string, Node> = {};
+  const stages = layers.map((l, i) => ({ id: `s${i + 1}`, label: l.stage }));
+  layers.forEach((l, i) => {
+    const next = i === layers.length - 1 ? "survived" : `n${i + 2}`;
+    nodes[`n${i + 1}`] = {
+      stageId: `s${i + 1}`,
+      stageLabel: l.stage,
+      prompt: l.prompt,
+      content: l.content,
+      patientStatus: l.status,
+      vitals: l.vitals,
+      choices: [
+        { id: "a", label: l.optimal[0], outcome: "optimal", scoreDelta: 0, feedback: l.optimal[1], next, icon: l.optimal[2] },
+        { id: "b", label: l.suboptimal[0], outcome: "suboptimal", scoreDelta: -15, feedback: l.suboptimal[1], next, icon: l.suboptimal[2] },
+        { id: "c", label: l.deadly[0], outcome: "deadly", scoreDelta: -100, feedback: l.deadly[1], next: "died", icon: l.deadly[2] },
+      ],
+    };
+  });
+  nodes.survived = { content: ends.survived, end: "survived", patientStatus: "improving" };
+  nodes.died = { content: ends.died, end: "died", patientStatus: "critical" };
+  return { stages, startNodeId: "n1", nodes };
+}
+
+type CaseMeta = Omit<BranchingCaseSeed, "stages" | "startNodeId" | "nodes">;
+function bcase(meta: CaseMeta, layers: LayerSpec[], ends: { survived: string; died: string }): BranchingCaseSeed {
+  return { ...meta, ...chain(layers, ends) };
+}
+
+const DIED = "The patient deteriorates and dies. Review the decision points and try again.";
 
 export const branchingCases: BranchingCaseSeed[] = [
-  {
-    id: "bcase-anaphylaxis",
-    title: "Anaphylaxis at a restaurant",
-    specialty: "Respiratory System",
-    scenario:
-      "A 24-year-old collapses minutes after eating peanuts — facial swelling, urticaria, wheeze, stridor, BP 78/40.",
-    citations: ["Resuscitation Council UK — Anaphylaxis Guidelines"],
-    summary: "Manage acute anaphylaxis under time pressure.",
-    subtitle: "Acute airway and circulatory compromise",
-    difficulty: "Moderate",
-    icon: "🫁",
-    patient: { name: "Mia", age: 24, sex: "F", presentation: "Collapse after eating peanuts", tags: ["Allergy", "Airway", "Shock"] },
-    stages: [
-      { id: "resus", label: "Immediate Resus" },
-      { id: "stabilise", label: "Stabilisation" },
-    ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "resus",
-        stageLabel: "Immediate Resus",
-        prompt: "Choose your immediate priority",
-        content: "She is stridulous and hypotensive.",
-        patientStatus: "critical",
-        vitals: [
-          vit("hr", "Heart rate", 124, "bpm", "up", "critical"),
-          vit("bp", "Blood pressure", "78/40", "mmHg", "down", "critical"),
-          vit("spo2", "SpO₂", 88, "%", "down", "critical"),
-        ],
-        choices: [
-          ch("a", "Give 0.5 mg IM adrenaline (1:1000)", "optimal", 0, "Correct — IM adrenaline is first-line and reverses airway and circulatory compromise.", "n2", "💉", "Anterolateral thigh"),
-          ch("b", "Give IV antihistamine and steroid first", "suboptimal", -20, "Adjuncts, not first-line — you've lost critical minutes.", "n2", "💊"),
-          ch("c", "Give 0.5 mg IV adrenaline bolus (1:1000)", "deadly", -100, "Undiluted IV adrenaline bolus causes a malignant arrhythmia and arrest.", "died", "⚠️"),
-        ],
-      },
-      n2: {
-        stageId: "stabilise",
-        stageLabel: "Stabilisation",
-        prompt: "She remains hypotensive — next step",
-        content: "After IM adrenaline she is still hypotensive.",
-        patientStatus: "guarded",
-        vitals: [
-          vit("hr", "Heart rate", 110, "bpm", "down", "warning"),
-          vit("bp", "Blood pressure", "92/58", "mmHg", "up", "warning"),
-          vit("spo2", "SpO₂", 94, "%", "up", "warning"),
-        ],
-        choices: [
-          ch("a", "O₂, IV fluid bolus, repeat IM adrenaline at 5 min", "optimal", 0, "Correct — supportive resuscitation plus repeat dosing stabilises her.", "survived", "🧪"),
-          ch("b", "Sit her fully upright to ease breathing", "suboptimal", -20, "Sitting a hypotensive patient up can precipitate collapse — lay her flat, legs raised.", "survived", "🪑"),
-          ch("c", "Withhold further adrenaline and observe", "deadly", -100, "Under-treated anaphylaxis progresses to arrest.", "died", "🚫"),
-        ],
-      },
-      survived: survived(
-        "She stabilises, is observed, and discharged with an adrenaline auto-injector and allergy referral.",
-        [vit("hr", "Heart rate", 88, "bpm", "flat", "normal"), vit("bp", "Blood pressure", "114/72", "mmHg", "flat", "normal"), vit("spo2", "SpO₂", 98, "%", "flat", "normal")],
-      ),
-      died: DIED,
+  // ===================== EMERGENCIES (deepened) =====================
+  bcase(
+    {
+      id: "bcase-anaphylaxis", title: "Anaphylaxis at a restaurant", specialty: "Respiratory System",
+      scenario: "A 24-year-old collapses minutes after eating peanuts — facial swelling, wheeze, stridor, BP 78/40.",
+      citations: ["Resuscitation Council UK — Anaphylaxis"], summary: "Manage acute anaphylaxis under time pressure.",
+      subtitle: "Acute airway and circulatory compromise", difficulty: "Medium", icon: "🫁",
+      patient: { name: "Mia", age: 24, sex: "F", presentation: "Collapse after eating peanuts", tags: ["Allergy", "Airway", "Shock"] },
     },
-  },
-  {
-    id: "bcase-septic-shock",
-    title: "Septic shock from pneumonia",
-    specialty: "Microbiology and Parasitology",
-    scenario: "A 70-year-old with a productive cough is confused, febrile, tachycardic, BP 86/50, lactate 4.2.",
-    citations: ["Surviving Sepsis Campaign 2021", "NICE NG51"],
-    summary: "Apply the Sepsis Six within the first hour.",
-    subtitle: "Time-critical sepsis resuscitation",
-    difficulty: "Moderate",
-    icon: "🦠",
-    patient: { name: "Arthur", age: 70, sex: "M", presentation: "Confusion, fever, productive cough", tags: ["Sepsis", "Shock"] },
-    stages: [
-      { id: "sepsis6", label: "Sepsis Six" },
-      { id: "escalate", label: "Escalation" },
+    [
+      { stage: "Recognition", prompt: "What is your first action?", content: "She is stridulous, urticarial, and hypotensive.", status: "critical",
+        vitals: [v("hr", "HR", 124, "bpm", "up", "critical"), v("bp", "BP", "78/40", "mmHg", "down", "critical")],
+        optimal: ["Call for help and give 0.5 mg IM adrenaline", "Correct — IM adrenaline is first-line.", "💉"],
+        suboptimal: ["Give IV antihistamine and steroid first", "Adjuncts, not first-line — minutes lost.", "💊"],
+        deadly: ["Give 0.5 mg IV adrenaline bolus", "Undiluted IV bolus causes a fatal arrhythmia.", "⚠️"] },
+      { stage: "Airway", prompt: "Stridor worsening — next?", content: "Her airway is threatened.", status: "critical",
+        vitals: [v("spo2", "SpO₂", 88, "%", "down", "critical"), v("rr", "RR", 30, "/min", "up", "warning")],
+        optimal: ["High-flow oxygen and prepare for a difficult airway", "Correct — protect the airway early.", "🫧"],
+        suboptimal: ["Nebulised salbutamol only", "Helps bronchospasm but not the airway threat.", "💨"],
+        deadly: ["Lie her flat and leave the airway unmonitored", "Loss of a threatened airway is fatal.", "🚫"] },
+      { stage: "Circulation", prompt: "Still hypotensive after adrenaline — next?", content: "BP remains low.", status: "guarded",
+        vitals: [v("bp", "BP", "86/52", "mmHg", "up", "warning"), v("hr", "HR", 112, "bpm", "down", "warning")],
+        optimal: ["IV fluid bolus and repeat IM adrenaline at 5 min", "Correct — fluids plus repeat dosing.", "🧪"],
+        suboptimal: ["Sit her fully upright", "Sitting a shocked patient up risks collapse.", "🪑"],
+        deadly: ["Withhold further adrenaline", "Under-treatment progresses to arrest.", "🚫"] },
+      { stage: "Refractory", prompt: "Poor response to two IM doses — next?", content: "She remains shocked.", status: "worsening",
+        vitals: [v("bp", "BP", "84/50", "mmHg", "flat", "critical"), v("hr", "HR", 118, "bpm", "up", "warning")],
+        optimal: ["Start an IV adrenaline infusion with senior/ICU input", "Correct — refractory anaphylaxis needs infusion + ICU.", "🚑"],
+        suboptimal: ["Give a second antihistamine dose", "Won't reverse refractory shock.", "💊"],
+        deadly: ["Continue intermittent IM boluses indefinitely", "Refractory shock needs an infusion, not delay.", "🚫"] },
+      { stage: "Disposition", prompt: "She stabilises — disposition?", content: "BP and airway improve.", status: "improving",
+        vitals: [v("bp", "BP", "108/68", "mmHg", "up", "normal"), v("spo2", "SpO₂", 97, "%", "up", "normal")],
+        optimal: ["Admit for observation; auto-injector + allergy referral", "Correct — biphasic risk needs observation.", "🏥"],
+        suboptimal: ["Discharge immediately, no auto-injector", "Misses biphasic risk and future protection.", "🚪"],
+        deadly: ["Discharge and tell her to avoid hospitals", "Negligent — biphasic reactions can be fatal.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "sepsis6",
-        stageLabel: "Sepsis Six",
-        prompt: "He meets septic-shock criteria — first action",
-        content: "He is confused and shocked.",
-        patientStatus: "critical",
-        vitals: [
-          vit("temp", "Temp", 39.2, "°C", "up", "warning"),
-          vit("hr", "Heart rate", 122, "bpm", "up", "critical"),
-          vit("bp", "Blood pressure", "86/50", "mmHg", "down", "critical"),
-          vit("lac", "Lactate", 4.2, "mmol/L", "up", "critical"),
-        ],
-        choices: [
-          ch("a", "Cultures, then IV antibiotics + fluid bolus", "optimal", 0, "Correct — cultures first, but don't delay antibiotics or resuscitation.", "n2", "💉"),
-          ch("b", "CT chest and wait before treating", "suboptimal", -20, "Imaging must not delay antibiotics/fluids — you've lost the golden hour.", "n2", "🩻"),
-          ch("c", "Discharge on oral antibiotics", "deadly", -100, "Discharging septic shock is fatal.", "died", "🚪"),
-        ],
-      },
-      n2: {
-        stageId: "escalate",
-        stageLabel: "Escalation",
-        prompt: "Still hypotensive after the first bolus — next",
-        content: "MAP remains 58 after fluids.",
-        patientStatus: "worsening",
-        vitals: [
-          vit("map", "MAP", 58, "mmHg", "down", "critical"),
-          vit("hr", "Heart rate", 118, "bpm", "flat", "warning"),
-          vit("lac", "Lactate", 3.6, "mmol/L", "down", "warning"),
-        ],
-        choices: [
-          ch("a", "Further fluids, senior review, ICU for vasopressors", "optimal", 0, "Correct — refractory shock needs ICU and vasopressors.", "survived", "🚑"),
-          ch("b", "Give an antipyretic and reassess in an hour", "suboptimal", -20, "Treating the fever doesn't treat the shock.", "survived", "💊"),
-          ch("c", "Restrict fluids and keep observing", "deadly", -100, "Under-resuscitated septic shock progresses to multi-organ failure.", "died", "🚫"),
-        ],
-      },
-      survived: survived("He responds to resuscitation, reaches ICU, and the source is controlled.", [
-        vit("map", "MAP", 72, "mmHg", "up", "normal"),
-        vit("lac", "Lactate", 1.8, "mmol/L", "down", "normal"),
-      ]),
-      died: died("He arrests from untreated septic shock. Review the early decisions."),
+    { survived: "She is observed, recovers, and leaves with an auto-injector and allergy referral.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-septic-shock", title: "Septic shock from pneumonia", specialty: "Microbiology and Parasitology",
+      scenario: "A 70-year-old with a cough is confused, febrile, BP 86/50, lactate 4.2.",
+      citations: ["Surviving Sepsis 2021", "NICE NG51"], summary: "Apply the Sepsis Six within the first hour.",
+      subtitle: "Time-critical sepsis resuscitation", difficulty: "Medium", icon: "🦠",
+      patient: { name: "Arthur", age: 70, sex: "M", presentation: "Confusion, fever, productive cough", tags: ["Sepsis", "Shock"] },
     },
-  },
-  {
-    id: "bcase-vf-arrest",
-    title: "Witnessed VF cardiac arrest",
-    specialty: "Cardiovascular System",
-    scenario: "A 60-year-old collapses, unresponsive and not breathing normally; the monitor shows VF.",
-    citations: ["Resuscitation Council UK — Adult ALS"],
-    summary: "Run the shockable-rhythm ALS algorithm.",
-    subtitle: "Shockable-rhythm cardiac arrest",
-    difficulty: "Hard",
-    icon: "❤️",
-    patient: { name: "Derek", age: 60, sex: "M", presentation: "Sudden collapse, VF on monitor", tags: ["Arrest", "ALS"] },
-    stages: [
-      { id: "defib", label: "Defibrillation" },
-      { id: "als", label: "ALS Cycle" },
+    [
+      { stage: "Recognition", prompt: "He meets septic-shock criteria — first action?", content: "Confused and shocked.", status: "critical",
+        vitals: [v("bp", "BP", "86/50", "mmHg", "down", "critical"), v("lac", "Lactate", 4.2, "mmol/L", "up", "critical")],
+        optimal: ["Cultures, then IV antibiotics + fluid bolus", "Correct — don't delay antibiotics/fluids.", "💉"],
+        suboptimal: ["CT chest and wait before treating", "Imaging must not delay resuscitation.", "🩻"],
+        deadly: ["Discharge on oral antibiotics", "Discharging septic shock is fatal.", "🚪"] },
+      { stage: "Resuscitation", prompt: "After the bolus MAP is 58 — next?", content: "Persistent hypotension.", status: "worsening",
+        vitals: [v("map", "MAP", 58, "mmHg", "down", "critical"), v("hr", "HR", 120, "bpm", "up", "warning")],
+        optimal: ["Further fluids + senior review", "Correct — reassess and escalate.", "💧"],
+        suboptimal: ["Antipyretic and reassess in an hour", "Treats fever, not shock.", "💊"],
+        deadly: ["Restrict fluids for fear of overload", "Under-resuscitation worsens organ failure.", "🚫"] },
+      { stage: "Escalation", prompt: "Still shocked after 30 mL/kg — next?", content: "Fluid-refractory shock.", status: "critical",
+        vitals: [v("map", "MAP", 56, "mmHg", "flat", "critical"), v("lac", "Lactate", 4.8, "mmol/L", "up", "critical")],
+        optimal: ["ICU referral for vasopressors (noradrenaline)", "Correct — refractory shock needs vasopressors.", "🚑"],
+        suboptimal: ["Keep giving fluid boluses only", "Risks overload without restoring MAP.", "💧"],
+        deadly: ["Wait overnight to see if it improves", "Delaying vasopressors is fatal.", "🚫"] },
+      { stage: "Source", prompt: "On pressors — source control?", content: "Stabilising on noradrenaline.", status: "guarded",
+        vitals: [v("map", "MAP", 66, "mmHg", "up", "warning"), v("lac", "Lactate", 3.2, "mmol/L", "down", "warning")],
+        optimal: ["Confirm source, narrow antibiotics, image as needed", "Correct — source control + stewardship.", "🔬"],
+        suboptimal: ["Continue broad-spectrum indefinitely", "Acceptable short-term but plan de-escalation.", "💊"],
+        deadly: ["Stop antibiotics as BP improved", "Stopping early lets sepsis rebound fatally.", "🚫"] },
+      { stage: "Reassessment", prompt: "Lactate clearing — next?", content: "Improving on ICU.", status: "improving",
+        vitals: [v("map", "MAP", 72, "mmHg", "up", "normal"), v("lac", "Lactate", 1.8, "mmol/L", "down", "normal")],
+        optimal: ["Continue ICU care and reassess organ support", "Correct — ongoing monitoring.", "📈"],
+        suboptimal: ["Step down to the ward immediately", "Premature — keep monitoring.", "🛏️"],
+        deadly: ["Discharge home from ICU", "Grossly unsafe.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "defib",
-        stageLabel: "Defibrillation",
-        prompt: "VF confirmed — immediate action",
-        content: "He is in cardiac arrest with VF.",
-        patientStatus: "critical",
-        vitals: [
-          vit("rhythm", "Rhythm", "VF", undefined, undefined, "critical"),
-          vit("hr", "Pulse", "Absent", undefined, undefined, "critical"),
-        ],
-        choices: [
-          ch("a", "Unsynchronised shock, then resume CPR", "optimal", 0, "Correct — VF is shockable: defibrillate, then continue CPR.", "n2", "⚡"),
-          ch("b", "Give amiodarone before any shock", "suboptimal", -20, "Defibrillation is the priority in VF; drugs come after shocks.", "n2", "💊"),
-          ch("c", "Attempt synchronised cardioversion", "deadly", -100, "You can't synchronise to VF — the device won't discharge and time is lost.", "died", "⚠️"),
-        ],
-      },
-      n2: {
-        stageId: "als",
-        stageLabel: "ALS Cycle",
-        prompt: "Still in VF after 2 min CPR — next",
-        content: "He remains in VF.",
-        patientStatus: "critical",
-        vitals: [
-          vit("rhythm", "Rhythm", "VF", undefined, "flat", "critical"),
-          vit("etco2", "EtCO₂", 1.8, "kPa", "flat", "warning"),
-        ],
-        choices: [
-          ch("a", "Shock, continue CPR, adrenaline + amiodarone per ALS", "optimal", 0, "Correct — repeat shocks with drugs after the third shock.", "survived", "⚡"),
-          ch("b", "Pause to recheck a pulse after the shock", "suboptimal", -20, "Don't pause CPR mid-cycle to check a pulse — minimise interruptions.", "survived", "✋"),
-          ch("c", "Abandon resuscitation after one further shock", "deadly", -100, "Premature termination of a shockable arrest forgoes a survivable rhythm.", "died", "🚫"),
-        ],
-      },
-      survived: survived("ROSC is achieved; he is transferred for post-arrest care and PCI.", [
-        vit("rhythm", "Rhythm", "Sinus", undefined, undefined, "normal"),
-        vit("bp", "Blood pressure", "104/64", "mmHg", "up", "warning"),
-      ]),
-      died: died("Resuscitation fails. Review the algorithm steps."),
+    { survived: "He responds to resuscitation, reaches ICU, and the source is controlled.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-vf-arrest", title: "Witnessed VF cardiac arrest", specialty: "Cardiovascular System",
+      scenario: "A 60-year-old collapses; unresponsive, not breathing; monitor shows VF.",
+      citations: ["Resuscitation Council UK — Adult ALS"], summary: "Run the shockable-rhythm ALS algorithm.",
+      subtitle: "Shockable-rhythm cardiac arrest", difficulty: "Hard", icon: "❤️",
+      patient: { name: "Derek", age: 60, sex: "M", presentation: "Sudden collapse, VF", tags: ["Arrest", "ALS"] },
     },
-  },
-  {
-    id: "bcase-hyperkalaemia",
-    title: "Severe hyperkalaemia in a dialysis patient",
-    specialty: "Renal and Urinary Tract",
-    scenario: "A missed-dialysis patient has K+ 7.1 with tall tented T waves and a broadening QRS.",
-    citations: ["UK Renal Association — Hyperkalaemia Guideline"],
-    summary: "Treat life-threatening hyperkalaemia in the right order.",
-    subtitle: "ECG changes with K+ 7.1",
-    difficulty: "Moderate",
-    icon: "🧫",
-    patient: { name: "Priya", age: 54, sex: "F", presentation: "Missed dialysis, palpitations", tags: ["Electrolytes", "Arrhythmia"] },
-    stages: [
-      { id: "protect", label: "Cardioprotection" },
-      { id: "lower", label: "Lower K+" },
+    [
+      { stage: "BLS", prompt: "He has collapsed — first action?", content: "Unresponsive, not breathing normally.", status: "critical",
+        vitals: [v("rhythm", "Rhythm", "VF", undefined, undefined, "critical"), v("pulse", "Pulse", "Absent", undefined, undefined, "critical")],
+        optimal: ["Confirm arrest, call team, start CPR, attach defib", "Correct — high-quality CPR + early defib.", "🫀"],
+        suboptimal: ["Look for a pulse for 30 seconds", "Prolonged pulse checks delay CPR.", "✋"],
+        deadly: ["Leave to find a doctor", "Leaving an arrest is fatal.", "🚫"] },
+      { stage: "Defibrillation", prompt: "VF confirmed — next?", content: "Shockable rhythm on the monitor.", status: "critical",
+        vitals: [v("rhythm", "Rhythm", "VF", undefined, "flat", "critical")],
+        optimal: ["Unsynchronised shock, resume CPR immediately", "Correct — shock then CPR.", "⚡"],
+        suboptimal: ["Give amiodarone before the first shock", "Defibrillation is the priority.", "💊"],
+        deadly: ["Attempt synchronised cardioversion", "Can't sync to VF — won't fire.", "⚠️"] },
+      { stage: "ALS cycle", prompt: "Still VF after 2 min CPR — next?", content: "Refractory VF.", status: "critical",
+        vitals: [v("etco2", "EtCO₂", 1.8, "kPa", "flat", "warning")],
+        optimal: ["Shock, adrenaline every 3–5 min, amiodarone after 3rd shock", "Correct — drugs after the 3rd shock.", "⚡"],
+        suboptimal: ["Pause CPR to recheck a pulse", "Minimise interruptions.", "✋"],
+        deadly: ["Stop CPR for a 12-lead ECG", "Stopping compressions in VF is fatal.", "🚫"] },
+      { stage: "Reversible causes", prompt: "Persistent VF — what now?", content: "Consider the 4 Hs and 4 Ts.", status: "critical",
+        vitals: [v("k", "K⁺", 5.9, "mmol/L", "up", "warning")],
+        optimal: ["Treat reversible causes (4 Hs/4 Ts)", "Correct — address hyperkalaemia/hypoxia/etc.", "🔍"],
+        suboptimal: ["Continue shocks without seeking causes", "May miss a treatable cause.", "⚡"],
+        deadly: ["Abandon resuscitation after 10 minutes", "Premature in a witnessed shockable arrest.", "🚫"] },
+      { stage: "ROSC", prompt: "ROSC achieved — next?", content: "Output restored.", status: "guarded",
+        vitals: [v("bp", "BP", "104/64", "mmHg", "up", "warning"), v("rhythm", "Rhythm", "Sinus", undefined, undefined, "normal")],
+        optimal: ["Post-arrest care: 12-lead, targeted O₂/BP, urgent PCI", "Correct — structured post-ROSC care.", "🏥"],
+        suboptimal: ["Extubate and send to the ward", "Premature; needs critical care.", "🛏️"],
+        deadly: ["Give high-dose adrenaline boluses post-ROSC", "Causes harmful hypertension/arrhythmia.", "🚫"] },
+      { stage: "Definitive", prompt: "STEMI on the 12-lead — next?", content: "Anterior ST elevation.", status: "improving",
+        vitals: [v("bp", "BP", "118/70", "mmHg", "flat", "normal")],
+        optimal: ["Activate primary PCI", "Correct — reperfuse the culprit artery.", "🩺"],
+        suboptimal: ["Thrombolyse on the ward", "PCI is preferred if available.", "💉"],
+        deadly: ["Observe without reperfusion", "Untreated STEMI re-arrests.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "protect",
-        stageLabel: "Cardioprotection",
-        prompt: "ECG shows hyperkalaemic changes — first step",
-        content: "The ECG is concerning.",
-        patientStatus: "unstable",
-        vitals: [
-          vit("k", "Potassium", 7.1, "mmol/L", "up", "critical"),
-          vit("hr", "Heart rate", 48, "bpm", "down", "warning"),
-          vit("ecg", "ECG", "Broad QRS", undefined, undefined, "critical"),
-        ],
-        choices: [
-          ch("a", "IV calcium gluconate to stabilise the myocardium", "optimal", 0, "Correct — cardiac membrane stabilisation comes first with ECG changes.", "n2", "🛡️"),
-          ch("b", "Insulin–dextrose first, skip the calcium", "suboptimal", -20, "Shifting K+ is needed, but stabilisation (calcium) comes first.", "n2", "💉"),
-          ch("c", "Run potassium-containing IV fluids", "deadly", -100, "Giving potassium worsens the arrhythmia and can cause arrest.", "died", "⚠️"),
-        ],
-      },
-      n2: {
-        stageId: "lower",
-        stageLabel: "Lower K+",
-        prompt: "Myocardium stabilised — lower the potassium",
-        content: "The QRS narrows after calcium.",
-        patientStatus: "guarded",
-        vitals: [
-          vit("k", "Potassium", 6.9, "mmol/L", "flat", "warning"),
-          vit("hr", "Heart rate", 62, "bpm", "up", "normal"),
-          vit("ecg", "ECG", "Improving", undefined, undefined, "warning"),
-        ],
-        choices: [
-          ch("a", "Insulin–dextrose (± salbutamol), urgent dialysis", "optimal", 0, "Correct — shift K+, then remove it definitively with dialysis.", "survived", "🩸"),
-          ch("b", "Oral binder alone, recheck in 6 hours", "suboptimal", -20, "Binders are too slow for K+ 7.1 with ECG changes.", "survived", "💊"),
-          ch("c", "Do nothing further and observe", "deadly", -100, "Untreated severe hyperkalaemia progresses to VF or asystole.", "died", "🚫"),
-        ],
-      },
-      survived: survived("Potassium falls, the ECG normalises, and she is dialysed.", [
-        vit("k", "Potassium", 5.0, "mmol/L", "down", "normal"),
-        vit("ecg", "ECG", "Normal", undefined, undefined, "normal"),
-      ]),
-      died: died("She arrests from hyperkalaemia. Review the treatment order."),
+    { survived: "ROSC is sustained, PCI restores flow, and he reaches coronary care.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-hyperkalaemia", title: "Severe hyperkalaemia", specialty: "Renal and Urinary Tract",
+      scenario: "A missed-dialysis patient: K⁺ 7.1 with tall T waves and broad QRS.",
+      citations: ["UK Renal Association — Hyperkalaemia"], summary: "Treat life-threatening hyperkalaemia in order.",
+      subtitle: "ECG changes with K⁺ 7.1", difficulty: "Medium", icon: "🧫",
+      patient: { name: "Priya", age: 54, sex: "F", presentation: "Missed dialysis, palpitations", tags: ["Electrolytes", "Arrhythmia"] },
     },
-  },
-  {
-    id: "bcase-dka",
-    title: "Diabetic ketoacidosis — getting the sequence right",
-    specialty: "Endocrine System",
-    scenario: "A 22-year-old with new T1DM: glucose 30, ketones 5.5, pH 7.08, K+ 5.4, dehydrated.",
-    citations: ["JBDS — Management of DKA in Adults"],
-    summary: "Sequence DKA management safely (fluids, insulin, potassium).",
-    subtitle: "New-onset T1DM in DKA",
-    difficulty: "Moderate",
-    icon: "🩸",
-    patient: { name: "Leo", age: 22, sex: "M", presentation: "Vomiting, polyuria, drowsy", tags: ["Endocrine", "Acidosis"] },
-    stages: [
-      { id: "resus", label: "Resuscitation" },
-      { id: "correct", label: "Correction" },
+    [
+      { stage: "Recognition", prompt: "ECG shows hyperkalaemic change — first step?", content: "Broad QRS, peaked T waves.", status: "unstable",
+        vitals: [v("k", "K⁺", 7.1, "mmol/L", "up", "critical"), v("hr", "HR", 48, "bpm", "down", "warning")],
+        optimal: ["IV calcium gluconate to stabilise the myocardium", "Correct — cardioprotection first.", "🛡️"],
+        suboptimal: ["Insulin–dextrose first, skip calcium", "Stabilisation should come first.", "💉"],
+        deadly: ["Give potassium-containing fluids", "Worsens the arrhythmia.", "⚠️"] },
+      { stage: "Shift", prompt: "Myocardium stabilised — next?", content: "QRS narrows after calcium.", status: "guarded",
+        vitals: [v("k", "K⁺", 6.9, "mmol/L", "flat", "warning")],
+        optimal: ["Insulin–dextrose (± salbutamol)", "Correct — shift K⁺ intracellularly.", "🩸"],
+        suboptimal: ["Oral binder alone, recheck in 6 h", "Too slow for this severity.", "💊"],
+        deadly: ["Do nothing further", "Untreated severe hyperK arrests.", "🚫"] },
+      { stage: "Monitor", prompt: "On insulin — what to watch?", content: "Glucose shifting.", status: "guarded",
+        vitals: [v("glu", "Glucose", 4.2, "mmol/L", "down", "warning")],
+        optimal: ["Monitor glucose and repeat K⁺", "Correct — watch for hypoglycaemia.", "📈"],
+        suboptimal: ["Assume it's fixed, stop monitoring", "Rebound and hypoglycaemia missed.", "🚫"],
+        deadly: ["Give more insulin without dextrose", "Causes fatal hypoglycaemia.", "⚠️"] },
+      { stage: "Remove", prompt: "K⁺ still high — definitive step?", content: "Persistent hyperkalaemia.", status: "guarded",
+        vitals: [v("k", "K⁺", 6.4, "mmol/L", "down", "warning")],
+        optimal: ["Arrange urgent dialysis", "Correct — definitive removal.", "🩺"],
+        suboptimal: ["Repeat insulin–dextrose only", "Temporises but doesn't remove K⁺.", "🩸"],
+        deadly: ["Discharge to dialyse next scheduled day", "Unsafe with refractory hyperK.", "🚫"] },
+      { stage: "Resolution", prompt: "After dialysis — next?", content: "K⁺ normalising.", status: "improving",
+        vitals: [v("k", "K⁺", 5.0, "mmol/L", "down", "normal"), v("ecg", "ECG", "Normal", undefined, undefined, "normal")],
+        optimal: ["Review missed-dialysis cause and plan follow-up", "Correct — prevent recurrence.", "📋"],
+        suboptimal: ["Discharge without follow-up", "Recurrence likely.", "🚪"],
+        deadly: ["Stop dialysis altogether", "Fatal in an anuric patient.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "resus",
-        stageLabel: "Resuscitation",
-        prompt: "First intervention",
-        content: "He is dehydrated and acidotic.",
-        patientStatus: "unstable",
-        vitals: [
-          vit("glu", "Glucose", 30, "mmol/L", "up", "critical"),
-          vit("ket", "Ketones", 5.5, "mmol/L", "up", "critical"),
-          vit("ph", "pH", 7.08, undefined, "down", "critical"),
-        ],
-        choices: [
-          ch("a", "Start IV 0.9% saline resuscitation", "optimal", 0, "Correct — fluids first to restore circulating volume.", "n2", "💧"),
-          ch("b", "Start fixed-rate insulin before any fluids", "suboptimal", -20, "Insulin before fluids worsens hypovolaemia and can crash the circulation.", "n2", "💉"),
-          ch("c", "IV insulin bolus + potassium-free fluids", "deadly", -100, "Aggressive insulin without fluids/K+ precipitates fatal hypokalaemia.", "died", "⚠️"),
-        ],
-      },
-      n2: {
-        stageId: "correct",
-        stageLabel: "Correction",
-        prompt: "Glucose falling, K+ now 3.2 — next",
-        content: "Fluids are running; the latest K+ is 3.2.",
-        patientStatus: "guarded",
-        vitals: [
-          vit("glu", "Glucose", 16, "mmol/L", "down", "warning"),
-          vit("k", "Potassium", 3.2, "mmol/L", "down", "critical"),
-          vit("ket", "Ketones", 3.1, "mmol/L", "down", "warning"),
-        ],
-        choices: [
-          ch("a", "Continue insulin, add K+ to fluids, add dextrose", "optimal", 0, "Correct — replace potassium and prevent hypoglycaemia while clearing ketones.", "survived", "🧂"),
-          ch("b", "Stop insulin because glucose is improving", "suboptimal", -20, "Stopping insulin halts ketone clearance — continue it and add dextrose.", "survived", "🛑"),
-          ch("c", "Continue insulin, withhold potassium", "deadly", -100, "Without replacement, K+ 3.2 falls to a fatal level.", "died", "🚫"),
-        ],
-      },
-      survived: survived("The acidosis clears, electrolytes normalise, and he moves to subcutaneous insulin.", [
-        vit("glu", "Glucose", 9, "mmol/L", "down", "normal"),
-        vit("k", "Potassium", 4.2, "mmol/L", "up", "normal"),
-      ]),
-      died: died("A fatal arrhythmia from hypokalaemia. Review the sequence."),
+    { survived: "Potassium normalises with dialysis and the ECG recovers.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-dka", title: "Diabetic ketoacidosis", specialty: "Endocrine System",
+      scenario: "A 22-year-old new T1DM: glucose 30, ketones 5.5, pH 7.08, K⁺ 5.4, dehydrated.",
+      citations: ["JBDS — DKA in Adults"], summary: "Sequence DKA management safely.",
+      subtitle: "New-onset T1DM in DKA", difficulty: "Medium", icon: "🩸",
+      patient: { name: "Leo", age: 22, sex: "M", presentation: "Vomiting, polyuria, drowsy", tags: ["Endocrine", "Acidosis"] },
     },
-  },
-  {
-    id: "bcase-stroke-thrombolysis",
-    title: "Acute stroke — the thrombolysis decision",
-    specialty: "Nervous and Special Senses System",
-    scenario: "A 68-year-old has dense right hemiparesis and aphasia, onset 2 hours ago, NIHSS 12.",
-    citations: ["NICE NG128", "AHA/ASA Acute Ischaemic Stroke Guidelines"],
-    summary: "Make the thrombolysis decision safely.",
-    subtitle: "Hyperacute stroke within the window",
-    difficulty: "Hard",
-    icon: "🧠",
-    patient: { name: "Joan", age: 68, sex: "F", presentation: "Right hemiparesis, aphasia", tags: ["Stroke", "Time-critical"] },
-    stages: [
-      { id: "image", label: "Imaging" },
-      { id: "treat", label: "Reperfusion" },
+    [
+      { stage: "Resuscitation", prompt: "First intervention?", content: "Dehydrated and acidotic.", status: "unstable",
+        vitals: [v("glu", "Glucose", 30, "mmol/L", "up", "critical"), v("ph", "pH", 7.08, undefined, "down", "critical")],
+        optimal: ["IV 0.9% saline resuscitation", "Correct — fluids first.", "💧"],
+        suboptimal: ["Fixed-rate insulin before fluids", "Worsens hypovolaemia.", "💉"],
+        deadly: ["Insulin bolus + potassium-free fluids", "Precipitates fatal hypokalaemia.", "⚠️"] },
+      { stage: "Insulin", prompt: "Fluids running — next?", content: "Volume restoring.", status: "guarded",
+        vitals: [v("ket", "Ketones", 5.2, "mmol/L", "flat", "critical"), v("k", "K⁺", 4.8, "mmol/L", "down", "warning")],
+        optimal: ["Start fixed-rate insulin once K⁺ ≥ 3.5", "Correct — insulin with K⁺ check.", "💉"],
+        suboptimal: ["Variable-rate insulin titrated to glucose", "Fixed-rate is standard in DKA.", "📈"],
+        deadly: ["High insulin bolus to crash the glucose", "Causes cerebral oedema/hypokalaemia.", "⚠️"] },
+      { stage: "Potassium", prompt: "K⁺ now 3.2 — next?", content: "Insulin driving K⁺ down.", status: "guarded",
+        vitals: [v("k", "K⁺", 3.2, "mmol/L", "down", "critical")],
+        optimal: ["Add potassium to fluids, continue insulin", "Correct — replace K⁺.", "🧂"],
+        suboptimal: ["Slow the insulin rate", "Slows ketone clearance.", "🐢"],
+        deadly: ["Continue insulin, withhold potassium", "Fatal hypokalaemia.", "🚫"] },
+      { stage: "Glucose", prompt: "Glucose now 13 — next?", content: "Glucose falling, ketones persist.", status: "guarded",
+        vitals: [v("glu", "Glucose", 13, "mmol/L", "down", "warning"), v("ket", "Ketones", 2.4, "mmol/L", "down", "warning")],
+        optimal: ["Add 10% dextrose, keep insulin until ketones clear", "Correct — keep clearing ketones.", "🍬"],
+        suboptimal: ["Stop insulin as glucose normalised", "Ketosis persists.", "🛑"],
+        deadly: ["Stop fluids and insulin", "Ketoacidosis rebounds.", "🚫"] },
+      { stage: "Resolution", prompt: "Ketones cleared — next?", content: "Acidosis resolved.", status: "improving",
+        vitals: [v("ph", "pH", 7.34, undefined, "up", "normal"), v("ket", "Ketones", 0.4, "mmol/L", "down", "normal")],
+        optimal: ["Transition to subcutaneous insulin with overlap", "Correct — overlap prevents rebound.", "💉"],
+        suboptimal: ["Stop the infusion before SC insulin acts", "Gap risks recurrence.", "⚠️"],
+        deadly: ["Discharge same hour without insulin plan", "Unsafe.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "image",
-        stageLabel: "Imaging",
-        prompt: "Within the window — first step",
-        content: "She has a dense deficit.",
-        patientStatus: "unstable",
-        vitals: [
-          vit("nihss", "NIHSS", 12, undefined, "flat", "critical"),
-          vit("bp", "Blood pressure", "172/96", "mmHg", "up", "warning"),
-          vit("onset", "Onset", "2 h", undefined, undefined, "warning"),
-        ],
-        choices: [
-          ch("a", "Urgent non-contrast CT to exclude haemorrhage", "optimal", 0, "Correct — imaging must exclude haemorrhage before thrombolysis.", "n2", "🩻"),
-          ch("b", "Give aspirin now, CT later", "suboptimal", -20, "Aspirin is contraindicated until haemorrhage is excluded.", "n2", "💊"),
-          ch("c", "Thrombolyse immediately on clinical picture", "deadly", -100, "Thrombolysing without excluding haemorrhage can cause fatal bleeding.", "died", "⚠️"),
-        ],
-      },
-      n2: {
-        stageId: "treat",
-        stageLabel: "Reperfusion",
-        prompt: "CT excludes haemorrhage, no contraindications — next",
-        content: "She remains within 4.5 hours.",
-        patientStatus: "guarded",
-        vitals: [
-          vit("nihss", "NIHSS", 12, undefined, "flat", "critical"),
-          vit("ct", "CT", "No bleed", undefined, undefined, "normal"),
-        ],
-        choices: [
-          ch("a", "Thrombolyse, assess for thrombectomy if LVO", "optimal", 0, "Correct — reperfusion within the window improves outcome.", "survived", "💉"),
-          ch("b", "Admit for observation without reperfusion", "suboptimal", -20, "Withholding reperfusion in an eligible patient forgoes major benefit.", "survived", "🛏️"),
-          ch("c", "Give a higher-than-recommended alteplase dose", "deadly", -100, "Overdosing the thrombolytic raises the risk of fatal haemorrhage.", "died", "⚠️"),
-        ],
-      },
-      survived: survived("She receives reperfusion and makes a meaningful recovery.", [
-        vit("nihss", "NIHSS", 4, undefined, "down", "warning"),
-      ]),
-      died: died("A fatal haemorrhage follows an unsafe decision. Review the checks."),
+    { survived: "Acidosis clears, electrolytes normalise, and he starts subcutaneous insulin.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-stroke", title: "Acute ischaemic stroke", specialty: "Nervous and Special Senses System",
+      scenario: "A 68-year-old: dense right hemiparesis and aphasia, onset 2 hours ago, NIHSS 12.",
+      citations: ["NICE NG128", "AHA/ASA Stroke"], summary: "Hyperacute stroke assessment and reperfusion.",
+      subtitle: "Hyperacute stroke within the window", difficulty: "Hard", icon: "🧠",
+      patient: { name: "Joan", age: 68, sex: "F", presentation: "Right hemiparesis, aphasia", tags: ["Stroke", "Time-critical"] },
     },
-  },
-  {
-    id: "bcase-gi-bleed",
-    title: "Massive upper GI bleed",
-    specialty: "Digestive and Biliary Tract System",
-    scenario: "A 55-year-old with alcohol excess has large-volume haematemesis, HR 120, BP 88/56.",
-    citations: ["NICE CG141", "Baveno VII"],
-    summary: "Resuscitate and manage variceal upper GI bleeding.",
-    subtitle: "Haemodynamically unstable haematemesis",
-    difficulty: "Hard",
-    icon: "🩸",
-    patient: { name: "Frank", age: 55, sex: "M", presentation: "Large-volume haematemesis", tags: ["Haemorrhage", "Varices"] },
-    stages: [
-      { id: "resus", label: "Resuscitation" },
-      { id: "definitive", label: "Definitive Care" },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "Sudden focal deficit.", status: "unstable",
+        vitals: [v("nihss", "NIHSS", 12, undefined, "flat", "critical"), v("onset", "Onset", "2 h", undefined, undefined, "warning")],
+        optimal: ["Activate stroke pathway, check glucose, time of onset", "Correct — confirm a true stroke.", "⏱️"],
+        suboptimal: ["Order routine bloods and wait", "Wastes the reperfusion window.", "🧪"],
+        deadly: ["Give aspirin before imaging", "Contraindicated pre-imaging.", "⚠️"] },
+      { stage: "Imaging", prompt: "Next step?", content: "Within the window.", status: "unstable",
+        vitals: [v("bp", "BP", "172/96", "mmHg", "up", "warning")],
+        optimal: ["Urgent non-contrast CT to exclude haemorrhage", "Correct — exclude bleed first.", "🩻"],
+        suboptimal: ["MRI which will take 45 minutes", "Too slow in the hyperacute window.", "🧲"],
+        deadly: ["Thrombolyse on the clinical picture alone", "Can cause fatal bleeding.", "⚠️"] },
+      { stage: "BP control", prompt: "CT excludes bleed; BP 188/104 — next?", content: "Eligible for thrombolysis.", status: "guarded",
+        vitals: [v("bp", "BP", "188/104", "mmHg", "up", "warning")],
+        optimal: ["Lower BP to < 185/110 before thrombolysis", "Correct — BP target for lysis.", "💊"],
+        suboptimal: ["Thrombolyse without addressing BP", "Raises haemorrhage risk.", "⚠️"],
+        deadly: ["Drop BP aggressively to normal", "Hypoperfuses the penumbra.", "🚫"] },
+      { stage: "Reperfusion", prompt: "BP controlled — next?", content: "Within 4.5 h, no contraindications.", status: "guarded",
+        vitals: [v("ct", "CT", "No bleed", undefined, undefined, "normal")],
+        optimal: ["Thrombolyse; assess for thrombectomy if LVO", "Correct — reperfuse.", "💉"],
+        suboptimal: ["Admit without reperfusion", "Forgoes major benefit.", "🛏️"],
+        deadly: ["Exceed the recommended alteplase dose", "Massively raises bleed risk.", "⚠️"] },
+      { stage: "Monitoring", prompt: "Post-lysis — next?", content: "Deficit improving.", status: "improving",
+        vitals: [v("nihss", "NIHSS", 6, undefined, "down", "warning")],
+        optimal: ["Neuro obs, repeat CT at 24 h before antiplatelets", "Correct — watch for haemorrhagic transformation.", "📈"],
+        suboptimal: ["Start aspirin immediately post-lysis", "Wait 24 h and re-image.", "💊"],
+        deadly: ["Discharge home the same evening", "Unsafe post-thrombolysis.", "🚫"] },
+      { stage: "Secondary prevention", prompt: "Stable at 48 h — next?", content: "AF found on telemetry.", status: "improving",
+        vitals: [v("rhythm", "Rhythm", "AF", undefined, undefined, "warning")],
+        optimal: ["Anticoagulate (timed to infarct size) + rehab", "Correct — secondary prevention.", "🩺"],
+        suboptimal: ["Aspirin only despite AF", "Anticoagulation reduces recurrence more.", "💊"],
+        deadly: ["No secondary prevention", "High recurrence risk.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "resus",
-        stageLabel: "Resuscitation",
-        prompt: "Shocked from a large bleed — first priority",
-        content: "He is actively bleeding and shocked.",
-        patientStatus: "critical",
-        vitals: [
-          vit("hr", "Heart rate", 120, "bpm", "up", "critical"),
-          vit("bp", "Blood pressure", "88/56", "mmHg", "down", "critical"),
-          vit("hb", "Haemoglobin", 72, "g/L", "down", "warning"),
-        ],
-        choices: [
-          ch("a", "ABC: large-bore access, fluids/blood, major haemorrhage call", "optimal", 0, "Correct — resuscitate first.", "n2", "🚑"),
-          ch("b", "Endoscopy before any resuscitation", "suboptimal", -20, "Never scope an unresuscitated shocked patient.", "n2", "🔬"),
-          ch("c", "Oral iron and outpatient follow-up", "deadly", -100, "Discharging exsanguinating haematemesis is fatal.", "died", "🚪"),
-        ],
-      },
-      n2: {
-        stageId: "definitive",
-        stageLabel: "Definitive Care",
-        prompt: "Resuscitated, variceal source suspected — next",
-        content: "He is stabilised enough for endoscopy.",
-        patientStatus: "guarded",
-        vitals: [
-          vit("hr", "Heart rate", 98, "bpm", "down", "warning"),
-          vit("bp", "Blood pressure", "104/66", "mmHg", "up", "warning"),
-        ],
-        choices: [
-          ch("a", "Terlipressin + antibiotics, then urgent endoscopy/banding", "optimal", 0, "Correct — vasoactive drugs, antibiotics, and endoscopic therapy.", "survived", "💉"),
-          ch("b", "Endoscopy alone, no terlipressin/antibiotics", "suboptimal", -20, "Omitting these worsens outcomes in variceal bleeding.", "survived", "🔬"),
-          ch("c", "Over-transfuse aggressively to a normal Hb", "deadly", -100, "Over-transfusion raises portal pressure and causes fatal rebleeding.", "died", "⚠️"),
-        ],
-      },
-      survived: survived("Bleeding is controlled endoscopically and he stabilises.", [
-        vit("hr", "Heart rate", 84, "bpm", "down", "normal"),
-        vit("hb", "Haemoglobin", 96, "g/L", "up", "warning"),
-      ]),
-      died: died("He exsanguinates. Review the priorities."),
+    { survived: "She is reperfused, recovers function, and starts secondary prevention.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-gi-bleed", title: "Massive upper GI bleed", specialty: "Digestive and Biliary Tract System",
+      scenario: "A 55-year-old with alcohol excess: large-volume haematemesis, HR 120, BP 88/56.",
+      citations: ["NICE CG141", "Baveno VII"], summary: "Resuscitate and manage variceal bleeding.",
+      subtitle: "Haemodynamically unstable haematemesis", difficulty: "Hard", icon: "🩸",
+      patient: { name: "Frank", age: 55, sex: "M", presentation: "Large-volume haematemesis", tags: ["Haemorrhage", "Varices"] },
     },
-  },
-  {
-    id: "bcase-pph",
-    title: "Primary postpartum haemorrhage",
-    specialty: "Reproductive System and Perinatal Period",
-    scenario: "Ten minutes after delivery, brisk bleeding (>1000 mL), HR 118, BP 92/58, soft uterus.",
-    citations: ["RCOG Green-top Guideline 52 — PPH"],
-    summary: "Manage primary PPH from uterine atony.",
-    subtitle: "Atonic postpartum haemorrhage",
-    difficulty: "Moderate",
-    icon: "🤰",
-    patient: { name: "Sara", age: 31, sex: "F", presentation: "Brisk PV bleeding post-delivery", tags: ["Obstetric", "Haemorrhage"] },
-    stages: [
-      { id: "first", label: "First-line" },
-      { id: "escalate", label: "Escalation" },
+    [
+      { stage: "Resuscitation", prompt: "Shocked — first priority?", content: "Active bleeding.", status: "critical",
+        vitals: [v("hr", "HR", 120, "bpm", "up", "critical"), v("bp", "BP", "88/56", "mmHg", "down", "critical")],
+        optimal: ["ABC: two large-bore cannulae, fluids/blood, major haemorrhage call", "Correct — resuscitate first.", "🚑"],
+        suboptimal: ["Endoscopy before resuscitation", "Never scope an unresuscitated patient.", "🔬"],
+        deadly: ["Oral iron and outpatient follow-up", "Discharging this is fatal.", "🚪"] },
+      { stage: "Transfusion", prompt: "Hb 70 — transfusion strategy?", content: "Ongoing losses.", status: "critical",
+        vitals: [v("hb", "Hb", 70, "g/L", "down", "warning")],
+        optimal: ["Restrictive transfusion (target ~70–80 g/L)", "Correct — restrictive improves outcomes.", "🩸"],
+        suboptimal: ["Transfuse to a normal Hb", "Over-transfusion raises rebleed risk.", "⚠️"],
+        deadly: ["Withhold blood despite shock", "Exsanguination.", "🚫"] },
+      { stage: "Pharmacology", prompt: "Variceal source likely — next?", content: "Known cirrhosis.", status: "guarded",
+        vitals: [v("bp", "BP", "100/64", "mmHg", "up", "warning")],
+        optimal: ["Terlipressin + prophylactic antibiotics", "Correct — both improve survival.", "💉"],
+        suboptimal: ["Antibiotics only", "Add terlipressin too.", "💊"],
+        deadly: ["Give NSAIDs for discomfort", "Worsens bleeding.", "⚠️"] },
+      { stage: "Endoscopy", prompt: "Resuscitated — definitive step?", content: "Stable enough for scope.", status: "guarded",
+        vitals: [v("hr", "HR", 96, "bpm", "down", "warning")],
+        optimal: ["Urgent endoscopy with variceal band ligation", "Correct — definitive haemostasis.", "🔬"],
+        suboptimal: ["Delay endoscopy 48 hours", "Too slow for active variceal bleeding.", "🐢"],
+        deadly: ["Discharge after one stable reading", "Rebleed risk is high.", "🚫"] },
+      { stage: "Rescue", prompt: "Rebleeds despite banding — next?", content: "Uncontrolled haemorrhage.", status: "worsening",
+        vitals: [v("bp", "BP", "84/52", "mmHg", "down", "critical")],
+        optimal: ["Balloon tamponade as a bridge to TIPS", "Correct — temporise then TIPS.", "🎈"],
+        suboptimal: ["Repeat the same banding session only", "May fail again without escalation.", "🔁"],
+        deadly: ["Continue observation only", "Fatal exsanguination.", "🚫"] },
+      { stage: "Recovery", prompt: "Controlled — next?", content: "Bleeding stopped.", status: "improving",
+        vitals: [v("hb", "Hb", 96, "g/L", "up", "warning")],
+        optimal: ["Secondary prophylaxis (NSBB) + alcohol support", "Correct — prevent recurrence.", "📋"],
+        suboptimal: ["Discharge with no prophylaxis", "High rebleed risk.", "🚪"],
+        deadly: ["Restart NSAIDs/alcohol advice ignored", "Negligent.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "first",
-        stageLabel: "First-line",
-        prompt: "Atony is likely — first action",
-        content: "The uterus is soft and she is bleeding briskly.",
-        patientStatus: "critical",
-        vitals: [
-          vit("hr", "Heart rate", 118, "bpm", "up", "critical"),
-          vit("bp", "Blood pressure", "92/58", "mmHg", "down", "warning"),
-          vit("ebl", "Blood loss", 1100, "mL", "up", "critical"),
-        ],
-        choices: [
-          ch("a", "Call help, uterine massage, give oxytocin", "optimal", 0, "Correct — mechanical + pharmacological measures with team activation.", "n2", "🤲"),
-          ch("b", "Catheterise and reassess in 15 minutes", "suboptimal", -20, "An empty bladder helps but isn't first-line and delays treatment.", "n2", "💧"),
-          ch("c", "Wait for the placenta check before intervening", "deadly", -100, "Delaying treatment of brisk PPH leads to fatal exsanguination.", "died", "⏳"),
-        ],
-      },
-      n2: {
-        stageId: "escalate",
-        stageLabel: "Escalation",
-        prompt: "Bleeding continues despite oxytocin — next",
-        content: "First-line measures have not controlled it.",
-        patientStatus: "worsening",
-        vitals: [
-          vit("hr", "Heart rate", 124, "bpm", "up", "critical"),
-          vit("bp", "Blood pressure", "84/52", "mmHg", "down", "critical"),
-          vit("ebl", "Blood loss", 1800, "mL", "up", "critical"),
-        ],
-        choices: [
-          ch("a", "Escalate uterotonics, major haemorrhage protocol, theatre/balloon", "optimal", 0, "Correct — stepwise escalation with resuscitation.", "survived", "🚑"),
-          ch("b", "Repeat the same oxytocin dose, keep observing", "suboptimal", -20, "Persisting with one failed agent wastes time — escalate.", "survived", "🔁"),
-          ch("c", "Give an NSAID for pain, monitor only", "deadly", -100, "Failure to escalate ongoing PPH is fatal.", "died", "🚫"),
-        ],
-      },
-      survived: survived("Bleeding is controlled and she is stabilised with transfusion.", [
-        vit("hr", "Heart rate", 92, "bpm", "down", "normal"),
-        vit("bp", "Blood pressure", "112/70", "mmHg", "up", "normal"),
-      ]),
-      died: died("Fatal haemorrhage follows delayed escalation. Review the steps."),
+    { survived: "Bleeding is controlled endoscopically and he starts secondary prophylaxis.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-pph", title: "Primary postpartum haemorrhage", specialty: "Reproductive System and Perinatal Period",
+      scenario: "Ten minutes post-delivery: brisk bleeding >1000 mL, HR 118, BP 92/58, soft uterus.",
+      citations: ["RCOG GTG 52"], summary: "Manage primary PPH from uterine atony.",
+      subtitle: "Atonic postpartum haemorrhage", difficulty: "Medium", icon: "🤰",
+      patient: { name: "Sara", age: 31, sex: "F", presentation: "Brisk PV bleeding post-delivery", tags: ["Obstetric", "Haemorrhage"] },
     },
-  },
-  {
-    id: "bcase-tension-ptx",
-    title: "Tension pneumothorax",
-    specialty: "Respiratory System",
-    scenario: "A ventilated trauma patient desaturates with tracheal deviation, absent right breath sounds, BP 80/50.",
-    citations: ["ATLS — Thoracic Trauma"],
-    summary: "Recognise and decompress a tension pneumothorax.",
-    subtitle: "Obstructive shock in trauma",
-    difficulty: "Hard",
-    icon: "🫁",
-    patient: { name: "Tom", age: 38, sex: "M", presentation: "Trauma, sudden desaturation", tags: ["Trauma", "Airway"] },
-    stages: [
-      { id: "decompress", label: "Decompression" },
-      { id: "definitive", label: "Definitive" },
+    [
+      { stage: "Call & assess", prompt: "First action?", content: "Soft uterus, brisk bleeding.", status: "critical",
+        vitals: [v("hr", "HR", 118, "bpm", "up", "critical"), v("ebl", "Blood loss", 1100, "mL", "up", "critical")],
+        optimal: ["Call for help, uterine massage, IV access, oxytocin", "Correct — simultaneous measures.", "🤲"],
+        suboptimal: ["Catheterise and wait 15 min", "Helps but isn't first-line.", "💧"],
+        deadly: ["Wait for the placenta check first", "Delay is fatal.", "⏳"] },
+      { stage: "Uterotonics", prompt: "Bleeding continues — next?", content: "Atony persists.", status: "worsening",
+        vitals: [v("bp", "BP", "88/54", "mmHg", "down", "warning")],
+        optimal: ["Escalate uterotonics (ergometrine, carboprost)", "Correct — stepwise drugs.", "💉"],
+        suboptimal: ["Repeat oxytocin only", "Persisting with one agent wastes time.", "🔁"],
+        deadly: ["Give an NSAID and observe", "Failure to escalate is fatal.", "🚫"] },
+      { stage: "Resuscitation", prompt: "EBL now 1800 mL — next?", content: "Hypovolaemic.", status: "critical",
+        vitals: [v("ebl", "Blood loss", 1800, "mL", "up", "critical"), v("hr", "HR", 126, "bpm", "up", "critical")],
+        optimal: ["Activate major haemorrhage protocol, transfuse", "Correct — resuscitate in parallel.", "🚑"],
+        suboptimal: ["Crystalloid only, no blood", "Dilutional coagulopathy.", "💧"],
+        deadly: ["Restrict fluids and observe", "Exsanguination.", "🚫"] },
+      { stage: "Mechanical", prompt: "Still bleeding — next?", content: "Drugs insufficient.", status: "worsening",
+        vitals: [v("bp", "BP", "86/50", "mmHg", "flat", "critical")],
+        optimal: ["Intrauterine balloon tamponade; prepare theatre", "Correct — mechanical control.", "🎈"],
+        suboptimal: ["More uterotonics only", "Likely to fail alone.", "💉"],
+        deadly: ["Send to ward to monitor", "Unsafe with ongoing PPH.", "🚫"] },
+      { stage: "Recovery", prompt: "Controlled — next?", content: "Bleeding stops.", status: "improving",
+        vitals: [v("hr", "HR", 92, "bpm", "down", "normal"), v("bp", "BP", "112/70", "mmHg", "up", "normal")],
+        optimal: ["HDU monitoring, debrief, check for anaemia", "Correct — post-PPH care.", "📈"],
+        suboptimal: ["Routine postnatal ward, no extra monitoring", "Under-monitors recurrence.", "🛏️"],
+        deadly: ["Discharge within the hour", "Unsafe.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "decompress",
-        stageLabel: "Decompression",
-        prompt: "Signs point to tension pneumothorax — first action",
-        content: "He is rapidly deteriorating.",
-        patientStatus: "critical",
-        vitals: [
-          vit("spo2", "SpO₂", 82, "%", "down", "critical"),
-          vit("bp", "Blood pressure", "80/50", "mmHg", "down", "critical"),
-          vit("hr", "Heart rate", 132, "bpm", "up", "critical"),
-        ],
-        choices: [
-          ch("a", "Immediate needle/finger decompression", "optimal", 0, "Correct — tension pneumothorax is a clinical diagnosis treated immediately.", "n2", "🪡"),
-          ch("b", "Increase ventilator pressures", "suboptimal", -20, "Raising pressures worsens the tension — decompress instead.", "n2", "🎚️"),
-          ch("c", "Order a chest X-ray and wait", "deadly", -100, "Waiting for imaging in tension pneumothorax causes a fatal arrest.", "died", "🩻"),
-        ],
-      },
-      n2: {
-        stageId: "definitive",
-        stageLabel: "Definitive",
-        prompt: "Decompression released air with improvement — next",
-        content: "He has improved transiently.",
-        patientStatus: "guarded",
-        vitals: [
-          vit("spo2", "SpO₂", 94, "%", "up", "warning"),
-          vit("bp", "Blood pressure", "104/66", "mmHg", "up", "warning"),
-        ],
-        choices: [
-          ch("a", "Insert a definitive chest drain", "optimal", 0, "Correct — needle decompression is temporising; a chest drain is definitive.", "survived", "🧰"),
-          ch("b", "Leave the cannula in place and carry on", "suboptimal", -20, "A cannula can kink or block — a chest drain is required.", "survived", "📌"),
-          ch("c", "Remove the cannula and observe without a drain", "deadly", -100, "The tension re-accumulates and causes arrest.", "died", "🚫"),
-        ],
-      },
-      survived: survived("A chest drain is sited, the lung re-expands, and he stabilises.", [
-        vit("spo2", "SpO₂", 98, "%", "up", "normal"),
-        vit("bp", "Blood pressure", "118/74", "mmHg", "flat", "normal"),
-      ]),
-      died: died("Cardiac arrest from untreated tension. Review the decision."),
+    { survived: "Bleeding is controlled with balloon tamponade and transfusion.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-tension-ptx", title: "Tension pneumothorax", specialty: "Respiratory System",
+      scenario: "A ventilated trauma patient desaturates with tracheal deviation, absent right breath sounds, BP 80/50.",
+      citations: ["ATLS — Thoracic Trauma"], summary: "Recognise and decompress a tension pneumothorax.",
+      subtitle: "Obstructive shock in trauma", difficulty: "Hard", icon: "🫁",
+      patient: { name: "Tom", age: 38, sex: "M", presentation: "Trauma, sudden desaturation", tags: ["Trauma", "Airway"] },
     },
-  },
-  {
-    id: "bcase-massive-pe",
-    title: "Massive pulmonary embolism",
-    specialty: "Cardiovascular System",
-    scenario: "A post-op patient has pleuritic chest pain, severe dyspnoea, syncope, HR 130, BP 84/52, RV strain.",
-    citations: ["ESC Guidelines on Acute PE 2019"],
-    summary: "Manage high-risk (massive) pulmonary embolism.",
-    subtitle: "Obstructive shock from PE",
-    difficulty: "Hard",
-    icon: "🫀",
-    patient: { name: "Grace", age: 45, sex: "F", presentation: "Post-op syncope and dyspnoea", tags: ["PE", "Shock"] },
-    stages: [
-      { id: "stabilise", label: "Stabilisation" },
-      { id: "reperfuse", label: "Reperfusion" },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "Tracheal deviation, distended neck veins.", status: "critical",
+        vitals: [v("spo2", "SpO₂", 82, "%", "down", "critical"), v("bp", "BP", "80/50", "mmHg", "down", "critical")],
+        optimal: ["Diagnose clinically — do not wait for imaging", "Correct — it's a clinical diagnosis.", "🧠"],
+        suboptimal: ["Increase ventilator pressures", "Worsens the tension.", "🎚️"],
+        deadly: ["Order a chest X-ray and wait", "Waiting causes arrest.", "🩻"] },
+      { stage: "Decompression", prompt: "Decompress how?", content: "Peri-arrest.", status: "critical",
+        vitals: [v("hr", "HR", 132, "bpm", "up", "critical")],
+        optimal: ["Immediate needle/finger decompression", "Correct — relieve the tension now.", "🪡"],
+        suboptimal: ["Call cardiothoracics first", "Decompress before referral.", "📞"],
+        deadly: ["Give fluids and reassess in 10 min", "Delay is fatal.", "🚫"] },
+      { stage: "Confirm", prompt: "Air released — next?", content: "Transient improvement.", status: "guarded",
+        vitals: [v("spo2", "SpO₂", 92, "%", "up", "warning")],
+        optimal: ["Reassess air entry and haemodynamics", "Correct — confirm response.", "🩺"],
+        suboptimal: ["Assume fixed, move on", "Tension can recur.", "🚶"],
+        deadly: ["Remove the cannula immediately", "Tension re-accumulates.", "🚫"] },
+      { stage: "Definitive", prompt: "Definitive management?", content: "Needle is temporising.", status: "guarded",
+        vitals: [v("bp", "BP", "104/66", "mmHg", "up", "warning")],
+        optimal: ["Insert a chest drain", "Correct — definitive treatment.", "🧰"],
+        suboptimal: ["Leave the cannula in place", "Can block or kink.", "📌"],
+        deadly: ["No drain, observe only", "Re-tensions and arrests.", "🚫"] },
+      { stage: "Ongoing", prompt: "Drain in — next?", content: "Lung re-expanding.", status: "improving",
+        vitals: [v("spo2", "SpO₂", 98, "%", "up", "normal")],
+        optimal: ["CXR to confirm position, ongoing trauma survey", "Correct — confirm and continue care.", "🩻"],
+        suboptimal: ["Stop the trauma survey", "May miss other injuries.", "🚫"],
+        deadly: ["Clamp a bubbling chest drain", "Recreates a tension pneumothorax.", "⚠️"] },
+      { stage: "Disposition", prompt: "Stable — next?", content: "Re-expanded lung.", status: "improving",
+        vitals: [v("bp", "BP", "118/74", "mmHg", "flat", "normal")],
+        optimal: ["Admit to critical care for monitoring", "Correct.", "🏥"],
+        suboptimal: ["Send to a general ward", "Needs closer monitoring.", "🛏️"],
+        deadly: ["Discharge home", "Grossly unsafe.", "🚫"] },
     ],
-    startNodeId: "n1",
-    nodes: {
-      n1: {
-        stageId: "stabilise",
-        stageLabel: "Stabilisation",
-        prompt: "Obstructive shock from suspected massive PE — first action",
-        content: "She is hypotensive with right-heart strain.",
-        patientStatus: "critical",
-        vitals: [
-          vit("hr", "Heart rate", 130, "bpm", "up", "critical"),
-          vit("bp", "Blood pressure", "84/52", "mmHg", "down", "critical"),
-          vit("spo2", "SpO₂", 86, "%", "down", "critical"),
-        ],
-        choices: [
-          ch("a", "Resuscitate, O₂, high-risk PE pathway, senior input", "optimal", 0, "Correct — stabilise and escalate immediately.", "n2", "🚑"),
-          ch("b", "Send for CTPA before any treatment", "suboptimal", -20, "In unstable PE don't delay — treat on clinical grounds with bedside echo.", "n2", "🩻"),
-          ch("c", "Give a large rapid fluid bolus", "deadly", -100, "Aggressive fluids overload the failing right ventricle and cause arrest.", "died", "⚠️"),
-        ],
-      },
-      n2: {
-        stageId: "reperfuse",
-        stageLabel: "Reperfusion",
-        prompt: "Confirmed massive PE, still in shock — next",
-        content: "She remains in obstructive shock.",
-        patientStatus: "worsening",
-        vitals: [
-          vit("bp", "Blood pressure", "80/48", "mmHg", "down", "critical"),
-          vit("rv", "RV strain", "Severe", undefined, undefined, "critical"),
-        ],
-        choices: [
-          ch("a", "Systemic thrombolysis (or embolectomy)", "optimal", 0, "Correct — reperfusion is indicated in massive PE with shock.", "survived", "💉"),
-          ch("b", "Prophylactic-dose anticoagulation only", "suboptimal", -20, "Prophylactic dosing is inadequate — therapeutic ± thrombolysis is needed.", "survived", "💊"),
-          ch("c", "Withhold thrombolysis and observe", "deadly", -100, "Untreated massive PE with shock is rapidly fatal.", "died", "🚫"),
-        ],
-      },
-      survived: survived("She receives reperfusion, the right heart recovers, and she stabilises.", [
-        vit("bp", "Blood pressure", "112/70", "mmHg", "up", "normal"),
-        vit("spo2", "SpO₂", 97, "%", "up", "normal"),
-      ]),
-      died: died("She arrests from obstructive shock. Review the management."),
+    { survived: "A chest drain re-expands the lung and he is admitted to critical care.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-massive-pe", title: "Massive pulmonary embolism", specialty: "Cardiovascular System",
+      scenario: "A post-op patient: pleuritic pain, severe dyspnoea, syncope, HR 130, BP 84/52, RV strain.",
+      citations: ["ESC Acute PE 2019"], summary: "Manage high-risk (massive) PE.",
+      subtitle: "Obstructive shock from PE", difficulty: "Hard", icon: "🫀",
+      patient: { name: "Grace", age: 45, sex: "F", presentation: "Post-op syncope and dyspnoea", tags: ["PE", "Shock"] },
     },
-  },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "Hypotensive with RV strain.", status: "critical",
+        vitals: [v("hr", "HR", 130, "bpm", "up", "critical"), v("spo2", "SpO₂", 86, "%", "down", "critical")],
+        optimal: ["Resuscitate, oxygen, activate high-risk PE pathway", "Correct — stabilise and escalate.", "🚑"],
+        suboptimal: ["Send for CTPA before any treatment", "Unstable — don't delay.", "🩻"],
+        deadly: ["Large rapid fluid bolus to 'fill' the RV", "Overloads the failing RV.", "⚠️"] },
+      { stage: "Diagnosis", prompt: "Too unstable for CT — next?", content: "Persistent shock.", status: "critical",
+        vitals: [v("bp", "BP", "82/50", "mmHg", "down", "critical")],
+        optimal: ["Bedside echo to confirm RV strain", "Correct — point-of-care confirmation.", "🔍"],
+        suboptimal: ["Wait for formal echo in hours", "Too slow.", "⏳"],
+        deadly: ["Treat as sepsis and give only fluids", "Misses the diagnosis.", "🚫"] },
+      { stage: "Reperfusion", prompt: "Massive PE confirmed — next?", content: "Obstructive shock.", status: "critical",
+        vitals: [v("rv", "RV strain", "Severe", undefined, undefined, "critical")],
+        optimal: ["Systemic thrombolysis (or embolectomy)", "Correct — reperfusion in massive PE.", "💉"],
+        suboptimal: ["Prophylactic-dose anticoagulation only", "Inadequate for shock.", "💊"],
+        deadly: ["Withhold thrombolysis and observe", "Rapidly fatal.", "🚫"] },
+      { stage: "Support", prompt: "Post-lysis still hypotensive — next?", content: "Recovering slowly.", status: "worsening",
+        vitals: [v("bp", "BP", "92/58", "mmHg", "up", "warning")],
+        optimal: ["Cautious vasopressor + critical care", "Correct — support the RV.", "🚑"],
+        suboptimal: ["Aggressive fluids again", "Worsens RV overload.", "💧"],
+        deadly: ["Repeat full-dose thrombolysis immediately", "Major bleeding risk.", "⚠️"] },
+      { stage: "Recovery", prompt: "Stabilising — next?", content: "RV recovering.", status: "improving",
+        vitals: [v("bp", "BP", "112/70", "mmHg", "up", "normal"), v("spo2", "SpO₂", 96, "%", "up", "normal")],
+        optimal: ["Therapeutic anticoagulation + thrombophilia/cancer review", "Correct — ongoing care.", "🩺"],
+        suboptimal: ["Discharge on aspirin", "Inadequate anticoagulation.", "💊"],
+        deadly: ["No anticoagulation", "High re-embolism risk.", "🚫"] },
+      { stage: "Prevention", prompt: "Recurrent DVT risk — next?", content: "Planning prevention.", status: "improving",
+        vitals: [v("hr", "HR", 84, "bpm", "down", "normal")],
+        optimal: ["Set anticoagulation duration and follow-up", "Correct.", "📋"],
+        suboptimal: ["No follow-up plan", "Risks recurrence.", "🚪"],
+        deadly: ["Stop anticoagulation at one week", "Premature — re-embolism.", "🚫"] },
+    ],
+    { survived: "Reperfusion succeeds, the right heart recovers, and she is anticoagulated.", died: DIED },
+  ),
+
+  // ===================== SYSTEM CASES (now interactive) =====================
+  bcase(
+    {
+      id: "bcase-stemi", title: "Inferior STEMI", specialty: "Cardiovascular System",
+      scenario: "A 58-year-old smoker: 40 min of crushing central chest pain radiating to the arm.",
+      citations: ["ESC ACS 2023", "NICE NG185"], summary: "Recognise and manage an inferior STEMI.",
+      subtitle: "Acute coronary syndrome", difficulty: "Medium", icon: "💔",
+      patient: { name: "Raj", age: 58, sex: "M", presentation: "Crushing chest pain", tags: ["ACS", "Cardiac"] },
+    },
+    [
+      { stage: "Triage", prompt: "First action?", content: "Severe central chest pain.", status: "guarded",
+        vitals: [v("hr", "HR", 96, "bpm", "up", "warning"), v("bp", "BP", "150/90", "mmHg", "up", "warning")],
+        optimal: ["12-lead ECG within 10 minutes", "Correct — diagnose fast.", "🩺"],
+        suboptimal: ["Send troponin and wait", "ECG comes first.", "🧪"],
+        deadly: ["Reassure and discharge as muscular", "Missing a STEMI is fatal.", "🚪"] },
+      { stage: "Diagnosis", prompt: "ECG shows inferior ST elevation — next?", content: "II, III, aVF elevation.", status: "guarded",
+        vitals: [v("ecg", "ECG", "Inferior STE", undefined, undefined, "critical")],
+        optimal: ["Aspirin + anticoagulation, activate primary PCI", "Correct — reperfuse.", "💉"],
+        suboptimal: ["Aspirin only, refer routinely", "Delays reperfusion.", "💊"],
+        deadly: ["Give GTN despite a right-sided MI/hypotension", "Causes profound hypotension.", "⚠️"] },
+      { stage: "Right-sided check", prompt: "BP now 92/60 — next?", content: "Possible RV involvement.", status: "worsening",
+        vitals: [v("bp", "BP", "92/60", "mmHg", "down", "warning")],
+        optimal: ["Right-sided ECG; cautious fluids for RV infarct", "Correct — RV infarct is preload-dependent.", "🩻"],
+        suboptimal: ["More opioids for pain", "Doesn't address hypotension.", "💊"],
+        deadly: ["Give a large GTN dose", "Crashes preload-dependent RV.", "⚠️"] },
+      { stage: "Reperfusion", prompt: "PCI available in 60 min — next?", content: "Within PCI window.", status: "guarded",
+        vitals: [v("bp", "BP", "104/66", "mmHg", "up", "warning")],
+        optimal: ["Primary PCI", "Correct — preferred reperfusion.", "🩺"],
+        suboptimal: ["Thrombolyse despite PCI availability", "PCI is superior if timely.", "💉"],
+        deadly: ["Observe without reperfusion", "Infarct extends.", "🚫"] },
+      { stage: "Recovery", prompt: "Reperfused — next?", content: "Pain settling.", status: "improving",
+        vitals: [v("hr", "HR", 78, "bpm", "down", "normal")],
+        optimal: ["Dual antiplatelets, statin, ACEi, cardiac rehab", "Correct — secondary prevention.", "📋"],
+        suboptimal: ["Aspirin alone on discharge", "Suboptimal secondary prevention.", "💊"],
+        deadly: ["No secondary prevention", "High re-event risk.", "🚫"] },
+    ],
+    { survived: "Primary PCI restores flow and he starts secondary prevention.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-hernia", title: "Groin lump — inguinal hernia", specialty: "Gross Anatomy",
+      scenario: "A 55-year-old: intermittent right groin lump on standing and coughing.",
+      citations: ["Last's Anatomy", "BJS Groin Hernia"], summary: "Apply inguinal canal anatomy to a groin hernia.",
+      subtitle: "Applied anatomy of the groin", difficulty: "Easy", icon: "🧬",
+      patient: { name: "Bill", age: 55, sex: "M", presentation: "Reducible groin lump", tags: ["Anatomy", "Elective"] },
+    },
+    [
+      { stage: "History", prompt: "First step?", content: "Reducible lump, mild ache.", status: "stable",
+        vitals: [v("pain", "Pain", "Mild", undefined, undefined, "normal")],
+        optimal: ["Take a focused history (reducibility, obstruction symptoms)", "Correct — screen for complications.", "📝"],
+        suboptimal: ["Book surgery without examining", "Examine and localise first.", "🗓️"],
+        deadly: ["Dismiss without examining", "Misses a strangulating hernia.", "🚫"] },
+      { stage: "Examination", prompt: "Examine how?", content: "Lump above and medial to the pubic tubercle.", status: "stable",
+        vitals: [v("lump", "Lump", "Reducible", undefined, undefined, "normal")],
+        optimal: ["Locate vs pubic tubercle; test deep-ring control", "Correct — distinguishes hernia type.", "🩺"],
+        suboptimal: ["Image first without examining", "Clinical exam is usually sufficient.", "🩻"],
+        deadly: ["Forcibly reduce a tender, irreducible lump", "Can reduce dead bowel.", "⚠️"] },
+      { stage: "Classification", prompt: "Reduces, controlled by deep-ring pressure — type?", content: "Lateral to the inferior epigastric vessels.", status: "stable",
+        vitals: [v("type", "Type", "Indirect", undefined, undefined, "normal")],
+        optimal: ["Indirect inguinal hernia (through the deep ring)", "Correct anatomy.", "🧠"],
+        suboptimal: ["Call it femoral without checking landmarks", "Femoral lies below/lateral to the tubercle.", "❓"],
+        deadly: ["Ignore obstructive symptoms if present", "Strangulation can be fatal.", "🚫"] },
+      { stage: "Management", prompt: "Asymptomatic-reducible — plan?", content: "No red flags.", status: "stable",
+        vitals: [v("plan", "Plan", "Elective", undefined, undefined, "normal")],
+        optimal: ["Elective repair; safety-net for strangulation", "Correct.", "🗓️"],
+        suboptimal: ["Watchful waiting with no safety-net advice", "Add strangulation safety-netting.", "👀"],
+        deadly: ["Discharge with no advice", "Misses strangulation risk.", "🚫"] },
+    ],
+    { survived: "He has an elective repair after appropriate safety-netting.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-cap", title: "Community-acquired pneumonia", specialty: "Respiratory System",
+      scenario: "A 72-year-old: 3 days of productive cough, fever, pleuritic chest pain.",
+      citations: ["BTS CAP", "NICE NG138"], summary: "Diagnose and risk-stratify CAP.",
+      subtitle: "Lower respiratory tract infection", difficulty: "Easy", icon: "🌬️",
+      patient: { name: "Edith", age: 72, sex: "F", presentation: "Cough, fever, pleuritic pain", tags: ["Infection", "Respiratory"] },
+    },
+    [
+      { stage: "Assessment", prompt: "First step?", content: "Febrile and breathless.", status: "guarded",
+        vitals: [v("spo2", "SpO₂", 91, "%", "down", "warning"), v("rr", "RR", 24, "/min", "up", "warning")],
+        optimal: ["A–E assessment, oxygen if hypoxic, observations", "Correct.", "🩺"],
+        suboptimal: ["Antibiotics before any assessment", "Assess severity first.", "💊"],
+        deadly: ["Send home without observations", "Misses severe pneumonia.", "🚪"] },
+      { stage: "Severity", prompt: "Stratify how?", content: "Confused, urea raised.", status: "guarded",
+        vitals: [v("curb", "CURB-65", 3, undefined, "up", "warning")],
+        optimal: ["Calculate CURB-65 and risk-stratify", "Correct — guides setting.", "🧮"],
+        suboptimal: ["Treat all as mild", "May under-treat severe disease.", "💊"],
+        deadly: ["Discharge a CURB-65 of 3", "High mortality risk.", "🚫"] },
+      { stage: "Treatment", prompt: "CURB-65 = 3 — next?", content: "Severe CAP.", status: "guarded",
+        vitals: [v("spo2", "SpO₂", 90, "%", "down", "warning")],
+        optimal: ["Admit, oxygen, empirical IV antibiotics, cultures", "Correct.", "💉"],
+        suboptimal: ["Oral antibiotics at home", "Inadequate for severe CAP.", "🏠"],
+        deadly: ["No antibiotics, observe", "Sepsis progresses.", "🚫"] },
+      { stage: "Review", prompt: "Improving at 48 h — next?", content: "Afebrile, eating.", status: "improving",
+        vitals: [v("spo2", "SpO₂", 95, "%", "up", "normal")],
+        optimal: ["Switch IV→oral, plan follow-up CXR", "Correct.", "📋"],
+        suboptimal: ["Continue IV unnecessarily", "Switch when stable.", "💉"],
+        deadly: ["Stop antibiotics after one day", "Relapse risk.", "🚫"] },
+    ],
+    { survived: "She responds to antibiotics and steps down to oral therapy.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-cholecystitis", title: "Acute cholecystitis", specialty: "Digestive and Biliary Tract System",
+      scenario: "A 45-year-old: 12 h of severe RUQ pain after a fatty meal, fever.",
+      citations: ["Tokyo Guidelines 2018", "NICE CG188"], summary: "Diagnose and manage acute cholecystitis.",
+      subtitle: "Right upper quadrant pain", difficulty: "Easy", icon: "🫆",
+      patient: { name: "Nadia", age: 45, sex: "F", presentation: "RUQ pain after fatty meal", tags: ["Biliary", "Surgical"] },
+    },
+    [
+      { stage: "Assessment", prompt: "First step?", content: "RUQ pain, fever, vomiting.", status: "guarded",
+        vitals: [v("temp", "Temp", 38.2, "°C", "up", "warning"), v("hr", "HR", 96, "bpm", "up", "warning")],
+        optimal: ["History/exam (Murphy's sign), bloods", "Correct.", "🩺"],
+        suboptimal: ["Discharge with antacids", "Misses cholecystitis.", "💊"],
+        deadly: ["Ignore fever and send home", "Risk of empyema/sepsis.", "🚫"] },
+      { stage: "Investigation", prompt: "Positive Murphy's — next?", content: "Raised inflammatory markers.", status: "guarded",
+        vitals: [v("wcc", "WCC", 15, "10⁹/L", "up", "warning")],
+        optimal: ["Ultrasound (gallstones, wall, fluid)", "Correct first-line imaging.", "🔊"],
+        suboptimal: ["MRCP first-line", "Reserve for duct stones.", "🧲"],
+        deadly: ["No imaging, discharge", "Misses complications.", "🚫"] },
+      { stage: "Management", prompt: "Cholecystitis confirmed — next?", content: "Stones + thick-walled gallbladder.", status: "guarded",
+        vitals: [v("temp", "Temp", 38.0, "°C", "flat", "warning")],
+        optimal: ["Analgesia, antibiotics, early lap cholecystectomy", "Correct — early surgery preferred.", "🔪"],
+        suboptimal: ["Antibiotics only, delay surgery weeks", "Early surgery has better outcomes.", "💊"],
+        deadly: ["Discharge with no treatment", "Progression to perforation.", "🚫"] },
+      { stage: "Recovery", prompt: "Post-op — next?", content: "Uncomplicated cholecystectomy.", status: "improving",
+        vitals: [v("temp", "Temp", 36.8, "°C", "down", "normal")],
+        optimal: ["Routine recovery, dietary advice", "Correct.", "📋"],
+        suboptimal: ["Long IV antibiotics unnecessarily", "De-escalate when well.", "💉"],
+        deadly: ["Ignore post-op jaundice/fever", "Misses bile leak/retained stone.", "🚫"] },
+    ],
+    { survived: "She has an early laparoscopic cholecystectomy and recovers.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-ruti", title: "Recurrent UTI (post-menopausal)", specialty: "Renal and Urinary Tract",
+      scenario: "A 62-year-old: her fourth symptomatic UTI in 12 months.",
+      citations: ["NICE NG112", "EAU Urological Infections"], summary: "Work up and manage recurrent UTI.",
+      subtitle: "Recurrent lower urinary tract infection", difficulty: "Easy", icon: "🧪",
+      patient: { name: "Carol", age: 62, sex: "F", presentation: "Recurrent dysuria and frequency", tags: ["Infection", "Outpatient"] },
+    },
+    [
+      { stage: "History", prompt: "First step?", content: "Recurrent dysuria, frequency.", status: "stable",
+        vitals: [v("temp", "Temp", 37.0, "°C", "flat", "normal")],
+        optimal: ["Confirm recurrence pattern; exclude red flags (haematuria)", "Correct.", "📝"],
+        suboptimal: ["Prescribe antibiotics by phone repeatedly", "Investigate the pattern.", "📞"],
+        deadly: ["Ignore visible haematuria", "Could miss bladder cancer.", "🚫"] },
+      { stage: "Investigation", prompt: "Next step?", content: "Afebrile, no flank pain.", status: "stable",
+        vitals: [v("dip", "Dipstick", "Nitrites+", undefined, undefined, "warning")],
+        optimal: ["MSU culture; assess post-void residual", "Correct.", "🔬"],
+        suboptimal: ["Treat empirically without culture", "Culture guides recurrent cases.", "💊"],
+        deadly: ["No assessment, repeat broad antibiotics", "Drives resistance, misses cause.", "🚫"] },
+      { stage: "Cause", prompt: "Vaginal atrophy noted — next?", content: "Genitourinary syndrome of menopause.", status: "stable",
+        vitals: [v("cause", "Cause", "GSM", undefined, undefined, "warning")],
+        optimal: ["Topical vaginal oestrogen + behavioural measures", "Correct — reduces recurrence.", "🩺"],
+        suboptimal: ["Long-term prophylactic antibiotics only", "Consider non-antibiotic measures first.", "💊"],
+        deadly: ["No treatment of the underlying cause", "Recurrences continue.", "🚫"] },
+      { stage: "Follow-up", prompt: "Plan?", content: "Started topical oestrogen.", status: "improving",
+        vitals: [v("plan", "Plan", "Review", undefined, undefined, "normal")],
+        optimal: ["Safety-net, review response, self-care advice", "Correct.", "📋"],
+        suboptimal: ["No follow-up", "Misses treatment failure.", "🚪"],
+        deadly: ["Discharge ignoring new haematuria", "Misses serious pathology.", "🚫"] },
+    ],
+    { survived: "Topical oestrogen and self-care measures reduce her recurrences.", died: DIED },
+  ),
+
+  // ===================== RARE CASES =====================
+  bcase(
+    {
+      id: "bcase-phaeo", title: "Phaeochromocytoma crisis", specialty: "Endocrine System",
+      scenario: "A 40-year-old: episodic headache, sweating, palpitations; BP 230/130 with a catecholamine surge.",
+      citations: ["Endocrine Society — Phaeochromocytoma"], summary: "Manage a catecholamine (phaeo) crisis.",
+      subtitle: "Catecholamine crisis (rare)", difficulty: "Hard", icon: "🌀",
+      patient: { name: "Owen", age: 40, sex: "M", presentation: "Headache, sweating, severe hypertension", tags: ["Rare", "Endocrine", "Hypertension"] },
+    },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "Severe paroxysmal hypertension.", status: "critical",
+        vitals: [v("bp", "BP", "230/130", "mmHg", "up", "critical"), v("hr", "HR", 130, "bpm", "up", "critical")],
+        optimal: ["Suspect phaeo; senior/endocrine input, IV access, monitoring", "Correct — recognise the pattern.", "🧠"],
+        suboptimal: ["Treat as essential hypertension only", "Misses the underlying cause.", "💊"],
+        deadly: ["Give a beta-blocker first", "Unopposed alpha → hypertensive crisis.", "⚠️"] },
+      { stage: "Blockade", prompt: "Crisis BP — first drug?", content: "Catecholamine excess.", status: "critical",
+        vitals: [v("bp", "BP", "220/124", "mmHg", "flat", "critical")],
+        optimal: ["Alpha-blockade first (e.g. phentolamine/phenoxybenzamine)", "Correct — alpha before beta.", "💉"],
+        suboptimal: ["Start a calcium-channel blocker alone", "Helps but alpha-blockade is key.", "💊"],
+        deadly: ["Add beta-blocker before alpha", "Precipitates a worse crisis.", "⚠️"] },
+      { stage: "Stabilise", prompt: "BP improving, tachycardic — next?", content: "After adequate alpha-blockade.", status: "worsening",
+        vitals: [v("hr", "HR", 124, "bpm", "flat", "warning")],
+        optimal: ["Add beta-blockade once alpha-blocked", "Correct order.", "💊"],
+        suboptimal: ["Leave tachycardia untreated", "Arrhythmia risk.", "🚫"],
+        deadly: ["Stop all treatment as BP fell", "Crisis rebounds.", "🚫"] },
+      { stage: "Volume", prompt: "Alpha-blockade caused hypotension — next?", content: "Vasodilated, volume-deplete.", status: "guarded",
+        vitals: [v("bp", "BP", "96/58", "mmHg", "down", "warning")],
+        optimal: ["Volume expansion (fluids) as alpha-blockade unmasks deficit", "Correct.", "💧"],
+        suboptimal: ["Reduce alpha-blocker abruptly", "Destabilises BP control.", "📉"],
+        deadly: ["Give a vasoconstrictor bolus", "Swings BP dangerously.", "⚠️"] },
+      { stage: "Workup", prompt: "Stabilised — next?", content: "Crisis controlled.", status: "improving",
+        vitals: [v("bp", "BP", "138/84", "mmHg", "flat", "warning")],
+        optimal: ["Plasma/urine metanephrines, imaging, surgical referral", "Correct — confirm and plan resection.", "🔬"],
+        suboptimal: ["Discharge on oral antihypertensives only", "Misses the tumour.", "💊"],
+        deadly: ["Discharge with no workup", "Recurrent fatal crises.", "🚫"] },
+      { stage: "Definitive", prompt: "Tumour found — next?", content: "Adrenal mass confirmed.", status: "improving",
+        vitals: [v("plan", "Plan", "Surgery", undefined, undefined, "normal")],
+        optimal: ["Optimise blockade, then surgical resection", "Correct — pre-op optimisation is essential.", "🔪"],
+        suboptimal: ["Operate without blockade optimisation", "Intra-op crisis risk.", "⚠️"],
+        deadly: ["Biopsy the adrenal mass", "Can trigger a fatal catecholamine surge.", "🚫"] },
+    ],
+    { survived: "The crisis is controlled, blockade optimised, and the tumour resected.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-aortic-dissection", title: "Acute aortic dissection", specialty: "Cardiovascular System",
+      scenario: "A 60-year-old hypertensive: sudden tearing chest pain radiating to the back, BP differential between arms.",
+      citations: ["ESC Aortic Diseases"], summary: "Recognise and manage acute aortic dissection.",
+      subtitle: "Tearing chest pain (rare, lethal)", difficulty: "Hard", icon: "🩻",
+      patient: { name: "Henry", age: 60, sex: "M", presentation: "Tearing chest/back pain", tags: ["Rare", "Vascular", "Emergency"] },
+    },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "Tearing pain, unequal arm BPs.", status: "critical",
+        vitals: [v("bpR", "BP (R)", "180/100", "mmHg", "up", "critical"), v("bpL", "BP (L)", "140/80", "mmHg", "flat", "warning")],
+        optimal: ["Suspect dissection; large-bore access, analgesia, urgent imaging", "Correct — recognise the pattern.", "🧠"],
+        suboptimal: ["Treat as ACS and give antiplatelets", "Antiplatelets/lysis can be catastrophic.", "💊"],
+        deadly: ["Thrombolyse for a presumed STEMI", "Thrombolysis in dissection is fatal.", "⚠️"] },
+      { stage: "Imaging", prompt: "Stable enough — next?", content: "Confirm the diagnosis.", status: "critical",
+        vitals: [v("hr", "HR", 104, "bpm", "up", "warning")],
+        optimal: ["CT angiography aorta", "Correct — defines type/extent.", "🩻"],
+        suboptimal: ["Plain chest X-ray only", "Insensitive for dissection.", "📷"],
+        deadly: ["Discharge as musculoskeletal", "Missed dissection ruptures.", "🚫"] },
+      { stage: "BP/HR control", prompt: "Type B confirmed — next?", content: "Descending aortic dissection.", status: "critical",
+        vitals: [v("bp", "BP", "176/98", "mmHg", "up", "critical")],
+        optimal: ["IV beta-blockade to lower HR then BP (target ~100–120 SBP)", "Correct — reduce shear stress.", "💉"],
+        suboptimal: ["Vasodilator first without rate control", "Reflex tachycardia raises shear.", "💊"],
+        deadly: ["Allow hypertension to continue", "Propagates the dissection.", "🚫"] },
+      { stage: "Referral", prompt: "Controlled — next?", content: "Decide the pathway.", status: "guarded",
+        vitals: [v("bp", "BP", "118/72", "mmHg", "down", "warning")],
+        optimal: ["Urgent vascular/cardiothoracic referral (surgery if Type A)", "Correct — Type A is surgical.", "📞"],
+        suboptimal: ["Admit to a general ward without referral", "Needs specialist input.", "🛏️"],
+        deadly: ["Send home on oral antihypertensives", "High rupture risk.", "🚫"] },
+      { stage: "Monitoring", prompt: "Type B, medically managed — next?", content: "On the unit.", status: "guarded",
+        vitals: [v("bp", "BP", "120/76", "mmHg", "flat", "warning")],
+        optimal: ["Critical-care monitoring for malperfusion/extension", "Correct.", "📈"],
+        suboptimal: ["Routine ward observations only", "Under-monitors complications.", "🛏️"],
+        deadly: ["Discharge within 24 h", "Unsafe.", "🚫"] },
+      { stage: "Plan", prompt: "Stable — next?", content: "Pain controlled, BP at target.", status: "improving",
+        vitals: [v("bp", "BP", "122/78", "mmHg", "flat", "normal")],
+        optimal: ["Strict BP control + interval imaging + follow-up", "Correct.", "📋"],
+        suboptimal: ["Relax BP targets early", "Risks extension.", "📉"],
+        deadly: ["Stop antihypertensives", "Catastrophic.", "🚫"] },
+    ],
+    { survived: "Shear stress is controlled, the right team is engaged, and she is monitored safely.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-nec-fasc", title: "Necrotising fasciitis", specialty: "Microbiology and Parasitology",
+      scenario: "A 50-year-old diabetic: rapidly spreading leg erythema with pain out of proportion and crepitus.",
+      citations: ["IDSA — Skin/Soft Tissue Infections"], summary: "Recognise and treat necrotising fasciitis.",
+      subtitle: "Surgical emergency (rare)", difficulty: "Hard", icon: "🦠",
+      patient: { name: "Maria", age: 50, sex: "F", presentation: "Severe leg pain, spreading erythema", tags: ["Rare", "Infection", "Surgical"] },
+    },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "Pain out of proportion, systemic upset.", status: "critical",
+        vitals: [v("temp", "Temp", 39.1, "°C", "up", "warning"), v("hr", "HR", 122, "bpm", "up", "critical")],
+        optimal: ["Suspect nec fasc; resuscitate, urgent surgical referral", "Correct — time-critical.", "🚑"],
+        suboptimal: ["Mark the erythema and review in 6 h", "Delays a surgical emergency.", "🖊️"],
+        deadly: ["Discharge on oral antibiotics", "Rapidly fatal.", "🚪"] },
+      { stage: "Resuscitation", prompt: "Septic — next?", content: "Hypotensive.", status: "critical",
+        vitals: [v("bp", "BP", "88/52", "mmHg", "down", "critical"), v("lac", "Lactate", 4.5, "mmol/L", "up", "critical")],
+        optimal: ["IV fluids + broad-spectrum antibiotics now", "Correct — sepsis bundle.", "💉"],
+        suboptimal: ["Antibiotics only, no fluids", "Under-resuscitates shock.", "💊"],
+        deadly: ["Wait for blood cultures before antibiotics", "Delay kills.", "🚫"] },
+      { stage: "Diagnosis", prompt: "Confirm how?", content: "Crepitus, dusky skin.", status: "critical",
+        vitals: [v("crp", "CRP", 320, "mg/L", "up", "critical")],
+        optimal: ["Surgical exploration is diagnostic and therapeutic", "Correct — don't wait for imaging.", "🔪"],
+        suboptimal: ["MRI before any surgery", "Imaging must not delay surgery.", "🧲"],
+        deadly: ["Manage on the ward with antibiotics alone", "Fatal without debridement.", "🚫"] },
+      { stage: "Source control", prompt: "Theatre — next?", content: "Extensive necrosis found.", status: "critical",
+        vitals: [v("bp", "BP", "94/58", "mmHg", "up", "warning")],
+        optimal: ["Radical debridement of all necrotic tissue", "Correct — aggressive debridement.", "🔪"],
+        suboptimal: ["Minimal conservative debridement", "Inadequate source control.", "✂️"],
+        deadly: ["Close the wound and observe", "Infection spreads.", "🚫"] },
+      { stage: "ICU", prompt: "Post-op — next?", content: "Unstable post debridement.", status: "guarded",
+        vitals: [v("bp", "BP", "102/62", "mmHg", "up", "warning")],
+        optimal: ["ICU support, planned re-look, narrow antibiotics on cultures", "Correct — staged care.", "🏥"],
+        suboptimal: ["Ward care without planned re-look", "May miss residual necrosis.", "🛏️"],
+        deadly: ["Stop antibiotics after one debridement", "Recurrence is fatal.", "🚫"] },
+      { stage: "Recovery", prompt: "Improving — next?", content: "Source controlled.", status: "improving",
+        vitals: [v("lac", "Lactate", 1.6, "mmol/L", "down", "normal")],
+        optimal: ["Reconstruction planning + rehab", "Correct.", "📋"],
+        suboptimal: ["Discharge before wound healed", "Premature.", "🚪"],
+        deadly: ["Ignore recurrent fever/spread", "Misses ongoing infection.", "🚫"] },
+    ],
+    { survived: "Early debridement and ICU support control the infection.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-ttp", title: "Thrombotic thrombocytopenic purpura", specialty: "Microbiology and Parasitology",
+      scenario: "A 35-year-old: confusion, bruising, anaemia, very low platelets, fragments on the film.",
+      citations: ["BSH — TTP Guideline"], summary: "Recognise TTP and start emergency treatment.",
+      subtitle: "Thrombotic microangiopathy (rare)", difficulty: "Hard", icon: "🩸",
+      patient: { name: "Aisha", age: 35, sex: "F", presentation: "Confusion, bruising, anaemia", tags: ["Rare", "Haematology", "Emergency"] },
+    },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "MAHA + thrombocytopenia + neuro signs.", status: "critical",
+        vitals: [v("plt", "Platelets", 12, "10⁹/L", "down", "critical"), v("hb", "Hb", 78, "g/L", "down", "warning")],
+        optimal: ["Suspect TTP; urgent haematology, send ADAMTS13, film", "Correct — recognise the pentad.", "🧠"],
+        suboptimal: ["Treat as ITP and observe", "Misses a haematological emergency.", "💊"],
+        deadly: ["Transfuse platelets for the low count", "Platelet transfusion can worsen TTP.", "⚠️"] },
+      { stage: "Emergency treatment", prompt: "Strongly suspected TTP — next?", content: "Awaiting ADAMTS13.", status: "critical",
+        vitals: [v("ldh", "LDH", 1200, "U/L", "up", "critical")],
+        optimal: ["Urgent plasma exchange (do not wait for ADAMTS13) + steroids", "Correct — PEX is life-saving.", "🔁"],
+        suboptimal: ["Plasma infusion while arranging PEX", "Reasonable bridge, but PEX is definitive.", "💧"],
+        deadly: ["Wait days for the ADAMTS13 result", "Untreated TTP is rapidly fatal.", "🚫"] },
+      { stage: "Adjuncts", prompt: "On PEX — next?", content: "Immune-mediated TTP likely.", status: "worsening",
+        vitals: [v("plt", "Platelets", 20, "10⁹/L", "up", "warning")],
+        optimal: ["Add immunosuppression (steroids ± rituximab/caplacizumab)", "Correct — target the autoantibody.", "💉"],
+        suboptimal: ["PEX alone, no immunosuppression", "Relapse risk.", "🔁"],
+        deadly: ["Give platelet transfusion now", "Fuels microthrombi.", "⚠️"] },
+      { stage: "Monitoring", prompt: "Responding — next?", content: "Counts recovering.", status: "guarded",
+        vitals: [v("plt", "Platelets", 80, "10⁹/L", "up", "warning")],
+        optimal: ["Daily PEX until platelets normalise + LDH falls", "Correct.", "📈"],
+        suboptimal: ["Stop PEX at first improvement", "Premature — relapse risk.", "🛑"],
+        deadly: ["Discharge once platelets > 50", "Relapse can be fatal.", "🚫"] },
+      { stage: "Recovery", prompt: "Remission — next?", content: "Platelets normalised.", status: "improving",
+        vitals: [v("plt", "Platelets", 180, "10⁹/L", "up", "normal")],
+        optimal: ["Taper treatment, monitor for relapse, follow-up", "Correct.", "📋"],
+        suboptimal: ["No relapse monitoring", "Misses recurrence.", "🚪"],
+        deadly: ["Stop everything abruptly", "Relapse risk.", "🚫"] },
+      { stage: "Prevention", prompt: "Outpatient — next?", content: "Planning follow-up.", status: "improving",
+        vitals: [v("adamts", "ADAMTS13", "Low", undefined, "up", "warning")],
+        optimal: ["Monitor ADAMTS13; pre-emptive therapy if it falls", "Correct.", "🔬"],
+        suboptimal: ["Discharge with no monitoring", "Misses relapse.", "🚪"],
+        deadly: ["Ignore recurrent symptoms", "Fatal relapse.", "🚫"] },
+    ],
+    { survived: "Prompt plasma exchange and immunosuppression achieve remission.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-addisonian", title: "Addisonian crisis", specialty: "Endocrine System",
+      scenario: "A patient on long-term steroids stops them abruptly: vomiting, hypotension, hyponatraemia, hyperkalaemia.",
+      citations: ["Society for Endocrinology — Adrenal Crisis"], summary: "Recognise and treat adrenal crisis.",
+      subtitle: "Adrenal insufficiency crisis (rare)", difficulty: "Medium", icon: "🧂",
+      patient: { name: "Paul", age: 48, sex: "M", presentation: "Vomiting, shock after stopping steroids", tags: ["Rare", "Endocrine", "Shock"] },
+    },
+    [
+      { stage: "Recognition", prompt: "First action?", content: "Shock with a steroid history.", status: "critical",
+        vitals: [v("bp", "BP", "82/48", "mmHg", "down", "critical"), v("na", "Na⁺", 126, "mmol/L", "down", "warning")],
+        optimal: ["Suspect adrenal crisis; IV hydrocortisone immediately", "Correct — give steroids first.", "💉"],
+        suboptimal: ["Investigate fully before treating", "Don't delay hydrocortisone.", "🧪"],
+        deadly: ["Withhold steroids pending a cortisol level", "Delay is fatal.", "🚫"] },
+      { stage: "Resuscitation", prompt: "Hypotensive — next?", content: "Volume deplete.", status: "critical",
+        vitals: [v("bp", "BP", "88/52", "mmHg", "up", "warning"), v("k", "K⁺", 5.8, "mmol/L", "up", "warning")],
+        optimal: ["IV 0.9% saline resuscitation", "Correct.", "💧"],
+        suboptimal: ["Cautious fluids only", "Under-resuscitates shock.", "🐢"],
+        deadly: ["Give potassium-containing fluids", "Worsens hyperkalaemia.", "⚠️"] },
+      { stage: "Trigger", prompt: "Stabilising — next?", content: "Look for a precipitant.", status: "guarded",
+        vitals: [v("temp", "Temp", 38.4, "°C", "up", "warning")],
+        optimal: ["Identify and treat the precipitant (e.g. infection)", "Correct.", "🔍"],
+        suboptimal: ["Assume no trigger", "Often an infection precipitates it.", "❓"],
+        deadly: ["Stop hydrocortisone as BP improved", "Crisis rebounds.", "🚫"] },
+      { stage: "Maintenance", prompt: "Improving — next?", content: "Continuing steroids.", status: "improving",
+        vitals: [v("bp", "BP", "108/68", "mmHg", "up", "normal")],
+        optimal: ["Continue hydrocortisone, taper to oral with sick-day rules", "Correct.", "📋"],
+        suboptimal: ["Switch straight to a low oral dose", "Risks relapse.", "📉"],
+        deadly: ["Stop steroids on discharge", "Fatal recurrence.", "🚫"] },
+      { stage: "Education", prompt: "Recovered — next?", content: "Planning discharge.", status: "improving",
+        vitals: [v("na", "Na⁺", 138, "mmol/L", "up", "normal")],
+        optimal: ["Steroid emergency card, sick-day rules, IM kit", "Correct — prevent recurrence.", "🪪"],
+        suboptimal: ["Discharge with no education", "High recurrence risk.", "🚪"],
+        deadly: ["Advise stopping steroids when 'feeling better'", "Dangerous advice.", "🚫"] },
+    ],
+    { survived: "Hydrocortisone and fluids reverse the crisis; he leaves with sick-day rules.", died: DIED },
+  ),
 ];
