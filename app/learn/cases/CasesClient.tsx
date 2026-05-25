@@ -4,10 +4,6 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import CaseStepper from '@/components/w08/CaseStepper';
-import Clock from '@/components/Clock';
-import ThemeToggle from '@/components/ThemeToggle';
-import ArcDate from '@/components/ArcDate';
-import TopNavProfile from '@/components/TopNavProfile';
 import BranchingPlayer from './BranchingPlayer';
 import { type CaseDetail, type CaseSummary, colorFor, difficultyColor, isRare, nonRareTags, specialtyIcon } from './types';
 
@@ -22,7 +18,6 @@ export default function CasesClient() {
   const playerRef = useRef<HTMLElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
@@ -88,29 +83,10 @@ export default function CasesClient() {
 
   if (!isMounted) return null;
 
-  const navItems = [
-    { name: 'Dashboard', icon: '◉', href: '/', active: false },
-    { name: 'Academics', icon: '▲', href: '/academics', active: true },
-    { name: 'Research', icon: '◆', href: '/research', active: false },
-    { name: 'Fitness', icon: '◈', href: '/fitness', active: false },
-    { name: 'Archive', icon: '▥', href: '/archive', active: false },
-    { name: 'IELTS', icon: '◎', href: '/ielts', active: false },
-    { name: 'Tools', icon: '⚙', href: '/tools', active: false },
-    { name: 'Identity', icon: '⚇', href: '/identity', active: false },
-  ];
-
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
 
       <AnimatePresence>{showIntro && <CasesIntro cycle={cycle} />}</AnimatePresence>
-
-      {/* --- CUSTOM ANIMATION STYLES --- */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
-        @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
-        .animate-float-slow { animation: floatSlow 6s ease-in-out infinite; }
-        .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
-      `}} />
 
       {/* --- DAY/NIGHT ATMOSPHERE --- */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
@@ -119,45 +95,13 @@ export default function CasesClient() {
         <div className="absolute top-[30%] left-[38%] w-[42%] h-[42%] bg-gradient-to-br from-amber-300/20 to-cyan-300/20 dark:from-amber-500/10 dark:to-cyan-500/10 rounded-full blur-[130px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
       </div>
 
-      {/* --- HEADER --- */}
-      <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className="hidden lg:flex items-center justify-center p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-neutral-500 dark:text-neutral-400 active:scale-95">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="14" y2="18"></line></svg>
-          </button>
-          <Link href="/" className="font-black text-[20px] lg:text-[22px] tracking-tighter flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">V</div>
-            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="text-cyan-500 dark:text-cyan-400 transition-colors duration-700">3.0</span></div>
+      {/* --- MAIN WORKSPACE --- */}
+      <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-10 relative z-10">
+        <div className="mx-auto w-full max-w-5xl text-[color:var(--w08-text)]">
+          {/* Back to Dashboard */}
+          <Link href="/" className="mb-6 inline-flex items-center gap-2 rounded-full border border-black/5 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl px-4 py-2 text-[13px] font-bold text-neutral-600 dark:text-neutral-300 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/90 dark:hover:bg-white/10 active:scale-95">
+            <span className="text-base leading-none">←</span> Dashboard
           </Link>
-        </div>
-        <div className="flex gap-4 lg:gap-6 items-center">
-          <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
-          <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
-          <TopNavProfile />
-          <ThemeToggle />
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden relative z-10">
-
-        {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
-        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl backdrop-saturate-150 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarExpanded ? 'w-[240px] px-6' : 'w-[88px] px-4'}`}>
-          <nav className="space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
-            {navItems.map((item) => (
-              <Link key={item.name} href={item.href} className={`flex items-center ${isSidebarExpanded ? 'px-4' : 'justify-center'} py-3 rounded-2xl transition-all duration-300 group relative ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
-                <span className={`text-[18px] shrink-0 transition-opacity duration-300 ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
-                <span className={`text-[13px] font-bold tracking-tight whitespace-nowrap transition-all duration-500 ${isSidebarExpanded ? 'max-w-[150px] opacity-100 ml-4' : 'max-w-0 opacity-0 ml-0'}`}>{item.name}</span>
-              </Link>
-            ))}
-          </nav>
-          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className={`mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${isSidebarExpanded ? 'p-5' : 'p-4 aspect-square'}`}>
-            {isSidebarExpanded ? <Clock /> : <span className="text-xl group-hover:rotate-12 transition-transform duration-300">⏱️</span>}
-          </button>
-        </aside>
-
-        {/* --- MAIN WORKSPACE --- */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 relative">
-          <div className="mx-auto w-full max-w-5xl text-[color:var(--w08-text)]">
         <h1 className="text-2xl font-black tracking-tight [font-family:var(--w08-font-display)]">Interactive Case Simulator</h1>
         <p className="mt-1 text-sm text-[color:var(--w08-text-muted)]">
           Navigate a clinical case and see how your choices affect patient outcomes in real time.
@@ -326,19 +270,8 @@ export default function CasesClient() {
             </div>
           </section>
         )}
-          </div>
-        </main>
-      </div>
-
-      {/* --- MOBILE-ONLY FLOATING NAV HUD --- */}
-      <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/80 dark:bg-[#111111]/80 backdrop-blur-3xl backdrop-saturate-150 border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
-        {navItems.map((item) => (
-          <Link key={item.name} href={item.href} className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 shrink-0 group ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
-            <span className={`text-[16px] ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
-            {item.active && <span className="text-[11px] font-bold tracking-tight pr-1 animate-in fade-in zoom-in duration-300">{item.name}</span>}
-          </Link>
-        ))}
-      </nav>
+        </div>
+      </main>
 
     </div>
   );
