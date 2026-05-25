@@ -9,19 +9,23 @@ export const dynamic = "force-dynamic";
 const SUMMARY_LEN = 180;
 
 /**
- * GET /api/learn/cases -> [{ id, title, summary }]  (browser grid)
+ * GET /api/learn/cases[?specialty=…] -> [{ id, title, specialty, summary }]
+ * `specialty` lets the browser group/feature cases by system.
  * ClinicalCase is a shared bank (no userId); auth still required.
  */
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const specialty = new URL(req.url).searchParams.get("specialty")?.trim() || null;
+
   try {
     const cases = await prisma.clinicalCase.findMany({
-      orderBy: { title: "asc" },
-      select: { id: true, title: true, scenario: true, branches: true },
+      where: specialty ? { specialty } : undefined,
+      orderBy: [{ specialty: "asc" }, { title: "asc" }],
+      select: { id: true, title: true, specialty: true, scenario: true, branches: true },
     });
 
     return NextResponse.json(
@@ -31,7 +35,7 @@ export async function GET() {
           (c.scenario.length > SUMMARY_LEN
             ? `${c.scenario.slice(0, SUMMARY_LEN).trimEnd()}…`
             : c.scenario);
-        return { id: c.id, title: c.title, summary };
+        return { id: c.id, title: c.title, specialty: c.specialty, summary };
       }),
     );
   } catch (err) {
