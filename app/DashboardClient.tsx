@@ -84,12 +84,13 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
 
       {/* --- DAY/NIGHT ATMOSPHERE --- */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
-        <div className="absolute top-[-10%] right-[10%] w-[60%] h-[60%] bg-gradient-to-br from-blue-400/20 to-purple-400/20 dark:from-blue-600/15 dark:to-[#00A598]/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-60 transition-all duration-1000"></div>
-        <div className="absolute bottom-[-10%] left-[5%] w-[50%] h-[50%] bg-gradient-to-tr from-pink-400/20 to-teal-300/20 dark:from-purple-600/10 dark:to-teal-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
+        <div className="absolute top-[-12%] right-[8%] w-[62%] h-[62%] bg-gradient-to-br from-blue-400/30 via-indigo-400/25 to-fuchsia-400/20 dark:from-blue-600/20 dark:via-indigo-600/15 dark:to-[#00A598]/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-70 transition-all duration-1000"></div>
+        <div className="absolute bottom-[-12%] left-[3%] w-[55%] h-[55%] bg-gradient-to-tr from-pink-400/25 via-rose-400/20 to-teal-300/25 dark:from-purple-600/15 dark:via-pink-600/10 dark:to-teal-600/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-60 transition-all duration-1000"></div>
+        <div className="absolute top-[28%] left-[38%] w-[42%] h-[42%] bg-gradient-to-br from-amber-300/20 to-cyan-300/25 dark:from-amber-500/10 dark:to-cyan-500/10 rounded-full blur-[130px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000 animate-float-slow"></div>
       </div>
 
       {/* --- MINIMALIST HEADER --- */}
-      <header className="h-[64px] lg:h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
+      <header className="h-[64px] lg:h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="flex items-center gap-4 lg:gap-8">
           
           <button 
@@ -126,7 +127,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
       <div className="flex flex-1 overflow-hidden relative z-10">
         
         {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
-        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
+        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl backdrop-saturate-150 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
           isSidebarExpanded ? 'w-[220px] px-5' : 'w-[80px] px-3'
         }`}>
           <nav className="space-y-1.5 overflow-y-auto custom-scrollbar overflow-x-hidden">
@@ -179,12 +180,12 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center justify-center text-center pt-8 sm:pt-10 pb-4 relative"
             >
-              <div className="absolute left-[5%] xl:left-[10%] top-2 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-4 py-2 rounded-full shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
+              <div className="absolute left-[5%] xl:left-[10%] top-2 hidden lg:flex items-center gap-2 bg-white/80 dark:bg-white/5 backdrop-blur-md backdrop-saturate-150 px-4 py-2 rounded-full shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
                 <span className="text-sm">🧠</span>
                 <span className="text-[11px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Cognitive Focus</span>
               </div>
 
-              <div className="absolute right-[5%] xl:right-[10%] bottom-2 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-4 py-2 rounded-full shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
+              <div className="absolute right-[5%] xl:right-[10%] bottom-2 hidden lg:flex items-center gap-2 bg-white/80 dark:bg-white/5 backdrop-blur-md backdrop-saturate-150 px-4 py-2 rounded-full shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
                 <span className="text-sm">🏁</span>
                 <span className="text-[11px] font-bold tracking-tight text-[#00A598]">Aero Nominal</span>
               </div>
@@ -194,7 +195,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">
                     VESTRIPPN
                   </span>
-                  <span className="text-blue-600 dark:text-blue-400 transition-colors duration-700">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-500 to-fuchsia-500 dark:from-blue-400 dark:to-fuchsia-400 transition-colors duration-700">
                     3.0
                   </span>
                 </div>
@@ -241,7 +242,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
                   whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-white dark:bg-[#0A0A0A] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(255,255,255,0.02)] border border-black/5 dark:border-white/5 cursor-default"
+                  className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/60 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgb(255,255,255,0.02)] border border-black/5 dark:border-white/5 cursor-default"
                 >
                   <div className="flex items-center gap-2.5 mb-5">
                     <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm transition-colors duration-700">📚</div>
@@ -254,7 +255,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
                   whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-neutral-50 dark:bg-[#050505] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-black/5 dark:border-white/5 cursor-default"
+                  className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/55 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-black/5 dark:border-white/5 cursor-default"
                 >
                   <div className="flex items-center gap-2.5 mb-5">
                     <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-white/10 flex items-center justify-center text-neutral-700 dark:text-white text-sm transition-colors duration-700">🔬</div>
@@ -278,7 +279,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                 <motion.div
                   variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
                   whileHover={{ y: -6, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                  className="lg:col-span-8 flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 h-full cursor-default"
+                  className="lg:col-span-8 flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/60 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 border border-black/5 dark:border-white/5 p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 h-full cursor-default"
                 >
                   <FitnessCard
                     initialWorkoutDays={cloudFitness?.workoutDays ? JSON.parse(cloudFitness.workoutDays) : undefined}
@@ -291,7 +292,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   <motion.div
                     variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
                     whileHover={{ y: -5, boxShadow: '0 16px 40px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                    className="flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 cursor-default"
+                    className="flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 cursor-default"
                   >
                     <h3 className="font-bold text-[14px] tracking-tight mb-4 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#00A598] animate-pulse"></span> Domain Health
@@ -301,7 +302,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   <motion.div
                     variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
                     whileHover={{ y: -5, boxShadow: '0 16px 40px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                    className="flex-1 flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 cursor-default"
+                    className="flex-1 flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 cursor-default"
                   >
                     <Reminders initialTasks={cloudTasks} />
                   </motion.div>
@@ -316,7 +317,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     variants={{ hidden: { opacity: 0, y: 30, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
                     whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 40px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex flex-col h-full rounded-[24px] lg:rounded-[32px] bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 p-5 lg:p-6 backdrop-blur-md shadow-[0_4px_20px_rgb(0,0,0,0.02)] cursor-default"
+                    className="flex flex-col h-full rounded-[24px] lg:rounded-[32px] bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 p-5 lg:p-6 backdrop-blur-md backdrop-saturate-150 shadow-[0_4px_20px_rgb(0,0,0,0.02)] cursor-default"
                   >
                     {child}
                   </motion.div>
@@ -328,7 +329,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
         </main>
 
         {/* --- MOBILE-ONLY FLOATING NAVIGATION HUD --- */}
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[60px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-2 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
+        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[60px] bg-white/80 dark:bg-[#111111]/80 backdrop-blur-3xl backdrop-saturate-150 border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-2 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
           {navItems.map((item) => (
             <Link 
               key={item.name} 
@@ -362,17 +363,22 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
 function LoadingScreen() {
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-700">
-      <div className="flex flex-col items-center gap-6">
+      <div className="relative flex flex-col items-center gap-6">
+        <div
+          className="absolute -inset-10 rounded-full blur-3xl opacity-40 dark:opacity-50"
+          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.45), rgba(20,184,166,0.25) 45%, transparent 72%)' }}
+        />
         <motion.div
-          className="w-14 h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center text-[26px] font-black"
+          className="relative w-14 h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center text-[26px] font-black"
           animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
         >
           V
         </motion.div>
-        <div className="h-[3px] w-32 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+        <div className="relative h-[3px] w-32 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
-            className="h-full w-1/3 bg-[#00A598] rounded-full"
+            className="h-full w-1/3 rounded-full"
+            style={{ background: 'linear-gradient(90deg,#2dd4bf,#0ea5e9,#6366f1,#d946ef)' }}
             animate={{ x: ['-120%', '380%'] }}
             transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -401,26 +407,56 @@ function IntroOverlay({ cycle }: { cycle: string }) {
       exit={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
       transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
     >
-      {/* Ambient glow */}
+      {/* Animated aurora — layered colored glows */}
       <motion.div
-        className="absolute w-[60%] h-[60%] bg-[#00A598]/20 rounded-full blur-[140px]"
+        className="absolute -top-[20%] -left-[10%] w-[55%] h-[55%] rounded-full blur-[140px] bg-gradient-to-br from-teal-400/40 to-cyan-500/30"
         initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: [0, 1, 0.7, 1], scale: 1 }}
-        transition={{ duration: 6, ease: 'easeOut', times: [0, 0.25, 0.6, 1] }}
+        animate={{ opacity: [0, 0.9, 0.6, 0.9], scale: [0.6, 1.1, 1], x: [0, 40, 0], y: [0, 30, 0] }}
+        transition={{ duration: 7, ease: 'easeInOut', times: [0, 0.3, 0.6, 1] }}
+      />
+      <motion.div
+        className="absolute top-[8%] -right-[10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-gradient-to-br from-indigo-500/35 to-fuchsia-500/30"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: [0, 0.8, 0.55, 0.8], scale: [0.6, 1, 1.1], x: [0, -30, 0] }}
+        transition={{ duration: 7, ease: 'easeInOut', delay: 0.3 }}
+      />
+      <motion.div
+        className="absolute -bottom-[20%] left-[18%] w-[55%] h-[55%] rounded-full blur-[150px] bg-gradient-to-tr from-amber-400/25 to-rose-500/25"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: [0, 0.7, 0.5, 0.7], scale: [0.6, 1.1, 1], y: [0, -30, 0] }}
+        transition={{ duration: 7, ease: 'easeInOut', delay: 0.6 }}
+      />
+
+      {/* Telemetry grid */}
+      <div
+        className="absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
+          backgroundSize: '46px 46px',
+          maskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 78%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 78%)',
+        }}
       />
 
       {/* Logo + Wordmark */}
       <div className="relative z-10 flex flex-col items-center">
         <motion.div
-          className="w-16 h-16 lg:w-20 lg:h-20 bg-white text-black rounded-2xl flex items-center justify-center text-[34px] lg:text-[42px] font-black mb-8 shadow-[0_0_50px_rgba(0,165,152,0.4)]"
+          className="relative w-16 h-16 lg:w-20 lg:h-20 bg-white text-black rounded-2xl flex items-center justify-center text-[34px] lg:text-[42px] font-black mb-8 shadow-[0_0_60px_rgba(99,102,241,0.5)]"
           initial={{ scale: 0, rotate: -120, opacity: 0 }}
           animate={{ scale: 1, rotate: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 17, delay: 0.4 }}
         >
+          <motion.span
+            className="absolute -inset-[3px] rounded-[18px] -z-10"
+            style={{ background: 'linear-gradient(120deg,#2dd4bf,#0ea5e9,#6366f1,#d946ef)' }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+          />
           V
         </motion.div>
 
-        <div className="flex items-baseline tracking-tighter font-black text-[44px] sm:text-[64px] lg:text-[80px] leading-none">
+        <div className="relative flex items-baseline tracking-tighter font-black text-[44px] sm:text-[64px] lg:text-[80px] leading-none">
           {word.map((ch, i) => (
             <motion.span
               key={i}
@@ -433,13 +469,22 @@ function IntroOverlay({ cycle }: { cycle: string }) {
             </motion.span>
           ))}
           <motion.span
-            className="text-blue-400 inline-block"
+            className="inline-block bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(120deg, #2dd4bf, #0ea5e9, #6366f1, #d946ef)' }}
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.9 }}
           >
             3.0
           </motion.span>
+          {/* shimmer sweep across the wordmark */}
+          <motion.span
+            className="pointer-events-none absolute inset-0"
+            style={{ background: 'linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.5) 50%, transparent 62%)', mixBlendMode: 'overlay' }}
+            initial={{ x: '-130%', opacity: 0 }}
+            animate={{ x: '130%', opacity: [0, 1, 1, 0] }}
+            transition={{ delay: 2.2, duration: 1.2, ease: 'easeInOut' }}
+          />
         </div>
 
         <motion.div
@@ -470,9 +515,10 @@ function IntroOverlay({ cycle }: { cycle: string }) {
         </motion.div>
 
         {/* Telemetry progress bar */}
-        <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden">
+        <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(99,102,241,0.35)]">
           <motion.div
-            className="h-full bg-gradient-to-r from-[#00A598] to-blue-400 rounded-full"
+            className="h-full rounded-full"
+            style={{ background: 'linear-gradient(90deg,#2dd4bf,#0ea5e9,#6366f1,#d946ef)' }}
             initial={{ width: '0%' }}
             animate={{ width: ['0%', '38%', '64%', '100%'] }}
             transition={{ delay: 1.6, duration: 4.6, ease: 'easeInOut', times: [0, 0.35, 0.7, 1] }}
@@ -486,7 +532,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
             return (
               <motion.span
                 key={i}
-                className="absolute inset-0 font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-400"
+                className="absolute inset-0 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-400"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: isLast ? [0, 1, 1] : [0, 1, 1, 0] }}
                 transition={{
@@ -495,6 +541,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
                   times: isLast ? [0, 0.4, 1] : [0, 0.2, 0.75, 1],
                 }}
               >
+                <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isLast ? 'bg-teal-400' : 'bg-indigo-400'}`} />
                 {s.t}
               </motion.span>
             );

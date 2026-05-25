@@ -131,11 +131,14 @@ html.monza {
   --pc-50:#ecfffc; --pc-100:#c7fcf3; --pc-200:#8cf6ea; --pc-300:#4ff1e1; --pc-400:#10e6d0;
   --pc-500:#00d2be; --pc-600:#00a99a; --pc-700:#067e74; --pc-800:#0a635c; --pc-900:#0d524d; --pc-950:#04302d;
   /* Monza sub-color — amber / gold flake (pairs with Petronas cyan) */
-  --mzg-300:#ffd884; --mzg-400:#ffc24d; --mzg-500:#ffb627; --mzg-600:#e69a10;
+  --mzg-50:#fff8ea; --mzg-100:#fdecc4; --mzg-200:#fcd988; --mzg-300:#ffd060; --mzg-400:#ffc23d;
+  --mzg-500:#ffb627; --mzg-600:#e2960f; --mzg-700:#b5710c; --mzg-800:#8f5912; --mzg-900:#754913; --mzg-950:#432708;
 
   --color-red-50:var(--pc-50); --color-red-100:var(--pc-100); --color-red-200:var(--pc-200); --color-red-300:var(--pc-300); --color-red-400:var(--pc-400); --color-red-500:var(--pc-500); --color-red-600:var(--pc-600); --color-red-700:var(--pc-700); --color-red-800:var(--pc-800); --color-red-900:var(--pc-900); --color-red-950:var(--pc-950);
-  --color-orange-50:var(--pc-50); --color-orange-100:var(--pc-100); --color-orange-200:var(--pc-200); --color-orange-300:var(--pc-300); --color-orange-400:var(--pc-400); --color-orange-500:var(--pc-500); --color-orange-600:var(--pc-600); --color-orange-700:var(--pc-700); --color-orange-800:var(--pc-800); --color-orange-900:var(--pc-900); --color-orange-950:var(--pc-950);
-  --color-amber-50:var(--pc-50); --color-amber-100:var(--pc-100); --color-amber-200:var(--pc-200); --color-amber-300:var(--pc-300); --color-amber-400:var(--pc-400); --color-amber-500:var(--pc-500); --color-amber-600:var(--pc-600); --color-amber-700:var(--pc-700); --color-amber-800:var(--pc-800); --color-amber-900:var(--pc-900); --color-amber-950:var(--pc-950);
+  /* Warm ramps (amber/orange/yellow) resolve to the gold sub-color, not cyan */
+  --color-orange-50:var(--mzg-50); --color-orange-100:var(--mzg-100); --color-orange-200:var(--mzg-200); --color-orange-300:var(--mzg-300); --color-orange-400:var(--mzg-400); --color-orange-500:var(--mzg-500); --color-orange-600:var(--mzg-600); --color-orange-700:var(--mzg-700); --color-orange-800:var(--mzg-800); --color-orange-900:var(--mzg-900); --color-orange-950:var(--mzg-950);
+  --color-amber-50:var(--mzg-50); --color-amber-100:var(--mzg-100); --color-amber-200:var(--mzg-200); --color-amber-300:var(--mzg-300); --color-amber-400:var(--mzg-400); --color-amber-500:var(--mzg-500); --color-amber-600:var(--mzg-600); --color-amber-700:var(--mzg-700); --color-amber-800:var(--mzg-800); --color-amber-900:var(--mzg-900); --color-amber-950:var(--mzg-950);
+  --color-yellow-50:var(--mzg-50); --color-yellow-100:var(--mzg-100); --color-yellow-200:var(--mzg-200); --color-yellow-300:var(--mzg-300); --color-yellow-400:var(--mzg-400); --color-yellow-500:var(--mzg-500); --color-yellow-600:var(--mzg-600); --color-yellow-700:var(--mzg-700); --color-yellow-800:var(--mzg-800); --color-yellow-900:var(--mzg-900); --color-yellow-950:var(--mzg-950);
   --color-emerald-50:var(--pc-50); --color-emerald-100:var(--pc-100); --color-emerald-200:var(--pc-200); --color-emerald-300:var(--pc-300); --color-emerald-400:var(--pc-400); --color-emerald-500:var(--pc-500); --color-emerald-600:var(--pc-600); --color-emerald-700:var(--pc-700); --color-emerald-800:var(--pc-800); --color-emerald-900:var(--pc-900); --color-emerald-950:var(--pc-950);
   --color-teal-50:var(--pc-50); --color-teal-100:var(--pc-100); --color-teal-200:var(--pc-200); --color-teal-300:var(--pc-300); --color-teal-400:var(--pc-400); --color-teal-500:var(--pc-500); --color-teal-600:var(--pc-600); --color-teal-700:var(--pc-700); --color-teal-800:var(--pc-800); --color-teal-900:var(--pc-900); --color-teal-950:var(--pc-950);
   --color-cyan-50:var(--pc-50); --color-cyan-100:var(--pc-100); --color-cyan-200:var(--pc-200); --color-cyan-300:var(--pc-300); --color-cyan-400:var(--pc-400); --color-cyan-500:var(--pc-500); --color-cyan-600:var(--pc-600); --color-cyan-700:var(--pc-700); --color-cyan-800:var(--pc-800); --color-cyan-900:var(--pc-900); --color-cyan-950:var(--pc-950);
@@ -194,7 +197,11 @@ html.monza .border-\[\#00A598\] { border-color: #00d2be !important; }
 html.monza .from-\[\#00A598\] { --tw-gradient-from: #00d2be var(--tw-gradient-from-position) !important; }
 html.monza .to-\[\#00A598\] { --tw-gradient-to: #00d2be var(--tw-gradient-to-position) !important; }
 html.monza .fill-\[\#00A598\] { fill: #00d2be !important; }
-html.monza .text-\[\#D97757\] { color: #00d2be !important; }
+
+/* The Claude coral accent (#D97757) becomes the gold sub-color in Monza */
+html.monza .text-\[\#D97757\] { color: #ffb627 !important; }
+html.monza .bg-\[\#D97757\] { background-color: #ffb627 !important; }
+html.monza .border-\[\#D97757\] { border-color: #ffb627 !important; }
 
 /* 5. Selection + scrollbar in cyan */
 html.monza ::selection { background-color: rgba(0, 210, 190, 0.35); color: #ffffff; }
