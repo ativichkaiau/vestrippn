@@ -18,6 +18,7 @@ export type CaseSummary = {
   difficulty?: string;
   stages?: number;
   icon?: string;
+  tags?: string[];
 };
 
 export type CaseStep = { id: string; label: string; content: string };
@@ -95,6 +96,28 @@ export function specialtyIcon(specialty: string | null): string {
   const k = specialty.toLowerCase();
   for (const [frag, icon] of SPECIALTY_ICONS) if (k.includes(frag)) return icon;
   return '🩺';
+}
+
+/** Difficulty → a w08 token color (reuses success/secondary/danger; no warning token exists). */
+export function difficultyColor(difficulty?: string): string {
+  switch (difficulty?.toLowerCase()) {
+    case 'easy':
+      return 'var(--w08-success)';
+    case 'hard':
+      return 'var(--w08-danger)';
+    case 'medium':
+      return 'var(--w08-accent-secondary)';
+    default:
+      return 'var(--w08-text-muted)';
+  }
+}
+/** The "Rare"/"zebra" flag among a case's tags (case-insensitive). */
+export function isRare(tags?: string[]): boolean {
+  return !!tags?.some((t) => t.toLowerCase() === 'rare');
+}
+/** Tags minus the "Rare" flag, which is rendered as its own badge. */
+export function nonRareTags(tags?: string[]): string[] {
+  return tags?.filter((t) => t.toLowerCase() !== 'rare') ?? [];
 }
 
 export const OUTCOME_COLOR: Record<Outcome, string> = { optimal: '#10b981', suboptimal: '#f59e0b', deadly: '#ef4444' };

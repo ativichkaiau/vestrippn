@@ -156,11 +156,18 @@ export default function BranchingPlayer({
           </div>
         )}
 
-        {/* Decision path */}
+        {/* Decision path — scales to 4–6 stages (wraps + scrolls if tall). */}
         {d.stages && d.stages.length > 0 && (
           <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-4 shadow-[var(--w08-shadow)]">
-            <h4 className="mb-3 text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)]">Decision Path</h4>
-            <ol className="space-y-2">
+            <div className="mb-3 flex items-baseline justify-between gap-2">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)]">Decision Path</h4>
+              {stageIndex > -1 && (
+                <span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)] tabular-nums">
+                  {stageIndex + 1}/{d.stages.length}
+                </span>
+              )}
+            </div>
+            <ol className="max-h-72 space-y-2 overflow-y-auto pr-0.5">
               {d.stages.map((st, i) => {
                 const done = stageIndex > -1 && i < stageIndex;
                 const active = i === stageIndex;
@@ -168,7 +175,7 @@ export default function BranchingPlayer({
                   <li key={st.id}>
                     <div className="flex items-center gap-2.5">
                       <span
-                        className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold"
+                        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${active ? 'ring-2 ring-[color:var(--w08-focus-ring)]' : ''}`}
                         style={
                           active || done
                             ? { backgroundColor: 'var(--w08-accent-primary)', color: 'var(--w08-accent-contrast)' }
@@ -177,12 +184,12 @@ export default function BranchingPlayer({
                       >
                         {done ? '✓' : i + 1}
                       </span>
-                      <span className={`text-xs font-bold uppercase tracking-wider ${active ? 'text-[color:var(--w08-text)]' : 'text-[color:var(--w08-text-muted)]'}`}>
+                      <span className={`min-w-0 break-words text-xs font-bold uppercase leading-tight tracking-wider ${active ? 'text-[color:var(--w08-text)]' : 'text-[color:var(--w08-text-muted)]'}`}>
                         {st.label}
                       </span>
                     </div>
                     {active && !ended && (
-                      <div className="ml-8 mt-1.5 rounded-md border border-[color:var(--w08-accent-primary)] bg-[var(--w08-surface-raised)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--w08-text-muted)]">
+                      <div className="ml-[2.1rem] mt-1.5 rounded-md border border-[color:var(--w08-accent-primary)] bg-[var(--w08-surface-raised)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--w08-text-muted)]">
                         → Waiting for choice…
                       </div>
                     )}

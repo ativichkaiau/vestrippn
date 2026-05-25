@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import CaseStepper from '@/components/w08/CaseStepper';
 import BranchingPlayer from './BranchingPlayer';
-import { type CaseDetail, type CaseSummary, colorFor, specialtyIcon } from './types';
+import { type CaseDetail, type CaseSummary, colorFor, difficultyColor, isRare, nonRareTags, specialtyIcon } from './types';
 
 export default function CasesClient() {
   const [cases, setCases] = useState<CaseSummary[]>([]);
@@ -143,12 +143,10 @@ export default function CasesClient() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {visible.map((c) => {
                   const color = colorFor(c.specialty);
-                  const footer = [
-                    c.stages ? `${c.stages} stages` : c.type === 'branching' ? 'Interactive' : 'Step-by-step',
-                    c.difficulty,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ');
+                  const rare = isRare(c.tags);
+                  const extraTags = nonRareTags(c.tags);
+                  const layers = c.stages ? `${c.stages} layer${c.stages === 1 ? '' : 's'}` : null;
+                  const hasMeta = !!c.difficulty || !!layers || extraTags.length > 0;
                   return (
                     <button
                       key={c.id}
@@ -158,16 +156,40 @@ export default function CasesClient() {
                       className="group flex flex-col rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-5 text-left shadow-[var(--w08-shadow)] transition-all duration-[var(--w08-motion-duration)] hover:-translate-y-0.5 hover:bg-[var(--w08-surface-raised)] active:scale-[0.99] disabled:opacity-60"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="text-2xl">{c.icon || specialtyIcon(c.specialty)}</span>
-                        <span className="text-base font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">{c.title}</span>
-                        {c.type === 'branching' && (
-                          <span className="ml-auto rounded-md bg-[var(--w08-surface-raised)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ color: color ?? 'var(--w08-text-muted)' }}>
-                            ◆ Interactive
-                          </span>
-                        )}
+                        <span className="shrink-0 text-2xl">{c.icon || specialtyIcon(c.specialty)}</span>
+                        <span className="min-w-0 flex-1 truncate text-base font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">{c.title}</span>
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          {rare && (
+                            <span className="rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white" style={{ backgroundColor: 'var(--w08-danger)' }}>
+                              ★ Rare
+                            </span>
+                          )}
+                          {c.type === 'branching' && (
+                            <span className="rounded-md bg-[var(--w08-surface-raised)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ color: color ?? 'var(--w08-text-muted)' }}>
+                              ◆ Interactive
+                            </span>
+                          )}
+                        </span>
                       </div>
                       <p className="mt-2 text-sm text-[color:var(--w08-text-muted)]">{c.patient ?? c.summary}</p>
-                      {footer && <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">{footer}</p>}
+                      {hasMeta && (
+                        <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                          {c.difficulty && (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest" style={{ color: difficultyColor(c.difficulty) }}>
+                              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: difficultyColor(c.difficulty) }} />
+                              {c.difficulty}
+                            </span>
+                          )}
+                          {layers && (
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">{layers}</span>
+                          )}
+                          {extraTags.map((t) => (
+                            <span key={t} className="rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--w08-text-muted)]">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </button>
                   );
                 })}
