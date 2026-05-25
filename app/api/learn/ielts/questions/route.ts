@@ -27,24 +27,30 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Invalid section" }, { status: 400 });
   }
 
-  const items = await prisma.iELTSItem.findMany({
-    where: sectionParam ? { section: sectionParam as Section } : undefined,
-    orderBy: [{ difficulty: "asc" }, { id: "asc" }],
-    select: { id: true, prompt: true, answerKey: true },
-  });
+  try {
+    const items = await prisma.iELTSItem.findMany({
+      where: sectionParam ? { section: sectionParam as Section } : undefined,
+      orderBy: [{ difficulty: "asc" }, { id: "asc" }],
+      select: { id: true, prompt: true, answerKey: true },
+    });
 
-  const questions = items
-    .map((item, index) => {
-      const key = parseAnswerKey(item.answerKey);
-      if (!key) return null; // skip malformed rows rather than leak/crash
-      return {
-        id: item.id,
-        number: index + 1,
-        prompt: item.prompt,
-        options: key.options, // { id, label } only — no correctId
-      };
-    })
-    .filter((q): q is NonNullable<typeof q> => q !== null);
+    const questions = items
+      .map((item, index) => {
+        const key = parseAnswerKey(item.answerKey);
+        if (!key) return null; // skip malformed rows rather than leak/crash
+        return {
+          id: item.id,
+          number: index + 1,
+          prompt: item.prompt,
+          options: key.options, // { id, label } only — no correctId
+        };
+      })
+      .filter((q): q is NonNullable<typeof q> => q !== null);
 
-  return NextResponse.json(questions);
+    return NextResponse.json(questions);
+  } catch (err) {
+    // Degrade to empty state rather than 500 (e.g. before migrations are applied).
+    console.error("GET /api/learn/ielts/questions failed:", err);
+    return NextResponse.json([]);
+  }
 }

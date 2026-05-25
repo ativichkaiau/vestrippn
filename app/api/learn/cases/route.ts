@@ -18,19 +18,25 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const cases = await prisma.clinicalCase.findMany({
-    orderBy: { title: "asc" },
-    select: { id: true, title: true, scenario: true, branches: true },
-  });
+  try {
+    const cases = await prisma.clinicalCase.findMany({
+      orderBy: { title: "asc" },
+      select: { id: true, title: true, scenario: true, branches: true },
+    });
 
-  return NextResponse.json(
-    cases.map((c) => {
-      const summary =
-        parseBranches(c.branches).summary ??
-        (c.scenario.length > SUMMARY_LEN
-          ? `${c.scenario.slice(0, SUMMARY_LEN).trimEnd()}…`
-          : c.scenario);
-      return { id: c.id, title: c.title, summary };
-    }),
-  );
+    return NextResponse.json(
+      cases.map((c) => {
+        const summary =
+          parseBranches(c.branches).summary ??
+          (c.scenario.length > SUMMARY_LEN
+            ? `${c.scenario.slice(0, SUMMARY_LEN).trimEnd()}…`
+            : c.scenario);
+        return { id: c.id, title: c.title, summary };
+      }),
+    );
+  } catch (err) {
+    // Degrade to empty state rather than 500 (e.g. before migrations are applied).
+    console.error("GET /api/learn/cases failed:", err);
+    return NextResponse.json([]);
+  }
 }
