@@ -12,23 +12,30 @@ import { prisma } from "@/lib/prisma";
  * deployment — do NOT reuse for a multi-tenant or public app.
  */
 export async function resolveUserId(): Promise<string | null> {
-  const session = await auth();
-  if (session?.user?.id) return session.user.id;
+  // Never throw — callers (incl. the dashboard server component) treat null as
+  // "anonymous". A thrown auth/DB error here would blank the whole page.
+  try {
+    const session = await auth();
+    if (session?.user?.id) return session.user.id;
 
-  const ownerEmail = process.env.OWNER_EMAIL?.trim();
-  if (ownerEmail) {
-    const u = await prisma.user.findFirst({
-      where: { email: { equals: ownerEmail, mode: "insensitive" } },
-      select: { id: true },
-    });
-    if (u) return u.id;
+    const ownerEmail = process.env.OWNER_EMAIL?.trim();
+    if (ownerEmail) {
+      const u = await prisma.user.findFirst({
+        where: { email: { equals: ownerEmail, mode: "insensitive" } },
+        select: { id: true },
+      });
+      if (u) return u.id;
+    }
+
+    // Single-operator fallback: if exactly one account exists, it's the owner.
+    if ((await prisma.user.count()) === 1) {
+      const only = await prisma.user.findFirst({ select: { id: true } });
+      return only?.id ?? null;
+    }
+
+    return null;
+  } catch (err) {
+    console.error("resolveUserId failed:", err);
+    return null;
   }
-
-  // Single-operator fallback: if exactly one account exists, it's the owner.
-  if ((await prisma.user.count()) === 1) {
-    const only = await prisma.user.findFirst({ select: { id: true } });
-    return only?.id ?? null;
-  }
-
-  return null;
 }
