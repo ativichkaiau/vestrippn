@@ -48,8 +48,11 @@ async function fetchGmail(): Promise<Alert[]> {
   const { access_token } = await readJsonUtf8<{ access_token?: string }>(tokenRes);
   if (!access_token) return [];
 
+  // Default: last 24h of inbox mail (read or unread) — keeps Comms Intel live
+  // even at inbox zero. Override per-deploy with the GMAIL_QUERY env var.
+  const gmailQuery = process.env.GMAIL_QUERY || "in:inbox newer_than:1d";
   const listRes = await fetch(
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread in:inbox&maxResults=3",
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQuery)}&maxResults=3`,
     { headers: { Authorization: `Bearer ${access_token}` }, next: { revalidate: 60 } },
   );
   if (!listRes.ok) return [];
