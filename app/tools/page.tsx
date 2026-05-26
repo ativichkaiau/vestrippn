@@ -118,29 +118,36 @@ export default function ToolsHub() {
               </p>
             </motion.section>
 
-            {/* MASTER IGNITION: NOTION PLANNER */}
+            {/* MASTER IGNITION: NOTION PLANNER — embedded inline */}
             <motion.section
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
-              whileHover={{ y: -5, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden cursor-default transition-colors duration-700"
+              className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700"
             >
-              <div className="flex flex-col md:flex-row justify-between items-center relative z-10 gap-6 lg:gap-10 text-center md:text-left">
-                <div className="flex flex-col md:flex-row items-center gap-4 lg:gap-8">
-                  <div className="w-16 h-16 lg:w-20 lg:h-20 bg-indigo-50 dark:bg-indigo-500/10 rounded-[24px] flex items-center justify-center text-3xl lg:text-4xl shadow-sm transition-all duration-700">📓</div>
-                  <div>
-                    <h2 className="font-black text-[22px] lg:text-[28px] text-neutral-900 dark:text-white tracking-tight leading-none transition-colors duration-700">2026 Master Planner</h2>
-                    <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-2 transition-colors duration-700">Workspace: Notion HQ</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 lg:px-8 py-4 lg:py-5 border-b border-black/5 dark:border-white/5">
+                <div className="flex items-center gap-3 lg:gap-4 min-w-0">
+                  <div className="w-11 h-11 lg:w-12 lg:h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center text-2xl lg:text-3xl shadow-sm shrink-0">📓</div>
+                  <div className="min-w-0">
+                    <h2 className="font-black text-[16px] lg:text-[18px] text-neutral-900 dark:text-white tracking-tight leading-none truncate">2026 Master Planner</h2>
+                    <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">Workspace: Notion HQ</p>
                   </div>
                 </div>
-                <a 
-                  href="https://www.notion.so/2026-PLANNER-478a66b0e071827fa2380129a0030938" 
-                  target="_blank" 
-                  className="w-full md:w-auto bg-indigo-500 text-white font-bold text-[11px] px-10 lg:px-12 py-4 lg:py-5 rounded-2xl hover:bg-indigo-600 active:scale-95 transition-all uppercase tracking-widest shadow-md"
+                <a
+                  href="https://www.notion.so/2026-PLANNER-478a66b0e071827fa2380129a0030938"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sm:ml-auto inline-flex items-center justify-center gap-1.5 rounded-full border border-black/5 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 transition-all active:scale-95 shadow-sm shrink-0"
                 >
-                  Ignite Engine ↗
+                  Open in Notion <span>↗</span>
                 </a>
               </div>
+              <iframe
+                src="https://www.notion.so/2026-PLANNER-478a66b0e071827fa2380129a0030938"
+                title="2026 Master Planner — Notion"
+                loading="lazy"
+                allow="clipboard-read; clipboard-write"
+                className="w-full h-[600px] lg:h-[760px] bg-white"
+              />
             </motion.section>
 
             {/* THE TOOL MATRIX */}
@@ -191,7 +198,7 @@ export default function ToolsHub() {
                         <span className="text-[15px] leading-none">{group.icon}</span>
                         <h4 className="text-[11px] lg:text-[12px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 transition-colors duration-700">{group.label}</h4>
                       </div>
-                      <div className="flex flex-wrap gap-2.5">
+                      <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2 -mx-1 px-1">
                         {group.sheets.map((sheet) => {
                           const isActive = activeSheet.url === sheet.url;
                           return (
@@ -199,7 +206,7 @@ export default function ToolsHub() {
                               key={sheet.url}
                               onClick={() => setActiveSheet({ ...sheet, group: group.label })}
                               aria-pressed={isActive}
-                              className={`group flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 text-left backdrop-blur-xl transition-all duration-300 active:scale-95 ${
+                              className={`group shrink-0 flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 text-left backdrop-blur-xl transition-all duration-300 active:scale-95 ${
                                 isActive
                                   ? 'bg-rose-500 border-rose-500 text-white shadow-md'
                                   : 'bg-white/60 dark:bg-white/5 border-black/5 dark:border-white/5 hover:bg-white/90 dark:hover:bg-white/10 hover:border-rose-500/30 text-neutral-700 dark:text-neutral-300'
@@ -337,7 +344,7 @@ function SectorContainer({ label, theme, children }: { label: string, theme: 'fu
         <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">{label}</h3>
       </div>
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6"
+        className="flex gap-4 lg:gap-6 overflow-x-auto custom-scrollbar pb-3 -mx-2 px-2 py-2 snap-x"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-40px' }}
@@ -375,7 +382,7 @@ function ToolTile({ title, url, icon, theme }: { title: string, url: string, ico
       variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
       whileHover={{ y: -6, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
       whileTap={{ scale: 0.97 }}
-      className={`group bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 lg:p-6 flex items-center justify-between hover:bg-white/90 dark:hover:bg-white/10 transition-colors duration-300 ${borderColors[theme]}`}
+      className={`group shrink-0 snap-start w-[240px] sm:w-[260px] lg:w-[280px] bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 lg:p-6 flex items-center justify-between hover:bg-white/90 dark:hover:bg-white/10 transition-colors duration-300 ${borderColors[theme]}`}
     >
       <div className="flex items-center gap-4 lg:gap-5 relative z-10 min-w-0">
         <span className="text-2xl lg:text-3xl group-hover:scale-110 transition-transform duration-500 shrink-0">{icon}</span>
