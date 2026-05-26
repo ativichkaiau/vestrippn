@@ -18,20 +18,32 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Smart Sync: Only update if the cloud pushes fresh intelligence
+  // Honour server-supplied initial payload if it changes.
   useEffect(() => {
     setNotifications(prev => {
-      if (JSON.stringify(prev) === JSON.stringify(initialNotifications)) {
-        return prev;
-      }
+      if (JSON.stringify(prev) === JSON.stringify(initialNotifications)) return prev;
       return initialNotifications;
     });
   }, [initialNotifications]);
 
-  // Simulate a brief secure decryption handshake for UI fidelity
+  // Pull the live Gmail + Canvas feed from /api/notifications so the panel is
+  // populated even when nothing was passed in via props (which was the case —
+  // the dashboard wasn't wiring `cloudNotifications`).
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/notifications', { cache: 'no-store' });
+        if (!res.ok) return; // keep whatever was there; surface empty-state instead of crashing
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data)) setNotifications(data);
+      } catch (err) {
+        console.error('Comms Intel fetch failed:', err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => { cancelled = true };
   }, []);
 
   return (
