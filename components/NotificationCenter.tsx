@@ -32,13 +32,17 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Diagnostic breadcrumbs — open DevTools Console and reload to see the
+      // fetch lifecycle. Remove once the panel is verified live.
+      console.log('[Comms Intel] fetching /api/notifications…');
       try {
         const res = await fetch('/api/notifications', { cache: 'no-store' });
-        if (!res.ok) return; // keep whatever was there; surface empty-state instead of crashing
-        const data = await res.json();
+        console.log('[Comms Intel] status', res.status);
+        const data = await res.json().catch(() => null);
+        console.log('[Comms Intel] payload', Array.isArray(data) ? `${data.length} items` : data);
         if (!cancelled && Array.isArray(data)) setNotifications(data);
       } catch (err) {
-        console.error('Comms Intel fetch failed:', err);
+        console.error('[Comms Intel] fetch failed:', err);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
