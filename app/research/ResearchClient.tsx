@@ -96,6 +96,27 @@ function keysFor(r: { doi?: string | null; pmid?: string | null; title: string }
   return keys;
 }
 
+/** Quick-link URLs for the prominent ClinicalKey / Google Scholar / SRMA Engine
+ *  buttons. ClinicalKey uses the old (simpler) search URL the user prefers. */
+type QuickLinkId = 'clinicalkey' | 'googlescholar' | 'srma';
+function quickLinkUrl(service: QuickLinkId, query: string): string {
+  const q = encodeURIComponent(query.trim());
+  switch (service) {
+    case 'clinicalkey':
+      return q ? `https://www.clinicalkey.com/#!/search/${q}` : 'https://www.clinicalkey.com';
+    case 'googlescholar':
+      return q ? `https://scholar.google.com/scholar?q=${q}` : 'https://scholar.google.com';
+    case 'srma':
+      // User's own SRMA telemetry app — portal, not query-aware.
+      return 'https://vestrippn-srma-telemetry.vercel.app';
+  }
+}
+const QUICK_LINKS: { id: QuickLinkId; icon: string; label: string }[] = [
+  { id: 'clinicalkey', icon: '🔑', label: 'ClinicalKey' },
+  { id: 'googlescholar', icon: '🎓', label: 'Google Scholar' },
+  { id: 'srma', icon: '🤖', label: 'SRMA Engine' },
+];
+
 export default function ResearchClient({ cloudResearch, cloudExtractions = [] }: ResearchProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
@@ -388,7 +409,28 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                 </div>
               </div>
 
-              {/* Source filter chips (API + deep-link) */}
+              {/* Quick Links — prominent external buttons (ClinicalKey · G-Scholar · SRMA Engine) */}
+              <div className="px-6 lg:px-8 pt-4 flex flex-wrap gap-2.5">
+                {QUICK_LINKS.map((link) => {
+                  const href = quickLinkUrl(link.id, searchQuery);
+                  return (
+                    <a
+                      key={link.id}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={searchQuery.trim() && link.id !== 'srma' ? `Open “${searchQuery}” on ${link.label}` : `Open ${link.label}`}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] hover:bg-[var(--w08-surface)] px-4 py-2.5 text-[12px] font-bold text-[color:var(--w08-text)] transition-all active:scale-95 shadow-sm"
+                    >
+                      <span className="text-lg leading-none">{link.icon}</span>
+                      {link.label}
+                      <span className="text-[10px] uppercase tracking-widest text-[color:var(--w08-text-muted)] ml-0.5">↗</span>
+                    </a>
+                  );
+                })}
+              </div>
+
+              {/* Source filter chips (API sources — toggleable) */}
               <div className="px-6 lg:px-8 pt-4 flex flex-wrap items-center gap-2">
                 {RESULT_SOURCES.map((s) => {
                   // Cochrane is synthesized (rides on Crossref) — always treat as available.
@@ -425,26 +467,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                       {SOURCE_LABEL[s]}
                       {!available && <span className="text-[9px] opacity-80">(set up key)</span>}
                     </button>
-                  );
-                })}
-
-                {/* Deep-link chips (never toggleable; always open the query in a new tab) */}
-                {(['googlescholar', 'clinicalkey'] as DeepLinkSource[]).map((s) => {
-                  const dl = searchData?.deepLinks.find((d) => d.source === s);
-                  const href = dl?.url ?? null;
-                  return (
-                    <a
-                      key={s}
-                      href={href ?? '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => { if (!href) e.preventDefault(); }}
-                      title={href ? `Open “${searchQuery}” on ${SOURCE_LABEL[s]}` : 'Type a query first'}
-                      className={`inline-flex items-center gap-1.5 rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)] ${href ? 'hover:bg-[var(--w08-surface)]' : 'opacity-50 cursor-not-allowed'}`}
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: SOURCE_COLOR[s] }} />
-                      {SOURCE_LABEL[s]} <span className="opacity-80">↗</span>
-                    </a>
                   );
                 })}
               </div>
