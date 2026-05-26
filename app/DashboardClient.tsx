@@ -208,7 +208,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     <span className="text-[#00A598] drop-shadow-[0_0_15px_rgba(0,165,152,0.3)] dark:drop-shadow-[0_0_20px_rgba(0,165,152,0.5)]">W08</span>{' '}
                     <span
                       className="bg-clip-text text-transparent whitespace-nowrap drop-shadow-[0_0_18px_rgba(99,102,241,0.35)]"
-                      style={{ backgroundImage: 'linear-gradient(120deg, #14b8a6 0%, #0ea5e9 35%, #6366f1 70%, #d946ef 100%)' }}
+                      style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}
                     >
                       EQ Power+
                     </span>
@@ -378,7 +378,7 @@ function LoadingScreen() {
         <div className="relative h-[3px] w-32 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             className="h-full w-1/3 rounded-full"
-            style={{ background: 'linear-gradient(90deg,#2dd4bf,#0ea5e9,#6366f1,#d946ef)' }}
+            style={{ background: 'linear-gradient(90deg,#00d2be,#036b62)' }}
             animate={{ x: ['-120%', '380%'] }}
             transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -449,7 +449,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
         >
           <motion.span
             className="absolute -inset-[3px] rounded-[18px] -z-10"
-            style={{ background: 'linear-gradient(120deg,#2dd4bf,#0ea5e9,#6366f1,#d946ef)' }}
+            style={{ background: 'linear-gradient(120deg,#00d2be,#036b62)' }}
             animate={{ rotate: 360 }}
             transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
           />
@@ -470,7 +470,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
           ))}
           <motion.span
             className="inline-block bg-clip-text text-transparent"
-            style={{ backgroundImage: 'linear-gradient(120deg, #2dd4bf, #0ea5e9, #6366f1, #d946ef)' }}
+            style={{ backgroundImage: 'linear-gradient(120deg, #00d2be, #036b62)' }}
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.9 }}
@@ -498,7 +498,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
             <span className="text-[#00A598]">W08</span>{' '}
             <span
               className="bg-clip-text text-transparent whitespace-nowrap"
-              style={{ backgroundImage: 'linear-gradient(120deg, #14b8a6 0%, #0ea5e9 35%, #6366f1 70%, #d946ef 100%)' }}
+              style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}
             >
               EQ Power+
             </span>
@@ -518,7 +518,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
         <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(99,102,241,0.35)]">
           <motion.div
             className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg,#2dd4bf,#0ea5e9,#6366f1,#d946ef)' }}
+            style={{ background: 'linear-gradient(90deg,#00d2be,#036b62)' }}
             initial={{ width: '0%' }}
             animate={{ width: ['0%', '38%', '64%', '100%'] }}
             transition={{ delay: 1.6, duration: 4.6, ease: 'easeInOut', times: [0, 0.35, 0.7, 1] }}
