@@ -8,78 +8,214 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import CovidenceBoard from '../../components/CovidenceBoard';
 import TopNavProfile from '../../components/TopNavProfile';
-import { saveLiteratureResult } from '@/app/actions';
 
-interface LitResult {
-  id: string; title: string; authors: string; journal: string; date: string; url: string;
+/* ── Research Hub: multi-source contract types (see app/api/research/*) ── */
+type ResearchSource = 'pubmed' | 'europepmc' | 'crossref' | 'cochrane' | 'scopus' | 'sciencedirect';
+type DeepLinkSource = 'clinicalkey' | 'googlescholar';
+type AnySource = ResearchSource | DeepLinkSource;
+
+interface SearchResult {
+  source: ResearchSource;
+  externalId: string;
+  title: string;
+  authors?: string;
+  journal?: string;
+  year?: number;
+  doi?: string;
+  pmid?: string;
+  url?: string;
+  abstract?: string;
+}
+interface ChannelStatus { source: ResearchSource; ok: boolean; count: number; error?: string }
+interface DeepLink { source: DeepLinkSource; label: string; url: string }
+interface SearchResponse {
+  query: string;
+  results: SearchResult[];
+  channels: ChannelStatus[];
+  deepLinks: DeepLink[];
+}
+interface SourceStatus {
+  source: AnySource;
+  available: boolean;
+  kind: 'api' | 'deeplink';
+  reason: string;
+}
+
+interface VaultItem {
+  id: string;
+  title: string;
+  authors?: string | null;
+  journal?: string | null;
+  url?: string | null;
+  pmid?: string | null;
+  doi?: string | null;
+  source?: ResearchSource | null;
+  abstract?: string | null;
+  year?: number | null;
+  createdAt?: string | Date;
 }
 
 interface ResearchProps {
   cloudResearch?: any;
-  cloudExtractions?: any[];
+  cloudExtractions?: VaultItem[];
+}
+
+const RESULT_SOURCES: ResearchSource[] = ['pubmed', 'europepmc', 'crossref', 'cochrane', 'scopus', 'sciencedirect'];
+
+const SOURCE_LABEL: Record<AnySource, string> = {
+  pubmed: 'PubMed',
+  europepmc: 'Europe PMC',
+  crossref: 'Crossref',
+  cochrane: 'Cochrane',
+  scopus: 'Scopus',
+  sciencedirect: 'ScienceDirect',
+  clinicalkey: 'ClinicalKey',
+  googlescholar: 'Google Scholar',
+};
+
+// Each source maps to a distinct --w08-* token so the palette stays consistent
+// across liveries (no new colors). Cochrane → danger (high-signal reviews);
+// Scopus → tertiary (the gold sub-color, mirrors Elsevier's warm hue under Monza).
+const SOURCE_COLOR: Record<AnySource, string> = {
+  pubmed: 'var(--w08-accent-primary)',
+  europepmc: 'var(--w08-success)',
+  crossref: 'var(--w08-accent-secondary)',
+  cochrane: 'var(--w08-danger)',
+  scopus: 'var(--w08-accent-tertiary)',
+  sciencedirect: 'var(--w08-focus-ring)',
+  clinicalkey: 'var(--w08-text-muted)',
+  googlescholar: 'var(--w08-text-muted)',
+};
+
+/** Build all idempotency keys for a result/extraction (mirrors server logic). */
+function keysFor(r: { doi?: string | null; pmid?: string | null; title: string }): string[] {
+  const keys: string[] = [];
+  if (r.doi) keys.push(`doi:${r.doi}`);
+  if (r.pmid) keys.push(`pmid:${r.pmid}`);
+  if (r.title) keys.push(`title:${r.title.toLowerCase()}`);
+  return keys;
 }
 
 export default function ResearchClient({ cloudResearch, cloudExtractions = [] }: ResearchProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [results, setResults] = useState<LitResult[]>([]);
-  const [isExtracting, setIsExtracting] = useState(false);
-  
-  const [savedIds, setSavedIds] = useState<Set<string>>(
-    new Set(cloudExtractions.map(ext => ext.pmid))
-  );
-  
   const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
-  useEffect(() => { 
-    setIsMounted(true); 
+  /* ── Multi-source search state ── */
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchData, setSearchData] = useState<SearchResponse | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  /* ── Source filters (from /api/research/sources) ── */
+  const [sources, setSources] = useState<SourceStatus[]>([]);
+  const [activeSources, setActiveSources] = useState<Set<ResearchSource>>(
+    new Set(RESULT_SOURCES),
+  );
+
+  /* ── Vault (hydrated from server-fetched extractions; augmented on save) ── */
+  const [vault, setVault] = useState<VaultItem[]>(cloudExtractions);
+  const [savedKeys, setSavedKeys] = useState<Set<string>>(() => {
+    const s = new Set<string>();
+    cloudExtractions.forEach((ext) =>
+      keysFor({ doi: ext.doi, pmid: ext.pmid, title: ext.title }).forEach((k) => s.add(k)),
+    );
+    return s;
+  });
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [openAbstracts, setOpenAbstracts] = useState<Set<string>>(new Set());
+
+  /* ── Mount + cycle + load source availability ── */
+  useEffect(() => {
+    setIsMounted(true);
     const currentHour = new Date().getHours();
     setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
+    (async () => {
+      try {
+        const r = await fetch('/api/research/sources');
+        if (!r.ok) throw new Error(`sources ${r.status}`);
+        setSources((await r.json()) as SourceStatus[]);
+      } catch (e) {
+        console.error('[research] sources load failed', e);
+      }
+    })();
   }, []);
 
-  const initiateExtraction = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!searchQuery.trim()) return;
-    setIsExtracting(true);
-    try {
-      const res = await fetch(`/api/literature?q=${encodeURIComponent(searchQuery)}`);
-      const data = await res.json();
-      setResults(Array.isArray(data) ? data : []);
-    } catch (err) { console.error("Extraction_Uplink_Failure"); }
-    finally { setIsExtracting(false); }
+  /* ── Debounced multi-source search (~400ms after typing stops) ── */
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q) {
+      setSearchData(null);
+      setSearchError(null);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    setSearchError(null);
+    const handle = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/research/search?q=${encodeURIComponent(q)}&limit=20`);
+        if (!r.ok) throw new Error(`search ${r.status}`);
+        const data = (await r.json()) as SearchResponse;
+        setSearchData(data);
+      } catch (e) {
+        setSearchError(e instanceof Error ? e.message : 'Search failed');
+        setSearchData(null);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
+
+  const isSaved = (r: { doi?: string | null; pmid?: string | null; title: string }) =>
+    keysFor(r).some((k) => savedKeys.has(k));
+
+  const idempotencyKey = (r: { doi?: string | null; pmid?: string | null; title: string }): string =>
+    r.doi ? `doi:${r.doi}` : r.pmid ? `pmid:${r.pmid}` : `title:${r.title.toLowerCase()}`;
+
+  const toggleSource = (s: ResearchSource) => {
+    setActiveSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(s)) next.delete(s);
+      else next.add(s);
+      return next;
+    });
   };
 
-  const handleSaveToVault = async (result: LitResult, e: React.MouseEvent) => {
-    e.preventDefault(); 
-    if (savedIds.has(result.id)) return;
-    
-    try {
-      await saveLiteratureResult(result.id, result.title, result.authors, result.journal, result.url);
-      setSavedIds(prev => new Set(prev).add(result.id));
-    } catch (err) {
-      console.error("Vault Write Error:", err);
-    }
+  const toggleAbstract = (id: string) => {
+    setOpenAbstracts((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  type SearchTarget = 'scopus' | 'clinicalkey' | 'cochrane' | 'sciencedirect' | 'springerlink' | 'uptodate' | 'embase' | 'cambridge' | 'scholar';
-
-  const pivotSearch = (target: SearchTarget) => {
-    if (!searchQuery.trim()) return;
-    const q = encodeURIComponent(searchQuery);
-    let url = '';
-    switch (target) {
-      case 'scopus': url = `https://www.scopus.com/results/results.uri?sort=plf-f&src=s&st1=${q}&sot=b&sdt=b&origin=searchbasic`; break;
-      case 'clinicalkey': url = `https://www.clinicalkey.com/#!/search/${q}`; break;
-      case 'cochrane': url = `https://www.cochranelibrary.com/en/search?q=${q}`; break;
-      case 'sciencedirect': url = `https://www.sciencedirect.com/search?qs=${q}`; break;
-      case 'springerlink': url = `https://link.springer.com/search?query=${q}`; break;
-      case 'uptodate': url = `https://www.uptodate.com/contents/search?search=${q}`; break;
-      case 'embase': url = `https://www.embase.com/search/results?b_query=${q}`; break;
-      case 'cambridge': url = `https://www.cambridge.org/core/search?q=${q}`; break;
-      case 'scholar': url = `https://scholar.google.com/scholar?q=${q}`; break;
+  const saveResult = async (r: SearchResult) => {
+    const key = idempotencyKey(r);
+    if (savedKeys.has(key) || savingKey) return;
+    setSavingKey(key);
+    try {
+      const res = await fetch('/api/research/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(r),
+      });
+      if (!res.ok) throw new Error(`extract ${res.status}`);
+      const data = (await res.json()) as { extraction: VaultItem; created: boolean };
+      setSavedKeys((prev) => {
+        const next = new Set(prev);
+        keysFor(r).forEach((k) => next.add(k));
+        return next;
+      });
+      // Add to local vault if it's a new row (server returns existing on dupes).
+      if (data.created) setVault((prev) => [data.extraction, ...prev]);
+    } catch (e) {
+      console.error('[research] save failed', e);
+    } finally {
+      setSavingKey(null);
     }
-    if (url) window.open(url, '_blank');
   };
 
   const navItems = [
@@ -210,131 +346,315 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               </p>
             </motion.section>
 
-            {/* SECTOR 1: EXTRACTION MATRIX */}
+            {/* SECTOR 1: MULTI-SOURCE LITERATURE SEARCH */}
             <motion.section
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
-              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default"
+              className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] shadow-[var(--w08-shadow)] overflow-hidden text-[color:var(--w08-text)] relative"
             >
-              <div className="flex items-center gap-2 mb-6 px-2">
-                <span className="w-1.5 h-4 bg-amber-500 rounded-full animate-pulse"></span>
-                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Omni-Search Extraction Matrix</h3>
+              {/* Header */}
+              <div className="flex items-center gap-2 px-6 lg:px-8 pt-6">
+                <span className="w-1.5 h-4 rounded-full" style={{ backgroundColor: 'var(--w08-accent-primary)' }} />
+                <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">Multi-Source Literature Search</h3>
+                {searchData && (
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">
+                    {searchData.results.length} merged · deduped · year-sorted
+                  </span>
+                )}
               </div>
-              
-              <form onSubmit={initiateExtraction} className="flex flex-col gap-5 relative z-10">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <input 
-                    type="text" 
-                    placeholder='Enter Boolean Query (e.g., "Meta-Analysis" AND "Urology")'
+
+              {/* Sticky search bar */}
+              <div className="sticky top-0 z-30 px-6 lg:px-8 py-4 bg-[var(--w08-surface)] border-b border-[color:var(--w08-border)] mt-4 backdrop-blur-md backdrop-saturate-150">
+                <div className="relative">
+                  <input
+                    type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 focus:ring-2 focus:ring-amber-500/30 rounded-2xl px-5 py-4 text-[14px] text-neutral-900 dark:text-white outline-none transition-all placeholder:text-neutral-400 dark:placeholder:text-neutral-500 font-medium"
+                    placeholder="Search PubMed, Europe PMC, Crossref / Cochrane, Scopus, ScienceDirect…"
+                    className="w-full bg-[var(--w08-surface-raised)] border border-[color:var(--w08-border)] rounded-full pl-12 pr-14 py-3.5 text-[14px] text-[color:var(--w08-text)] outline-none transition placeholder:text-[color:var(--w08-text-muted)] focus:ring-2 focus:ring-[color:var(--w08-focus-ring)]"
                   />
-                  <button 
-                    type="submit"
-                    disabled={isExtracting || !searchQuery.trim()}
-                    className="bg-amber-500 text-white px-8 py-4 md:py-0 rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-md"
-                  >
-                    {isExtracting ? 'Extracting...' : 'Fetch Feed'}
-                  </button>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base text-[color:var(--w08-text-muted)]">🔎</span>
+                  {searching && (
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] uppercase tracking-widest text-[color:var(--w08-text-muted)]">Searching…</span>
+                  )}
+                  {!searching && searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      aria-label="Clear search"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-full text-[color:var(--w08-text-muted)] hover:text-[color:var(--w08-text)] hover:bg-[var(--w08-surface)]"
+                    >✕</button>
+                  )}
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                   <button type="button" onClick={() => pivotSearch('scopus')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     🏛️ Scopus
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('clinicalkey')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-amber-500/30 hover:bg-amber-50 dark:hover:bg-amber-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     🔑 ClinicalKey
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('cochrane')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-pink-500/30 hover:bg-pink-50 dark:hover:bg-pink-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     📚 Cochrane
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('embase')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     🏥 Embase
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('scholar')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-blue-400/30 hover:bg-blue-50/50 dark:hover:bg-blue-400/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     🎓 G-Scholar
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('sciencedirect')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-teal-500/30 hover:bg-teal-50 dark:hover:bg-teal-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     🧬 ScienceDirect
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('springerlink')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     📘 SpringerLink
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('uptodate')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     🩺 UpToDate
-                   </button>
-                   <button type="button" onClick={() => pivotSearch('cambridge')} className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-purple-500/30 hover:bg-purple-50 dark:hover:bg-purple-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-neutral-600 dark:text-neutral-300">
-                     🏛️ Cambridge
-                   </button>
-                   
-                   <a 
-                     href="https://vestrippn-srma-telemetry.vercel.app" 
-                     target="_blank" 
-                     rel="noopener noreferrer"
-                     className="bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/10 p-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 shadow-sm"
-                   >
-                     🤖 SRMA Machine
-                   </a>
+              {/* Source filter chips (API + deep-link) */}
+              <div className="px-6 lg:px-8 pt-4 flex flex-wrap items-center gap-2">
+                {RESULT_SOURCES.map((s) => {
+                  // Cochrane is synthesized (rides on Crossref) — always treat as available.
+                  const meta = sources.find((x) => x.source === s);
+                  const available = s === 'cochrane' ? true : meta ? meta.available : true;
+                  const active = activeSources.has(s);
+                  const color = SOURCE_COLOR[s];
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => available && toggleSource(s)}
+                      disabled={!available}
+                      aria-pressed={active}
+                      title={!available ? meta?.reason : `Toggle ${SOURCE_LABEL[s]}`}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition ${
+                        !available
+                          ? 'border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] text-[color:var(--w08-text-muted)] opacity-60 cursor-not-allowed'
+                          : active
+                            ? ''
+                            : 'border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] text-[color:var(--w08-text-muted)] hover:bg-[var(--w08-surface)]'
+                      }`}
+                      style={
+                        active && available
+                          ? {
+                              color,
+                              borderColor: color,
+                              backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
+                            }
+                          : undefined
+                      }
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+                      {SOURCE_LABEL[s]}
+                      {!available && <span className="text-[9px] opacity-80">(set up key)</span>}
+                    </button>
+                  );
+                })}
+
+                {/* Deep-link chips (never toggleable; always open the query in a new tab) */}
+                {(['googlescholar', 'clinicalkey'] as DeepLinkSource[]).map((s) => {
+                  const dl = searchData?.deepLinks.find((d) => d.source === s);
+                  const href = dl?.url ?? null;
+                  return (
+                    <a
+                      key={s}
+                      href={href ?? '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => { if (!href) e.preventDefault(); }}
+                      title={href ? `Open “${searchQuery}” on ${SOURCE_LABEL[s]}` : 'Type a query first'}
+                      className={`inline-flex items-center gap-1.5 rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)] ${href ? 'hover:bg-[var(--w08-surface)]' : 'opacity-50 cursor-not-allowed'}`}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: SOURCE_COLOR[s] }} />
+                      {SOURCE_LABEL[s]} <span className="opacity-80">↗</span>
+                    </a>
+                  );
+                })}
+              </div>
+
+              {/* Channel status strip — per-source outcome */}
+              {searchData && searchData.channels.length > 0 && (
+                <div className="px-6 lg:px-8 pt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">
+                  {searchData.channels.map((ch) => {
+                    const color = SOURCE_COLOR[ch.source];
+                    const dotColor = !ch.ok
+                      ? 'var(--w08-danger)'
+                      : ch.count > 0
+                        ? 'var(--w08-success)'
+                        : 'var(--w08-text-muted)';
+                    return (
+                      <span
+                        key={ch.source}
+                        title={!ch.ok ? ch.error ?? 'Channel error' : `${SOURCE_LABEL[ch.source]} returned ${ch.count}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-2.5 py-1"
+                        style={!ch.ok ? { borderColor: 'var(--w08-danger)', color: 'var(--w08-danger)' } : undefined}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: dotColor }} />
+                        <span style={ch.ok ? { color } : undefined}>{SOURCE_LABEL[ch.source]}</span>
+                        <span>{ch.ok ? (ch.count > 0 ? `✓ ${ch.count}` : '—') : 'ERR'}</span>
+                      </span>
+                    );
+                  })}
                 </div>
-              </form>
-            </motion.section>
+              )}
 
-            {/* SECTOR 2: RESULTS FEED */}
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6"
-              initial="hidden" animate="visible"
-              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07, delayChildren: 0.2 } } }}
-            >
-              {results.map((result) => {
-                const isSaved = savedIds.has(result.id);
-                return (
-                  <motion.a
-                    key={result.id}
-                    href={result.url}
-                    target="_blank"
-                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 28 } } }}
-                    whileHover={{ y: -5, scale: 1.01, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                    whileTap={{ scale: 0.98 }}
-                    className="group flex flex-col justify-between p-6 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] hover:border-amber-500/30 hover:bg-white/90 dark:hover:bg-white/10 shadow-sm relative overflow-hidden"
-                  >
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-full uppercase tracking-widest transition-colors duration-700">PMID {result.id}</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500 transition-colors duration-700">{result.date}</span>
-                          <button 
-                            onClick={(e) => handleSaveToVault(result, e)}
-                            disabled={isSaved}
-                            className={`px-3 py-1 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all duration-300 ${
-                              isSaved 
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-not-allowed' 
-                                : 'bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-500 shadow-sm'
-                            }`}
+              {/* Elsevier env hint — fires only when BOTH Scopus and ScienceDirect are unavailable */}
+              {(() => {
+                const scopus = sources.find((s) => s.source === 'scopus');
+                const sd = sources.find((s) => s.source === 'sciencedirect');
+                if (scopus && sd && !scopus.available && !sd.available) {
+                  return (
+                    <div className="mx-6 lg:mx-8 mt-4 rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-4 py-2.5 text-[11px] text-[color:var(--w08-text-muted)]">
+                      Set <code className="font-mono text-[color:var(--w08-text)]">ELSEVIER_API_KEY</code> in Vercel to enable Scopus + ScienceDirect.
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Results / empty / error */}
+              <div className="px-6 lg:px-8 py-6 space-y-3">
+                {!searchQuery.trim() && (
+                  <div className="rounded-[var(--w08-radius)] border border-dashed border-[color:var(--w08-border)] px-6 py-10 text-center text-sm text-[color:var(--w08-text-muted)]">
+                    Search the literature across PubMed, Europe PMC, Cochrane, Scopus, ScienceDirect — open ClinicalKey & Scholar in a tab.
+                  </div>
+                )}
+
+                {searchError && (
+                  <div className="rounded-[var(--w08-radius)] border px-4 py-3 text-sm" style={{ borderColor: 'var(--w08-danger)', color: 'var(--w08-danger)', backgroundColor: 'var(--w08-surface-raised)' }}>
+                    Search failed: {searchError}
+                  </div>
+                )}
+
+                {searchQuery.trim() && !searching && searchData && (() => {
+                  const filtered = searchData.results.filter((r) => activeSources.has(r.source));
+                  if (filtered.length === 0) {
+                    const scholar = searchData.deepLinks.find((d) => d.source === 'googlescholar');
+                    const ck = searchData.deepLinks.find((d) => d.source === 'clinicalkey');
+                    return (
+                      <div className="rounded-[var(--w08-radius)] border border-dashed border-[color:var(--w08-border)] px-6 py-10 text-center text-sm text-[color:var(--w08-text-muted)]">
+                        No results. Try a broader query, or open it in{' '}
+                        {scholar && (
+                          <a className="underline" href={scholar.url} target="_blank" rel="noopener noreferrer">Scholar</a>
+                        )}
+                        {' / '}
+                        {ck && (
+                          <a className="underline" href={ck.url} target="_blank" rel="noopener noreferrer">ClinicalKey</a>
+                        )}.
+                      </div>
+                    );
+                  }
+                  return filtered.map((r) => {
+                    const key = r.doi ?? r.pmid ?? r.externalId;
+                    const open = openAbstracts.has(key);
+                    const idKey = idempotencyKey(r);
+                    const saved = savedKeys.has(idKey) || isSaved(r);
+                    const saving = savingKey === idKey;
+                    const color = SOURCE_COLOR[r.source];
+                    return (
+                      <article
+                        key={key}
+                        className="group rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] p-4 lg:p-5 transition hover:shadow-[var(--w08-shadow)]"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Source pill */}
+                          <span
+                            className="shrink-0 inline-flex items-center gap-1.5 rounded-full border bg-[var(--w08-surface)] px-2.5 py-1 text-[10px] font-black uppercase tracking-widest"
+                            style={{ color, borderColor: color }}
                           >
-                            {isSaved ? 'Vaulted ✓' : 'Save'}
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+                            {SOURCE_LABEL[r.source]}
+                          </span>
+
+                          <div className="min-w-0 flex-1">
+                            {r.url ? (
+                              <a
+                                href={r.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block text-[15px] font-bold text-[color:var(--w08-text)] leading-snug hover:underline"
+                              >
+                                {r.title}
+                              </a>
+                            ) : (
+                              <div className="text-[15px] font-bold text-[color:var(--w08-text)] leading-snug">{r.title}</div>
+                            )}
+
+                            {(r.authors || r.journal || r.year) && (
+                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] text-[color:var(--w08-text-muted)]">
+                                {r.authors && <span className="truncate max-w-full">{r.authors}</span>}
+                                {(r.journal || r.year) && (
+                                  <span className="italic">
+                                    {r.journal}{r.journal && r.year ? ' · ' : ''}{r.year ?? ''}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {r.abstract && (
+                              <button
+                                type="button"
+                                onClick={() => toggleAbstract(key)}
+                                className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)] hover:text-[color:var(--w08-text)]"
+                              >
+                                {open ? 'Hide abstract −' : 'Show abstract +'}
+                              </button>
+                            )}
+                            {r.abstract && open && (
+                              <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-[color:var(--w08-text)]">{r.abstract}</p>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => saveResult(r)}
+                            disabled={saved || saving}
+                            className="shrink-0 inline-flex items-center gap-1 rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface)] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)] hover:text-[color:var(--w08-text)] disabled:cursor-not-allowed"
+                            style={saved ? { color: 'var(--w08-success)', borderColor: 'var(--w08-success)' } : undefined}
+                            title={saved ? 'Already in your vault' : 'Save to vault'}
+                          >
+                            {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save'}
                           </button>
                         </div>
-                      </div>
-                      <h3 className="text-[14px] lg:text-[15px] font-bold text-neutral-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug mb-4">
-                        {result.title}
-                      </h3>
-                    </div>
-                    <div className="flex justify-between items-end text-[11px] font-medium text-neutral-500 dark:text-neutral-400 tracking-tight transition-colors duration-700">
-                      <span className="truncate pr-4 leading-tight">{result.authors}</span>
-                      <span className="italic shrink-0 font-bold bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md leading-tight">{result.journal}</span>
-                    </div>
-                  </motion.a>
-                );
-              })}
+                      </article>
+                    );
+                  });
+                })()}
+              </div>
+            </motion.section>
 
-              {results.length === 0 && !isExtracting && (
-                 <div className="md:col-span-2 py-16 lg:py-24 border-[2px] border-dashed border-black/10 dark:border-white/10 rounded-[32px] flex flex-col items-center justify-center opacity-60 transition-colors duration-700">
-                    <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Awaiting Extraction Command</span>
-                 </div>
+            {/* SECTOR 2: VAULT — saved extractions (server-fetched, augmented on save) */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] shadow-[var(--w08-shadow)] p-6 lg:p-8 text-[color:var(--w08-text)]"
+            >
+              <div className="flex items-center gap-2 mb-5">
+                <span className="w-1.5 h-4 rounded-full" style={{ backgroundColor: 'var(--w08-accent-tertiary)' }} />
+                <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">Vault · {vault.length} saved</h3>
+              </div>
+              {vault.length === 0 ? (
+                <div className="rounded-[var(--w08-radius)] border border-dashed border-[color:var(--w08-border)] px-6 py-8 text-center text-sm text-[color:var(--w08-text-muted)]">
+                  Save results to keep them here. Idempotent on DOI → PMID → title.
+                </div>
+              ) : (
+                <ul className="space-y-2.5">
+                  {vault.slice(0, 20).map((v) => {
+                    const color = v.source ? SOURCE_COLOR[v.source as ResearchSource] : 'var(--w08-text-muted)';
+                    return (
+                      <li key={v.id} className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] p-3 lg:p-4">
+                        <div className="flex items-start gap-3">
+                          <span
+                            className="shrink-0 inline-flex items-center gap-1 rounded-full border bg-[var(--w08-surface)] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest"
+                            style={{ color, borderColor: color }}
+                          >
+                            <span className="h-1 w-1 rounded-full" style={{ backgroundColor: color }} />
+                            {v.source ? SOURCE_LABEL[v.source as ResearchSource] : 'Saved'}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            {v.url ? (
+                              <a href={v.url} target="_blank" rel="noopener noreferrer" className="font-bold text-[color:var(--w08-text)] hover:underline">
+                                {v.title}
+                              </a>
+                            ) : (
+                              <div className="font-bold text-[color:var(--w08-text)]">{v.title}</div>
+                            )}
+                            {(v.authors || v.journal || v.year) && (
+                              <div className="text-[11px] text-[color:var(--w08-text-muted)]">
+                                {v.authors && <span>{v.authors}</span>}
+                                {(v.journal || v.year) && (
+                                  <span className="italic"> · {v.journal}{v.journal && v.year ? ' ' : ''}{v.year ?? ''}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                  {vault.length > 20 && (
+                    <li className="text-center text-[11px] text-[color:var(--w08-text-muted)]">+ {vault.length - 20} more saved earlier</li>
+                  )}
+                </ul>
               )}
-            </motion.div>
+            </motion.section>
 
             {/* SECTOR 3: COVIDENCE WORKSPACE */}
             <motion.section
