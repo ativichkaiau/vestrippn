@@ -22,9 +22,11 @@ export async function GET() {
     
     const { access_token } = await tokenResponse.json();
 
-    // 2. Ask Gmail for your 3 most recent UNREAD emails
+    // 2. Ask Gmail for your 3 most recent inbox emails (read or unread).
+    //    Override via GMAIL_QUERY env var — kept in sync with /api/notifications.
+    const gmailQuery = process.env.GMAIL_QUERY || 'in:inbox newer_than:1d';
     const mailResponse = await fetch(
-      'https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread in:inbox&maxResults=3',
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQuery)}&maxResults=3`,
       { headers: { Authorization: `Bearer ${access_token}` }, next: { revalidate: 60 } }
     );
     
