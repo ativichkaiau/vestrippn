@@ -119,6 +119,11 @@ model ResearchExtraction {
   authors   String?
   journal   String?
   url       String?
+  // Multi-source upgrade — all optional, additive.
+  source    String?  // "pubmed" | "europepmc" | "crossref" | "scopus" | "sciencedirect" | "cochrane"
+  doi       String?
+  abstract  String?  @db.Text
+  year      Int?
   status    String   @default("UNSCREENED")
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
