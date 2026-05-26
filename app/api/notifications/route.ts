@@ -125,9 +125,12 @@ async function fetchCanvas(): Promise<Alert[]> {
   });
 }
 
-// Notifications auto-disappear after a day: items more than 24h in the past
-// (Gmail) or more than 24h in the future (Canvas) are filtered out.
-const VISIBILITY_WINDOW_MS = 24 * 60 * 60 * 1000;
+// Per-channel "auto-disappear" rules:
+//  - Gmail: the q=is:unread query is itself the expiry (you read it → it goes).
+//    No time filter — older unread mail still surfaces here.
+//  - Canvas: only events within ±24h of now (an exam in 3 weeks isn't an alert
+//    yet; an assignment that closed last week is no longer actionable).
+const CANVAS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export async function GET() {
   const [gmailAlerts, canvasAlerts] = await Promise.all([
@@ -142,8 +145,15 @@ export async function GET() {
   ]);
 
   const now = Date.now();
-  const unified = [...canvasAlerts, ...gmailAlerts]
-    .filter((a) => Math.abs(a.timestamp - now) <= VISIBILITY_WINDOW_MS)
-    .sort((a, b) => b.timestamp - a.timestamp);
+  const freshCanvas = canvasAlerts.filter(
+    (a) => Math.abs(a.timestamp - now) <= CANVAS_WINDOW_MS,
+  );
+  console.log(
+    `Comms feed → Gmail: ${gmailAlerts.length}, Canvas: ${canvasAlerts.length} (in-window: ${freshCanvas.length})`,
+  );
+
+  const unified = [...freshCanvas, ...gmailAlerts].sort(
+    (a, b) => b.timestamp - a.timestamp,
+  );
   return NextResponse.json(unified);
 }
