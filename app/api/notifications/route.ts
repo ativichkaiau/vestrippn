@@ -22,6 +22,14 @@ interface Alert {
   timestamp: number;
 }
 
+// Force UTF-8 decoding regardless of the upstream Content-Type charset (some
+// providers omit/misreport it, which makes fetch().json() mangle non-ASCII —
+// e.g. Thai text rendered as `à¸„à¸£à¸±…` mojibake).
+async function readJsonUtf8<T>(res: Response): Promise<T> {
+  const text = new TextDecoder("utf-8").decode(await res.arrayBuffer());
+  return JSON.parse(text) as T;
+}
+
 async function fetchGmail(): Promise<Alert[]> {
   const { GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
   if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) return [];
@@ -37,7 +45,7 @@ async function fetchGmail(): Promise<Alert[]> {
     }),
   });
   if (!tokenRes.ok) return [];
-  const { access_token } = (await tokenRes.json()) as { access_token?: string };
+  const { access_token } = await readJsonUtf8<{ access_token?: string }>(tokenRes);
   if (!access_token) return [];
 
   const listRes = await fetch(
@@ -45,7 +53,7 @@ async function fetchGmail(): Promise<Alert[]> {
     { headers: { Authorization: `Bearer ${access_token}` }, next: { revalidate: 60 } },
   );
   if (!listRes.ok) return [];
-  const listData = (await listRes.json()) as { messages?: { id: string }[] };
+  const listData = await readJsonUtf8<{ messages?: { id: string }[] }>(listRes);
   if (!listData.messages) return [];
 
   const details = await Promise.all(
@@ -55,7 +63,7 @@ async function fetchGmail(): Promise<Alert[]> {
         { headers: { Authorization: `Bearer ${access_token}` } },
       );
       if (!r.ok) return null;
-      const d = (await r.json()) as { payload?: { headers?: { name: string; value: string }[] } };
+      const d = await readJsonUtf8<{ payload?: { headers?: { name: string; value: string }[] } }>(r);
       const headers = d.payload?.headers ?? [];
       const from = headers.find((h) => h.name === "From")?.value.split("<")[0] || "Unknown";
       const subject = headers.find((h) => h.name === "Subject")?.value || "No Subject";
@@ -84,13 +92,15 @@ async function fetchCanvas(): Promise<Alert[]> {
     next: { revalidate: 60 },
   });
   if (!res.ok) return [];
-  const data = (await res.json()) as Array<{
-    id: number | string;
-    title?: string;
-    context_name?: string;
-    start_at?: string;
-    due_at?: string;
-  }>;
+  const data = await readJsonUtf8<
+    Array<{
+      id: number | string;
+      title?: string;
+      context_name?: string;
+      start_at?: string;
+      due_at?: string;
+    }>
+  >(res);
 
   return data.slice(0, 3).map((item) => {
     const dueDate = new Date(item.start_at || item.due_at || Date.now());
