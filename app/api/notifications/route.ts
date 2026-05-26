@@ -63,17 +63,27 @@ async function fetchGmail(): Promise<Alert[]> {
         { headers: { Authorization: `Bearer ${access_token}` } },
       );
       if (!r.ok) return null;
-      const d = await readJsonUtf8<{ payload?: { headers?: { name: string; value: string }[] } }>(r);
+      const d = await readJsonUtf8<{
+        internalDate?: string;
+        payload?: { headers?: { name: string; value: string }[] };
+      }>(r);
       const headers = d.payload?.headers ?? [];
       const from = headers.find((h) => h.name === "From")?.value.split("<")[0] || "Unknown";
       const subject = headers.find((h) => h.name === "Subject")?.value || "No Subject";
+      const ts = Number(d.internalDate) || Date.now();
+      const ageMin = Math.max(0, Math.round((Date.now() - ts) / 60000));
+      const time =
+        ageMin < 1 ? "Just now"
+        : ageMin < 60 ? `${ageMin}m ago`
+        : ageMin < 1440 ? `${Math.round(ageMin / 60)}h ago`
+        : new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
       const a: Alert = {
         id: `gmail-${msg.id}`,
         source: "GMAIL",
         title: `Mail: ${from.trim()}`,
         message: subject,
-        time: "New",
-        timestamp: Date.now(),
+        time,
+        timestamp: ts,
       };
       return a;
     }),
@@ -115,6 +125,10 @@ async function fetchCanvas(): Promise<Alert[]> {
   });
 }
 
+// Notifications auto-disappear after a day: items more than 24h in the past
+// (Gmail) or more than 24h in the future (Canvas) are filtered out.
+const VISIBILITY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 export async function GET() {
   const [gmailAlerts, canvasAlerts] = await Promise.all([
     fetchGmail().catch((err) => {
@@ -127,8 +141,9 @@ export async function GET() {
     }),
   ]);
 
-  const unified = [...canvasAlerts, ...gmailAlerts].sort(
-    (a, b) => b.timestamp - a.timestamp,
-  );
+  const now = Date.now();
+  const unified = [...canvasAlerts, ...gmailAlerts]
+    .filter((a) => Math.abs(a.timestamp - now) <= VISIBILITY_WINDOW_MS)
+    .sort((a, b) => b.timestamp - a.timestamp);
   return NextResponse.json(unified);
 }
