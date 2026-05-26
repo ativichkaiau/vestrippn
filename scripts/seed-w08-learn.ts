@@ -1,10 +1,8 @@
 /**
- * W08 Phase C — sample Learn content (IELTS items + clinical cases).
+ * W08 — sample Learn content (clinical cases only).
  *
- * Clinical cases cover the 9 featured systems (one representative case each),
- * with `specialty` set to the exact system label so the browser can group/feature
- * by system. PLACEHOLDER teaching content — refine/expand per product.
- * Safe to re-run: fixed ids + upsert. IELTSItem/ClinicalCase are shared banks.
+ * The IELTS Practice module was removed (unused). Re-add the IELTS seed block
+ * if the module is ever revived — the IELTSItem table still exists in Postgres.
  *
  * Run:  VESTRIPPN_PRISMA_DATABASE_URL=... npx tsx scripts/seed-w08-learn.ts
  */
@@ -23,51 +21,6 @@ async function main() {
         "  2) Or inline: VESTRIPPN_PRISMA_DATABASE_URL='postgresql://…' npx tsx scripts/seed-w08-learn.ts\n",
     );
     process.exit(1);
-  }
-
-  // ---- IELTS items (answerKey shape: { options, correctId, explanation? }) ----
-  const ielts = [
-    {
-      id: "seed-ielts-1",
-      section: "reading" as const,
-      skill: "vocabulary",
-      prompt: 'Choose the word closest in meaning to "mitigate".',
-      difficulty: 1,
-      tags: ["vocabulary", "synonyms"],
-      answerKey: {
-        options: [
-          { id: "a", label: "Intensify" },
-          { id: "b", label: "Alleviate" },
-          { id: "c", label: "Postpone" },
-          { id: "d", label: "Ignore" },
-        ],
-        correctId: "b",
-        explanation: "To mitigate is to make less severe — i.e. alleviate.",
-      },
-    },
-    {
-      id: "seed-ielts-2",
-      section: "reading" as const,
-      skill: "vocabulary",
-      prompt: 'Choose the word closest in meaning to "ubiquitous".',
-      difficulty: 2,
-      tags: ["vocabulary", "synonyms"],
-      answerKey: {
-        options: [
-          { id: "a", label: "Rare" },
-          { id: "b", label: "Hidden" },
-          { id: "c", label: "Everywhere" },
-          { id: "d", label: "Temporary" },
-        ],
-        correctId: "c",
-        explanation: "Ubiquitous means present everywhere.",
-      },
-    },
-  ];
-
-  for (const item of ielts) {
-    const { id, ...rest } = item;
-    await prisma.iELTSItem.upsert({ where: { id }, update: rest, create: { id, ...rest } });
   }
 
   // ---- Clinical cases: all interactive (branching). Difficulty sets depth
@@ -99,11 +52,8 @@ async function main() {
     await prisma.clinicalCase.upsert({ where: { id }, update: data, create: { id, ...data } });
   }
 
-  const [iCount, cCount] = await Promise.all([
-    prisma.iELTSItem.count(),
-    prisma.clinicalCase.count(),
-  ]);
-  console.log(`Seed complete. IELTSItem rows: ${iCount}, ClinicalCase rows: ${cCount}`);
+  const cCount = await prisma.clinicalCase.count();
+  console.log(`Seed complete. ClinicalCase rows: ${cCount}`);
 }
 
 main()
