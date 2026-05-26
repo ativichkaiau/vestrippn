@@ -18,28 +18,17 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Honour server-supplied initial payload if it changes.
-  useEffect(() => {
-    setNotifications(prev => {
-      if (JSON.stringify(prev) === JSON.stringify(initialNotifications)) return prev;
-      return initialNotifications;
-    });
-  }, [initialNotifications]);
-
-  // Pull the live Gmail + Canvas feed from /api/notifications so the panel is
-  // populated even when nothing was passed in via props (which was the case —
-  // the dashboard wasn't wiring `cloudNotifications`).
+  // Pull the live Gmail + Canvas feed from /api/notifications. We do NOT also
+  // watch `initialNotifications` — its default `= []` creates a fresh array on
+  // every render, so a watcher effect would re-fire after each setNotifications
+  // and wipe the freshly-fetched data back to []. The fetch below is the single
+  // source of truth.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // Diagnostic breadcrumbs — open DevTools Console and reload to see the
-      // fetch lifecycle. Remove once the panel is verified live.
-      console.log('[Comms Intel] fetching /api/notifications…');
       try {
         const res = await fetch('/api/notifications', { cache: 'no-store' });
-        console.log('[Comms Intel] status', res.status);
         const data = await res.json().catch(() => null);
-        console.log('[Comms Intel] payload', Array.isArray(data) ? `${data.length} items` : data);
         if (!cancelled && Array.isArray(data)) setNotifications(data);
       } catch (err) {
         console.error('[Comms Intel] fetch failed:', err);
