@@ -186,13 +186,17 @@ export default function ArchiveHub() {
                 {/* Sector A */}
                 <motion.section
                   variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                  className="rounded-[28px] border border-black/5 dark:border-white/5 bg-white/45 dark:bg-white/[0.04] backdrop-blur-xl p-4 sm:p-5 lg:p-6 shadow-[0_12px_36px_rgba(0,0,0,0.04)]"
                 >
-                  <h3 className="text-[12px] font-bold text-cyan-600 dark:text-cyan-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
-                    <span className="w-1.5 h-4 bg-cyan-500 rounded-full"></span> Sector A: Medical Foundations
-                  </h3>
+                  <div className="mb-5 flex items-center justify-between gap-4 border-b border-black/5 pb-3 dark:border-white/5">
+                    <h3 className="text-[12px] font-bold text-cyan-600 dark:text-cyan-400 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
+                      <span className="w-1.5 h-4 bg-cyan-500 rounded-full shadow-[0_0_14px_rgba(6,182,212,0.45)]"></span> Sector A: Medical Foundations
+                    </h3>
+                    <span className="hidden sm:inline-flex rounded-full bg-cyan-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-cyan-600 dark:text-cyan-300">3 Links</span>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     <ArchiveLink title="University Summaries" url="https://drive.google.com/drive/folders/1Wp9C_rP2ybeVUPgfXJCOganRNjuWaViS" icon="📁" theme="cyan" />
-                    <ArchiveLink title="Clinical Mock Exams" url="#" icon="🩺" theme="cyan" />
+                    <ArchiveLink title="Clinical Mock Exams" url="https://vestrippn.vercel.app/learn/cases" icon="🩺" theme="cyan" />
                     <ArchiveLink title="Portfolio Showcase" url="https://drive.google.com/drive/folders/1-34E1ClpDxzP5-3Hr_b52svDZX7J2ucF" icon="🎯" theme="cyan" />
                   </div>
                 </motion.section>
@@ -200,10 +204,14 @@ export default function ArchiveHub() {
                 {/* Sector B */}
                 <motion.section
                   variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                  className="rounded-[28px] border border-black/5 dark:border-white/5 bg-white/45 dark:bg-white/[0.04] backdrop-blur-xl p-4 sm:p-5 lg:p-6 shadow-[0_12px_36px_rgba(0,0,0,0.04)]"
                 >
-                  <h3 className="text-[12px] font-bold text-amber-600 dark:text-amber-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
-                    <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span> Sector B: Olympiad Intelligence
-                  </h3>
+                  <div className="mb-5 flex items-center justify-between gap-4 border-b border-black/5 pb-3 dark:border-white/5">
+                    <h3 className="text-[12px] font-bold text-amber-600 dark:text-amber-400 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
+                      <span className="w-1.5 h-4 bg-amber-500 rounded-full shadow-[0_0_14px_rgba(245,158,11,0.45)]"></span> Sector B: Olympiad Intelligence
+                    </h3>
+                    <span className="hidden sm:inline-flex rounded-full bg-amber-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">3 Links</span>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     <ArchiveLink title="Astrophysics" url="https://drive.google.com/drive/folders/1ta_ydTUk8YLe91z_tgBWawMAlxHxqs06" icon="🌌" theme="amber" />
                     <ArchiveLink title="Astronomy" url="https://drive.google.com/drive/folders/1FIy_K00EC4I9UGy-LyP0_eRxHGGkqtJZ" icon="🔭" theme="amber" />
@@ -214,10 +222,14 @@ export default function ArchiveHub() {
                 {/* Sector C */}
                 <motion.section
                   variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                  className="rounded-[28px] border border-black/5 dark:border-white/5 bg-white/45 dark:bg-white/[0.04] backdrop-blur-xl p-4 sm:p-5 lg:p-6 shadow-[0_12px_36px_rgba(0,0,0,0.04)]"
                 >
-                  <h3 className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
-                    <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span> Sector C: Preparation Vault
-                  </h3>
+                  <div className="mb-5 flex items-center justify-between gap-4 border-b border-black/5 pb-3 dark:border-white/5">
+                    <h3 className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
+                      <span className="w-1.5 h-4 bg-emerald-500 rounded-full shadow-[0_0_14px_rgba(16,185,129,0.45)]"></span> Sector C: Preparation Vault
+                    </h3>
+                    <span className="hidden sm:inline-flex rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-300">3 Links</span>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     <ArchiveLink title="High School Notes" url="https://drive.google.com/drive/folders/1rs2HtVZBXJ_4IOf_HkPMIRCW0XwuMSk5" icon="🎒" theme="emerald" />
                     <ArchiveLink title="Linguistics" url="https://drive.google.com/drive/folders/1-2RoL8dU8UjiSJZqQRIVZhh1LJ_yRgBw" icon="📝" theme="emerald" />
@@ -228,13 +240,19 @@ export default function ArchiveHub() {
                 {/* Sector D */}
                 <motion.section
                   variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } } }}
+                  className="rounded-[28px] border border-black/5 dark:border-white/5 bg-white/45 dark:bg-white/[0.04] backdrop-blur-xl p-4 sm:p-5 lg:p-6 shadow-[0_12px_36px_rgba(0,0,0,0.04)]"
                 >
-                  <h3 className="text-[12px] font-bold text-purple-600 dark:text-purple-400 mb-5 border-b border-black/5 dark:border-white/5 pb-3 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
-                    <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span> Sector D: Projects & Architecture
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                  <div className="mb-5 flex items-center justify-between gap-4 border-b border-black/5 pb-3 dark:border-white/5">
+                    <h3 className="text-[12px] font-bold text-purple-600 dark:text-purple-400 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
+                      <span className="w-1.5 h-4 bg-purple-500 rounded-full shadow-[0_0_14px_rgba(168,85,247,0.45)]"></span> Sector D: Projects & Architecture
+                    </h3>
+                    <span className="hidden sm:inline-flex rounded-full bg-purple-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-300">4 Apps</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
                     <ArchiveLink title="Food Screener" url="https://vestrippn-food-screener.vercel.app" icon="🍳" theme="purple" />
                     <ArchiveLink title="SRMA Screener" url="https://vestrippn-srma-telemetry.vercel.app" icon="📊" theme="purple" />
+                    <ArchiveLink title="Microbiology Pokedex" url="https://vestrippn-pokedex.vercel.app" icon="🦠" theme="purple" />
+                    <ArchiveLink title="Neuro Pathway" url="https://vestrippn-neuro-pathway.vercel.app" icon="🧠" theme="purple" />
                   </div>
                 </motion.section>
 
@@ -281,15 +299,18 @@ function ArchiveLink({ title, url, icon, theme }: { title: string, url: string, 
       rel="noopener noreferrer"
       whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 36px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
       whileTap={{ scale: 0.97 }}
-      className={`group/link bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 p-5 lg:p-6 rounded-2xl flex items-center justify-between ${bgColors[theme]}`}
+      aria-label={`Open ${title}`}
+      className={`group/link relative min-h-[96px] overflow-hidden bg-white/70 dark:bg-white/[0.06] backdrop-blur-xl border border-black/5 dark:border-white/5 p-5 lg:p-6 rounded-2xl flex items-center justify-between shadow-[0_8px_24px_rgba(0,0,0,0.035)] transition-all duration-300 ${bgColors[theme]}`}
     >
+      <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-80 dark:via-white/20" />
+      <span className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-white/60 blur-2xl opacity-0 transition-opacity duration-500 group-hover/link:opacity-70 dark:bg-white/10" />
       <div className="flex items-center gap-4 lg:gap-5 relative z-10 min-w-0">
-        <span className="text-2xl lg:text-3xl group-hover/link:scale-110 transition-transform duration-300 shrink-0">{icon}</span>
-        <span className={`text-[14px] lg:text-[15px] text-neutral-900 dark:text-white font-bold tracking-tight truncate transition-colors duration-300 ${textColors[theme]}`}>{title}</span>
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-2xl shadow-inner transition-transform duration-300 group-hover/link:scale-110 dark:bg-white/10 lg:text-3xl">{icon}</span>
+        <span className={`text-[14px] lg:text-[15px] text-neutral-900 dark:text-white font-bold tracking-tight transition-colors duration-300 line-clamp-2 ${textColors[theme]}`}>{title}</span>
       </div>
-      <span className="text-neutral-400 dark:text-neutral-500 font-bold text-[10px] uppercase tracking-widest relative z-10 shrink-0 ml-2 transition-colors duration-700">
-        Access ↗
+      <span className="relative z-10 ml-3 inline-flex h-8 shrink-0 items-center rounded-full border border-black/5 bg-white/55 px-3 text-[10px] font-black uppercase tracking-widest text-neutral-400 transition-all duration-300 group-hover/link:translate-x-0.5 group-hover/link:text-neutral-700 dark:border-white/10 dark:bg-white/5 dark:text-neutral-500 dark:group-hover/link:text-white">
+        Open ↗
       </span>
     </motion.a>
   ); 
-}
+} 
