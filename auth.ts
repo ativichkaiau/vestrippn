@@ -1,21 +1,57 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Line from "next-auth/providers/line";
+import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { verifyPassword } from "@/lib/auth/password";
+
+const PRIMARY_EMAIL = "ativichkaiau2549@gmail.com";
+
+function isAllowedEmail(email?: string | null) {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  const ownerEmail = process.env.OWNER_EMAIL?.trim().toLowerCase() || PRIMARY_EMAIL;
+  return normalized === ownerEmail || normalized.endsWith("@gmail.com");
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // 1. DATABASE UPLINK
   // PrismaAdapter manages auto-registration of new friends in your database.
-  adapter: PrismaAdapter(prisma), 
-  
+  adapter: PrismaAdapter(prisma),
+
   // 2. SESSION STRATEGY
   // JWT is required to pass the Gmail access tokens to the frontend.
   session: {
-    strategy: "jwt", 
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 Days
   },
 
   providers: [
+    Credentials({
+      id: "credentials",
+      name: "Email password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = String(credentials?.email ?? "").trim().toLowerCase();
+        const password = String(credentials?.password ?? "");
+        if (!email || !password) return null;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user?.passwordHash) return null;
+        if (!(await verifyPassword(password, user.passwordHash))) return null;
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      },
+    }),
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -29,26 +65,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       },
     }),
+    Line({
+      clientId: process.env.LINE_CLIENT_ID!,
+      clientSecret: process.env.LINE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "profile openid email",
+        },
+      },
+    }),
   ],
 
   callbacks: {
     /**
-     * GMAIL DOMAIN LOCK
-     * Allows any @gmail.com user to auto-register.
+     * Access lock.
+     * - Credentials users are validated in authorize().
+     * - Google remains Gmail/owner-locked for continuity.
+     * - LINE requires an email claim and follows the same allow-list.
      */
-    async signIn({ user, account, profile }) {
-      if (!user.email) return false;
-
-      const isGmail = user.email.endsWith("@gmail.com");
-      const isPrimary = user.email === "ativichkaiau2549@gmail.com";
-
-      // Allow the connection only if it's Gmail or your primary account
-      return isGmail || isPrimary;
+    async signIn({ user, account }) {
+      if (account?.provider === "credentials") return true;
+      return isAllowedEmail(user.email);
     },
 
     /**
      * JWT TELEMETRY PIPE
-     * Passes the Google Access Token from the account into the session.
+     * Passes the OAuth access token from the account into the session.
      */
     async jwt({ token, account, user }) {
       // Initial login
@@ -66,7 +108,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     /**
      * SESSION UPLINK
-     * Makes the Gmail token and User ID available to the Dashboard components.
+     * Makes the provider token and User ID available to the Dashboard components.
      */
     async session({ session, token }: any) {
       if (token) {
@@ -79,8 +121,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   // UI CUSTOMIZATION
   pages: {
-    signIn: '/auth/signin', // Optional: Redirect to a custom AMG-themed sign-in page
-    error: '/auth/error',   // Error handling for the "Access Denied" state
+    signIn: "/auth/signin",
+    error: "/auth/error",
   },
 
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,

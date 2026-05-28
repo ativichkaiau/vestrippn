@@ -62,7 +62,7 @@ export default function LoginControl() {
   // STATE 3: DISCONNECTED (Interactive Lock/Ignition Button)
   return (
     <button 
-      onClick={() => signIn('google')} 
+      onClick={() => signIn()} 
       className="flex items-center justify-center bg-white/60 dark:bg-white/5 backdrop-blur-md border border-black/5 dark:border-white/10 px-5 py-2 rounded-full transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 group shadow-sm hover:shadow h-[40px] min-w-[110px]"
     >
       {/* DEFAULT STATE: LOCKED */}
