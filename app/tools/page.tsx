@@ -13,7 +13,6 @@ export default function ToolsHub() {
   const [isMounted, setIsMounted] = useState(false);
   const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [activeSheet, setActiveSheet] = useState<ActiveSheet>(DEFAULT_SHEET);
 
   useEffect(() => { 
     setIsMounted(true); 
@@ -96,60 +95,60 @@ export default function ToolsHub() {
               eyebrow="Utility & Planning Surface"
               title="Launch every"
               titleAccent="daily tool"
-              description="The Tools Hub embeds your planner, MSCA sheets, AI utilities, clinical resources, and operational links in one fast-launch workspace."
-              primaryHref="#master-planner"
-              primaryLabel="Open Planner"
+              description="The Tools Hub is a clean launch cockpit for your planner, MSCA sheets, AI utilities, clinical resources, engineering references, and daily operations."
+              primaryHref="#tool-matrix"
+              primaryLabel="Browse Tools"
               secondaryHref="#msca-hub"
               secondaryLabel="MSCA Hub"
-              chips={['Notion Planner', 'MSCA Sheets', 'AI Tools', 'Utilities']}
+              chips={['Planner Link', 'MSCA Sheets', 'AI Tools', 'Utilities']}
               panelTitle="Tools Ops"
               panelSubtitle={`${cycleTime} // API Active`}
               metrics={[
                 { label: 'Sectors', value: '5' },
-                { label: 'Planner', value: 'Embed' },
-                { label: 'MSCA', value: 'Live' },
+                { label: 'Planner', value: 'Link' },
+                { label: 'MSCA', value: 'Sheets' },
               ]}
               capabilities={[
-                { icon: '📓', title: 'Planner Embedded', desc: 'The 2026 Master Planner stays inside the site with an external fallback.' },
-                { icon: '📊', title: 'Sheet Cockpit', desc: 'MSCA sheets are selected through a compact tabbed viewer.' },
+                { icon: '📓', title: 'Planner Launch', desc: 'Jump to the 2026 Master Planner through a fast external launch path.' },
+                { icon: '📊', title: 'MSCA Launcher', desc: 'Grouped sheet shortcuts keep the MSCA hub fast, readable, and direct.' },
               ]}
             />
 
-            {/* MASTER IGNITION: NOTION PLANNER — embedded inline */}
+            {/* MASTER IGNITION: NOTION PLANNER — fast launch card */}
             <motion.section
               id="master-planner"
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
-              className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700"
+              whileHover={{ y: -5, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+              className="relative overflow-hidden rounded-[32px] lg:rounded-[40px] border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-colors duration-700"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 lg:px-8 py-4 lg:py-5 border-b border-black/5 dark:border-white/5">
-                <div className="flex items-center gap-3 lg:gap-4 min-w-0">
-                  <div className="w-11 h-11 lg:w-12 lg:h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center text-2xl lg:text-3xl shadow-sm shrink-0">📓</div>
+              <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-indigo-500/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-24 left-10 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl" />
+
+              <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="flex items-start gap-4 lg:gap-5">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[24px] bg-indigo-50 text-4xl shadow-inner dark:bg-indigo-500/10">📓</div>
                   <div className="min-w-0">
-                    <h2 className="font-black text-[16px] lg:text-[18px] text-neutral-900 dark:text-white tracking-tight leading-none truncate">2026 Master Planner</h2>
-                    <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">Workspace: Notion HQ</p>
+                    <div className="mb-2 inline-flex rounded-full bg-indigo-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Master Ignition</div>
+                    <h2 className="text-[24px] font-black tracking-tight text-neutral-900 dark:text-white lg:text-[32px]">2026 Master Planner</h2>
+                    <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-neutral-500 dark:text-neutral-400">
+                      Your Notion HQ stays one click away. Fast launch, clean page, no cramped Notion viewport.
+                    </p>
                   </div>
                 </div>
                 <a
                   href="https://www.notion.so/2026-PLANNER-478a66b0e071827fa2380129a0030938"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="sm:ml-auto inline-flex items-center justify-center gap-1.5 rounded-full border border-black/5 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 transition-all active:scale-95 shadow-sm shrink-0"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-500 px-6 py-4 text-[11px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-indigo-600 active:scale-95"
                 >
-                  Open in Notion <span>↗</span>
+                  Open Planner <span>↗</span>
                 </a>
               </div>
-              <iframe
-                src="https://www.notion.so/2026-PLANNER-478a66b0e071827fa2380129a0030938"
-                title="2026 Master Planner — Notion"
-                loading="lazy"
-                allow="clipboard-read; clipboard-write"
-                className="w-full h-[600px] lg:h-[760px] bg-white"
-              />
             </motion.section>
 
             {/* THE TOOL MATRIX */}
-            <div className="space-y-12 lg:space-y-16">
+            <div id="tool-matrix" className="space-y-12 lg:space-y-16">
 
               <SectorContainer label="Sector Alpha: AI & Synthesis" theme="fuchsia">
                 <ToolTile title="ChatGPT" url="https://chat.openai.com" icon="🧠" theme="fuchsia" />
@@ -181,71 +180,49 @@ export default function ToolsHub() {
                 <ToolTile title="Research" url="https://docs.google.com/spreadsheets/d/1E-KPCBw3d7voDo72VYgfvEIc-TCf4gGXtmTVymA-_z8" icon="📋" theme="amber" />
               </SectorContainer>
 
-              {/* SECTOR DELTA: MSCA — embedded tabbed viewer */}
+              {/* SECTOR DELTA: MSCA — launch cockpit */}
               <div id="msca-hub" className="relative space-y-6 lg:space-y-8">
-                <div className="flex items-center gap-3 px-2">
-                  <div className="w-1.5 h-4 lg:h-5 rounded-full bg-rose-500 transition-colors duration-700"></div>
-                  <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Sector Delta: MSCA</h3>
+                <div className="flex flex-col gap-2 px-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-4 lg:h-5 rounded-full bg-rose-500 shadow-[0_0_14px_rgba(244,63,94,0.45)] transition-colors duration-700"></div>
+                    <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Sector Delta: MSCA</h3>
+                  </div>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Grouped sheet launchers · external tabs</p>
                 </div>
 
-                {/* Sheet selector — grouped chips that load the embed below */}
                 <div className="space-y-5">
                   {MSCA_GROUPS.map((group) => (
-                    <div key={group.label} className="pl-3 lg:pl-5 border-l-2 border-rose-500/20 space-y-3">
-                      <div className="flex items-center gap-2 px-1">
-                        <span className="text-[15px] leading-none">{group.icon}</span>
-                        <h4 className="text-[11px] lg:text-[12px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 transition-colors duration-700">{group.label}</h4>
+                    <div key={group.label} className="rounded-[28px] border border-black/5 bg-white/60 p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl dark:border-white/5 dark:bg-white/5 lg:p-5">
+                      <div className="mb-4 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/10 text-xl">{group.icon}</span>
+                          <div>
+                            <h4 className="text-[12px] font-black uppercase tracking-widest text-rose-600 transition-colors duration-700 dark:text-rose-400">{group.label}</h4>
+                            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{group.sheets.length} sheets</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2 -mx-1 px-1">
-                        {group.sheets.map((sheet) => {
-                          const isActive = activeSheet.url === sheet.url;
-                          return (
-                            <button
-                              key={sheet.url}
-                              onClick={() => setActiveSheet({ ...sheet, group: group.label })}
-                              aria-pressed={isActive}
-                              className={`group shrink-0 flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 text-left backdrop-blur-xl transition-all duration-300 active:scale-95 ${
-                                isActive
-                                  ? 'bg-rose-500 border-rose-500 text-white shadow-md'
-                                  : 'bg-white/60 dark:bg-white/5 border-black/5 dark:border-white/5 hover:bg-white/90 dark:hover:bg-white/10 hover:border-rose-500/30 text-neutral-700 dark:text-neutral-300'
-                              }`}
-                            >
-                              <span className="text-[18px] leading-none shrink-0">{sheet.icon ?? '📊'}</span>
-                              <span className="text-[13px] lg:text-[14px] font-bold tracking-tight whitespace-nowrap">{sheet.title}</span>
-                            </button>
-                          );
-                        })}
+                      <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 -mx-1 px-1 snap-x">
+                        {group.sheets.map((sheet) => (
+                          <motion.a
+                            key={sheet.url}
+                            href={sheet.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            whileHover={{ y: -4, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                            whileTap={{ scale: 0.97 }}
+                            className="group shrink-0 snap-start flex w-[220px] items-center justify-between gap-3 rounded-2xl border border-black/5 bg-white/70 px-4 py-4 text-left shadow-sm backdrop-blur-xl transition-colors hover:border-rose-500/30 hover:bg-rose-50 dark:border-white/5 dark:bg-white/5 dark:hover:bg-rose-500/10 sm:w-[240px]"
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
+                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-xl shadow-inner dark:bg-white/10">{sheet.icon ?? '📊'}</span>
+                              <span className="truncate text-[13px] font-black tracking-tight text-neutral-800 transition-colors group-hover:text-rose-600 dark:text-neutral-200 dark:group-hover:text-rose-300">{sheet.title}</span>
+                            </div>
+                            <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-neutral-400 transition-transform group-hover:translate-x-0.5">↗</span>
+                          </motion.a>
+                        ))}
                       </div>
                     </div>
                   ))}
-                </div>
-
-                {/* Scrollable embedded sheet viewer */}
-                <div className="rounded-[28px] lg:rounded-[32px] border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden transition-colors duration-700">
-                  <div className="flex items-center justify-between gap-4 px-5 lg:px-6 py-4 border-b border-black/5 dark:border-white/5">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-xl shrink-0">{activeSheet.icon ?? '📊'}</span>
-                      <div className="min-w-0">
-                        <div className="text-[14px] lg:text-[15px] font-bold tracking-tight text-neutral-800 dark:text-neutral-100 truncate">{activeSheet.title}</div>
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-rose-500/80">{activeSheet.group}</div>
-                      </div>
-                    </div>
-                    <a
-                      href={activeSheet.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-[10px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
-                    >
-                      Open ↗
-                    </a>
-                  </div>
-                  <iframe
-                    key={activeSheet.url}
-                    src={toSheetEmbed(activeSheet.url)}
-                    title={`${activeSheet.group} — ${activeSheet.title}`}
-                    loading="lazy"
-                    className="w-full h-[560px] lg:h-[680px] bg-white"
-                  />
                 </div>
               </div>
 
@@ -282,7 +259,6 @@ export default function ToolsHub() {
 
 type MscaSheet = { title: string; url: string; icon?: string };
 type MscaGroupData = { label: string; icon: string; sheets: MscaSheet[] };
-type ActiveSheet = MscaSheet & { group: string };
 
 const MSCA_GROUPS: MscaGroupData[] = [
   {
@@ -314,16 +290,6 @@ const MSCA_GROUPS: MscaGroupData[] = [
   },
 ];
 
-/** Convert a Google Sheets edit/share URL into a scrollable read-only /preview embed URL. */
-function toSheetEmbed(url: string): string {
-  const id = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-  if (!id) return url;
-  const gid = url.match(/[?#&]gid=(\d+)/)?.[1];
-  return `https://docs.google.com/spreadsheets/d/${id}/preview${gid ? `?gid=${gid}` : ''}`;
-}
-
-const DEFAULT_SHEET: ActiveSheet = { ...MSCA_GROUPS[0].sheets[0], group: MSCA_GROUPS[0].label };
-
 // --- REFACTORED SUB-COMPONENTS ---
 
 function SectorContainer({ label, theme, children }: { label: string, theme: 'fuchsia' | 'indigo' | 'amber' | 'rose' | 'emerald', children: React.ReactNode }) {
@@ -337,9 +303,12 @@ function SectorContainer({ label, theme, children }: { label: string, theme: 'fu
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-3 mb-6 lg:mb-8 px-2">
-        <div className={`w-1.5 h-4 lg:w-1.5 lg:h-5 rounded-full ${dotColors[theme]} transition-colors duration-700`}></div>
-        <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">{label}</h3>
+      <div className="mb-5 flex items-center justify-between gap-4 px-2 lg:mb-7">
+        <div className="flex items-center gap-3">
+          <div className={`w-1.5 h-4 lg:w-1.5 lg:h-5 rounded-full ${dotColors[theme]} transition-colors duration-700 shadow-[0_0_14px_rgba(99,102,241,0.25)]`}></div>
+          <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">{label}</h3>
+        </div>
+        <span className="hidden sm:inline-flex rounded-full border border-black/5 bg-white/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-neutral-400 shadow-sm backdrop-blur-xl dark:border-white/5 dark:bg-white/5 dark:text-neutral-500">Scroll →</span>
       </div>
       <motion.div
         className="flex gap-4 lg:gap-6 overflow-x-auto custom-scrollbar pb-3 -mx-2 px-2 py-2 snap-x"
@@ -380,13 +349,14 @@ function ToolTile({ title, url, icon, theme }: { title: string, url: string, ico
       variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
       whileHover={{ y: -6, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
       whileTap={{ scale: 0.97 }}
-      className={`group shrink-0 snap-start w-[240px] sm:w-[260px] lg:w-[280px] bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 lg:p-6 flex items-center justify-between hover:bg-white/90 dark:hover:bg-white/10 transition-colors duration-300 ${borderColors[theme]}`}
+      className={`group relative shrink-0 snap-start w-[240px] sm:w-[260px] lg:w-[280px] overflow-hidden bg-white/65 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 lg:p-6 flex items-center justify-between shadow-[0_8px_28px_rgba(0,0,0,0.035)] hover:bg-white/90 dark:hover:bg-white/10 transition-colors duration-300 ${borderColors[theme]}`}
     >
+      <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent dark:via-white/20" />
       <div className="flex items-center gap-4 lg:gap-5 relative z-10 min-w-0">
-        <span className="text-2xl lg:text-3xl group-hover:scale-110 transition-transform duration-500 shrink-0">{icon}</span>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-2xl shadow-inner transition-transform duration-500 group-hover:scale-110 dark:bg-white/10 lg:text-3xl">{icon}</span>
         <span className={`text-[14px] lg:text-[15px] text-neutral-700 dark:text-neutral-300 font-bold tracking-tight transition-colors duration-300 truncate ${textColors[theme]}`}>{title}</span>
       </div>
-      <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10 shrink-0 ml-2">Open ↗</span>
+      <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 relative z-10 shrink-0 ml-2 group-hover:translate-x-0.5">Open ↗</span>
     </motion.a>
   );
 }
