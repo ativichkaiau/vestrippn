@@ -27,6 +27,9 @@ interface AcademicsProps {
 }
 
 const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
+const PINNED_CANVAS_SUBJECTS: Subject[] = [
+  { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
+];
 
 export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -35,6 +38,10 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
   const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
+  const canvasSubjects = [
+    ...canvasData.subjects,
+    ...PINNED_CANVAS_SUBJECTS.filter((pinned) => !canvasData.subjects.some((subject) => subject.id === pinned.id)),
+  ];
   
   // 🚀 UPGRADE: Local State for Interactive Anki
   const [liveAnki, setLiveAnki] = useState(ankiData || DEFAULT_ANKI);
@@ -383,7 +390,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10 flex-1">
-                  {canvasData.subjects.length > 0 ? canvasData.subjects.map(sub => (
+                  {canvasSubjects.length > 0 ? canvasSubjects.map(sub => (
                     <a 
                       key={sub.id} 
                       href={`https://mango-cmu.instructure.com/courses/${sub.id}`} 
@@ -534,7 +541,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 uppercase tracking-widest">Self-Built</span>
               </div>
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8"
                 initial="hidden" whileInView="visible"
                 viewport={{ once: true, margin: '-60px' }}
                 variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }}
@@ -557,6 +564,15 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                     tag: 'Metabolic Map',
                     accent: 'amber',
                     glow: 'rgba(245,158,11,0.20)',
+                  },
+                  {
+                    href: 'https://vestrippn-neuro-pathway.vercel.app',
+                    icon: '🧠',
+                    title: 'Neuro Pathway',
+                    desc: 'Interactive nervous-system pathway engine — map neuroanatomy, lesions, reflexes, and signal flow.',
+                    tag: 'Neuro Map',
+                    accent: 'purple',
+                    glow: 'rgba(168,85,247,0.20)',
                   },
                 ].map((app) => (
                   <motion.a
@@ -710,13 +726,21 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                  <span className="w-1.5 h-4 bg-pink-500 rounded-full animate-pulse"></span>
                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">AI Grounding Matrix</h3>
                </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8">
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-8">
                   <a href="https://notebooklm.google.com/notebook/db9fd595-41ad-4c0d-848c-783a972904b1" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
                      <div className="flex justify-between items-center mb-4">
                         <div className="text-[10px] font-bold text-pink-600 dark:text-pink-400 uppercase tracking-widest transition-colors duration-700">Endocrine Vault</div>
                         <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">📔</span>
                      </div>
                      <div className="text-[16px] font-bold text-neutral-900 dark:text-white mb-2 truncate pr-4 transition-colors duration-700">HEN-2: Endocrine Synthesis</div>
+                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
+                  </a>
+                  <a href="https://notebooklm.google.com/notebook/04b9e08c-0d3d-4234-adb3-24ca38479dcb" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                     <div className="flex justify-between items-center mb-4">
+                        <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest transition-colors duration-700">Musculoskeletal Vault</div>
+                        <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🦴</span>
+                     </div>
+                     <div className="text-[16px] font-bold text-neutral-900 dark:text-white mb-2 truncate pr-4 transition-colors duration-700">HMS-2: Human Musculoskeletal System</div>
                      <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
                   </a>
                   <a href="https://notebooklm.google.com/notebook/d3cb8676-b859-4263-b5ff-65afaaf665e5" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
