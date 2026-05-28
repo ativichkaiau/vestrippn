@@ -7,6 +7,7 @@ import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
+import HubIntro from '../../components/HubIntro';
 import { syncAnkiData } from '@/app/actions';
 
 interface Subject { id: string; name: string; progress: number | null; }
@@ -304,35 +305,28 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
-            <motion.section
-              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative"
-            >
-              <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
-                <span className="text-lg">📚</span>
-                <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Knowledge Base</span>
-              </div>
-              <div className="absolute right-[5%] xl:right-[10%] bottom-0 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Live Sync</span>
-              </div>
-
-              <h1 className="font-black tracking-tighter leading-none mb-6 flex flex-col xl:flex-row items-center justify-center gap-3 sm:gap-4 xl:gap-5 relative z-10">
-                <div className="flex items-baseline text-[42px] sm:text-[64px] lg:text-[76px]">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">
-                    ACADEMIC
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 sm:gap-4 mt-2 xl:mt-0 text-[32px] sm:text-[50px] lg:text-[60px]">
-                  <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-4 py-1 sm:py-2 rounded-[16px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-black/5 leading-none transition-colors duration-700">
-                    OPS
-                  </span>
-                </div>
-              </h1>
-              <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
-                {cycle} // <span className="text-blue-600 dark:text-blue-400 font-bold">System Nominal</span>
-              </p>
-            </motion.section>
+            <HubIntro
+              eyebrow="Academic Operating Layer"
+              title="Command your"
+              titleAccent="medical training"
+              description="The Academics Hub organizes exams, Canvas telemetry, Anki rhythm, clinical case practice, and study milestones into one high-signal cockpit."
+              primaryHref="/learn/cases"
+              primaryLabel="Open Cases"
+              secondaryHref="/archive"
+              secondaryLabel="Study Vault ↗"
+              chips={['Exam Countdown', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
+              panelTitle="Academic Ops"
+              panelSubtitle={`${cycle} // Knowledge Base`}
+              metrics={[
+                { label: 'Exams', value: '3' },
+                { label: 'Mode', value: 'Live' },
+                { label: 'Cases', value: 'Branching' },
+              ]}
+              capabilities={[
+                { icon: '📚', title: 'Milestone Awareness', desc: 'Countdowns and live subject telemetry keep the immediate academic picture visible.' },
+                { icon: '🩺', title: 'Clinical Simulation', desc: 'Interactive cases connect theory to decision-making under pressure.' },
+              ]}
+            />
 
             {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
             <div className="space-y-6">

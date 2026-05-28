@@ -61,6 +61,21 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
     { name: 'Identity', icon: '⚇', href: '/identity' },
   ];
 
+  const platformModules = [
+    { title: 'Academics', href: '/academics', icon: '📚', desc: 'Class command, exams, cases, and study telemetry in one place.', stat: 'MedCMU OS' },
+    { title: 'Research', href: '/research', icon: '🔬', desc: 'Federated literature search, saved extractions, and SRMA workflow tools.', stat: 'Multi-source' },
+    { title: 'Fitness', href: '/fitness', icon: '🏃', desc: 'Training cadence, streaks, and body-system discipline tracking.', stat: 'Streak ready' },
+    { title: 'Archive', href: '/archive', icon: '▥', desc: 'A vault for notes, olympiad prep, clinical apps, and system architecture.', stat: 'Indexed' },
+    { title: 'Tools', href: '/tools', icon: '⚙', desc: 'Planner embeds, MSCA hub, and fast-launch utilities for daily ops.', stat: 'Tool hub' },
+    { title: 'Identity', href: '/identity', icon: '⚇', desc: 'The operator profile: story, achievements, values, and trajectory.', stat: 'Signal' },
+  ];
+
+  const capabilityCards = [
+    { title: 'Clinical Intelligence', icon: '🩺', desc: 'Interactive cases, mock exams, and medical reasoning surfaces built for repetition.' },
+    { title: 'Research Acceleration', icon: '📡', desc: 'PubMed, Europe PMC, Crossref, Scopus, ScienceDirect, Scholar, and ClinicalKey all orbit one search flow.' },
+    { title: 'Personal Telemetry', icon: '🏁', desc: 'Academic, research, fitness, archive, and identity data wrapped into a single cockpit.' },
+  ];
+
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
 
@@ -173,69 +188,181 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-5 lg:p-8 pb-32 lg:pb-8 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-6 lg:space-y-8">
             
-            {/* COMPACT HERO SECTION */}
+            {/* PRODUCT INTRO HERO */}
             <motion.section
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-10 pb-4 relative"
+              className="relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-white/10 bg-[#050815] px-5 py-7 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-10 lg:px-12 lg:py-14"
             >
-              <div className="absolute left-[5%] xl:left-[10%] top-2 hidden lg:flex items-center gap-2 bg-white/80 dark:bg-white/5 backdrop-blur-md backdrop-saturate-150 px-4 py-2 rounded-full shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
-                <span className="text-sm">🧠</span>
-                <span className="text-[11px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Cognitive Focus</span>
-              </div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(0,210,190,0.32),transparent_32%),radial-gradient(circle_at_82%_20%,rgba(37,99,235,0.28),transparent_28%),linear-gradient(180deg,rgba(9,14,36,0.25),rgba(0,0,0,0.62))]" />
+              <div
+                className="absolute inset-0 opacity-[0.14]"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)',
+                  backgroundSize: '52px 52px',
+                  maskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
+                  WebkitMaskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
+                }}
+              />
 
-              <div className="absolute right-[5%] xl:right-[10%] bottom-2 hidden lg:flex items-center gap-2 bg-white/80 dark:bg-white/5 backdrop-blur-md backdrop-saturate-150 px-4 py-2 rounded-full shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
-                <span className="text-sm">🏁</span>
-                <span className="text-[11px] font-bold tracking-tight text-[#00A598]">Aero Nominal</span>
-              </div>
+              <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+                <div className="text-center lg:text-left">
+                  <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100 backdrop-blur-xl">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#00d2be] shadow-[0_0_14px_rgba(0,210,190,0.8)]" />
+                    Personal Telemetry & Operating System
+                  </div>
 
-              <h1 className="font-black tracking-tighter leading-none mb-4 flex flex-col xl:flex-row items-center justify-center gap-2 sm:gap-3 xl:gap-4 relative z-10">
-                <div className="flex items-baseline text-[36px] sm:text-[48px] lg:text-[56px]">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">
-                    VESTRIPPN
-                  </span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-500 to-fuchsia-500 dark:from-blue-400 dark:to-fuchsia-400 transition-colors duration-700">
-                    3.0
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 sm:gap-3 mt-1 xl:mt-0 text-[24px] sm:text-[32px] lg:text-[40px]">
-                  <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-3 py-1 sm:py-1.5 rounded-[12px] shadow-sm border border-black/5 leading-none transition-colors duration-700">
-                    ///AMG
-                  </span>
-                  <span className="transition-all duration-700">
-                    <span className="text-[#00A598] drop-shadow-[0_0_15px_rgba(0,165,152,0.3)] dark:drop-shadow-[0_0_20px_rgba(0,165,152,0.5)]">W08</span>{' '}
-                    <span
-                      className="bg-clip-text text-transparent whitespace-nowrap drop-shadow-[0_0_18px_rgba(99,102,241,0.35)]"
-                      style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}
-                    >
-                      EQ Power+
+                  <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
+                    Meet the cockpit behind{' '}
+                    <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}>
+                      VESTRIPPN 3.0
                     </span>
-                  </span>
+                  </h1>
+
+                  <p className="mx-auto mt-5 max-w-2xl text-sm font-medium leading-7 text-slate-300 sm:text-base lg:mx-0">
+                    A cloud-integrated command center for medical school, research, fitness, archive systems, and AI-assisted daily operations — built to make every part of the work visible, fast, and beautifully navigable.
+                  </p>
+
+                  <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+                    <Link href="/academics" className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[12px] font-black uppercase tracking-widest text-slate-950 shadow-[0_18px_36px_rgba(0,210,190,0.22)] transition-transform hover:-translate-y-0.5 active:scale-95">
+                      Start Exploring
+                    </Link>
+                    <Link href="/research" className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-[12px] font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-95">
+                      Research Hub ↗
+                    </Link>
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 lg:justify-start">
+                    {['Medical OS', 'SRMA Engine', 'Clinical Cases', 'Master Planner'].map((label) => (
+                      <span key={label} className="inline-flex items-center gap-2">
+                        <span className="h-1 w-1 rounded-full bg-[#00d2be]" />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </h1>
 
-              <p className="mb-3 text-[11px] sm:text-[12px] font-bold tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500 transition-colors duration-700 relative z-10">
-                Powered by <span className="text-[#D97757]">Claude</span>
-              </p>
+                <div className="relative">
+                  <div className="absolute -inset-8 rounded-[36px] bg-[#00d2be]/10 blur-3xl" />
+                  <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.08] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">Live Command</p>
+                        <h2 className="mt-1 text-lg font-black tracking-tight">Operator Dashboard</h2>
+                      </div>
+                      <span className="rounded-full bg-[#00d2be]/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-cyan-200">{cycle}</span>
+                    </div>
 
-              <p className="max-w-2xl font-mono text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.3em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
-                {cycle} // <span className="text-[#00A598] font-bold">System Nominal</span>
-              </p>
+                    <TodaysCommand initialTasks={cloudTasks} />
 
-              <div className="mt-6 w-full max-w-xl mx-auto px-4 relative z-10">
-                <TodaysCommand initialTasks={cloudTasks} />
+                    <div className="mt-4 grid grid-cols-3 gap-3">
+                      {[
+                        ['Domains', '8'],
+                        ['Mode', 'W08'],
+                        ['Status', 'Nominal'],
+                      ].map(([label, value]) => (
+                        <div key={label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                          <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">{label}</div>
+                          <div className="mt-1 truncate text-sm font-black text-white">{value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+
+            {/* PLATFORM INTRO MODULES */}
+            <motion.section
+              initial={{ opacity: 0, y: 26 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4"
+            >
+              <div className="flex flex-col gap-2 px-1 text-center sm:text-left">
+                <h2 className="text-[22px] font-black tracking-tight text-neutral-900 dark:text-white sm:text-[28px]">Everything inside one command platform</h2>
+                <p className="max-w-2xl text-sm font-medium leading-6 text-neutral-500 dark:text-neutral-400">
+                  Pick a module and drop straight into the part of the system you need. Each hub keeps its own workflow, but the dashboard keeps the whole machine in view.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {platformModules.map((module, i) => (
+                  <motion.div
+                    key={module.title}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.16 + i * 0.04, type: 'spring', stiffness: 260, damping: 24 }}
+                    whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                  >
+                    <Link href={module.href} className="group block h-full overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-5 shadow-[0_8px_28px_rgba(0,0,0,0.035)] backdrop-blur-xl backdrop-saturate-150 transition-colors hover:bg-white/90 dark:border-white/5 dark:bg-white/5 dark:hover:bg-white/10">
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-2xl shadow-inner transition-transform duration-300 group-hover:scale-110 dark:bg-white/10">{module.icon}</span>
+                        <span className="rounded-full border border-black/5 bg-white/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:border-white/10 dark:bg-white/5 dark:text-neutral-500">{module.stat}</span>
+                      </div>
+                      <h3 className="mt-5 text-lg font-black tracking-tight text-neutral-900 dark:text-white">{module.title}</h3>
+                      <p className="mt-2 min-h-[48px] text-sm font-medium leading-6 text-neutral-500 dark:text-neutral-400">{module.desc}</p>
+                      <div className="mt-5 flex items-center justify-between border-t border-black/5 pt-4 dark:border-white/5">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#00A598]">Open module</span>
+                        <span className="text-neutral-300 transition-transform group-hover:translate-x-1 dark:text-neutral-600">→</span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+
+            {/* INTELLIGENCE LAYER */}
+            <motion.section
+              initial={{ opacity: 0, y: 26 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden rounded-[32px] border border-black/5 bg-neutral-950 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.22)] dark:border-white/10 sm:p-7 lg:p-8"
+            >
+              <div className="grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:items-center">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">What powers the system</p>
+                  <h2 className="mt-3 text-[28px] font-black leading-tight tracking-tight sm:text-[36px]">
+                    Designed for speed, memory, and control.
+                  </h2>
+                  <p className="mt-3 text-sm font-medium leading-6 text-slate-400">
+                    VESTRIPPN is not a landing page wrapped around links. It is a working cockpit: clinical training, research engines, planning surfaces, and personal telemetry stitched together.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {capabilityCards.map((card) => (
+                    <div key={card.title} className="rounded-[22px] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
+                      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-2xl">{card.icon}</div>
+                      <h3 className="text-sm font-black tracking-tight">{card.title}</h3>
+                      <p className="mt-2 text-xs font-medium leading-5 text-slate-400">{card.desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.section>
 
             {/* THE COMPACT BENTO BOX GRID */}
             <motion.div
+              id="command-center"
               className="flex flex-col gap-4 lg:gap-6"
               initial="hidden"
               animate="visible"
               variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.09, delayChildren: 0.15 } } }}
             >
+              <div className="flex flex-col gap-2 px-1 text-center sm:text-left">
+                <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-neutral-400 shadow-sm backdrop-blur-xl dark:border-white/5 dark:bg-white/5 dark:text-neutral-500 sm:mx-0">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A598] shadow-[0_0_12px_rgba(0,165,152,0.65)]" />
+                  Live cockpit
+                </div>
+                <h2 className="text-[22px] font-black tracking-tight text-neutral-900 dark:text-white sm:text-[28px]">Today’s command center</h2>
+                <p className="max-w-2xl text-sm font-medium leading-6 text-neutral-500 dark:text-neutral-400">
+                  Your active academic, research, fitness, reminders, notifications, and identity surfaces stay below the introduction for everyday operation.
+                </p>
+              </div>
+
               {/* ROW 1: PRIMARY FOCUS */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                 <motion.div

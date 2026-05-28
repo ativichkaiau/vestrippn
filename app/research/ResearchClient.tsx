@@ -8,6 +8,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import CovidenceBoard from '../../components/CovidenceBoard';
 import TopNavProfile from '../../components/TopNavProfile';
+import HubIntro from '../../components/HubIntro';
 
 /* ── Research Hub: multi-source contract types (see app/api/research/*) ── */
 type ResearchSource = 'pubmed' | 'europepmc' | 'crossref' | 'cochrane' | 'scopus' | 'sciencedirect';
@@ -337,38 +338,32 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
             
-            <motion.section
-              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative"
-            >
-              <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
-                <span className="text-lg">🔬</span>
-                <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Systematic Review</span>
-              </div>
-              <div className="absolute right-[5%] xl:right-[10%] bottom-0 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Extraction Active</span>
-              </div>
-
-              <h1 className="font-black tracking-tighter leading-none mb-6 flex flex-col xl:flex-row items-center justify-center gap-3 sm:gap-4 xl:gap-5 relative z-10">
-                <div className="flex items-baseline text-[42px] sm:text-[64px] lg:text-[76px]">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">
-                    RESEARCH
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 sm:gap-4 mt-2 xl:mt-0 text-[32px] sm:text-[50px] lg:text-[60px]">
-                  <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-4 py-1 sm:py-2 rounded-[16px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-black/5 leading-none transition-colors duration-700">
-                    HUB
-                  </span>
-                </div>
-              </h1>
-              <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
-                {cycle} // <span className="text-amber-500 dark:text-amber-400 font-bold">Terminal Online</span>
-              </p>
-            </motion.section>
+            <HubIntro
+              eyebrow="Multi-Source Research Engine"
+              title="Search, save, and screen"
+              titleAccent="faster"
+              description="The Research Hub federates literature discovery, deep links, saved extractions, and review workflow telemetry into one SRMA-ready cockpit."
+              primaryHref="#literature-search"
+              primaryLabel="Search Literature"
+              secondaryHref="https://vestrippn-srma-telemetry.vercel.app"
+              secondaryLabel="SRMA Engine ↗"
+              chips={['PubMed', 'Europe PMC', 'Scopus', 'ScienceDirect']}
+              panelTitle="Research Ops"
+              panelSubtitle={`${cycle} // Extraction Active`}
+              metrics={[
+                { label: 'Sources', value: '7' },
+                { label: 'Vault', value: `${cloudExtractions.length}` },
+                { label: 'Mode', value: 'SRMA' },
+              ]}
+              capabilities={[
+                { icon: '🔎', title: 'Federated Discovery', desc: 'Search biomedical sources and deep-link tools without breaking your flow.' },
+                { icon: '📦', title: 'Extraction Vault', desc: 'Save rich paper metadata into the research vault for review continuity.' },
+              ]}
+            />
 
             {/* SECTOR 1: MULTI-SOURCE LITERATURE SEARCH */}
             <motion.section
+              id="literature-search"
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
               className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] shadow-[var(--w08-shadow)] overflow-hidden text-[color:var(--w08-text)] relative"

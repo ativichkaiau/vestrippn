@@ -7,6 +7,7 @@ import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
+import HubIntro from '../../components/HubIntro';
 
 export default function ArchiveHub() {
   const [isMounted, setIsMounted] = useState(false);
@@ -91,31 +92,31 @@ export default function ArchiveHub() {
           
           <div className="max-w-[1400px] w-full mx-auto space-y-8 lg:space-y-10">
             
-            {/* HERO SECTION */}
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
-              <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
-                <span className="text-lg">📁</span>
-                <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Database Index</span>
-              </div>
-              <div className="absolute right-[5%] xl:right-[10%] bottom-0 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
-                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-500">Vault Secure</span>
-              </div>
-
-              <h1 className="font-black tracking-tighter leading-none mb-6 flex flex-col xl:flex-row items-center justify-center gap-3 sm:gap-4 xl:gap-5 relative z-10">
-                <div className="flex items-baseline text-[42px] sm:text-[64px] lg:text-[76px]">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">ARCHIVE</span>
-                </div>
-                <div className="flex items-center gap-3 sm:gap-4 mt-2 xl:mt-0 text-[32px] sm:text-[50px] lg:text-[60px]">
-                  <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-4 py-1 sm:py-2 rounded-[16px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-black/5 leading-none transition-colors duration-700">HUB</span>
-                </div>
-              </h1>
-              <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
-                {cycleTime} // <span className="text-cyan-500 dark:text-cyan-400 font-bold">System Nominal</span>
-              </p>
-            </section>
+            <HubIntro
+              eyebrow="Archive & Project Registry"
+              title="Open the"
+              titleAccent="knowledge vault"
+              description="The Archive Hub collects medical foundations, olympiad intelligence, preparation vaults, and your deployed project architecture into one indexed launchpad."
+              primaryHref="#archive-directory"
+              primaryLabel="Browse Archive"
+              secondaryHref="https://linktr.ee/shankusu.studygram"
+              secondaryLabel="Launch Linktree ↗"
+              chips={['Medical Notes', 'Olympiad Vault', 'Project Apps', 'Drive Registry']}
+              panelTitle="Archive Ops"
+              panelSubtitle={`${cycleTime} // Vault Secure`}
+              metrics={[
+                { label: 'Sectors', value: '4' },
+                { label: 'Apps', value: '4' },
+                { label: 'Vault', value: 'Secure' },
+              ]}
+              capabilities={[
+                { icon: '📁', title: 'Structured Memory', desc: 'Important folders and learning materials stay visible without hunting.' },
+                { icon: '🧠', title: 'Project Architecture', desc: 'Clinical apps, neuro pathways, and research tools launch from one grid.' },
+              ]}
+            />
 
             {/* --- MAIN HUD: F1 COCKPIT ARCHIVE (Neo-Glassmorphic) --- */}
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative transition-colors duration-700"> 
+            <div id="archive-directory" className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative transition-colors duration-700"> 
               
               {/* RPM LED Strip (Adaptive width) */} 
               <div className="h-4 lg:h-6 bg-black/5 dark:bg-white/5 border-b border-black/5 dark:border-white/5 flex justify-center items-center gap-1.5 lg:gap-2 px-4 shrink-0 transition-colors duration-700 group cursor-default"> 

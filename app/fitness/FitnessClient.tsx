@@ -8,6 +8,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import FitnessCard from '../../components/FitnessCard';
 import TopNavProfile from '../../components/TopNavProfile';
+import HubIntro from '../../components/HubIntro';
 import { syncFitnessHubData } from '@/app/actions';
 
 export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
@@ -134,31 +135,32 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-8 lg:space-y-10">
             
-            {/* HERO SECTION */}
-            <section className="flex flex-col items-center justify-center text-center pt-8 sm:pt-16 pb-6 relative">
-              <div className="absolute left-[5%] xl:left-[10%] top-4 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-slow">
-                <span className="text-lg">🧬</span>
-                <span className="text-[13px] font-bold tracking-tight text-neutral-700 dark:text-neutral-200">Bio Metrics</span>
-              </div>
-              <div className="absolute right-[5%] xl:right-[10%] bottom-0 hidden lg:flex items-center gap-2 bg-white/90 dark:bg-white/5 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border border-black/5 dark:border-white/10 transition-colors duration-700 animate-float-fast">
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Telemetry Active</span>
-              </div>
-
-              <h1 className="font-black tracking-tighter leading-none mb-6 flex flex-col xl:flex-row items-center justify-center gap-3 sm:gap-4 xl:gap-5 relative z-10">
-                <div className="flex items-baseline text-[42px] sm:text-[64px] lg:text-[76px]">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500 transition-colors duration-700">FITNESS</span>
-                </div>
-                <div className="flex items-center gap-3 sm:gap-4 mt-2 xl:mt-0 text-[32px] sm:text-[50px] lg:text-[60px]">
-                  <span className="italic text-white dark:text-black bg-neutral-900 dark:bg-white px-4 py-1 sm:py-2 rounded-[16px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-black/5 leading-none transition-colors duration-700">HUB</span>
-                </div>
-              </h1>
-              <p className="max-w-2xl font-mono text-[11px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 uppercase tracking-[0.4em] leading-relaxed px-4 transition-colors duration-700 relative z-10">
-                {cycleTime} // <span className="text-emerald-500 dark:text-emerald-400 font-bold">Protocol Nominal</span>
-              </p>
-            </section>
+            <HubIntro
+              eyebrow="Body System Telemetry"
+              title="Train with"
+              titleAccent="operational discipline"
+              description="The Fitness Hub turns workouts, nutrition, macros, and recovery cues into a dashboard for consistency rather than guesswork."
+              primaryHref="#vitality-monitor"
+              primaryLabel="View Metrics"
+              secondaryHref="https://vestrippn-food-screener.vercel.app"
+              secondaryLabel="Food Screener ↗"
+              chips={['Workout Streak', 'Macro Protocol', 'Nutrition Log', 'Recovery']}
+              panelTitle="Fitness Ops"
+              panelSubtitle={`${cycleTime} // Telemetry Active`}
+              metrics={[
+                { label: 'Streak', value: `${cloudFitness?.streak ?? 0}` },
+                { label: 'Mode', value: 'Train' },
+                { label: 'Kcal', value: '2200' },
+              ]}
+              capabilities={[
+                { icon: '🏃', title: 'Training Rhythm', desc: 'Workout days, streaks, and body-system consistency stay visible.' },
+                { icon: '🍳', title: 'Nutrition Control', desc: 'Macro targets and food screening support better day-to-day execution.' },
+              ]}
+            />
 
             {/* SECTOR 1: VITALITY MONITOR (3-PANE) */}
             <motion.div
+              id="vitality-monitor"
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
               whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
