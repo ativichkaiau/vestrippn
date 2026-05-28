@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { resolveUserId } from "@/lib/auth/owner";
 import { revalidatePath } from "next/cache";
 
 // ==========================================
@@ -97,14 +98,14 @@ export async function deleteTask(id: string) {
 // SECTOR DELTA: RESEARCH HUB
 // ==========================================
 export async function updateResearchStats(title: string, screening: number, fullText: number, extraction: number) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized Access");
+  const userId = await resolveUserId();
+  if (!userId) throw new Error("Owner account unavailable");
 
   await prisma.researchProject.upsert({
-    where: { userId: session.user.id },
+    where: { userId },
     update: { title, screening, fullText, extraction },
     create: {
-      userId: session.user.id,
+      userId,
       title,
       screening,
       fullText,
@@ -113,6 +114,7 @@ export async function updateResearchStats(title: string, screening: number, full
   });
 
   revalidatePath("/");
+  revalidatePath("/research");
 }
 // ==========================================
 // SECTOR EPSILON: VITALITY MONITOR

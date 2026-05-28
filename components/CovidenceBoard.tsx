@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect, type ChangeEvent } from 'react';
+import { updateResearchStats } from '@/app/actions';
 
 interface CovidenceStats {
   screening: number;
@@ -15,6 +16,65 @@ interface CovidenceBoardProps {
 
 const DEFAULT_STATS = { screening: 0, fullText: 0, extraction: 0 };
 
+function parseDelimitedRows(text: string) {
+  const delimiter = (text.split('\n')[0]?.match(/\t/g)?.length ?? 0) >
+    (text.split('\n')[0]?.match(/,/g)?.length ?? 0) ? '\t' : ',';
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    const next = text[i + 1];
+
+    if (ch === '"' && quoted && next === '"') {
+      cell += '"';
+      i += 1;
+    } else if (ch === '"') {
+      quoted = !quoted;
+    } else if (ch === delimiter && !quoted) {
+      row.push(cell.trim());
+      cell = '';
+    } else if ((ch === '\n' || ch === '\r') && !quoted) {
+      if (ch === '\r' && next === '\n') i += 1;
+      row.push(cell.trim());
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += ch;
+    }
+  }
+
+  row.push(cell.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
+}
+
+function inferCovidenceStats(text: string): CovidenceStats {
+  const rows = parseDelimitedRows(text);
+  const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+  let screening = 0;
+  let fullText = 0;
+  let extraction = 0;
+
+  for (const row of dataRows) {
+    const haystack = row.join(' ').toLowerCase();
+    if (!haystack.trim()) continue;
+
+    if (/\b(data extraction|extraction complete|extracted|quality assessment|included)\b/.test(haystack)) {
+      extraction += 1;
+    } else if (/\b(full[- ]?text|awaiting pdf|pdf uploaded|full text review|full-text review)\b/.test(haystack)) {
+      fullText += 1;
+    } else {
+      screening += 1;
+    }
+  }
+
+  return { screening, fullText, extraction };
+}
+
 export default function CovidenceBoard({ 
   initialTitle = "Systematic Review Database", 
   initialStats = DEFAULT_STATS 
@@ -23,6 +83,9 @@ export default function CovidenceBoard({
   const [stats, setStats] = useState<CovidenceStats>(initialStats);
   const [title, setTitle] = useState(initialTitle);
   const [activeTab, setActiveTab] = useState<'PICO' | 'PROGRESS'>('PROGRESS'); 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('Ready');
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setStats(prev => {
@@ -38,21 +101,53 @@ export default function CovidenceBoard({
     });
   }, [initialStats, initialTitle]);
 
-  // --- NEW: EDIT LOGIC ---
-  const handleEditStat = (key: keyof CovidenceStats) => {
+  const persistStats = async (nextStats: CovidenceStats, message: string) => {
+    setIsSyncing(true);
+    setSyncMessage('Syncing...');
+    try {
+      await updateResearchStats(title, nextStats.screening, nextStats.fullText, nextStats.extraction);
+      setSyncMessage(message);
+    } catch (err) {
+      console.error('Covidence board sync failed:', err);
+      setSyncMessage('Sync failed');
+      throw err;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleEditStat = async (key: keyof CovidenceStats) => {
     const currentVal = stats[key];
     const input = window.prompt(`Update ${key.toUpperCase()} count:`, currentVal.toString());
     
     if (input !== null) {
       const newVal = parseInt(input, 10);
-      if (!isNaN(newVal)) {
-        setStats(prev => ({
-          ...prev,
-          [key]: newVal
-        }));
-        // Note: You can trigger a server action here to sync with Postgres/Prisma
-        console.log(`Syncing ${key}: ${newVal} to cloud...`);
+      if (!isNaN(newVal) && newVal >= 0) {
+        const previous = stats;
+        const nextStats = { ...stats, [key]: newVal };
+        setStats(nextStats);
+        try {
+          await persistStats(nextStats, 'Saved to research vault');
+        } catch {
+          setStats(previous);
+        }
       }
+    }
+  };
+
+  const handleCovidenceImport = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importedStats = inferCovidenceStats(text);
+      setStats(importedStats);
+      await persistStats(importedStats, 'Covidence export imported');
+    } catch (err) {
+      console.error('Covidence export import failed:', err);
+      setSyncMessage('Import failed');
     }
   };
 
@@ -113,10 +208,30 @@ export default function CovidenceBoard({
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1 transition-colors duration-700">Database Status</div>
-                  <div className="font-bold text-[16px] text-neutral-900 dark:text-white transition-colors duration-700">Covidence Sync Active</div>
+                  <div className="font-bold text-[16px] text-neutral-900 dark:text-white transition-colors duration-700">
+                    Local Covidence Bridge
+                  </div>
+                  <div className="mt-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                    {isSyncing ? 'Syncing...' : syncMessage}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                 <input
+                   ref={fileRef}
+                   type="file"
+                   accept=".csv,.tsv,.txt"
+                   className="hidden"
+                   onChange={handleCovidenceImport}
+                 />
+                 <button
+                   type="button"
+                   onClick={() => fileRef.current?.click()}
+                   disabled={isSyncing}
+                   className="text-[11px] font-black uppercase tracking-widest px-3 py-2 rounded-xl border border-emerald-500/20 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-60 dark:bg-emerald-500/10 dark:text-emerald-300 transition-colors"
+                 >
+                   Import Export
+                 </button>
                  <div className="text-[12px] font-bold text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Completion</div>
                  <div className="text-[14px] font-black tracking-tighter text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition-colors duration-700">
                    {progress}%
