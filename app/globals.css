@@ -126,94 +126,100 @@ h1, h2, h3, .font-orbitron {
 .animate-loader-pulse { animation: loaderPulse 1.4s ease-in-out infinite; }
 
 /* ════════════════════════════════════════════════════════════════════════
-   MONZA LIVERY — carbon-fibre base + Petronas cyan accent
-   Activated by `html.monza` (also carries `.dark`).
+   ROTHMANS WILLIAMS LIVERY — Rothmans navy base + brass-gold accent + red flash
+   Activated by `html.monza` (class name preserved; semantic is now Rothmans).
+   Palette: navy #210E6F · white · brass #C59955 · classic red #D5172D.
    ════════════════════════════════════════════════════════════════════════ */
 
-/* 0. Monochrome remap — collapse every chromatic accent onto one Petronas
-   cyan ramp so only neutral grays + cyan remain. Tailwind v4 utilities read
-   --color-* variables, so these overrides cascade to text/bg/border/gradient/
-   ring/fill across both base and dark: variants (incl. /10 /20 opacity tints). */
+/* 0. Chromatic remap — collapse every cool ramp onto the brass-gold so only
+   navy neutrals + gold + red remain. Tailwind v4 utilities read --color-*
+   variables, so these overrides cascade to text/bg/border/gradient/ring/fill
+   across both base and dark: variants (incl. /10 /20 opacity tints). */
 html.monza {
-  --pc-50:#ecfffc; --pc-100:#c7fcf3; --pc-200:#8cf6ea; --pc-300:#4ff1e1; --pc-400:#10e6d0;
-  --pc-500:#00d2be; --pc-600:#00a99a; --pc-700:#067e74; --pc-800:#0a635c; --pc-900:#0d524d; --pc-950:#04302d;
-  /* Monza sub-color — amber / gold flake (pairs with Petronas cyan) */
-  --mzg-50:#fff8ea; --mzg-100:#fdecc4; --mzg-200:#fcd988; --mzg-300:#ffd060; --mzg-400:#ffc23d;
-  --mzg-500:#ffb627; --mzg-600:#e2960f; --mzg-700:#b5710c; --mzg-800:#8f5912; --mzg-900:#754913; --mzg-950:#432708;
+  /* Rothmans brass / gold — primary chromatic accent on navy */
+  --rwg-50:#faf3e8; --rwg-100:#f3e3c6; --rwg-200:#e8cd97; --rwg-300:#ddb76b; --rwg-400:#d3a957;
+  --rwg-500:#c59955; --rwg-600:#ad8042; --rwg-700:#876237; --rwg-800:#6b4d2e; --rwg-900:#553e27; --rwg-950:#2e2014;
+  /* Classic Rothmans red — warm flash */
+  --rwr-50:#fef1f2; --rwr-100:#fde3e5; --rwr-200:#fbc6cb; --rwr-300:#f59ba4; --rwr-400:#ed5e6d;
+  --rwr-500:#d5172d; --rwr-600:#c20f24; --rwr-700:#a30b1d; --rwr-800:#870c1c; --rwr-900:#720d1d; --rwr-950:#40040a;
 
-  --color-red-50:var(--pc-50); --color-red-100:var(--pc-100); --color-red-200:var(--pc-200); --color-red-300:var(--pc-300); --color-red-400:var(--pc-400); --color-red-500:var(--pc-500); --color-red-600:var(--pc-600); --color-red-700:var(--pc-700); --color-red-800:var(--pc-800); --color-red-900:var(--pc-900); --color-red-950:var(--pc-950);
-  /* Warm ramps (amber/orange/yellow) resolve to the gold sub-color, not cyan */
-  --color-orange-50:var(--mzg-50); --color-orange-100:var(--mzg-100); --color-orange-200:var(--mzg-200); --color-orange-300:var(--mzg-300); --color-orange-400:var(--mzg-400); --color-orange-500:var(--mzg-500); --color-orange-600:var(--mzg-600); --color-orange-700:var(--mzg-700); --color-orange-800:var(--mzg-800); --color-orange-900:var(--mzg-900); --color-orange-950:var(--mzg-950);
-  --color-amber-50:var(--mzg-50); --color-amber-100:var(--mzg-100); --color-amber-200:var(--mzg-200); --color-amber-300:var(--mzg-300); --color-amber-400:var(--mzg-400); --color-amber-500:var(--mzg-500); --color-amber-600:var(--mzg-600); --color-amber-700:var(--mzg-700); --color-amber-800:var(--mzg-800); --color-amber-900:var(--mzg-900); --color-amber-950:var(--mzg-950);
-  --color-yellow-50:var(--mzg-50); --color-yellow-100:var(--mzg-100); --color-yellow-200:var(--mzg-200); --color-yellow-300:var(--mzg-300); --color-yellow-400:var(--mzg-400); --color-yellow-500:var(--mzg-500); --color-yellow-600:var(--mzg-600); --color-yellow-700:var(--mzg-700); --color-yellow-800:var(--mzg-800); --color-yellow-900:var(--mzg-900); --color-yellow-950:var(--mzg-950);
-  --color-emerald-50:var(--pc-50); --color-emerald-100:var(--pc-100); --color-emerald-200:var(--pc-200); --color-emerald-300:var(--pc-300); --color-emerald-400:var(--pc-400); --color-emerald-500:var(--pc-500); --color-emerald-600:var(--pc-600); --color-emerald-700:var(--pc-700); --color-emerald-800:var(--pc-800); --color-emerald-900:var(--pc-900); --color-emerald-950:var(--pc-950);
-  --color-teal-50:var(--pc-50); --color-teal-100:var(--pc-100); --color-teal-200:var(--pc-200); --color-teal-300:var(--pc-300); --color-teal-400:var(--pc-400); --color-teal-500:var(--pc-500); --color-teal-600:var(--pc-600); --color-teal-700:var(--pc-700); --color-teal-800:var(--pc-800); --color-teal-900:var(--pc-900); --color-teal-950:var(--pc-950);
-  --color-cyan-50:var(--pc-50); --color-cyan-100:var(--pc-100); --color-cyan-200:var(--pc-200); --color-cyan-300:var(--pc-300); --color-cyan-400:var(--pc-400); --color-cyan-500:var(--pc-500); --color-cyan-600:var(--pc-600); --color-cyan-700:var(--pc-700); --color-cyan-800:var(--pc-800); --color-cyan-900:var(--pc-900); --color-cyan-950:var(--pc-950);
-  --color-sky-50:var(--pc-50); --color-sky-100:var(--pc-100); --color-sky-200:var(--pc-200); --color-sky-300:var(--pc-300); --color-sky-400:var(--pc-400); --color-sky-500:var(--pc-500); --color-sky-600:var(--pc-600); --color-sky-700:var(--pc-700); --color-sky-800:var(--pc-800); --color-sky-900:var(--pc-900); --color-sky-950:var(--pc-950);
-  --color-blue-50:var(--pc-50); --color-blue-100:var(--pc-100); --color-blue-200:var(--pc-200); --color-blue-300:var(--pc-300); --color-blue-400:var(--pc-400); --color-blue-500:var(--pc-500); --color-blue-600:var(--pc-600); --color-blue-700:var(--pc-700); --color-blue-800:var(--pc-800); --color-blue-900:var(--pc-900); --color-blue-950:var(--pc-950);
-  --color-indigo-50:var(--pc-50); --color-indigo-100:var(--pc-100); --color-indigo-200:var(--pc-200); --color-indigo-300:var(--pc-300); --color-indigo-400:var(--pc-400); --color-indigo-500:var(--pc-500); --color-indigo-600:var(--pc-600); --color-indigo-700:var(--pc-700); --color-indigo-800:var(--pc-800); --color-indigo-900:var(--pc-900); --color-indigo-950:var(--pc-950);
-  --color-purple-50:var(--pc-50); --color-purple-100:var(--pc-100); --color-purple-200:var(--pc-200); --color-purple-300:var(--pc-300); --color-purple-400:var(--pc-400); --color-purple-500:var(--pc-500); --color-purple-600:var(--pc-600); --color-purple-700:var(--pc-700); --color-purple-800:var(--pc-800); --color-purple-900:var(--pc-900); --color-purple-950:var(--pc-950);
-  --color-fuchsia-50:var(--pc-50); --color-fuchsia-100:var(--pc-100); --color-fuchsia-200:var(--pc-200); --color-fuchsia-300:var(--pc-300); --color-fuchsia-400:var(--pc-400); --color-fuchsia-500:var(--pc-500); --color-fuchsia-600:var(--pc-600); --color-fuchsia-700:var(--pc-700); --color-fuchsia-800:var(--pc-800); --color-fuchsia-900:var(--pc-900); --color-fuchsia-950:var(--pc-950);
-  --color-pink-50:var(--pc-50); --color-pink-100:var(--pc-100); --color-pink-200:var(--pc-200); --color-pink-300:var(--pc-300); --color-pink-400:var(--pc-400); --color-pink-500:var(--pc-500); --color-pink-600:var(--pc-600); --color-pink-700:var(--pc-700); --color-pink-800:var(--pc-800); --color-pink-900:var(--pc-900); --color-pink-950:var(--pc-950);
-  --color-rose-50:var(--pc-50); --color-rose-100:var(--pc-100); --color-rose-200:var(--pc-200); --color-rose-300:var(--pc-300); --color-rose-400:var(--pc-400); --color-rose-500:var(--pc-500); --color-rose-600:var(--pc-600); --color-rose-700:var(--pc-700); --color-rose-800:var(--pc-800); --color-rose-900:var(--pc-900); --color-rose-950:var(--pc-950);
+  /* Warm ramps (red/orange/amber/yellow) keep the classic Rothmans red flash */
+  --color-red-50:var(--rwr-50); --color-red-100:var(--rwr-100); --color-red-200:var(--rwr-200); --color-red-300:var(--rwr-300); --color-red-400:var(--rwr-400); --color-red-500:var(--rwr-500); --color-red-600:var(--rwr-600); --color-red-700:var(--rwr-700); --color-red-800:var(--rwr-800); --color-red-900:var(--rwr-900); --color-red-950:var(--rwr-950);
+  --color-orange-50:var(--rwr-50); --color-orange-100:var(--rwr-100); --color-orange-200:var(--rwr-200); --color-orange-300:var(--rwr-300); --color-orange-400:var(--rwr-400); --color-orange-500:var(--rwr-500); --color-orange-600:var(--rwr-600); --color-orange-700:var(--rwr-700); --color-orange-800:var(--rwr-800); --color-orange-900:var(--rwr-900); --color-orange-950:var(--rwr-950);
+  --color-amber-50:var(--rwg-50); --color-amber-100:var(--rwg-100); --color-amber-200:var(--rwg-200); --color-amber-300:var(--rwg-300); --color-amber-400:var(--rwg-400); --color-amber-500:var(--rwg-500); --color-amber-600:var(--rwg-600); --color-amber-700:var(--rwg-700); --color-amber-800:var(--rwg-800); --color-amber-900:var(--rwg-900); --color-amber-950:var(--rwg-950);
+  --color-yellow-50:var(--rwg-50); --color-yellow-100:var(--rwg-100); --color-yellow-200:var(--rwg-200); --color-yellow-300:var(--rwg-300); --color-yellow-400:var(--rwg-400); --color-yellow-500:var(--rwg-500); --color-yellow-600:var(--rwg-600); --color-yellow-700:var(--rwg-700); --color-yellow-800:var(--rwg-800); --color-yellow-900:var(--rwg-900); --color-yellow-950:var(--rwg-950);
+  /* Cool / chromatic ramps resolve to the brass-gold primary */
+  --color-emerald-50:var(--rwg-50); --color-emerald-100:var(--rwg-100); --color-emerald-200:var(--rwg-200); --color-emerald-300:var(--rwg-300); --color-emerald-400:var(--rwg-400); --color-emerald-500:var(--rwg-500); --color-emerald-600:var(--rwg-600); --color-emerald-700:var(--rwg-700); --color-emerald-800:var(--rwg-800); --color-emerald-900:var(--rwg-900); --color-emerald-950:var(--rwg-950);
+  --color-teal-50:var(--rwg-50); --color-teal-100:var(--rwg-100); --color-teal-200:var(--rwg-200); --color-teal-300:var(--rwg-300); --color-teal-400:var(--rwg-400); --color-teal-500:var(--rwg-500); --color-teal-600:var(--rwg-600); --color-teal-700:var(--rwg-700); --color-teal-800:var(--rwg-800); --color-teal-900:var(--rwg-900); --color-teal-950:var(--rwg-950);
+  --color-cyan-50:var(--rwg-50); --color-cyan-100:var(--rwg-100); --color-cyan-200:var(--rwg-200); --color-cyan-300:var(--rwg-300); --color-cyan-400:var(--rwg-400); --color-cyan-500:var(--rwg-500); --color-cyan-600:var(--rwg-600); --color-cyan-700:var(--rwg-700); --color-cyan-800:var(--rwg-800); --color-cyan-900:var(--rwg-900); --color-cyan-950:var(--rwg-950);
+  --color-sky-50:var(--rwg-50); --color-sky-100:var(--rwg-100); --color-sky-200:var(--rwg-200); --color-sky-300:var(--rwg-300); --color-sky-400:var(--rwg-400); --color-sky-500:var(--rwg-500); --color-sky-600:var(--rwg-600); --color-sky-700:var(--rwg-700); --color-sky-800:var(--rwg-800); --color-sky-900:var(--rwg-900); --color-sky-950:var(--rwg-950);
+  --color-blue-50:var(--rwg-50); --color-blue-100:var(--rwg-100); --color-blue-200:var(--rwg-200); --color-blue-300:var(--rwg-300); --color-blue-400:var(--rwg-400); --color-blue-500:var(--rwg-500); --color-blue-600:var(--rwg-600); --color-blue-700:var(--rwg-700); --color-blue-800:var(--rwg-800); --color-blue-900:var(--rwg-900); --color-blue-950:var(--rwg-950);
+  --color-indigo-50:var(--rwg-50); --color-indigo-100:var(--rwg-100); --color-indigo-200:var(--rwg-200); --color-indigo-300:var(--rwg-300); --color-indigo-400:var(--rwg-400); --color-indigo-500:var(--rwg-500); --color-indigo-600:var(--rwg-600); --color-indigo-700:var(--rwg-700); --color-indigo-800:var(--rwg-800); --color-indigo-900:var(--rwg-900); --color-indigo-950:var(--rwg-950);
+  --color-purple-50:var(--rwg-50); --color-purple-100:var(--rwg-100); --color-purple-200:var(--rwg-200); --color-purple-300:var(--rwg-300); --color-purple-400:var(--rwg-400); --color-purple-500:var(--rwg-500); --color-purple-600:var(--rwg-600); --color-purple-700:var(--rwg-700); --color-purple-800:var(--rwg-800); --color-purple-900:var(--rwg-900); --color-purple-950:var(--rwg-950);
+  --color-fuchsia-50:var(--rwg-50); --color-fuchsia-100:var(--rwg-100); --color-fuchsia-200:var(--rwg-200); --color-fuchsia-300:var(--rwg-300); --color-fuchsia-400:var(--rwg-400); --color-fuchsia-500:var(--rwg-500); --color-fuchsia-600:var(--rwg-600); --color-fuchsia-700:var(--rwg-700); --color-fuchsia-800:var(--rwg-800); --color-fuchsia-900:var(--rwg-900); --color-fuchsia-950:var(--rwg-950);
+  --color-pink-50:var(--rwr-50); --color-pink-100:var(--rwr-100); --color-pink-200:var(--rwr-200); --color-pink-300:var(--rwr-300); --color-pink-400:var(--rwr-400); --color-pink-500:var(--rwr-500); --color-pink-600:var(--rwr-600); --color-pink-700:var(--rwr-700); --color-pink-800:var(--rwr-800); --color-pink-900:var(--rwr-900); --color-pink-950:var(--rwr-950);
+  --color-rose-50:var(--rwr-50); --color-rose-100:var(--rwr-100); --color-rose-200:var(--rwr-200); --color-rose-300:var(--rwr-300); --color-rose-400:var(--rwr-400); --color-rose-500:var(--rwr-500); --color-rose-600:var(--rwr-600); --color-rose-700:var(--rwr-700); --color-rose-800:var(--rwr-800); --color-rose-900:var(--rwr-900); --color-rose-950:var(--rwr-950);
 }
 
-/* 1. Carbon-fibre weave on the page backdrop.
-   Layers paint top→bottom: tight twill on top, then a coarser weave for depth,
-   a top sheen, the vibrant Petronas-cyan glows, and an amber/gold sub-accent. */
+/* 1. Rothmans navy on the page backdrop with the signature white wing-band
+   and pinstripes, a top sheen, and warm gold + red flashes. */
 html.monza body {
-  background-color: #08080a;
+  background-color: #150840;
   background-image:
-    /* tight 3px twill — the carbon weave */
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.045) 0, rgba(255, 255, 255, 0.045) 1px, transparent 1px, transparent 3px),
-    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.55) 0, rgba(0, 0, 0, 0.55) 1px, transparent 1px, transparent 3px),
-    /* coarser cross-weave for woven depth */
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.022) 0, rgba(255, 255, 255, 0.022) 2px, transparent 2px, transparent 9px),
+    /* fine white pinstripes — the Rothmans sidepod accent lines */
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0, rgba(255, 255, 255, 0.045) 1px, transparent 1px, transparent 7px),
+    /* broad white wing band along the top — flagship Rothmans split */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0, rgba(255, 255, 255, 0.10) 4%, transparent 4%, transparent 7%, rgba(255, 255, 255, 0.06) 7%, rgba(255, 255, 255, 0.06) 9%, transparent 9%),
+    /* gold trim line just under the wing band */
+    linear-gradient(180deg, transparent 9.6%, rgba(197, 153, 85, 0.45) 9.6%, rgba(197, 153, 85, 0.45) 9.9%, transparent 9.9%),
+    /* red flash trim below the gold */
+    linear-gradient(180deg, transparent 10.4%, rgba(213, 23, 45, 0.40) 10.4%, rgba(213, 23, 45, 0.40) 10.7%, transparent 10.7%),
     /* subtle overhead sheen */
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 24%),
-    /* vibrant Petronas cyan — bright core + two ambient washes */
-    radial-gradient(circle at 24% -8%, rgba(0, 230, 208, 0.26), transparent 42%),
-    radial-gradient(ellipse at 26% -12%, rgba(0, 210, 190, 0.18), transparent 56%),
-    radial-gradient(ellipse at 106% 110%, rgba(0, 210, 190, 0.13), transparent 52%),
-    /* amber/gold sub-color accent */
-    radial-gradient(ellipse at 90% 4%, rgba(255, 182, 39, 0.11), transparent 46%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 22%),
+    /* warm gold glow — bright core + ambient wash */
+    radial-gradient(circle at 22% -10%, rgba(197, 153, 85, 0.28), transparent 44%),
+    radial-gradient(ellipse at 108% 108%, rgba(197, 153, 85, 0.14), transparent 52%),
+    /* classic red flash */
+    radial-gradient(ellipse at 88% 6%, rgba(213, 23, 45, 0.14), transparent 46%),
+    /* deep navy ambient floor */
+    radial-gradient(ellipse at 50% 120%, rgba(33, 14, 111, 0.55), transparent 60%);
   background-attachment: fixed;
 }
 
-/* 2. Let the weave show through the opaque page shells / panels */
+/* 2. Let the navy show through the opaque page shells / panels */
 html.monza .dark\:bg-\[\#050505\],
 html.monza .dark\:bg-\[\#0A0A0A\],
 html.monza .dark\:bg-black\/40,
 html.monza .dark\:bg-black\/20 {
-  background-color: rgba(10, 11, 13, 0.55) !important;
+  background-color: rgba(18, 8, 56, 0.58) !important;
 }
 
-/* 3. Glass cards pick up a carbon tint + a more vibrant cyan edge */
+/* 3. Glass cards pick up a warm gold tint + brass edge */
 html.monza .dark\:bg-white\/5 {
-  background-color: rgba(0, 210, 190, 0.06) !important;
+  background-color: rgba(197, 153, 85, 0.07) !important;
 }
 html.monza .dark\:border-white\/5,
 html.monza .dark\:border-white\/10 {
-  border-color: rgba(0, 210, 190, 0.20) !important;
+  border-color: rgba(197, 153, 85, 0.26) !important;
 }
 
-/* 4. Retint the AMG teal accent to Petronas cyan (#00D2BE) */
-html.monza .text-\[\#00A598\] { color: #00d2be !important; }
-html.monza .bg-\[\#00A598\] { background-color: #00d2be !important; }
-html.monza .border-\[\#00A598\] { border-color: #00d2be !important; }
-html.monza .from-\[\#00A598\] { --tw-gradient-from: #00d2be var(--tw-gradient-from-position) !important; }
-html.monza .to-\[\#00A598\] { --tw-gradient-to: #00d2be var(--tw-gradient-to-position) !important; }
-html.monza .fill-\[\#00A598\] { fill: #00d2be !important; }
+/* 4. Retint the AMG teal accent to Rothmans brass-gold (#C59955) */
+html.monza .text-\[\#00A598\] { color: #c59955 !important; }
+html.monza .bg-\[\#00A598\] { background-color: #c59955 !important; }
+html.monza .border-\[\#00A598\] { border-color: #c59955 !important; }
+html.monza .from-\[\#00A598\] { --tw-gradient-from: #c59955 var(--tw-gradient-from-position) !important; }
+html.monza .to-\[\#00A598\] { --tw-gradient-to: #c59955 var(--tw-gradient-to-position) !important; }
+html.monza .fill-\[\#00A598\] { fill: #c59955 !important; }
 
-/* The Claude coral accent (#D97757) becomes the gold sub-color in Monza */
-html.monza .text-\[\#D97757\] { color: #ffb627 !important; }
-html.monza .bg-\[\#D97757\] { background-color: #ffb627 !important; }
-html.monza .border-\[\#D97757\] { border-color: #ffb627 !important; }
+/* The Claude coral accent (#D97757) becomes the classic Rothmans red */
+html.monza .text-\[\#D97757\] { color: #d5172d !important; }
+html.monza .bg-\[\#D97757\] { background-color: #d5172d !important; }
+html.monza .border-\[\#D97757\] { border-color: #d5172d !important; }
 
-/* 5. Selection + scrollbar in cyan */
-html.monza ::selection { background-color: rgba(0, 210, 190, 0.35); color: #ffffff; }
-html.monza .custom-scrollbar { scrollbar-color: rgba(0, 210, 190, 0.4) transparent; }
-html.monza .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 210, 190, 0.6); }
+/* 5. Selection + scrollbar in brass-gold */
+html.monza ::selection { background-color: rgba(197, 153, 85, 0.40); color: #ffffff; }
+html.monza .custom-scrollbar { scrollbar-color: rgba(197, 153, 85, 0.45) transparent; }
+html.monza .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(197, 153, 85, 0.65); }
 
 /* ════════════════════════════════════════════════════════════════════════
    W08 THEME CONTRACT  —  see components/w08/THEME_CONTRACT.md
@@ -259,22 +265,22 @@ html.monza .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: 
   --w08-shadow:         0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* ── Livery: MONZA (carbon fibre · chrome · Petronas cyan · black-silver) ── */
+/* ── Livery: ROTHMANS WILLIAMS (navy · white · brass-gold · classic red) ── */
 .w08-monza {
-  --w08-bg:             #08080a;
-  --w08-surface:        rgba(0, 210, 190, 0.05);
-  --w08-surface-raised: rgba(0, 210, 190, 0.09);
-  --w08-border:         rgba(0, 210, 190, 0.26);
-  --w08-text:           #f4f5f5;
-  --w08-text-muted:     #9aa3a2;
-  --w08-accent-primary:   #00d2be;
-  --w08-accent-secondary: #c4c8cc;
-  --w08-accent-tertiary:  #ffb627; /* amber/gold sub-color */
-  --w08-accent-contrast:  #042b28;
-  --w08-success:        #00d2be;
-  --w08-danger:         #ff5d5d;
-  --w08-focus-ring:     #00d2be;
-  --w08-shadow:         0 10px 40px rgba(0, 0, 0, 0.6);
+  --w08-bg:             #150840;
+  --w08-surface:        rgba(197, 153, 85, 0.06);
+  --w08-surface-raised: rgba(197, 153, 85, 0.10);
+  --w08-border:         rgba(197, 153, 85, 0.30);
+  --w08-text:           #f7f3ea;
+  --w08-text-muted:     #b3a98f;
+  --w08-accent-primary:   #c59955;
+  --w08-accent-secondary: #ffffff;
+  --w08-accent-tertiary:  #d5172d; /* classic red flash */
+  --w08-accent-contrast:  #210e6f;
+  --w08-success:        #c59955;
+  --w08-danger:         #d5172d;
+  --w08-focus-ring:     #c59955;
+  --w08-shadow:         0 10px 40px rgba(6, 3, 21, 0.7);
 }
 
 /* ── Livery: ESTHER BUNNY (pink · pastel · soft motion · cozy) ── */

@@ -51,7 +51,7 @@ export default function ThemeToggle() {
     return <div className="w-[104px] h-[38px] rounded-full bg-black/5 dark:bg-white/5 animate-pulse" />;
   }
 
-  const label = livery === 'monza' ? 'Monza' : mode === 'night' ? 'Night' : 'Day';
+  const label = livery === 'monza' ? 'Rothmans' : mode === 'night' ? 'Night' : 'Day';
   const icon = livery === 'monza' ? '🏁' : mode === 'night' ? '🌙' : '☀️';
 
   const Row = ({ active, onClick, emoji, title, sub }: { active: boolean; onClick: () => void; emoji: string; title: string; sub: string }) => (
@@ -93,7 +93,7 @@ export default function ThemeToggle() {
             <Row active={livery === 'normal' && mode === 'night'} onClick={() => choose('normal', 'night')} emoji="🌙" title="Night" sub="Deep Carbon" />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Special Livery</div>
-            <Row active={livery === 'monza'} onClick={() => choose('monza')} emoji="🏁" title="Monza" sub="Carbon · Petronas Cyan" />
+            <Row active={livery === 'monza'} onClick={() => choose('monza')} emoji="🏁" title="Rothmans" sub="Williams · Navy · Brass · Red" />
           </div>
         </>
       )}
