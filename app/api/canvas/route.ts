@@ -1,5 +1,32 @@
 import { NextResponse } from 'next/server';
 
+interface TrackedCourse { id: string; targetName: string }
+
+// Defaults baked in; CANVAS_COURSES env overrides if set. Add courses there as
+// new modules open (e.g. semester rollover) — no redeploy of code required.
+const DEFAULT_COURSES: TrackedCourse[] = [
+  { id: '26141', targetName: 'HEN-2 (Endocrine)' },
+  { id: '26393', targetName: 'HNS-2 (Nervous & Senses)' },
+  { id: '26349', targetName: 'Team-Based Learning (TBL)' },
+  { id: '26702', targetName: '330221 Musculoskeletal' },
+];
+
+function loadCourses(): TrackedCourse[] {
+  const raw = process.env.CANVAS_COURSES?.trim();
+  if (!raw) return DEFAULT_COURSES;
+  const parsed = raw
+    .split('|')
+    .map((entry) => {
+      const idx = entry.indexOf(':');
+      if (idx < 0) return null;
+      const id = entry.slice(0, idx).trim();
+      const name = entry.slice(idx + 1).trim();
+      return id && name ? { id, targetName: name } : null;
+    })
+    .filter((c): c is TrackedCourse => c !== null);
+  return parsed.length ? parsed : DEFAULT_COURSES;
+}
+
 export async function GET() {
   const CANVAS_URL = process.env.CANVAS_BASE_URL;
   const TOKEN = process.env.CANVAS_TOKEN;
@@ -10,11 +37,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Config Missing' }, { status: 500 });
   }
 
-  const targetCourses = [
-    { id: '26141', targetName: 'HEN-2 (Endocrine)' },
-    { id: '26393', targetName: 'HNS-2 (Nervous & Senses)' },
-    { id: '26349', targetName: 'Team-Based Learning (TBL)' }
-  ];
+  // Tracked courses. Override per-deploy with CANVAS_COURSES env, formatted as
+  //   "26141:HEN-2 (Endocrine)|26393:HNS-2|26702:330221 Musculoskeletal"
+  // so adding next semester's modules is a Vercel env edit, not a code change.
+  const targetCourses = loadCourses();
 
   try {
     // SAFETY 2: Targeted parallel fetches with individual catch blocks
