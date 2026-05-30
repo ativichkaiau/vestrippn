@@ -46,19 +46,24 @@ function IntroAction({
 }) {
   const className =
     variant === 'primary'
-      ? 'inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[12px] font-black uppercase tracking-widest text-slate-950 shadow-[0_18px_36px_rgba(0,210,190,0.22)] transition-transform hover:-translate-y-0.5 active:scale-95'
+      ? 'inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[12px] font-black uppercase tracking-widest text-slate-950 transition-transform hover:-translate-y-0.5 active:scale-95'
       : 'inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-[12px] font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-95';
+
+  const style =
+    variant === 'primary'
+      ? { boxShadow: '0 18px 36px rgba(var(--hub-accent-rgb), 0.22)' }
+      : undefined;
 
   if (isExternalHref(href)) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className} style={style}>
         {children}
       </a>
     );
   }
 
   return (
-    <Link href={href} className={className}>
+    <Link href={href} className={className} style={style}>
       {children}
     </Link>
   );
@@ -84,9 +89,16 @@ export default function HubIntro({
       initial={{ opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-white/10 bg-[#050815] px-5 py-7 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-10 lg:px-12 lg:py-14"
+      className="relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-white/10 px-5 py-7 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-10 lg:px-12 lg:py-14"
+      style={{ backgroundColor: 'var(--hub-bg)' }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(0,210,190,0.32),transparent_32%),radial-gradient(circle_at_82%_20%,rgba(37,99,235,0.28),transparent_28%),linear-gradient(180deg,rgba(9,14,36,0.25),rgba(0,0,0,0.62))]" />
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 18% 18%, rgba(var(--hub-accent-rgb), 0.32), transparent 32%), radial-gradient(circle at 82% 20%, rgba(var(--hub-secondary-rgb), 0.28), transparent 28%), linear-gradient(180deg, rgba(var(--hub-grad-rgb), 0.25), rgba(0, 0, 0, 0.62))',
+        }}
+      />
       <div
         className="absolute inset-0 opacity-[0.14]"
         style={{
@@ -100,14 +112,23 @@ export default function HubIntro({
 
       <div className="relative z-10 grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
         <div className="text-center lg:text-left">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100 backdrop-blur-xl">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#00d2be] shadow-[0_0_14px_rgba(0,210,190,0.8)]" />
+          <div
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] backdrop-blur-xl"
+            style={{ color: 'var(--hub-text-soft)' }}
+          >
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
+            />
             {eyebrow}
           </div>
 
           <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
             {title}{' '}
-            <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}>
+            <span
+              className="bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(120deg, var(--hub-accent) 0%, var(--hub-accent-deep) 100%)' }}
+            >
               {titleAccent}
             </span>
           </h1>
@@ -130,7 +151,7 @@ export default function HubIntro({
           <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 lg:justify-start">
             {chips.map((label) => (
               <span key={label} className="inline-flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full bg-[#00d2be]" />
+                <span className="h-1 w-1 rounded-full" style={{ backgroundColor: 'var(--hub-accent)' }} />
                 {label}
               </span>
             ))}
@@ -138,14 +159,22 @@ export default function HubIntro({
         </div>
 
         <div className="relative">
-          <div className="absolute -inset-8 rounded-[36px] bg-[#00d2be]/10 blur-3xl" />
+          <div
+            className="absolute -inset-8 rounded-[36px] blur-3xl"
+            style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}
+          />
           <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.08] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">{panelSubtitle}</p>
                 <h2 className="mt-1 text-lg font-black tracking-tight">{panelTitle}</h2>
               </div>
-              <span className="rounded-full bg-[#00d2be]/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-cyan-200">Online</span>
+              <span
+                className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+                style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.15)', color: 'var(--hub-text-soft-2)' }}
+              >
+                Online
+              </span>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
