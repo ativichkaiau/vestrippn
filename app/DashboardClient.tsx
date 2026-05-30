@@ -32,6 +32,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
+  const [livery, setLivery] = useState<'normal' | 'monza'>('normal');
 
   useEffect(() => {
     setIsMounted(true);
@@ -41,6 +42,12 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
     } else {
       setCycle('DAY_CYCLE');
     }
+
+    // Pick livery before showing intro so the Williams variant can swap in
+    try {
+      const stored = localStorage.getItem('vest_livery');
+      setLivery(stored === 'monza' ? 'monza' : 'normal');
+    } catch {}
 
     // Boot sequence plays on every page load
     setShowIntro(true);
@@ -80,7 +87,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
 
       <AnimatePresence>
-        {showIntro && <IntroOverlay cycle={cycle} />}
+        {showIntro && (livery === 'monza' ? <WilliamsIntroOverlay cycle={cycle} /> : <IntroOverlay cycle={cycle} />)}
       </AnimatePresence>
 
       {/* --- CUSTOM ANIMATION STYLES --- */}
@@ -669,6 +676,229 @@ function IntroOverlay({ cycle }: { cycle: string }) {
                 }}
               >
                 <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isLast ? 'bg-teal-400' : 'bg-indigo-400'}`} />
+                {s.t}
+              </motion.span>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
+   WILLIAMS INTRO OVERLAY — Rothmans-era tribute boot sequence.
+   Activates only when the Rothmans (Williams) livery is on.
+   Uses public palette navy #210E6F · brass #C59955 · red #D5172D
+   and a generic bold sans-serif — not the trademarked logotype.
+   ════════════════════════════════════════════════════════════ */
+function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
+  const word = 'VESTRIPPN'.split('');
+  const status = [
+    { t: 'IGNITION SEQUENCE PRIMED', at: 1.8 },
+    { t: 'TELEMETRY UPLINK SECURED', at: 3.2 },
+    { t: 'PIT WALL LINK ESTABLISHED', at: 4.6 },
+    { t: `${cycle} // SYSTEM ONLINE`, at: 6.0 },
+  ];
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
+      style={{ backgroundColor: '#0a0322' }}
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
+      transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+    >
+      {/* Navy base + pinstripes + gold/red ambient washes */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 7px), radial-gradient(circle at 28% -10%, rgba(197,153,85,0.32), transparent 48%), radial-gradient(ellipse at 105% 110%, rgba(213,23,45,0.20), transparent 55%), linear-gradient(180deg, #210e6f 0%, #0a0322 78%)',
+        }}
+      />
+
+      {/* Gold + red trim bars sweep in along top & bottom edges */}
+      <motion.div
+        className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: '#C59955' }}
+        initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.2, duration: 0.7, ease: 'easeOut' }}
+      />
+      <motion.div
+        className="absolute top-[4px] left-0 right-0 h-[2px]"
+        style={{ background: '#D5172D' }}
+        initial={{ scaleX: 0, transformOrigin: '100% 50%' }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.4, duration: 0.7, ease: 'easeOut' }}
+      />
+      <motion.div
+        className="absolute bottom-[4px] left-0 right-0 h-[2px]"
+        style={{ background: '#D5172D' }}
+        initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.4, duration: 0.7, ease: 'easeOut' }}
+      />
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-[3px]"
+        style={{ background: '#C59955' }}
+        initial={{ scaleX: 0, transformOrigin: '100% 50%' }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.2, duration: 0.7, ease: 'easeOut' }}
+      />
+
+      {/* Checkered-flag wedge sweeping in from the left */}
+      <motion.div
+        className="absolute top-1/2 -translate-y-1/2 left-0 h-40 w-40 sm:h-56 sm:w-56"
+        style={{
+          backgroundImage:
+            'repeating-conic-gradient(#ffffff 0deg 90deg, #0a0322 90deg 180deg)',
+          backgroundSize: '22px 22px',
+          maskImage: 'linear-gradient(90deg, #000, transparent 75%)',
+          WebkitMaskImage: 'linear-gradient(90deg, #000, transparent 75%)',
+          opacity: 0.22,
+        }}
+        initial={{ x: '-120%' }}
+        animate={{ x: '0%' }}
+        transition={{ delay: 0.6, duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute top-1/2 -translate-y-1/2 right-0 h-40 w-40 sm:h-56 sm:w-56"
+        style={{
+          backgroundImage:
+            'repeating-conic-gradient(#ffffff 0deg 90deg, #0a0322 90deg 180deg)',
+          backgroundSize: '22px 22px',
+          maskImage: 'linear-gradient(270deg, #000, transparent 75%)',
+          WebkitMaskImage: 'linear-gradient(270deg, #000, transparent 75%)',
+          opacity: 0.22,
+        }}
+        initial={{ x: '120%' }}
+        animate={{ x: '0%' }}
+        transition={{ delay: 0.6, duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+      />
+
+      {/* Logo + Wordmark */}
+      <div className="relative z-10 flex flex-col items-center">
+        <motion.div
+          className="relative w-16 h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center text-[34px] lg:text-[42px] font-black mb-8 shadow-[0_0_60px_rgba(197,153,85,0.55)]"
+          style={{ background: '#ffffff', color: '#210e6f' }}
+          initial={{ scale: 0, rotate: -120, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 17, delay: 0.4 }}
+        >
+          <motion.span
+            className="absolute -inset-[3px] rounded-[18px] -z-10"
+            style={{ background: 'linear-gradient(120deg,#C59955,#D5172D)' }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+          />
+          V
+        </motion.div>
+
+        <div className="relative flex items-baseline tracking-tighter font-black text-[44px] sm:text-[64px] lg:text-[80px] leading-none">
+          {word.map((ch, i) => (
+            <motion.span
+              key={i}
+              className="text-white inline-block"
+              initial={{ y: 60, opacity: 0, rotateX: -90 }}
+              animate={{ y: 0, opacity: 1, rotateX: 0 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.9 + i * 0.09 }}
+            >
+              {ch}
+            </motion.span>
+          ))}
+          <motion.span
+            className="inline-block"
+            style={{ color: '#C59955' }}
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.9 }}
+          >
+            FW
+          </motion.span>
+          <motion.span
+            className="inline-block"
+            style={{ color: '#D5172D' }}
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 2.05 }}
+          >
+            18
+          </motion.span>
+          {/* shimmer sweep across the wordmark */}
+          <motion.span
+            className="pointer-events-none absolute inset-0"
+            style={{ background: 'linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.55) 50%, transparent 62%)', mixBlendMode: 'overlay' }}
+            initial={{ x: '-130%', opacity: 0 }}
+            animate={{ x: '130%', opacity: [0, 1, 1, 0] }}
+            transition={{ delay: 2.2, duration: 1.2, ease: 'easeInOut' }}
+          />
+        </div>
+
+        {/* Wing-band team reference — original layout, generic typography */}
+        <motion.div
+          className="mt-7 flex flex-col items-center"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.3, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="h-[2px] w-48 sm:w-64" style={{ background: '#C59955' }} />
+          <div
+            className="mt-[3px] px-6 py-1.5 text-[15px] sm:text-[19px] font-black tracking-tight"
+            style={{ color: '#210e6f', background: '#ffffff' }}
+          >
+            WILLIAMS
+          </div>
+          <div
+            className="mt-[3px] px-6 py-1 text-[11px] sm:text-[13px] font-black tracking-[0.22em]"
+            style={{ color: '#ffffff' }}
+          >
+            R E N A U L T
+          </div>
+          <div className="mt-[2px] h-[2px] w-48 sm:w-64" style={{ background: '#D5172D' }} />
+        </motion.div>
+
+        <motion.div
+          className="mt-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-400"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.7, duration: 0.5 }}
+        >
+          Powered by <span style={{ color: '#C59955' }}>Claude</span>
+        </motion.div>
+
+        {/* Telemetry progress bar — gold→red */}
+        <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(197,153,85,0.4)]">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: 'linear-gradient(90deg,#C59955,#D5172D)' }}
+            initial={{ width: '0%' }}
+            animate={{ width: ['0%', '38%', '64%', '100%'] }}
+            transition={{ delay: 1.6, duration: 4.6, ease: 'easeInOut', times: [0, 0.35, 0.7, 1] }}
+          />
+        </div>
+
+        {/* Boot status */}
+        <div className="mt-5 h-4 relative w-full text-center">
+          {status.map((s, i) => {
+            const isLast = i === status.length - 1;
+            return (
+              <motion.span
+                key={i}
+                className="absolute inset-0 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isLast ? [0, 1, 1] : [0, 1, 1, 0] }}
+                transition={{
+                  delay: s.at,
+                  duration: isLast ? 1.0 : 1.3,
+                  times: isLast ? [0, 0.4, 1] : [0, 0.2, 0.75, 1],
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ background: isLast ? '#C59955' : '#D5172D' }}
+                />
                 {s.t}
               </motion.span>
             );
