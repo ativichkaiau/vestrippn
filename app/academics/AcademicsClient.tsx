@@ -27,6 +27,8 @@ interface AcademicsProps {
 }
 
 const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
+const SECRET_EXAMPOD_SEQUENCE = 'williamspod';
+const SECRET_EXAMPOD_URL = 'https://williamspod.vercel.app';
 const PINNED_CANVAS_SUBJECTS: Subject[] = [
   { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
 ];
@@ -36,6 +38,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
+  const secretExamPodBuffer = useRef('');
 
   const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
   const canvasSubjects = [
@@ -74,6 +77,35 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
     setIsMounted(true);
     const currentHour = new Date().getHours();
     setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
+  }, []);
+
+  useEffect(() => {
+    const secret = new URLSearchParams(window.location.search).get('secret')?.toLowerCase();
+    if (secret === SECRET_EXAMPOD_SEQUENCE) {
+      window.location.replace(SECRET_EXAMPOD_URL);
+    }
+  }, []);
+
+  useEffect(() => {
+    const openSecretExamPod = () => {
+      window.location.assign(SECRET_EXAMPOD_URL);
+    };
+
+    const handleSecretExamPod = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+
+      if (event.key.length !== 1 || event.metaKey || event.ctrlKey || event.altKey) return;
+
+      secretExamPodBuffer.current = `${secretExamPodBuffer.current}${event.key.toLowerCase()}`.slice(-SECRET_EXAMPOD_SEQUENCE.length);
+      if (secretExamPodBuffer.current === SECRET_EXAMPOD_SEQUENCE) {
+        secretExamPodBuffer.current = '';
+        openSecretExamPod();
+      }
+    };
+
+    window.addEventListener('keydown', handleSecretExamPod);
+    return () => window.removeEventListener('keydown', handleSecretExamPod);
   }, []);
 
   // 🚀 UPGRADE: Smart Sync Protection
