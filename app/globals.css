@@ -248,6 +248,93 @@ html.monza {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
+   SENNA LIVERY — helmet yellow + Brazil green + racing blue
+   Activated by `html.senna`. Avoids tobacco-era branding and uses a clean
+   analog motorsport palette built around yellow, green, blue, and deep navy.
+   ════════════════════════════════════════════════════════════════════════ */
+
+html.senna {
+  --sny-50:#fffbe8; --sny-100:#fff3b8; --sny-200:#ffe879; --sny-300:#ffdc3b; --sny-400:#ffd400;
+  --sny-500:#eebd00; --sny-600:#c79400; --sny-700:#9f6b00; --sny-800:#7a5104; --sny-900:#623f08; --sny-950:#382101;
+  --sng-50:#e8fff2; --sng-100:#c8fadd; --sng-200:#90f0ba; --sng-300:#4bdf8c; --sng-400:#15c669;
+  --sng-500:#00a651; --sng-600:#008b45; --sng-700:#076d39; --sng-800:#095730; --sng-900:#084728; --sng-950:#032817;
+  --snb-50:#eaf4ff; --snb-100:#d5e9ff; --snb-200:#acd3ff; --snb-300:#75b4ff; --snb-400:#3a8cff;
+  --snb-500:#1f6feb; --snb-600:#1859c9; --snb-700:#1649a3; --snb-800:#173f86; --snb-900:#17366f; --snb-950:#0b1b3a;
+
+  --color-red-50:var(--snb-50); --color-red-100:var(--snb-100); --color-red-200:var(--snb-200); --color-red-300:var(--snb-300); --color-red-400:var(--snb-400); --color-red-500:var(--snb-500); --color-red-600:var(--snb-600); --color-red-700:var(--snb-700); --color-red-800:var(--snb-800); --color-red-900:var(--snb-900); --color-red-950:var(--snb-950);
+  --color-orange-50:var(--sny-50); --color-orange-100:var(--sny-100); --color-orange-200:var(--sny-200); --color-orange-300:var(--sny-300); --color-orange-400:var(--sny-400); --color-orange-500:var(--sny-500); --color-orange-600:var(--sny-600); --color-orange-700:var(--sny-700); --color-orange-800:var(--sny-800); --color-orange-900:var(--sny-900); --color-orange-950:var(--sny-950);
+  --color-amber-50:var(--sny-50); --color-amber-100:var(--sny-100); --color-amber-200:var(--sny-200); --color-amber-300:var(--sny-300); --color-amber-400:var(--sny-400); --color-amber-500:var(--sny-500); --color-amber-600:var(--sny-600); --color-amber-700:var(--sny-700); --color-amber-800:var(--sny-800); --color-amber-900:var(--sny-900); --color-amber-950:var(--sny-950);
+  --color-yellow-50:var(--sny-50); --color-yellow-100:var(--sny-100); --color-yellow-200:var(--sny-200); --color-yellow-300:var(--sny-300); --color-yellow-400:var(--sny-400); --color-yellow-500:var(--sny-500); --color-yellow-600:var(--sny-600); --color-yellow-700:var(--sny-700); --color-yellow-800:var(--sny-800); --color-yellow-900:var(--sny-900); --color-yellow-950:var(--sny-950);
+  --color-emerald-50:var(--sng-50); --color-emerald-100:var(--sng-100); --color-emerald-200:var(--sng-200); --color-emerald-300:var(--sng-300); --color-emerald-400:var(--sng-400); --color-emerald-500:var(--sng-500); --color-emerald-600:var(--sng-600); --color-emerald-700:var(--sng-700); --color-emerald-800:var(--sng-800); --color-emerald-900:var(--sng-900); --color-emerald-950:var(--sng-950);
+  --color-teal-50:var(--sng-50); --color-teal-100:var(--sng-100); --color-teal-200:var(--sng-200); --color-teal-300:var(--sng-300); --color-teal-400:var(--sng-400); --color-teal-500:var(--sng-500); --color-teal-600:var(--sng-600); --color-teal-700:var(--sng-700); --color-teal-800:var(--sng-800); --color-teal-900:var(--sng-900); --color-teal-950:var(--sng-950);
+  --color-cyan-50:var(--snb-50); --color-cyan-100:var(--snb-100); --color-cyan-200:var(--snb-200); --color-cyan-300:var(--snb-300); --color-cyan-400:var(--snb-400); --color-cyan-500:var(--snb-500); --color-cyan-600:var(--snb-600); --color-cyan-700:var(--snb-700); --color-cyan-800:var(--snb-800); --color-cyan-900:var(--snb-900); --color-cyan-950:var(--snb-950);
+  --color-sky-50:var(--snb-50); --color-sky-100:var(--snb-100); --color-sky-200:var(--snb-200); --color-sky-300:var(--snb-300); --color-sky-400:var(--snb-400); --color-sky-500:var(--snb-500); --color-sky-600:var(--snb-600); --color-sky-700:var(--snb-700); --color-sky-800:var(--snb-800); --color-sky-900:var(--snb-900); --color-sky-950:var(--snb-950);
+  --color-blue-50:var(--snb-50); --color-blue-100:var(--snb-100); --color-blue-200:var(--snb-200); --color-blue-300:var(--snb-300); --color-blue-400:var(--snb-400); --color-blue-500:var(--snb-500); --color-blue-600:var(--snb-600); --color-blue-700:var(--snb-700); --color-blue-800:var(--snb-800); --color-blue-900:var(--snb-900); --color-blue-950:var(--snb-950);
+  --color-indigo-50:var(--snb-50); --color-indigo-100:var(--snb-100); --color-indigo-200:var(--snb-200); --color-indigo-300:var(--snb-300); --color-indigo-400:var(--snb-400); --color-indigo-500:var(--snb-500); --color-indigo-600:var(--snb-600); --color-indigo-700:var(--snb-700); --color-indigo-800:var(--snb-800); --color-indigo-900:var(--snb-900); --color-indigo-950:var(--snb-950);
+  --color-purple-50:var(--snb-50); --color-purple-100:var(--snb-100); --color-purple-200:var(--snb-200); --color-purple-300:var(--snb-300); --color-purple-400:var(--snb-400); --color-purple-500:var(--snb-500); --color-purple-600:var(--snb-600); --color-purple-700:var(--snb-700); --color-purple-800:var(--snb-800); --color-purple-900:var(--snb-900); --color-purple-950:var(--snb-950);
+  --color-fuchsia-50:var(--sng-50); --color-fuchsia-100:var(--sng-100); --color-fuchsia-200:var(--sng-200); --color-fuchsia-300:var(--sng-300); --color-fuchsia-400:var(--sng-400); --color-fuchsia-500:var(--sng-500); --color-fuchsia-600:var(--sng-600); --color-fuchsia-700:var(--sng-700); --color-fuchsia-800:var(--sng-800); --color-fuchsia-900:var(--sng-900); --color-fuchsia-950:var(--sng-950);
+  --color-pink-50:var(--sng-50); --color-pink-100:var(--sng-100); --color-pink-200:var(--sng-200); --color-pink-300:var(--sng-300); --color-pink-400:var(--sng-400); --color-pink-500:var(--sng-500); --color-pink-600:var(--sng-600); --color-pink-700:var(--sng-700); --color-pink-800:var(--sng-800); --color-pink-900:var(--sng-900); --color-pink-950:var(--sng-950);
+  --color-rose-50:var(--sng-50); --color-rose-100:var(--sng-100); --color-rose-200:var(--sng-200); --color-rose-300:var(--sng-300); --color-rose-400:var(--sng-400); --color-rose-500:var(--sng-500); --color-rose-600:var(--sng-600); --color-rose-700:var(--sng-700); --color-rose-800:var(--sng-800); --color-rose-900:var(--sng-900); --color-rose-950:var(--sng-950);
+
+  --hub-accent: #ffd400;
+  --hub-accent-deep: #00a651;
+  --hub-accent-rgb: 255, 212, 0;
+  --hub-secondary-rgb: 31, 111, 235;
+  --hub-grad-rgb: 4, 14, 34;
+  --hub-bg: #061329;
+  --hub-text-soft: #fff3b8;
+  --hub-text-soft-2: #a7f3c7;
+}
+
+html.senna body {
+  background-color: #07111f;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 212, 0, 0.040) 0, rgba(255, 212, 0, 0.040) 1px, transparent 1px, transparent 12px),
+    linear-gradient(116deg, transparent 0 45%, rgba(255, 212, 0, 0.18) 45% 48%, rgba(0, 166, 81, 0.17) 48% 51%, rgba(31, 111, 235, 0.20) 51% 54%, transparent 54%),
+    radial-gradient(circle at 16% -10%, rgba(255, 212, 0, 0.34), transparent 36%),
+    radial-gradient(ellipse at 96% 8%, rgba(31, 111, 235, 0.26), transparent 43%),
+    radial-gradient(ellipse at 8% 108%, rgba(0, 166, 81, 0.24), transparent 46%),
+    linear-gradient(180deg, #0d1b2a 0%, #07111f 70%);
+  background-attachment: fixed;
+}
+
+html.senna .dark\:bg-\[\#050505\],
+html.senna .dark\:bg-\[\#0A0A0A\],
+html.senna .dark\:bg-black\/40,
+html.senna .dark\:bg-black\/20 {
+  background-color: rgba(4, 14, 34, 0.62) !important;
+}
+
+html.senna .dark\:bg-white\/5 {
+  background-color: rgba(255, 212, 0, 0.07) !important;
+}
+html.senna .dark\:border-white\/5,
+html.senna .dark\:border-white\/10 {
+  border-color: rgba(255, 212, 0, 0.24) !important;
+}
+
+html.senna .text-\[\#00A598\],
+html.senna .text-\[\#00D2BE\] { color: #ffd400 !important; }
+html.senna .bg-\[\#00A598\],
+html.senna .bg-\[\#00D2BE\] { background-color: #ffd400 !important; }
+html.senna .border-\[\#00A598\],
+html.senna .border-\[\#00D2BE\] { border-color: #ffd400 !important; }
+html.senna .from-\[\#00A598\],
+html.senna .from-\[\#00D2BE\] { --tw-gradient-from: #ffd400 var(--tw-gradient-from-position) !important; }
+html.senna .to-\[\#00A598\],
+html.senna .to-\[\#00D2BE\] { --tw-gradient-to: #00a651 var(--tw-gradient-to-position) !important; }
+html.senna .fill-\[\#00A598\],
+html.senna .fill-\[\#00D2BE\] { fill: #ffd400 !important; }
+
+html.senna .text-\[\#D97757\] { color: #00a651 !important; }
+html.senna .bg-\[\#D97757\] { background-color: #00a651 !important; }
+html.senna .border-\[\#D97757\] { border-color: #00a651 !important; }
+
+html.senna ::selection { background-color: rgba(255, 212, 0, 0.42); color: #061329; }
+html.senna .custom-scrollbar { scrollbar-color: rgba(255, 212, 0, 0.48) transparent; }
+html.senna .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 166, 81, 0.68); }
+
+/* ════════════════════════════════════════════════════════════════════════
    W08 THEME CONTRACT  —  see components/w08/THEME_CONTRACT.md
    Additive. W07 is unaffected (it does not consume --w08-* variables).
    Neutral defaults on :root (light) and .dark (dark). Liveries override via
