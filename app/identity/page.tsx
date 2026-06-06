@@ -210,10 +210,7 @@ export default function IdentityHub() {
                      <NetworkLink name="LinkedIn" href="https://www.linkedin.com/in/ativich-vichittragoonthavon-b08b01258/" />
                   </div>
 
-                  <FinishedIdentityGif />
-
-                  {/* Animated trackside telemetry — fills the lower column space */}
-                  <F1Idle />
+                  <IdentityLinkTelemetryDock />
 
                 </div>
 
@@ -602,7 +599,7 @@ function FinishedIdentityGif() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.12 }}
       whileHover={{ y: -4, scale: 1.01, boxShadow: '0 18px 42px rgba(0,0,0,0.10)', transition: { type: 'spring', stiffness: 380, damping: 28 } }}
-      className="overflow-hidden rounded-3xl border border-amber-500/20 bg-amber-500/10 shadow-[0_12px_34px_rgba(0,0,0,0.05)] transition-colors duration-700 dark:bg-amber-500/10"
+      className="h-full min-h-[250px] overflow-hidden rounded-3xl border border-amber-500/20 bg-neutral-950 p-2 shadow-[0_12px_34px_rgba(0,0,0,0.05)] transition-colors duration-700"
     >
       <Image
         src="/identity-gifs/identity-finished.gif"
@@ -610,9 +607,18 @@ function FinishedIdentityGif() {
         width={640}
         height={360}
         unoptimized
-        className="h-auto w-full object-cover"
+        className="h-full w-full rounded-[20px] object-contain"
       />
     </motion.div>
+  );
+}
+
+function IdentityLinkTelemetryDock() {
+  return (
+    <div data-no-typewriter className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <FinishedIdentityGif />
+      <F1Idle compact />
+    </div>
   );
 }
 
@@ -818,11 +824,10 @@ function LegendTile({ name, titles, wins, poles, podiums, theme, epicMoment, fac
   );
 }
 
-// Animated "trackside" idle widget that fills the empty lower-left column,
-// next to the F1 Hall of Fame. All original vector animation.
-function F1Idle() {
+// Animated "trackside" idle widget. All original vector animation.
+function F1Idle({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="mt-auto h-[420px] shrink-0 flex flex-col rounded-3xl border border-black/5 dark:border-white/5 bg-black/[0.03] dark:bg-white/[0.03] p-5 relative overflow-hidden transition-colors duration-700">
+    <div className={`${compact ? 'h-full min-h-[250px] p-4' : 'mt-auto h-[420px] p-5'} shrink-0 flex flex-col rounded-3xl border border-black/5 dark:border-white/5 bg-black/[0.03] dark:bg-white/[0.03] relative overflow-hidden transition-colors duration-700`}>
       {/* header */}
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Trackside Telemetry</span>
@@ -833,8 +838,8 @@ function F1Idle() {
       </div>
 
       {/* animated mini-circuit with a looping car */}
-      <div className="flex-1 flex items-center justify-center py-3">
-        <svg viewBox="0 0 200 120" className="w-full h-full max-h-[180px]">
+      <div className={`${compact ? 'py-2' : 'py-3'} flex-1 flex items-center justify-center`}>
+        <svg viewBox="0 0 200 120" className={`${compact ? 'max-h-[118px]' : 'max-h-[180px]'} w-full h-full`}>
           <path
             id="idleCircuit"
             d="M30,80 C20,55 40,38 64,42 C84,45 92,30 110,30 C140,30 150,18 168,30 C186,42 180,66 158,72 C138,77 132,92 108,92 C84,92 70,98 50,94 C36,91 36,90 30,80 Z"
@@ -868,7 +873,7 @@ function F1Idle() {
       </div>
 
       {/* gauges row: spinning tyre + sweeping speedo */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
+      <div className={`${compact ? 'grid-cols-1 gap-2 mb-2 min-[1500px]:grid-cols-2' : 'grid-cols-2 gap-3 mb-3'} grid`}>
         {/* tyre */}
         <div className="flex items-center gap-3 rounded-2xl bg-black/[0.04] dark:bg-white/[0.04] p-3">
           <motion.svg viewBox="0 0 40 40" className="w-9 h-9 shrink-0" animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}>
