@@ -192,18 +192,20 @@ function drawOnboard(
   ctx.fillStyle = vp;
   ctx.fillRect(0, 0, W, H);
 
-  // ── grandstands set back from the track (drawn far → near, behind the road) ──
-  const landmarks = [0.05, 0.22, 0.45, 0.68, 0.88];
-  const stands: { df: number; side: number; idx: number }[] = [];
+  // ── grandstands set back from the track (drawn far → near, behind the road).
+  //    Placed densely around every lap so each circuit is consistently lined
+  //    with stands; sides alternate, and start/finish (idx 0) reads bigger. ──
+  const landmarks = [0.0, 0.13, 0.26, 0.39, 0.52, 0.65, 0.78, 0.9];
+  const stands: { df: number; side: number; idx: number; big: boolean }[] = [];
   for (let li = 0; li < landmarks.length; li++) {
     const lIdx = landmarks[li] * samples;
     const fwd = (((lIdx - baseIdx) % samples) + samples) % samples;
-    if (fwd <= aheadSamples) stands.push({ df: fwd / aheadSamples, side: li % 2 === 0 ? -1 : 1, idx: li });
+    if (fwd <= aheadSamples) stands.push({ df: fwd / aheadSamples, side: li % 2 === 0 ? -1 : 1, idx: li, big: li === 0 });
   }
   stands.sort((a, b) => b.df - a.df);
   for (const st of stands) {
     const i = Math.min(segs, Math.max(0, Math.round(st.df * segs)));
-    const scale = 0.16 + 0.84 * (1 - st.df);
+    const scale = (0.16 + 0.84 * (1 - st.df)) * (st.big ? 1.35 : 1);
     const gw = W * 0.22 * scale;
     const gh = W * 0.16 * scale;
     const gx = cx[i] + st.side * (hw[i] + gw * 0.55);
