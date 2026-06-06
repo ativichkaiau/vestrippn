@@ -26,13 +26,14 @@ type Track = {
   length: number; // km
   path: string; // stylised circuit silhouette
   street?: boolean; // street circuit — tight, tall walls right at the edge
+  night?: boolean; // typically a night race — defaults the time-of-day to night
 };
 
 // viewBox for every silhouette: 0 0 220 140
 const TRACKS: Track[] = [
   { id: 'aus', name: 'Albert Park', country: 'Australia', flag: '🇦🇺', pole: 82.188, poleSitter: 'Hamilton', laps: 58, length: 5.303,
     path: 'M40,95 C30,80 34,62 52,56 C70,50 84,58 100,52 C120,45 130,30 150,34 C172,38 190,46 186,66 C183,82 168,86 150,90 C128,95 118,108 96,106 C74,104 52,110 40,95 Z' },
-  { id: 'bhr', name: 'Sakhir', country: 'Bahrain', flag: '🇧🇭', pole: 88.769, poleSitter: 'Bottas', laps: 57, length: 5.412,
+  { id: 'bhr', name: 'Sakhir', country: 'Bahrain', flag: '🇧🇭', pole: 88.769, poleSitter: 'Bottas', laps: 57, length: 5.412, night: true,
     path: 'M42,100 C34,84 42,72 60,72 C76,72 82,60 78,48 C74,36 86,30 100,36 C112,41 112,56 128,58 C150,61 178,50 188,66 C196,79 182,90 162,88 C146,86 140,98 120,100 C96,103 56,112 42,100 Z' },
   { id: 'chn', name: 'Shanghai', country: 'China', flag: '🇨🇳', pole: 91.678, poleSitter: 'Hamilton', laps: 56, length: 5.451,
     path: 'M34,70 C30,52 46,44 64,48 C80,52 88,44 104,44 L168,44 C186,44 192,58 180,68 C170,76 152,72 146,84 C139,98 142,104 124,104 C108,104 102,92 88,94 C72,96 66,104 52,98 C40,93 36,84 34,70 Z' },
@@ -52,7 +53,7 @@ const TRACKS: Track[] = [
     path: 'M30,92 C26,74 38,66 56,68 C72,70 78,58 74,46 C70,32 84,24 98,30 C110,35 110,50 124,54 C146,60 176,48 192,62 C204,73 196,88 174,90 C154,92 148,100 126,100 C98,100 44,106 30,92 Z' },
   { id: 'ita', name: 'Monza', country: 'Italy', flag: '🇮🇹', pole: 95.554, poleSitter: 'Hamilton', laps: 53, length: 5.793,
     path: 'M40,96 C34,80 38,66 54,64 C84,60 84,40 110,40 L160,40 C182,40 192,52 184,68 C177,82 158,80 150,90 C144,98 140,100 124,100 C100,100 52,108 40,96 Z' },
-  { id: 'sgp', name: 'Marina Bay', country: 'Singapore', flag: '🇸🇬', pole: 99.491, poleSitter: 'Vettel', laps: 61, length: 5.065, street: true,
+  { id: 'sgp', name: 'Marina Bay', country: 'Singapore', flag: '🇸🇬', pole: 99.491, poleSitter: 'Vettel', laps: 61, length: 5.065, street: true, night: true,
     path: 'M36,100 L36,60 C36,50 44,46 56,48 C70,50 74,42 72,34 L100,34 C112,34 116,42 116,52 L160,52 C176,52 184,60 184,74 L184,96 C184,104 176,106 164,104 L70,104 C50,106 36,108 36,100 Z' },
   { id: 'jpn', name: 'Suzuka', country: 'Japan', flag: '🇯🇵', pole: 87.319, poleSitter: 'Hamilton', laps: 53, length: 5.807,
     path: 'M38,84 C32,68 44,58 62,60 C80,62 90,52 88,40 C86,30 96,26 106,32 C114,37 112,48 122,54 C138,63 168,54 184,68 C196,79 188,92 168,90 C150,88 146,80 128,78 C112,76 110,86 94,90 C72,95 50,96 38,84 Z' },
@@ -173,21 +174,64 @@ function drawOnboard(
   accent: string,
   speed: number,
   street: boolean,
+  tod: Tod,
+  wet: boolean,
+  clock: number,
 ) {
   const { scurv, samples } = prof;
   const horizon = Math.round(H * 0.4);
   const sampleAt = (k: number) => scurv[((Math.floor(k) % samples) + samples) % samples];
 
+  // ── palette per time-of-day (+ wet darkens & cools everything) ──
+  const PAL = {
+    day: { skyTop: '#3d7fbf', skyHor: '#cfe3f2', grassTop: '#1f6b2e', grassBot: '#154f20', road1: '#3a3a42', road2: '#33333b' },
+    dusk: { skyTop: '#241f4e', skyHor: '#e3894d', grassTop: '#274a22', grassBot: '#172d16', road1: '#34323b', road2: '#2d2b33' },
+    night: { skyTop: '#04050c', skyHor: '#0e1d3c', grassTop: '#0c2414', grassBot: '#07160d', road1: '#26262d', road2: '#202026' },
+  }[tod];
+  let road1 = PAL.road1;
+  let road2 = PAL.road2;
+  if (wet) {
+    road1 = tod === 'night' ? '#1c1c24' : '#222a30';
+    road2 = tod === 'night' ? '#16161d' : '#1c2228';
+  }
+
   // sky
   const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-  sky.addColorStop(0, '#0a1130');
-  sky.addColorStop(1, '#1a2750');
+  sky.addColorStop(0, PAL.skyTop);
+  sky.addColorStop(1, PAL.skyHor);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, horizon);
+
+  // night stars
+  if (tod === 'night' && !wet) {
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let k = 0; k < 70; k++) {
+      const s = (k * 2654435761) >>> 0;
+      const sx = (s % 1000) / 1000 * W;
+      const sy = ((s >> 10) % 1000) / 1000 * horizon * 0.85;
+      ctx.globalAlpha = 0.3 + ((s >> 5) % 100) / 200;
+      ctx.fillRect(sx, sy, 1.5, 1.5);
+    }
+    ctx.globalAlpha = 1;
+  }
+  // dusk sun glow at the horizon
+  if (tod === 'dusk') {
+    const sun = ctx.createRadialGradient(W * 0.5, horizon, 4, W * 0.5, horizon, W * 0.45);
+    sun.addColorStop(0, 'rgba(255,180,90,0.55)');
+    sun.addColorStop(1, 'rgba(255,180,90,0)');
+    ctx.fillStyle = sun;
+    ctx.fillRect(0, 0, W, horizon);
+  }
+  // overcast wash when wet
+  if (wet) {
+    ctx.fillStyle = 'rgba(120,130,140,0.22)';
+    ctx.fillRect(0, 0, W, horizon);
+  }
+
   // grass / run-off
   const grass = ctx.createLinearGradient(0, horizon, 0, H);
-  grass.addColorStop(0, '#10301a');
-  grass.addColorStop(1, '#0a1f12');
+  grass.addColorStop(0, PAL.grassTop);
+  grass.addColorStop(1, PAL.grassBot);
   ctx.fillStyle = grass;
   ctx.fillRect(0, horizon, W, H - horizon);
 
@@ -250,7 +294,7 @@ function drawOnboard(
     const wN = hw[i - 1];
     const band = (i + Math.floor(scroll)) & 1;
 
-    ctx.fillStyle = band ? '#2b2b31' : '#242429';
+    ctx.fillStyle = band ? road1 : road2;
     ctx.beginPath();
     ctx.moveTo(xF - wF, yF);
     ctx.lineTo(xF + wF, yF);
@@ -385,6 +429,48 @@ function drawOnboard(
     ctx.fillRect(xc - ww, yy - postH + beamH, 2 * ww, Math.max(2, ww * 0.05));
   }
 
+  // ── night: headlight cone lighting the near road ──
+  if (tod === 'night') {
+    const beam = ctx.createRadialGradient(W / 2, H * 1.02, 10, W / 2, H * 0.55, H * 0.85);
+    beam.addColorStop(0, 'rgba(255,248,225,0.16)');
+    beam.addColorStop(0.5, 'rgba(255,248,225,0.05)');
+    beam.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = beam;
+    ctx.fillRect(0, horizon, W, H - horizon);
+  }
+
+  // ── wet: glossy sheen on the road + light reflections + rain ──
+  if (wet) {
+    const sheen = ctx.createLinearGradient(0, horizon, 0, H);
+    sheen.addColorStop(0, 'rgba(150,170,190,0.16)');
+    sheen.addColorStop(0.5, 'rgba(120,140,165,0.05)');
+    sheen.addColorStop(1, 'rgba(255,255,255,0.02)');
+    ctx.fillStyle = sheen;
+    ctx.fillRect(0, horizon, W, H - horizon);
+    // wet reflection streak under the vanishing point
+    ctx.fillStyle = accent.replace(')', ', 0.10)').replace('rgb', 'rgba');
+    ctx.fillRect(W / 2 - W * 0.02, horizon, W * 0.04, H - horizon);
+    // rain streaks
+    ctx.strokeStyle = 'rgba(210,225,240,0.35)';
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    for (let k = 0; k < 170; k++) {
+      const s = (k * 1664525 + 1013904223) >>> 0;
+      const rx = (s % 1009) / 1009 * (W + 60) - 30;
+      const len = 16 + (s % 9);
+      const y = (((s % H) + clock * 950) % (H + len)) - len;
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx - 5, y + len);
+    }
+    ctx.stroke();
+    // misty haze near the horizon
+    const mist = ctx.createLinearGradient(0, horizon - 8, 0, horizon + H * 0.18);
+    mist.addColorStop(0, 'rgba(180,190,200,0.18)');
+    mist.addColorStop(1, 'rgba(180,190,200,0)');
+    ctx.fillStyle = mist;
+    ctx.fillRect(0, horizon - 8, W, H * 0.18);
+  }
+
   // ── cockpit halo (sells the onboard view) ──
   const cxm = W / 2;
   ctx.fillStyle = 'rgba(10,10,12,0.92)';
@@ -452,7 +538,9 @@ type LapRec = { t: number; c: TimingColor; secs: Sec[] };
 // Sector split (roughly even) — each lap's sectors get a small, mostly-slower
 // jitter so no two laps are identical, the way a real stint drifts around pole.
 const SECTOR_FRAC = [0.345, 0.335, 0.32];
-const planLap = (pole: number): number[] => SECTOR_FRAC.map((f) => pole * f * (1 + (Math.random() * 0.018 - 0.005)));
+const planLap = (pole: number, mult = 1): number[] => SECTOR_FRAC.map((f) => pole * f * mult * (1 + (Math.random() * 0.018 - 0.005)));
+
+type Tod = 'day' | 'dusk' | 'night';
 
 type Phase = 'setup' | 'running' | 'complete';
 type TargetType = 'open' | 'min' | 'laps';
@@ -464,6 +552,9 @@ export default function FocusMode() {
   const [selected, setSelected] = useState<Track | null>(null);
   const [targetType, setTargetType] = useState<TargetType>('min');
   const [targetValue, setTargetValue] = useState<number>(25);
+  const [tod, setTod] = useState<Tod>('day');
+  const [wet, setWet] = useState(false);
+  const todTouchedRef = useRef(false); // user overrode the auto night/day default
 
   const [elapsed, setElapsed] = useState(0); // throttled HUD clock
   const [paused, setPaused] = useState(false);
@@ -533,9 +624,11 @@ export default function FocusMode() {
     finishedRef.current = false;
     finalRef.current = 0;
     profileRef.current = null;
-    // reset sector / variable-lap engine
+    // auto time-of-day from the circuit unless the user picked one
+    if (!todTouchedRef.current) setTod(track.night ? 'night' : 'day');
+    // reset sector / variable-lap engine (wet laps run a touch slower)
     lapStartRef.current = 0;
-    planRef.current = planLap(track.pole);
+    planRef.current = planLap(track.pole, wet ? 1.08 : 1);
     sectorMarkRef.current = 0;
     lapNoRef.current = 0;
     bestSecRef.current = [null, null, null];
@@ -563,7 +656,7 @@ export default function FocusMode() {
     for (let n = 1; n <= 5; n++) lightTimers.current.push(setTimeout(() => setLights(n), n * 450));
     lightTimers.current.push(setTimeout(() => setLights(6), 5 * 450 + 700)); // lights out
     lightTimers.current.push(setTimeout(() => setLights(-1), 5 * 450 + 1500));
-  }, []);
+  }, [wet]);
 
   const finish = useCallback(() => {
     if (finishedRef.current) return;
@@ -614,6 +707,8 @@ export default function FocusMode() {
   useEffect(() => {
     if (phase !== 'running' || paused || !ready || !selected) return;
     const pole = selected.pole;
+    const wetMult = wet ? 1.08 : 1; // wet laps run slower
+    const spdMult = wet ? 0.9 : 1; // displayed speeds drop in the wet
     startRef.current = performance.now() - pausedAtRef.current * 1000;
 
     const finalizeSector = (i: number, t: number) => {
@@ -681,7 +776,7 @@ export default function FocusMode() {
         finalizeSector(2, p[2]);
         finalizeLap(t3);
         lapStartRef.current += t3;
-        planRef.current = planLap(pole);
+        planRef.current = planLap(pole, wetMult);
         sectorMarkRef.current = 0;
         p = planRef.current;
         le = e - lapStartRef.current;
@@ -704,15 +799,15 @@ export default function FocusMode() {
         carRef.current.style.transform = `translate(${pos.x}px, ${pos.y}px) rotate(${angle}deg)`;
         if (trailRef.current) trailRef.current.style.strokeDashoffset = `${prof.total * (1 - dist / prof.total)}`;
         const idx = Math.min(prof.samples - 1, Math.floor((dist / prof.total) * prof.samples));
-        const sp = prof.speeds[idx];
+        const sp = Math.round(prof.speeds[idx] * spdMult);
         const nx = prof.speeds[(idx + 1) % prof.samples];
         hudRef.current = {
           leD: le,
           dist,
           speed: sp,
           gear: Math.max(1, Math.min(8, 1 + Math.floor((sp - 60) / 35))),
-          onThrottle: nx >= sp,
-          drs: sp > 290,
+          onThrottle: nx >= prof.speeds[idx],
+          drs: !wet && sp > 290,
         };
 
         // ── draw the pseudo-3D onboard ──
@@ -720,7 +815,7 @@ export default function FocusMode() {
         const ctx = cv?.getContext('2d');
         if (cv && ctx) {
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          drawOnboard(ctx, cv.width / dpr, cv.height / dpr, (dist / prof.total) * prof.samples, prof, accentRef.current, sp, !!selected.street);
+          drawOnboard(ctx, cv.width / dpr, cv.height / dpr, (dist / prof.total) * prof.samples, prof, accentRef.current, sp, !!selected.street, tod, wet, now / 1000);
         }
       }
 
@@ -750,7 +845,7 @@ export default function FocusMode() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [phase, paused, ready, selected, targetType, targetValue, finish]);
+  }, [phase, paused, ready, selected, targetType, targetValue, finish, tod, wet]);
 
   // Space = pause/resume while running
   useEffect(() => {
@@ -901,6 +996,35 @@ export default function FocusMode() {
                 </span>
               </div>
 
+              {/* conditions: time of day + weather */}
+              <div className="flex flex-wrap items-center gap-3 px-5 pb-4 sm:px-8">
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-neutral-500">Conditions</span>
+                {(['day', 'dusk', 'night'] as Tod[]).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      todTouchedRef.current = true;
+                      setTod(opt);
+                    }}
+                    className="rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-widest transition-all"
+                    style={tod === opt ? { backgroundColor: 'var(--hub-accent)', color: '#0a0a0a' } : { backgroundColor: 'rgba(255,255,255,0.06)', color: '#cbd5e1' }}
+                  >
+                    {opt === 'day' ? '☀ Day' : opt === 'dusk' ? '🌇 Dusk' : '🌙 Night'}
+                  </button>
+                ))}
+                <span className="mx-1 h-5 w-px bg-white/10" />
+                {([['Dry', false], ['Wet', true]] as [string, boolean][]).map(([label, w]) => (
+                  <button
+                    key={label}
+                    onClick={() => setWet(w)}
+                    className="rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-widest transition-all"
+                    style={wet === w ? { backgroundColor: 'var(--hub-accent)', color: '#0a0a0a' } : { backgroundColor: 'rgba(255,255,255,0.06)', color: '#cbd5e1' }}
+                  >
+                    {label === 'Wet' ? '🌧 Wet' : '◓ Dry'}
+                  </button>
+                ))}
+              </div>
+
               {/* track grid */}
               <div className="custom-scrollbar grid flex-1 grid-cols-2 gap-3 overflow-y-auto px-5 pb-8 sm:grid-cols-3 sm:px-8 lg:grid-cols-4 xl:grid-cols-5">
                 {TRACKS.map((t) => {
@@ -1022,13 +1146,20 @@ export default function FocusMode() {
                   })}
                 </div>
 
-                {/* current sector tag */}
-                <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur-md">
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--hub-accent)' }} />
-                  <span className="font-mono text-[12px] font-black tabular-nums" style={{ color: 'var(--hub-accent)' }}>
-                    S{sector}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">Sector {sector} / 3</span>
+                {/* current sector tag + conditions */}
+                <div className="absolute left-4 top-4 flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur-md">
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--hub-accent)' }} />
+                    <span className="font-mono text-[12px] font-black tabular-nums" style={{ color: 'var(--hub-accent)' }}>
+                      S{sector}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">Sector {sector} / 3</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-neutral-300 backdrop-blur-md">
+                    <span>{tod === 'day' ? '☀ Day' : tod === 'dusk' ? '🌇 Dusk' : '🌙 Night'}</span>
+                    <span className="text-neutral-600">·</span>
+                    <span style={wet ? { color: '#7cc4ff' } : undefined}>{wet ? '🌧 Wet' : '◓ Dry'}</span>
+                  </div>
                 </div>
 
                 {/* sector-time pop */}
