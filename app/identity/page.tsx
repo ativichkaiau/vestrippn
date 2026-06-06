@@ -355,11 +355,26 @@ export default function IdentityHub() {
                      </div>
                   </div>
 
-                  {/* Sector D: Archetype Archive */}
-                  <h3 className="text-[12px] font-bold text-red-500 dark:text-red-400 uppercase tracking-widest mb-6 flex items-center gap-3 transition-colors duration-700">
+                  {/* Sector Sigma: F1 Hall of Fame */}
+                  <h3 className="text-[12px] font-bold text-red-500 dark:text-red-400 uppercase tracking-widest mb-4 flex items-center gap-3 transition-colors duration-700">
                     <div className="w-1.5 h-4 bg-red-500 rounded-full"></div>
-                    Sector Sigma: Legacy Archetypes // F1 Hall of Fame
+                    Sector Sigma: Legacy Archetypes
                   </h3>
+
+                  {/* Hall of Fame banner */}
+                  <div className="mb-6 flex items-center justify-between gap-4 rounded-3xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/[0.03] to-transparent p-5 lg:p-6 transition-colors duration-700">
+                    <div className="flex items-center gap-4">
+                      <span className="text-3xl lg:text-4xl drop-shadow-[0_2px_8px_rgba(245,158,11,0.4)]">🏆</span>
+                      <div>
+                        <div className="text-[18px] lg:text-[22px] font-black text-neutral-900 dark:text-white tracking-tight transition-colors duration-700">F1 Hall of Fame</div>
+                        <div className="text-[10px] lg:text-[11px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Drivers who define the operator standard</div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-[26px] lg:text-[32px] font-black tabular-nums leading-none text-amber-600 dark:text-amber-400">8</div>
+                      <div className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Legends</div>
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                     <LegendTile 
@@ -582,46 +597,98 @@ function LegendTile({ name, titles, wins, poles, podiums, theme, epicMoment, fac
     emerald: 'hover:border-emerald-500/30',
   };
 
+  const barColors = {
+    red: 'bg-red-500',
+    purple: 'bg-purple-500',
+    amber: 'bg-amber-500',
+    cyan: 'bg-cyan-500',
+    indigo: 'bg-indigo-500',
+    emerald: 'bg-emerald-500',
+  };
+
+  const glowColors = {
+    red: 'bg-red-500/25',
+    purple: 'bg-purple-500/25',
+    amber: 'bg-amber-500/25',
+    cyan: 'bg-cyan-500/25',
+    indigo: 'bg-indigo-500/25',
+    emerald: 'bg-emerald-500/25',
+  };
+
+  const monoColors = {
+    red: 'bg-red-500/15 text-red-600 dark:text-red-400',
+    purple: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+    amber: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+    cyan: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
+    indigo: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
+    emerald: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+  };
+
+  const quoteBorder = {
+    red: 'border-red-500/50',
+    purple: 'border-purple-500/50',
+    amber: 'border-amber-500/50',
+    cyan: 'border-cyan-500/50',
+    indigo: 'border-indigo-500/50',
+    emerald: 'border-emerald-500/50',
+  };
+
+  const initials = name.split(' ').map((w) => w[0]).slice(0, 2).join('');
+  const titleCount = parseInt(titles, 10) || 0;
+  const stats: [string, number][] = [['Wins', wins], ['Poles', poles], ['Podiums', podiums]];
+
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.02, boxShadow: '0 20px 48px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 360, damping: 28 } }}
       whileTap={{ scale: 0.98 }}
-      className={`group/legend p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl relative overflow-hidden cursor-default ${borderHover[theme]}`}
+      className={`group/legend p-6 pt-7 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-3xl relative overflow-hidden cursor-default transition-colors duration-700 ${borderHover[theme]}`}
     >
-      
-      {/* Header */}
-      <div className="flex justify-between items-start mb-5 gap-2">
-        <span className="text-[16px] lg:text-[18px] font-black text-neutral-900 dark:text-white uppercase tracking-tight transition-colors duration-700">{name}</span>
-        <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border transition-colors duration-700 whitespace-nowrap ${badgeColors[theme]}`}>{titles} Titles</span>
+      {/* livery accent stripe */}
+      <div className={`absolute inset-x-0 top-0 h-1 ${barColors[theme]}`} />
+      {/* hover corner glow */}
+      <div className={`pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full blur-3xl opacity-0 group-hover/legend:opacity-100 transition-opacity duration-500 ${glowColors[theme]}`} />
+      {/* watermark championship count */}
+      <span className="pointer-events-none absolute -bottom-6 right-3 text-[140px] font-black leading-none text-neutral-900/[0.04] dark:text-white/[0.04] select-none">{titles}</span>
+
+      {/* Header: monogram + name + title stars */}
+      <div className="relative flex items-start gap-3 mb-5">
+        <div className={`shrink-0 h-12 w-12 rounded-2xl flex items-center justify-center text-[15px] font-black tracking-tight transition-colors duration-700 ${monoColors[theme]}`}>
+          {initials}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[16px] lg:text-[18px] font-black text-neutral-900 dark:text-white uppercase tracking-tight leading-tight transition-colors duration-700">{name}</div>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className="flex items-center">
+              {Array.from({ length: titleCount }).map((_, i) => (
+                <span key={i} className={`text-[11px] leading-none ${textColors[theme]}`}>★</span>
+              ))}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{titles}× Champion</span>
+          </div>
+        </div>
       </div>
 
-      {/* Telemetry Grid */}
-      <div className="flex gap-4 lg:gap-6 mb-6 pb-5 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="flex flex-col">
-           <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-0.5">Wins</span>
-           <span className={`text-[20px] font-black tabular-nums leading-none ${textColors[theme]}`}>{wins}</span>
-        </div>
-        <div className="flex flex-col border-l border-black/5 dark:border-white/5 pl-4 lg:pl-6 transition-colors duration-700">
-           <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-0.5">Poles</span>
-           <span className={`text-[20px] font-black tabular-nums leading-none ${textColors[theme]}`}>{poles}</span>
-        </div>
-        <div className="flex flex-col border-l border-black/5 dark:border-white/5 pl-4 lg:pl-6 transition-colors duration-700">
-           <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-0.5">Podiums</span>
-           <span className={`text-[20px] font-black tabular-nums leading-none ${textColors[theme]}`}>{podiums}</span>
-        </div>
+      {/* Telemetry stat cells */}
+      <div className="relative grid grid-cols-3 gap-2 mb-5">
+        {stats.map(([label, val]) => (
+          <div key={label} className="rounded-2xl bg-black/[0.04] dark:bg-white/[0.04] px-3 py-2.5 text-center transition-colors duration-700">
+            <div className={`text-[20px] lg:text-[22px] font-black tabular-nums leading-none ${textColors[theme]}`}>{val}</div>
+            <div className="text-[9px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">{label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Epic Moment */}
-      <div className="mb-4">
-        <span className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textColors[theme]}`}>Epic Moment</span>
+      {/* Epic Moment quote block */}
+      <div className={`relative mb-3 rounded-2xl bg-black/[0.04] dark:bg-white/[0.04] border-l-2 ${quoteBorder[theme]} pl-3 pr-3 py-2.5 transition-colors duration-700`}>
+        <span className={`text-[9px] font-bold uppercase tracking-widest mb-1 block ${textColors[theme]}`}>Epic Moment</span>
         <p className="text-[13px] text-neutral-700 dark:text-neutral-300 font-medium leading-relaxed transition-colors duration-700">
           {epicMoment}
         </p>
       </div>
 
       {/* Legacy Fact */}
-      <p className="text-[12px] text-neutral-500 dark:text-neutral-400 leading-relaxed group-hover/legend:text-neutral-700 dark:group-hover/legend:text-neutral-300 transition-colors duration-300 italic font-medium">
-        "{fact}"
+      <p className="relative text-[12px] text-neutral-500 dark:text-neutral-400 leading-relaxed group-hover/legend:text-neutral-700 dark:group-hover/legend:text-neutral-300 transition-colors duration-300 italic font-medium">
+        &ldquo;{fact}&rdquo;
       </p>
     </motion.div>
   );
