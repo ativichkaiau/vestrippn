@@ -134,9 +134,35 @@ function drawGrandstand(ctx: CanvasRenderingContext2D, x: number, baseY: number,
   ctx.fillRect(left - w * 0.06, top + rh - 2, w * 1.12, 2);
 }
 
+// One barrier segment (a low Armco or a tall street wall) with a top rail.
+function drawBarrier(
+  ctx: CanvasRenderingContext2D,
+  xF: number, yF: number, xN: number, yN: number,
+  hF: number, hN: number, wallCol: string, railCol: string,
+) {
+  ctx.fillStyle = wallCol;
+  ctx.beginPath();
+  ctx.moveTo(xF, yF);
+  ctx.lineTo(xN, yN);
+  ctx.lineTo(xN, yN - hN);
+  ctx.lineTo(xF, yF - hF);
+  ctx.closePath();
+  ctx.fill();
+  const rF = Math.max(1, hF * 0.18);
+  const rN = Math.max(1, hN * 0.18);
+  ctx.fillStyle = railCol;
+  ctx.beginPath();
+  ctx.moveTo(xF, yF - hF);
+  ctx.lineTo(xN, yN - hN);
+  ctx.lineTo(xN, yN - hN - rN);
+  ctx.lineTo(xF, yF - hF - rF);
+  ctx.closePath();
+  ctx.fill();
+}
+
 /* Pseudo-3D onboard: draws the road bending through the corners that are coming
    up along the path (sampled from the track's own signed curvature), with kerbs,
-   barrier walls, distant grandstands, scrolling tarmac, a leaning vanishing
+   run-off / barriers, distant grandstands, scrolling tarmac, a leaning vanishing
    point, and a cockpit halo. */
 function drawOnboard(
   ctx: CanvasRenderingContext2D,
@@ -272,48 +298,62 @@ function drawOnboard(
       ctx.fill();
     }
 
-    // ── barrier walls rising from each road edge ──
-    const whF = wF * (street ? 0.55 : 0.3);
-    const whN = wN * (street ? 0.55 : 0.3);
+    // ── trackside: thin track-limit line, then either street walls or
+    //    run-off (gravel on tight corners / tarmac otherwise) + low barrier ──
     const seam = (i + Math.floor(scroll)) & 1;
-    const wallCol = seam ? '#3b3f48' : '#30343d';
-    const railCol = street ? '#cbd0d8' : seam ? '#d2233a' : '#e8e8e8';
-    const railF = Math.max(1, whF * 0.16);
-    const railN = Math.max(1, whN * 0.16);
-    // left wall + rail
-    ctx.fillStyle = wallCol;
-    ctx.beginPath();
-    ctx.moveTo(xF - wF, yF);
-    ctx.lineTo(xN - wN, yN);
-    ctx.lineTo(xN - wN, yN - whN);
-    ctx.lineTo(xF - wF, yF - whF);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = railCol;
-    ctx.beginPath();
-    ctx.moveTo(xF - wF, yF - whF);
-    ctx.lineTo(xN - wN, yN - whN);
-    ctx.lineTo(xN - wN, yN - whN - railN);
-    ctx.lineTo(xF - wF, yF - whF - railF);
-    ctx.closePath();
-    ctx.fill();
-    // right wall + rail
-    ctx.fillStyle = wallCol;
-    ctx.beginPath();
-    ctx.moveTo(xF + wF, yF);
-    ctx.lineTo(xN + wN, yN);
-    ctx.lineTo(xN + wN, yN - whN);
-    ctx.lineTo(xF + wF, yF - whF);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = railCol;
-    ctx.beginPath();
-    ctx.moveTo(xF + wF, yF - whF);
-    ctx.lineTo(xN + wN, yN - whN);
-    ctx.lineTo(xN + wN, yN - whN - railN);
-    ctx.lineTo(xF + wF, yF - whF - railF);
-    ctx.closePath();
-    ctx.fill();
+
+    // white track-limit line at both edges
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    for (const s of [-1, 1] as const) {
+      const lwF = Math.max(0.6, wF * 0.03);
+      const lwN = Math.max(0.6, wN * 0.03);
+      ctx.beginPath();
+      ctx.moveTo(xF + s * wF - s * lwF, yF);
+      ctx.lineTo(xF + s * wF, yF);
+      ctx.lineTo(xN + s * wN, yN);
+      ctx.lineTo(xN + s * wN - s * lwN, yN);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    if (street) {
+      // walls hug the kerb on street circuits
+      const hF = wF * 0.55;
+      const hN = wN * 0.55;
+      const wallCol = seam ? '#3b3f48' : '#30343d';
+      drawBarrier(ctx, xF - wF, yF, xN - wN, yN, hF, hN, wallCol, '#cbd0d8');
+      drawBarrier(ctx, xF + wF, yF, xN + wN, yN, hF, hN, wallCol, '#cbd0d8');
+    } else {
+      // permanent circuits: run-off beside the track, barrier set back & low
+      const c = sampleAt(baseIdx + (i / segs) * aheadSamples);
+      const corner = Math.min(1, Math.abs(c) / 0.05); // 0 straight .. 1 tight
+      const outside = c > 0 ? -1 : 1; // road bends toward +x for c>0
+      for (const s of [-1, 1] as const) {
+        const isOut = s === outside;
+        const roF = wF * (isOut ? 0.5 + corner * 1.5 : 0.22);
+        const roN = wN * (isOut ? 0.5 + corner * 1.5 : 0.22);
+        const edF = xF + s * wF;
+        const edN = xN + s * wN;
+        const ouF = edF + s * roF;
+        const ouN = edN + s * roN;
+        // run-off surface on the outside of corners (gravel if tight, else tarmac)
+        if (isOut && corner > 0.22) {
+          const gravel = corner > 0.55;
+          ctx.fillStyle = gravel ? (seam ? '#cdb784' : '#c2a972') : seam ? '#3b3b43' : '#343440';
+          ctx.beginPath();
+          ctx.moveTo(edF, yF);
+          ctx.lineTo(ouF, yF);
+          ctx.lineTo(ouN, yN);
+          ctx.lineTo(edN, yN);
+          ctx.closePath();
+          ctx.fill();
+        }
+        // low steel barrier at the back of the run-off
+        const hF = wF * 0.12;
+        const hN = wN * 0.12;
+        drawBarrier(ctx, ouF, yF, ouN, yN, hF, hN, seam ? '#595e67' : '#4e535c', '#c9ced6');
+      }
+    }
   }
 
   // ── cockpit halo (sells the onboard view) ──
