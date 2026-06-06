@@ -615,7 +615,7 @@ function FinishedIdentityGif() {
 
 function IdentityLinkTelemetryDock() {
   return (
-    <div data-no-typewriter className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+    <div data-no-typewriter className="grid grid-cols-1 gap-4">
       <FinishedIdentityGif />
       <F1Idle compact />
     </div>
