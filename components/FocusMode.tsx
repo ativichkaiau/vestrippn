@@ -13,6 +13,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type Track = {
   id: string;
@@ -109,6 +110,7 @@ type TargetType = 'open' | 'min' | 'laps';
 
 export default function FocusMode() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>('setup');
   const [selected, setSelected] = useState<Track | null>(null);
   const [targetType, setTargetType] = useState<TargetType>('min');
@@ -130,6 +132,8 @@ export default function FocusMode() {
   const finishedRef = useRef<boolean>(false);
   const finalRef = useRef<number>(0);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => setMounted(true), []);
 
   // Lock the page while the overlay is open
   useEffect(() => {
@@ -296,7 +300,7 @@ export default function FocusMode() {
         <span className="hidden sm:inline">Focus</span>
       </button>
 
-      {!open ? null : (
+      {open && mounted && createPortal(
         <div className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
           {/* carbon + accent atmosphere */}
           <div
@@ -562,7 +566,8 @@ export default function FocusMode() {
               </div>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
