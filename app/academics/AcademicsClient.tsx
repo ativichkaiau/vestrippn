@@ -606,6 +606,15 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                     accent: 'purple',
                     glow: 'rgba(168,85,247,0.20)',
                   },
+                  {
+                    href: 'https://vestrippn-physiohub.vercel.app',
+                    icon: '🫀',
+                    title: 'PhysioHub',
+                    desc: 'Body-systems physiology hub — explore organ-system mechanics, homeostatic loops, and integrated regulation.',
+                    tag: 'Systems Atlas',
+                    accent: 'amber',
+                    glow: 'rgba(245,158,11,0.20)',
+                  },
                 ].map((app) => (
                   <motion.a
                     key={app.href}
