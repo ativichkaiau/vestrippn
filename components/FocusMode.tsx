@@ -25,6 +25,7 @@ type Track = {
   laps: number; // 2017 race lap count
   length: number; // km
   path: string; // stylised circuit silhouette
+  street?: boolean; // street circuit — tight, tall walls right at the edge
 };
 
 // viewBox for every silhouette: 0 0 220 140
@@ -37,7 +38,7 @@ const TRACKS: Track[] = [
     path: 'M34,70 C30,52 46,44 64,48 C80,52 88,44 104,44 L168,44 C186,44 192,58 180,68 C170,76 152,72 146,84 C139,98 142,104 124,104 C108,104 102,92 88,94 C72,96 66,104 52,98 C40,93 36,84 34,70 Z' },
   { id: 'esp', name: 'Barcelona-Catalunya', country: 'Spain', flag: '🇪🇸', pole: 79.149, poleSitter: 'Hamilton', laps: 66, length: 4.655,
     path: 'M40,92 C32,76 38,60 56,56 C74,52 86,60 104,54 C124,47 132,34 154,38 C176,42 190,52 184,72 C179,88 160,90 140,90 C120,90 116,100 98,100 C76,100 50,106 40,92 Z' },
-  { id: 'mon', name: 'Monte Carlo', country: 'Monaco', flag: '🇲🇨', pole: 72.178, poleSitter: 'Räikkönen', laps: 78, length: 3.337,
+  { id: 'mon', name: 'Monte Carlo', country: 'Monaco', flag: '🇲🇨', pole: 72.178, poleSitter: 'Räikkönen', laps: 78, length: 3.337, street: true,
     path: 'M36,98 C34,78 44,70 58,70 C70,70 72,58 70,48 C68,36 78,30 90,34 C100,37 102,48 114,50 C130,52 150,44 166,50 C182,56 188,70 176,80 C164,89 146,84 130,88 C112,92 108,102 90,102 C68,102 44,110 36,98 Z' },
   { id: 'can', name: 'Gilles Villeneuve', country: 'Canada', flag: '🇨🇦', pole: 71.459, poleSitter: 'Hamilton', laps: 70, length: 4.361,
     path: 'M38,88 C30,72 40,60 58,60 L150,60 C172,60 190,66 186,80 C182,92 166,94 148,92 C130,90 124,98 108,98 L70,98 C52,98 44,98 38,88 Z' },
@@ -51,7 +52,7 @@ const TRACKS: Track[] = [
     path: 'M30,92 C26,74 38,66 56,68 C72,70 78,58 74,46 C70,32 84,24 98,30 C110,35 110,50 124,54 C146,60 176,48 192,62 C204,73 196,88 174,90 C154,92 148,100 126,100 C98,100 44,106 30,92 Z' },
   { id: 'ita', name: 'Monza', country: 'Italy', flag: '🇮🇹', pole: 95.554, poleSitter: 'Hamilton', laps: 53, length: 5.793,
     path: 'M40,96 C34,80 38,66 54,64 C84,60 84,40 110,40 L160,40 C182,40 192,52 184,68 C177,82 158,80 150,90 C144,98 140,100 124,100 C100,100 52,108 40,96 Z' },
-  { id: 'sgp', name: 'Marina Bay', country: 'Singapore', flag: '🇸🇬', pole: 99.491, poleSitter: 'Vettel', laps: 61, length: 5.065,
+  { id: 'sgp', name: 'Marina Bay', country: 'Singapore', flag: '🇸🇬', pole: 99.491, poleSitter: 'Vettel', laps: 61, length: 5.065, street: true,
     path: 'M36,100 L36,60 C36,50 44,46 56,48 C70,50 74,42 72,34 L100,34 C112,34 116,42 116,52 L160,52 C176,52 184,60 184,74 L184,96 C184,104 176,106 164,104 L70,104 C50,106 36,108 36,100 Z' },
   { id: 'jpn', name: 'Suzuka', country: 'Japan', flag: '🇯🇵', pole: 87.319, poleSitter: 'Hamilton', laps: 53, length: 5.807,
     path: 'M38,84 C32,68 44,58 62,60 C80,62 90,52 88,40 C86,30 96,26 106,32 C114,37 112,48 122,54 C138,63 168,54 184,68 C196,79 188,92 168,90 C150,88 146,80 128,78 C112,76 110,86 94,90 C72,95 50,96 38,84 Z' },
@@ -96,9 +97,47 @@ function buildProfile(pathEl: SVGPathElement, samples = 240): Profile {
   return { total, samples, speeds, scurv };
 }
 
+// A tiered grandstand with a crowd, roof, and supports — a billboard sprite.
+function drawGrandstand(ctx: CanvasRenderingContext2D, x: number, baseY: number, w: number, h: number, accent: string, idx: number) {
+  const left = x - w / 2;
+  const top = baseY - h;
+  // back structure
+  ctx.fillStyle = '#171a22';
+  ctx.fillRect(left, top, w, h);
+  // sloped seating bank
+  ctx.fillStyle = '#262b36';
+  ctx.beginPath();
+  ctx.moveTo(left, baseY);
+  ctx.lineTo(x + w / 2, baseY);
+  ctx.lineTo(x + w / 2, baseY - h * 0.78);
+  ctx.lineTo(left, baseY - h * 0.5);
+  ctx.closePath();
+  ctx.fill();
+  // crowd specks (deterministic so they don't flicker)
+  const palette = ['#e2e8f0', '#9aa3b2', '#cbd5e1', '#f59e0b', accent, '#ef5d6b'];
+  const cols = 6;
+  const rows = 4;
+  const s = Math.max(1, w * 0.05);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cxp = left + w * 0.08 + (c / (cols - 1)) * w * 0.84;
+      const cyp = baseY - h * 0.14 - r * ((h * 0.55) / rows) - (c % 2) * h * 0.03;
+      ctx.fillStyle = palette[(r * 3 + c * 5 + idx * 2) % palette.length];
+      ctx.fillRect(cxp - s / 2, cyp - s / 2, s, s);
+    }
+  }
+  // roof slab + front lip
+  ctx.fillStyle = idx % 2 ? accent : '#d9dde3';
+  const rh = Math.max(2, h * 0.16);
+  ctx.fillRect(left - w * 0.06, top, w * 1.12, rh);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(left - w * 0.06, top + rh - 2, w * 1.12, 2);
+}
+
 /* Pseudo-3D onboard: draws the road bending through the corners that are coming
    up along the path (sampled from the track's own signed curvature), with kerbs,
-   a scrolling tarmac, a vanishing point that leans into the turn, and a halo. */
+   barrier walls, distant grandstands, scrolling tarmac, a leaning vanishing
+   point, and a cockpit halo. */
 function drawOnboard(
   ctx: CanvasRenderingContext2D,
   W: number,
@@ -107,6 +146,7 @@ function drawOnboard(
   prof: Profile,
   accent: string,
   speed: number,
+  street: boolean,
 ) {
   const { scurv, samples } = prof;
   const horizon = Math.round(H * 0.4);
@@ -151,6 +191,26 @@ function drawOnboard(
   vp.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = vp;
   ctx.fillRect(0, 0, W, H);
+
+  // ── grandstands set back from the track (drawn far → near, behind the road) ──
+  const landmarks = [0.05, 0.22, 0.45, 0.68, 0.88];
+  const stands: { df: number; side: number; idx: number }[] = [];
+  for (let li = 0; li < landmarks.length; li++) {
+    const lIdx = landmarks[li] * samples;
+    const fwd = (((lIdx - baseIdx) % samples) + samples) % samples;
+    if (fwd <= aheadSamples) stands.push({ df: fwd / aheadSamples, side: li % 2 === 0 ? -1 : 1, idx: li });
+  }
+  stands.sort((a, b) => b.df - a.df);
+  for (const st of stands) {
+    const i = Math.min(segs, Math.max(0, Math.round(st.df * segs)));
+    const scale = 0.16 + 0.84 * (1 - st.df);
+    const gw = W * 0.22 * scale;
+    const gh = W * 0.16 * scale;
+    const gx = cx[i] + st.side * (hw[i] + gw * 0.55);
+    ctx.globalAlpha = Math.max(0.25, Math.min(1, 1.15 - st.df));
+    drawGrandstand(ctx, gx, cy[i], gw, gh, accent, st.idx);
+    ctx.globalAlpha = 1;
+  }
 
   // road, far → near (painter's order)
   for (let i = segs; i > 0; i--) {
@@ -209,6 +269,49 @@ function drawOnboard(
       ctx.closePath();
       ctx.fill();
     }
+
+    // ── barrier walls rising from each road edge ──
+    const whF = wF * (street ? 0.55 : 0.3);
+    const whN = wN * (street ? 0.55 : 0.3);
+    const seam = (i + Math.floor(scroll)) & 1;
+    const wallCol = seam ? '#3b3f48' : '#30343d';
+    const railCol = street ? '#cbd0d8' : seam ? '#d2233a' : '#e8e8e8';
+    const railF = Math.max(1, whF * 0.16);
+    const railN = Math.max(1, whN * 0.16);
+    // left wall + rail
+    ctx.fillStyle = wallCol;
+    ctx.beginPath();
+    ctx.moveTo(xF - wF, yF);
+    ctx.lineTo(xN - wN, yN);
+    ctx.lineTo(xN - wN, yN - whN);
+    ctx.lineTo(xF - wF, yF - whF);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = railCol;
+    ctx.beginPath();
+    ctx.moveTo(xF - wF, yF - whF);
+    ctx.lineTo(xN - wN, yN - whN);
+    ctx.lineTo(xN - wN, yN - whN - railN);
+    ctx.lineTo(xF - wF, yF - whF - railF);
+    ctx.closePath();
+    ctx.fill();
+    // right wall + rail
+    ctx.fillStyle = wallCol;
+    ctx.beginPath();
+    ctx.moveTo(xF + wF, yF);
+    ctx.lineTo(xN + wN, yN);
+    ctx.lineTo(xN + wN, yN - whN);
+    ctx.lineTo(xF + wF, yF - whF);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = railCol;
+    ctx.beginPath();
+    ctx.moveTo(xF + wF, yF - whF);
+    ctx.lineTo(xN + wN, yN - whN);
+    ctx.lineTo(xN + wN, yN - whN - railN);
+    ctx.lineTo(xF + wF, yF - whF - railF);
+    ctx.closePath();
+    ctx.fill();
   }
 
   // ── cockpit halo (sells the onboard view) ──
@@ -486,7 +589,7 @@ export default function FocusMode() {
         const ctx = cv?.getContext('2d');
         if (cv && ctx) {
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          drawOnboard(ctx, cv.width / dpr, cv.height / dpr, (dist / prof.total) * prof.samples, prof, accentRef.current, sp);
+          drawOnboard(ctx, cv.width / dpr, cv.height / dpr, (dist / prof.total) * prof.samples, prof, accentRef.current, sp, !!selected.street);
         }
       }
 
