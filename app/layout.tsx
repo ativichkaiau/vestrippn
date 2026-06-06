@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
+import HoverTypewriter from "../components/HoverTypewriter";
 import SiteMotion from "../components/SiteMotion";
 
 const inter = Inter({ 
@@ -59,6 +60,7 @@ export default function RootLayout({
           }}
         />
         <AuthProvider>
+          <HoverTypewriter />
           <SiteMotion>{children}</SiteMotion>
         </AuthProvider>
       </body>
