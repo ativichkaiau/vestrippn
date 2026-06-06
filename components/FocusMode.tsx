@@ -61,7 +61,7 @@ const TRACKS: Track[] = [
     path: 'M42,92 C34,76 40,62 58,60 C76,58 84,48 100,46 C120,43 130,34 150,38 C172,42 188,52 182,70 C177,84 158,86 140,86 C120,86 116,96 98,98 C76,100 52,104 42,92 Z' },
 ];
 
-type Profile = { total: number; samples: number; speeds: number[] };
+type Profile = { total: number; samples: number; speeds: number[]; scurv: number[] };
 
 function buildProfile(pathEl: SVGPathElement, samples = 240): Profile {
   const total = pathEl.getTotalLength();
@@ -71,7 +71,8 @@ function buildProfile(pathEl: SVGPathElement, samples = 240): Profile {
     const p = pathEl.getPointAtLength(i * step);
     pts.push({ x: p.x, y: p.y });
   }
-  const curv = new Array(samples).fill(0);
+  // signed turn angle per sample (+ / − = left / right) and its magnitude
+  const signed = new Array(samples).fill(0);
   for (let i = 0; i < samples; i++) {
     const a = pts[(i - 1 + samples) % samples];
     const b = pts[i];
@@ -79,21 +80,165 @@ function buildProfile(pathEl: SVGPathElement, samples = 240): Profile {
     let ang = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(b.y - a.y, b.x - a.x);
     while (ang > Math.PI) ang -= 2 * Math.PI;
     while (ang < -Math.PI) ang += 2 * Math.PI;
-    curv[i] = Math.abs(ang);
+    signed[i] = ang;
   }
-  const smooth = curv.map((_, i) => {
-    let s = 0;
-    for (let k = -3; k <= 3; k++) s += curv[(i + k + samples) % samples];
-    return s / 7;
-  });
-  const maxc = Math.max(...smooth, 0.0001);
-  const raw = smooth.map((c) => Math.round(330 - (c / maxc) * 250)); // 80..330 km/h
-  const speeds = raw.map((_, i) => {
-    let s = 0;
-    for (let k = -4; k <= 4; k++) s += raw[(i + k + samples) % samples];
-    return Math.round(s / 9);
-  });
-  return { total, samples, speeds };
+  const smoothBy = (arr: number[], r: number) =>
+    arr.map((_, i) => {
+      let s = 0;
+      for (let k = -r; k <= r; k++) s += arr[(i + k + samples) % samples];
+      return s / (2 * r + 1);
+    });
+  const scurv = smoothBy(signed, 3); // signed curvature for the onboard road bend
+  const curv = scurv.map(Math.abs);
+  const maxc = Math.max(...curv, 0.0001);
+  const raw = curv.map((c) => Math.round(330 - (c / maxc) * 250)); // 80..330 km/h
+  const speeds = smoothBy(raw, 4).map(Math.round);
+  return { total, samples, speeds, scurv };
+}
+
+/* Pseudo-3D onboard: draws the road bending through the corners that are coming
+   up along the path (sampled from the track's own signed curvature), with kerbs,
+   a scrolling tarmac, a vanishing point that leans into the turn, and a halo. */
+function drawOnboard(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  baseIdx: number,
+  prof: Profile,
+  accent: string,
+  speed: number,
+) {
+  const { scurv, samples } = prof;
+  const horizon = Math.round(H * 0.4);
+  const sampleAt = (k: number) => scurv[((Math.floor(k) % samples) + samples) % samples];
+
+  // sky
+  const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+  sky.addColorStop(0, '#0a1130');
+  sky.addColorStop(1, '#1a2750');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, horizon);
+  // grass / run-off
+  const grass = ctx.createLinearGradient(0, horizon, 0, H);
+  grass.addColorStop(0, '#10301a');
+  grass.addColorStop(1, '#0a1f12');
+  ctx.fillStyle = grass;
+  ctx.fillRect(0, horizon, W, H - horizon);
+
+  const segs = 60;
+  const aheadSamples = samples * 0.17; // how far up the track the view sees
+  const scroll = baseIdx * 2; // tarmac band motion
+
+  // geometry near(i=0, bottom) → far(i=segs, horizon)
+  const cx: number[] = [];
+  const cy: number[] = [];
+  const hw: number[] = [];
+  let x = W / 2;
+  let dx = 0;
+  for (let i = 0; i <= segs; i++) {
+    const t = i / segs;
+    cx[i] = x;
+    cy[i] = horizon + (H - horizon) * Math.pow(1 - t, 1.7);
+    hw[i] = W * 0.6 * Math.pow(1 - t, 1.35) + 4;
+    const c = sampleAt(baseIdx + t * aheadSamples);
+    dx += c * W * 0.011; // curvature → heading
+    x += dx; // heading → screen offset
+  }
+
+  // accent glow at the vanishing point
+  const vp = ctx.createRadialGradient(cx[segs], horizon, 2, cx[segs], horizon, H * 0.4);
+  vp.addColorStop(0, accent.replace(')', ', 0.22)').replace('rgb', 'rgba'));
+  vp.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = vp;
+  ctx.fillRect(0, 0, W, H);
+
+  // road, far → near (painter's order)
+  for (let i = segs; i > 0; i--) {
+    const xF = cx[i];
+    const yF = cy[i];
+    const wF = hw[i];
+    const xN = cx[i - 1];
+    const yN = cy[i - 1];
+    const wN = hw[i - 1];
+    const band = (i + Math.floor(scroll)) & 1;
+
+    ctx.fillStyle = band ? '#2b2b31' : '#242429';
+    ctx.beginPath();
+    ctx.moveTo(xF - wF, yF);
+    ctx.lineTo(xF + wF, yF);
+    ctx.lineTo(xN + wN, yN);
+    ctx.lineTo(xN - wN, yN);
+    ctx.closePath();
+    ctx.fill();
+
+    // kerbs on corners
+    const c = sampleAt(baseIdx + (i / segs) * aheadSamples);
+    if (Math.abs(c) > 0.02) {
+      const kerb = band ? '#d2233a' : '#f3f3f3';
+      const kF = wF * 0.16;
+      const kN = wN * 0.16;
+      ctx.fillStyle = kerb;
+      // left
+      ctx.beginPath();
+      ctx.moveTo(xF - wF, yF);
+      ctx.lineTo(xF - wF + kF, yF);
+      ctx.lineTo(xN - wN + kN, yN);
+      ctx.lineTo(xN - wN, yN);
+      ctx.closePath();
+      ctx.fill();
+      // right
+      ctx.beginPath();
+      ctx.moveTo(xF + wF, yF);
+      ctx.lineTo(xF + wF - kF, yF);
+      ctx.lineTo(xN + wN - kN, yN);
+      ctx.lineTo(xN + wN, yN);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // dashed centre line
+    if (((i + Math.floor(scroll)) >> 1) & 1) {
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      const cwF = wF * 0.04;
+      const cwN = wN * 0.04;
+      ctx.beginPath();
+      ctx.moveTo(xF - cwF, yF);
+      ctx.lineTo(xF + cwF, yF);
+      ctx.lineTo(xN + cwN, yN);
+      ctx.lineTo(xN - cwN, yN);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // ── cockpit halo (sells the onboard view) ──
+  const cxm = W / 2;
+  ctx.fillStyle = 'rgba(10,10,12,0.92)';
+  // centre strut
+  ctx.fillRect(cxm - W * 0.012, horizon - 6, W * 0.024, H - horizon);
+  // top arc
+  ctx.beginPath();
+  ctx.lineWidth = W * 0.03;
+  ctx.strokeStyle = 'rgba(10,10,12,0.92)';
+  ctx.moveTo(W * 0.12, H * 0.2);
+  ctx.quadraticCurveTo(cxm, H * 0.06, W * 0.88, H * 0.2);
+  ctx.stroke();
+  // thin accent rim on the halo arc
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = accent;
+  ctx.globalAlpha = 0.5;
+  ctx.moveTo(W * 0.12, H * 0.2 + W * 0.016);
+  ctx.quadraticCurveTo(cxm, H * 0.06 + W * 0.016, W * 0.88, H * 0.2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // bottom vignette
+  const vig = ctx.createLinearGradient(0, H * 0.78, 0, H);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, H * 0.78, W, H * 0.22);
 }
 
 const fmtLap = (s: number) => {
@@ -141,6 +286,8 @@ export default function FocusMode() {
   const pathRef = useRef<SVGPathElement | null>(null);
   const trailRef = useRef<SVGPathElement | null>(null);
   const carRef = useRef<SVGGElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const accentRef = useRef<string>('rgb(0, 210, 190)');
   const profileRef = useRef<Profile | null>(null);
   const rafRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
@@ -224,7 +371,23 @@ export default function FocusMode() {
       trailRef.current.style.strokeDasharray = `${profileRef.current.total}`;
       trailRef.current.style.strokeDashoffset = `${profileRef.current.total}`;
     }
+    // size the onboard canvas to its box (device-pixel-ratio aware) + resolve accent
+    const sizeCanvas = () => {
+      const cv = canvasRef.current;
+      if (!cv) return;
+      const r = cv.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cv.width = Math.max(1, Math.round(r.width * dpr));
+      cv.height = Math.max(1, Math.round(r.height * dpr));
+      const ctx = cv.getContext('2d');
+      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const col = getComputedStyle(cv).color;
+      if (col) accentRef.current = col;
+    };
+    sizeCanvas();
+    window.addEventListener('resize', sizeCanvas);
     setReady(true);
+    return () => window.removeEventListener('resize', sizeCanvas);
   }, [phase, selected]);
 
   // The animation / timing loop
@@ -317,6 +480,14 @@ export default function FocusMode() {
           onThrottle: nx >= sp,
           drs: sp > 290,
         };
+
+        // ── draw the pseudo-3D onboard ──
+        const cv = canvasRef.current;
+        const ctx = cv?.getContext('2d');
+        if (cv && ctx) {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          drawOnboard(ctx, cv.width / dpr, cv.height / dpr, (dist / prof.total) * prof.samples, prof, accentRef.current, sp);
+        }
       }
 
       // target checks
@@ -559,33 +730,48 @@ export default function FocusMode() {
                 </div>
               </div>
 
-              {/* track + car */}
-              <div className="relative flex flex-1 items-center justify-center px-4">
-                <svg viewBox="0 0 220 140" className="h-full max-h-[46vh] w-full max-w-[820px]">
-                  <path
-                    ref={pathRef}
-                    d={selected.path}
-                    fill="none"
-                    stroke="rgba(255,255,255,0.14)"
-                    strokeWidth={7}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    ref={trailRef}
-                    d={selected.path}
-                    fill="none"
-                    stroke="var(--hub-accent)"
-                    strokeWidth={7}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ filter: 'drop-shadow(0 0 6px rgba(var(--hub-accent-rgb),0.7))' }}
-                  />
-                  <g ref={carRef} style={{ transform: 'translate(0px,0px)' }}>
-                    <circle r={5.5} fill="#ffffff" />
-                    <circle r={9} fill="none" stroke="var(--hub-accent)" strokeWidth={2} opacity={0.7} />
-                  </g>
-                </svg>
+              {/* onboard view (hero) + track-map inset */}
+              <div className="relative flex-1 overflow-hidden">
+                {/* pseudo-3D onboard */}
+                <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" style={{ color: 'var(--hub-accent)' }} />
+
+                {/* current sector tag */}
+                <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur-md">
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--hub-accent)' }} />
+                  <span className="font-mono text-[12px] font-black tabular-nums" style={{ color: 'var(--hub-accent)' }}>
+                    S{sector}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">Sector {sector} / 3</span>
+                </div>
+
+                {/* track-map inset (whole circuit + position) */}
+                <div className="absolute right-3 top-3 w-32 rounded-2xl border border-white/10 bg-black/40 p-2 backdrop-blur-md sm:w-44">
+                  <svg viewBox="0 0 220 140" className="h-full w-full">
+                    <path
+                      ref={pathRef}
+                      d={selected.path}
+                      fill="none"
+                      stroke="rgba(255,255,255,0.18)"
+                      strokeWidth={7}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      ref={trailRef}
+                      d={selected.path}
+                      fill="none"
+                      stroke="var(--hub-accent)"
+                      strokeWidth={7}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ filter: 'drop-shadow(0 0 5px rgba(var(--hub-accent-rgb),0.7))' }}
+                    />
+                    <g ref={carRef} style={{ transform: 'translate(0px,0px)' }}>
+                      <circle r={6} fill="#ffffff" />
+                      <circle r={10} fill="none" stroke="var(--hub-accent)" strokeWidth={2.5} opacity={0.8} />
+                    </g>
+                  </svg>
+                </div>
 
                 {paused && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
