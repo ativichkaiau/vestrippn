@@ -356,6 +356,35 @@ function drawOnboard(
     }
   }
 
+  // ── start/finish line + gantry (drawn once per lap as it approaches) ──
+  const sfFwd = (((0 - baseIdx) % samples) + samples) % samples;
+  if (sfFwd <= aheadSamples * 0.95) {
+    const df = sfFwd / aheadSamples;
+    const i = Math.min(segs, Math.max(1, Math.round(df * segs)));
+    const xc = cx[i];
+    const yy = cy[i];
+    const ww = hw[i];
+    // checkered line across the track
+    const cells = 12;
+    const lh = Math.max(2, ww * 0.14);
+    for (let k = 0; k < cells; k++) {
+      ctx.fillStyle = k & 1 ? '#f5f5f5' : '#15151a';
+      const x0 = xc - ww + (k / cells) * 2 * ww;
+      const x1 = xc - ww + ((k + 1) / cells) * 2 * ww;
+      ctx.fillRect(x0, yy - lh / 2, x1 - x0, lh);
+    }
+    // gantry posts + beam
+    const postH = ww * 1.0;
+    const pw = Math.max(2, ww * 0.07);
+    ctx.fillStyle = '#1a1d24';
+    ctx.fillRect(xc - ww - pw, yy - postH, pw, postH);
+    ctx.fillRect(xc + ww, yy - postH, pw, postH);
+    const beamH = Math.max(3, ww * 0.16);
+    ctx.fillRect(xc - ww - pw, yy - postH, 2 * ww + 2 * pw, beamH);
+    ctx.fillStyle = accent;
+    ctx.fillRect(xc - ww, yy - postH + beamH, 2 * ww, Math.max(2, ww * 0.05));
+  }
+
   // ── cockpit halo (sells the onboard view) ──
   const cxm = W / 2;
   ctx.fillStyle = 'rgba(10,10,12,0.92)';
@@ -394,6 +423,25 @@ const fmtClock = (s: number) => {
   const m = Math.floor(s / 60);
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 };
+const fmtDelta = (d: number) => `${d <= 0 ? '−' : '+'}${Math.abs(d).toFixed(3)}`;
+
+// persistent personal best per circuit
+const PB_KEY = (id: string) => `vest_focus_pb_${id}`;
+const loadPB = (id: string): number | null => {
+  try {
+    const v = localStorage.getItem(PB_KEY(id));
+    return v ? parseFloat(v) : null;
+  } catch {
+    return null;
+  }
+};
+const savePB = (id: string, t: number) => {
+  try {
+    localStorage.setItem(PB_KEY(id), String(t));
+  } catch {
+    /* ignore */
+  }
+};
 
 // Standard F1 live-timing colours
 const TIMING = { purple: '#b026ff', green: '#22c55e', yellow: '#eab308', idle: '#e5e7eb' } as const;
@@ -427,6 +475,10 @@ export default function FocusMode() {
   const [lastLap, setLastLap] = useState<LapRec | null>(null);
   const [bestLap, setBestLap] = useState<number | null>(null);
   const [lapNo, setLapNo] = useState(0);
+  const [pb, setPb] = useState<number | null>(null); // persistent personal best
+  const [newPb, setNewPb] = useState(false);
+  const [secFlash, setSecFlash] = useState<{ label: string; time: number; delta: number | null; color: string; key: number } | null>(null);
+  const [lights, setLights] = useState<number>(-1); // -1 idle, 0..5 lights, 6 = GO/lights-out
 
   const pathRef = useRef<SVGPathElement | null>(null);
   const trailRef = useRef<SVGPathElement | null>(null);
@@ -452,7 +504,12 @@ export default function FocusMode() {
   const curSecRef = useRef<(Sec | null)[]>([null, null, null]);
   const bestLapRef = useRef<number | null>(null);
   const lastLapRef = useRef<number | null>(null);
+  const bestLapSecsRef = useRef<number[] | null>(null); // sector splits of the best lap
+  const pbRef = useRef<number | null>(null);
+  const lapSumRef = useRef(0); // for average lap
   const hudRef = useRef({ leD: 0, dist: 0, speed: 0, gear: 1, onThrottle: true, drs: false });
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lightTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => setMounted(true), []);
 
@@ -486,12 +543,26 @@ export default function FocusMode() {
     curSecRef.current = [null, null, null];
     bestLapRef.current = null;
     lastLapRef.current = null;
+    bestLapSecsRef.current = null;
+    lapSumRef.current = 0;
+    pbRef.current = loadPB(track.id);
     hudRef.current = { leD: 0, dist: 0, speed: 0, gear: 1, onThrottle: true, drs: false };
     setCurSec([null, null, null]);
     setLastLap(null);
     setBestLap(null);
     setLapNo(0);
+    setPb(pbRef.current);
+    setNewPb(false);
+    setSecFlash(null);
     setPhase('running');
+
+    // lights-out start sequence (cosmetic — the lap is already timing)
+    lightTimers.current.forEach(clearTimeout);
+    lightTimers.current = [];
+    setLights(0);
+    for (let n = 1; n <= 5; n++) lightTimers.current.push(setTimeout(() => setLights(n), n * 450));
+    lightTimers.current.push(setTimeout(() => setLights(6), 5 * 450 + 700)); // lights out
+    lightTimers.current.push(setTimeout(() => setLights(-1), 5 * 450 + 1500));
   }, []);
 
   const finish = useCallback(() => {
@@ -506,6 +577,10 @@ export default function FocusMode() {
     setSelected(null);
     setReady(false);
     setPaused(false);
+    setLights(-1);
+    lightTimers.current.forEach(clearTimeout);
+    lightTimers.current = [];
+    if (flashTimer.current) clearTimeout(flashTimer.current);
   }, []);
 
   // Build the speed/length profile once the running SVG is mounted
@@ -554,6 +629,11 @@ export default function FocusMode() {
       curSecRef.current[i] = { t, c };
       sectorMarkRef.current = i + 1;
       setCurSec([...curSecRef.current]);
+      // pop the sector time (with delta vs the best lap's split)
+      const ref = bestLapSecsRef.current?.[i];
+      setSecFlash({ label: `S${i + 1}`, time: t, delta: ref != null ? t - ref : null, color: TIMING[c], key: performance.now() });
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setSecFlash(null), 1700);
     };
 
     const finalizeLap = (t: number) => {
@@ -562,13 +642,22 @@ export default function FocusMode() {
         c = 'purple';
         bestLapRef.current = t;
         setBestLap(t);
+        bestLapSecsRef.current = curSecRef.current.map((s) => (s ? s.t : 0));
       } else if (lastLapRef.current != null && t < lastLapRef.current) {
         c = 'green';
+      }
+      // personal best (persisted across sessions)
+      if (pbRef.current == null || t < pbRef.current) {
+        pbRef.current = t;
+        savePB(selected.id, t);
+        setPb(t);
+        setNewPb(true);
       }
       const secs = curSecRef.current.map((s) => s ?? { t: 0, c: 'yellow' as TimingColor });
       setLastLap({ t, c, secs });
       lastLapRef.current = t;
       lastSecRef.current = curSecRef.current.map((s) => (s ? s.t : null));
+      lapSumRef.current += t;
       lapNoRef.current += 1;
       setLapNo(lapNoRef.current);
       curSecRef.current = [null, null, null];
@@ -711,6 +800,29 @@ export default function FocusMode() {
   const remaining = targetType === 'min' ? Math.max(0, targetValue * 60 - elapsed) : 0;
   const distanceKm = selected ? (lapNo * selected.length).toFixed(1) : '0.0';
 
+  // predictive delta to your best lap (sum of completed-sector splits vs best lap)
+  const doneIdx = curSec.filter(Boolean).length;
+  let delta: number | null = null;
+  if (doneIdx > 0 && bestLapSecsRef.current) {
+    let cum = 0;
+    let ref = 0;
+    let ok = true;
+    for (let k = 0; k < doneIdx; k++) {
+      const s = curSec[k];
+      const b = bestLapSecsRef.current[k];
+      if (!s || !b) { ok = false; break; }
+      cum += s.t;
+      ref += b;
+    }
+    if (ok) delta = cum - ref;
+  }
+  // theoretical best = sum of your best individual sectors
+  const bestSecs = bestSecRef.current;
+  const theo = bestSecs[0] != null && bestSecs[1] != null && bestSecs[2] != null ? (bestSecs[0]! + bestSecs[1]! + bestSecs[2]!) : null;
+  const avgLap = lapNo > 0 ? lapSumRef.current / lapNo : null;
+  // shift lights: 15 LEDs filling toward the rev limit
+  const litLeds = Math.max(0, Math.min(15, Math.round((speed / 320) * 15)));
+
   return (
     <>
       {/* Trigger */}
@@ -728,6 +840,7 @@ export default function FocusMode() {
 
       {open && mounted && createPortal(
         <div className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
+          <style>{`@keyframes fmFade{0%{opacity:0;transform:translate(-50%,6px) scale(0.96)}15%{opacity:1;transform:translate(-50%,0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px) scale(1)}}@keyframes fmPop{0%{opacity:0;transform:scale(0.7)}30%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
           {/* carbon + accent atmosphere */}
           <div
             className="pointer-events-none absolute inset-0"
@@ -790,46 +903,60 @@ export default function FocusMode() {
 
               {/* track grid */}
               <div className="custom-scrollbar grid flex-1 grid-cols-2 gap-3 overflow-y-auto px-5 pb-8 sm:grid-cols-3 sm:px-8 lg:grid-cols-4 xl:grid-cols-5">
-                {TRACKS.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => launch(t)}
-                    className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-left transition-all hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.08]"
-                  >
-                    <svg viewBox="0 0 220 140" className="h-20 w-full">
-                      <path
-                        d={t.path}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={4}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-white/20 transition-colors group-hover:text-white/40"
-                      />
-                      <path
-                        d={t.path}
-                        fill="none"
-                        stroke="var(--hub-accent)"
-                        strokeWidth={4}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeDasharray="14 320"
-                        opacity={0.9}
-                      />
-                    </svg>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-[15px] leading-none">{t.flag}</span>
-                      <span className="truncate text-[13px] font-black tracking-tight">{t.country}</span>
-                    </div>
-                    <div className="truncate text-[10px] font-medium text-neutral-400">{t.name}</div>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="font-mono text-[12px] font-black" style={{ color: 'var(--hub-text-soft-2)' }}>
-                        {fmtLap(t.pole)}
-                      </span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">{t.poleSitter}</span>
-                    </div>
-                  </button>
-                ))}
+                {TRACKS.map((t) => {
+                  const pbVal = loadPB(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => launch(t)}
+                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-left transition-all hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.08]"
+                    >
+                      {t.street && (
+                        <span className="absolute right-2 top-2 rounded-md bg-white/10 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-neutral-300">
+                          Street
+                        </span>
+                      )}
+                      <svg viewBox="0 0 220 140" className="h-20 w-full">
+                        <path
+                          d={t.path}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={4}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-white/20 transition-colors group-hover:text-white/40"
+                        />
+                        <path
+                          d={t.path}
+                          fill="none"
+                          stroke="var(--hub-accent)"
+                          strokeWidth={4}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeDasharray="14 320"
+                          opacity={0.9}
+                        />
+                      </svg>
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-[15px] leading-none">{t.flag}</span>
+                        <span className="truncate text-[13px] font-black tracking-tight">{t.country}</span>
+                      </div>
+                      <div className="truncate text-[10px] font-medium text-neutral-400">{t.name}</div>
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="font-mono text-[12px] font-black" style={{ color: 'var(--hub-text-soft-2)' }}>
+                          {fmtLap(t.pole)}
+                        </span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">{t.poleSitter}</span>
+                      </div>
+                      <div className="mt-1.5 flex items-center justify-between border-t border-white/5 pt-1.5 text-[9px] font-bold uppercase tracking-widest text-neutral-500">
+                        <span>{t.length} km · {t.laps} laps</span>
+                        {pbVal != null && (
+                          <span className="font-mono" style={{ color: TIMING.purple }}>PB {fmtLap(pbVal)}</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -880,6 +1007,21 @@ export default function FocusMode() {
                 {/* pseudo-3D onboard */}
                 <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" style={{ color: 'var(--hub-accent)' }} />
 
+                {/* shift-light RPM strip */}
+                <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/45 px-2.5 py-1.5 backdrop-blur-md">
+                  {Array.from({ length: 15 }).map((_, k) => {
+                    const on = k < litLeds;
+                    const col = k < 8 ? '#22c55e' : k < 13 ? '#ef4444' : '#3b82f6';
+                    return (
+                      <span
+                        key={k}
+                        className="h-2 w-2 rounded-[2px] transition-all duration-75"
+                        style={{ backgroundColor: on ? col : 'rgba(255,255,255,0.12)', boxShadow: on ? `0 0 6px ${col}` : 'none' }}
+                      />
+                    );
+                  })}
+                </div>
+
                 {/* current sector tag */}
                 <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur-md">
                   <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--hub-accent)' }} />
@@ -888,6 +1030,45 @@ export default function FocusMode() {
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">Sector {sector} / 3</span>
                 </div>
+
+                {/* sector-time pop */}
+                {secFlash && (
+                  <div key={secFlash.key} className="pointer-events-none absolute left-1/2 top-[38%] -translate-x-1/2 text-center" style={{ animation: 'fmFade 1.7s ease-out forwards' }}>
+                    <div className="text-[10px] font-black uppercase tracking-[0.4em] text-neutral-300">{secFlash.label}</div>
+                    <div className="font-mono text-3xl font-black tabular-nums" style={{ color: secFlash.color }}>
+                      {secFlash.time.toFixed(3)}
+                    </div>
+                    {secFlash.delta != null && (
+                      <div className="font-mono text-sm font-black tabular-nums" style={{ color: secFlash.delta <= 0 ? '#22c55e' : '#ef5d6b' }}>
+                        {fmtDelta(secFlash.delta)}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* lights-out start sequence */}
+                {lights >= 0 && (
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/35 backdrop-blur-[2px]">
+                    {lights < 6 ? (
+                      <>
+                        <div className="flex gap-2">
+                          {Array.from({ length: 5 }).map((_, k) => (
+                            <span
+                              key={k}
+                              className="h-6 w-6 rounded-full transition-all duration-150 sm:h-8 sm:w-8"
+                              style={{ backgroundColor: k < lights ? '#ef2233' : 'rgba(255,255,255,0.12)', boxShadow: k < lights ? '0 0 16px #ef2233' : 'none' }}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-neutral-400">Formation Lap</div>
+                      </>
+                    ) : (
+                      <div className="text-4xl font-black uppercase tracking-[0.3em]" style={{ color: 'var(--hub-accent)', animation: 'fmPop 0.5s ease-out forwards' }}>
+                        Lights Out
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* track-map inset (whole circuit + position) */}
                 <div className="absolute right-3 top-3 w-32 rounded-2xl border border-white/10 bg-black/40 p-2 backdrop-blur-md sm:w-44">
@@ -931,9 +1112,14 @@ export default function FocusMode() {
               {/* telemetry HUD */}
               <div className="px-5 pb-6 sm:px-8">
                 {/* big readouts */}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                   <Readout label="Lap Clock" value={fmtLap(leD)} accent />
                   <Readout label="Speed" value={`${speed}`} unit="km/h" />
+                  <Readout
+                    label="Delta to Best"
+                    value={delta != null ? fmtDelta(delta) : '—'}
+                    color={delta != null ? (delta <= 0 ? '#22c55e' : '#ef5d6b') : undefined}
+                  />
                   <Readout label="Lap" value={`${lapNo}`} sub={targetType === 'laps' ? `/ ${targetValue}` : undefined} />
                   <Readout
                     label={targetType === 'min' ? 'Remaining' : 'Focus Time'}
@@ -953,8 +1139,9 @@ export default function FocusMode() {
                 {/* gear / drs / sector / throttle */}
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <Pill label="Gear" value={`${gear}`} />
-                  <Pill label="Sector" value={`S${sector}`} />
                   <Pill label="DRS" value={drs ? 'OPEN' : '—'} on={drs} />
+                  <Pill label="Theo Best" value={theo != null ? fmtLap(theo) : '—'} />
+                  <Pill label="PB" value={pb != null ? fmtLap(pb) : '—'} />
                   <Pill label="Pole Ref" value={fmtLap(selected.pole)} />
                   <Pill label="Distance" value={`${distanceKm} km`} />
                   {/* throttle / brake bar */}
@@ -986,11 +1173,21 @@ export default function FocusMode() {
               <p className="mt-2 text-sm font-medium text-neutral-400">
                 {selected.flag} {selected.country} · {selected.name}
               </p>
+              {newPb && (
+                <div
+                  className="mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-black uppercase tracking-widest"
+                  style={{ backgroundColor: 'rgba(176,38,255,0.16)', color: TIMING.purple, animation: 'fmPop 0.5s ease-out forwards' }}
+                >
+                  ★ New Personal Best
+                </div>
+              )}
 
-              <div className="mt-8 grid w-full max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="mt-8 grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 <Readout label="Laps" value={`${lapNo}`} accent />
+                <Readout label="Best Lap" value={bestLap != null ? fmtLap(bestLap) : '—'} color={bestLap != null ? TIMING.purple : undefined} />
+                <Readout label="Theo Best" value={theo != null ? fmtLap(theo) : '—'} />
+                <Readout label="Avg Lap" value={avgLap != null ? fmtLap(avgLap) : '—'} />
                 <Readout label="Distance" value={distanceKm} unit="km" />
-                <Readout label="Best Lap" value={bestLap != null ? fmtLap(bestLap) : '—'} />
                 <Readout label="Focus" value={fmtClock(elapsed)} />
               </div>
 
@@ -1024,14 +1221,14 @@ export default function FocusMode() {
   );
 }
 
-function Readout({ label, value, unit, sub, accent }: { label: string; value: string; unit?: string; sub?: string; accent?: boolean }) {
+function Readout({ label, value, unit, sub, accent, color }: { label: string; value: string; unit?: string; sub?: string; accent?: boolean; color?: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
       <div className="text-[9px] font-black uppercase tracking-widest text-neutral-500">{label}</div>
       <div className="mt-1 flex items-baseline gap-1.5">
         <span
           className="font-mono text-2xl font-black tabular-nums tracking-tight sm:text-3xl"
-          style={accent ? { color: 'var(--hub-accent)' } : undefined}
+          style={color ? { color } : accent ? { color: 'var(--hub-accent)' } : undefined}
         >
           {value}
         </span>
