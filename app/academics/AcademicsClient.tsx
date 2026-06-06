@@ -8,6 +8,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
 import HubIntro from '../../components/HubIntro';
+import FocusMode from '../../components/FocusMode';
 import { syncAnkiData } from '@/app/actions';
 
 interface Subject { id: string; name: string; progress: number | null; }
@@ -266,6 +267,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
         <div className="flex gap-4 lg:gap-6 items-center">
           <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
           <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
+          <FocusMode />
           <TopNavProfile />
           <ThemeToggle />
         </div>
