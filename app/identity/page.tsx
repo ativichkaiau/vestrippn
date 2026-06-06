@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -115,6 +116,8 @@ export default function IdentityHub() {
               ]}
             />
 
+            <IdentityGifGrid />
+
             {/* --- MAIN HUD: THE IDENTITY MFD --- */}
             <motion.div
               id="identity-mfd"
@@ -206,6 +209,8 @@ export default function IdentityHub() {
                      <NetworkLink name="GitHub" href="https://github.com/ativichkaiau" />
                      <NetworkLink name="LinkedIn" href="https://www.linkedin.com/in/ativich-vichittragoonthavon-b08b01258/" />
                   </div>
+
+                  <FinishedIdentityGif />
 
                   {/* Animated trackside telemetry — fills the lower column space */}
                   <F1Idle />
@@ -486,6 +491,131 @@ export default function IdentityHub() {
 
 // --- SUB-COMPONENTS ---
 
+const identityGifs = [
+  {
+    title: 'Identity Signal',
+    subtitle: 'Authorized profile beacon',
+    src: '/identity-gifs/identity-signal.gif',
+    alt: 'Animated cyan radar-style identity signal graphic',
+    tone: 'cyan',
+  },
+  {
+    title: 'Stack Telemetry',
+    subtitle: 'Engineering systems pulse',
+    src: '/identity-gifs/identity-stack.gif',
+    alt: 'Animated engineering stack telemetry bars',
+    tone: 'emerald',
+  },
+  {
+    title: 'Achievement Orbit',
+    subtitle: 'Olympiad and systems trajectory',
+    src: '/identity-gifs/identity-orbit.gif',
+    alt: 'Animated orbiting achievement nodes around an identity mark',
+    tone: 'amber',
+  },
+] as const;
+
+function IdentityGifGrid() {
+  return (
+    <motion.section
+      data-no-typewriter
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+      className="grid grid-cols-1 gap-4 md:grid-cols-3"
+    >
+      {identityGifs.map((gif, index) => (
+        <IdentityGifCard key={gif.src} {...gif} delay={index * 0.05} />
+      ))}
+    </motion.section>
+  );
+}
+
+function IdentityGifCard({
+  title,
+  subtitle,
+  src,
+  alt,
+  tone,
+  delay,
+}: {
+  title: string;
+  subtitle: string;
+  src: string;
+  alt: string;
+  tone: 'cyan' | 'emerald' | 'amber';
+  delay: number;
+}) {
+  const toneStyles = {
+    cyan: {
+      border: 'hover:border-cyan-500/30',
+      dot: 'bg-cyan-500 shadow-[0_0_14px_rgba(6,182,212,0.55)]',
+      text: 'text-cyan-600 dark:text-cyan-300',
+    },
+    emerald: {
+      border: 'hover:border-emerald-500/30',
+      dot: 'bg-emerald-500 shadow-[0_0_14px_rgba(16,185,129,0.55)]',
+      text: 'text-emerald-600 dark:text-emerald-300',
+    },
+    amber: {
+      border: 'hover:border-amber-500/30',
+      dot: 'bg-amber-500 shadow-[0_0_14px_rgba(245,158,11,0.55)]',
+      text: 'text-amber-600 dark:text-amber-300',
+    },
+  }[tone];
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 24, delay }}
+      whileHover={{ y: -5, scale: 1.01, boxShadow: '0 18px 42px rgba(0,0,0,0.10)', transition: { type: 'spring', stiffness: 380, damping: 28 } }}
+      data-no-typewriter
+      className={`group/gif overflow-hidden rounded-[28px] border border-black/5 bg-white/60 shadow-[0_10px_32px_rgba(0,0,0,0.04)] backdrop-blur-xl transition-colors duration-500 dark:border-white/5 dark:bg-white/5 ${toneStyles.border}`}
+    >
+      <div className="relative aspect-[16/9] overflow-hidden bg-neutral-950">
+        <Image
+          src={src}
+          alt={alt}
+          width={640}
+          height={360}
+          unoptimized
+          className="h-full w-full object-cover transition-transform duration-700 group-hover/gif:scale-105"
+        />
+      </div>
+      <div className="flex items-center justify-between gap-4 p-4">
+        <div>
+          <h3 className={`text-[13px] font-black uppercase tracking-widest ${toneStyles.text}`}>{title}</h3>
+          <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{subtitle}</p>
+        </div>
+        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${toneStyles.dot}`} />
+      </div>
+    </motion.article>
+  );
+}
+
+function FinishedIdentityGif() {
+  return (
+    <motion.div
+      data-no-typewriter
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.12 }}
+      whileHover={{ y: -4, scale: 1.01, boxShadow: '0 18px 42px rgba(0,0,0,0.10)', transition: { type: 'spring', stiffness: 380, damping: 28 } }}
+      className="overflow-hidden rounded-3xl border border-amber-500/20 bg-amber-500/10 shadow-[0_12px_34px_rgba(0,0,0,0.05)] transition-colors duration-700 dark:bg-amber-500/10"
+    >
+      <Image
+        src="/identity-gifs/identity-finished.gif"
+        alt="Animated finished profile status graphic"
+        width={640}
+        height={360}
+        unoptimized
+        className="h-auto w-full object-cover"
+      />
+    </motion.div>
+  );
+}
+
 function StackRow({ title, items, color }: { title: string, items: string[], color: string }) {
   const badgeColors: Record<string, string> = {
     blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
@@ -573,15 +703,6 @@ function AchievementNode({ title, rank, medal, details, theme }: { title: string
 }
 
 function LegendTile({ name, titles, wins, poles, podiums, theme, epicMoment, fact }: { name: string, titles: string, wins: number, poles: number, podiums: number, theme: 'red' | 'purple' | 'amber' | 'cyan' | 'indigo' | 'emerald', epicMoment: string, fact: string }) {
-  const badgeColors = {
-    red: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-500/20',
-    purple: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 border-purple-500/20',
-    amber: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-500/20',
-    cyan: 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10 border-cyan-500/20',
-    indigo: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border-indigo-500/20',
-    emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500/20',
-  };
-
   const textColors = {
     red: 'text-red-600 dark:text-red-400',
     purple: 'text-purple-600 dark:text-purple-400',
