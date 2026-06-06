@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 
 const BLOCK_MIN_HEIGHT = 72;
 const BLOCK_MIN_WIDTH = 140;
-const TYPEABLE_SELECTOR = 'h1,h2,h3,h4,p,li,dd,dt';
+const TYPEABLE_SELECTOR = 'h1,h2,h3,h4,p,li,dd,dt,span,div';
 const CONTROL_SELECTOR = 'button,input,textarea,select,option,[contenteditable="true"],[data-no-typewriter]';
 const CHROME_SELECTOR = 'header,aside,nav,footer,form,[data-no-typewriter]';
 
@@ -15,9 +15,16 @@ declare global {
 }
 
 type TypeItem = {
-  element: HTMLElement;
+  host: HTMLElement;
+  node: Text;
   text: string;
   previousMinHeight: string;
+};
+
+type PreparedBlock = {
+  block: HTMLElement;
+  items: TypeItem[];
+  key: string;
 };
 
 function getTypedBlocks() {
@@ -37,9 +44,15 @@ function hasReadableText(element: HTMLElement) {
   return text.length >= 8 && /[A-Za-z0-9]/.test(text);
 }
 
+function hasBlockSize(element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+  return rect.width >= BLOCK_MIN_WIDTH && rect.height >= BLOCK_MIN_HEIGHT;
+}
+
 function looksLikeInformationBlock(element: HTMLElement) {
   if (element.closest(CHROME_SELECTOR)) return false;
   if (element.matches(CONTROL_SELECTOR)) return false;
+  if (element.dataset.typewriterState) return hasBlockSize(element);
 
   const classes = classText(element);
   if (!classes.includes('rounded-')) return false;
@@ -47,8 +60,7 @@ function looksLikeInformationBlock(element: HTMLElement) {
   if (!/(^|\s)(bg-|dark:bg-|border|shadow-|backdrop-blur|ring-)/.test(classes)) return false;
   if (!hasReadableText(element)) return false;
 
-  const rect = element.getBoundingClientRect();
-  return rect.width >= BLOCK_MIN_WIDTH && rect.height >= BLOCK_MIN_HEIGHT;
+  return hasBlockSize(element);
 }
 
 function findInformationBlock(target: EventTarget | null) {
@@ -65,35 +77,62 @@ function findInformationBlock(target: EventTarget | null) {
   return null;
 }
 
-function blockKey(block: HTMLElement) {
-  const text = block.textContent?.replace(/\s+/g, ' ').trim().slice(0, 220) ?? '';
+function blockKey(block: HTMLElement, items: TypeItem[]) {
+  const text = items.map((item) => item.text).join(' ').replace(/\s+/g, ' ').trim().slice(0, 220);
   const blockCandidates = Array.from(document.querySelectorAll<HTMLElement>('.motion-route-shell [class*="rounded-"]'));
   const index = blockCandidates.indexOf(block);
 
   return `${window.location.pathname}:${index}:${text}`;
 }
 
-function collectTypeItems(block: HTMLElement): TypeItem[] {
-  const textElements = [
-    ...(block.matches(TYPEABLE_SELECTOR) ? [block] : []),
-    ...Array.from(block.querySelectorAll<HTMLElement>(TYPEABLE_SELECTOR)),
-  ];
+function elementDepth(element: HTMLElement) {
+  let depth = 0;
+  let node: HTMLElement | null = element;
 
-  return textElements
-    .filter((element) => {
-      if (element.closest(CONTROL_SELECTOR)) return false;
-      if (element.closest(CHROME_SELECTOR)) return false;
-      if (element.children.length > 0) return false;
+  while (node) {
+    depth += 1;
+    node = node.parentElement;
+  }
 
-      const text = element.textContent?.replace(/\s+/g, ' ').trim() ?? '';
-      return text.length >= 3 && /[A-Za-z0-9]/.test(text);
-    })
-    .slice(0, 8)
-    .map((element) => ({
-      element,
-      text: element.textContent ?? '',
-      previousMinHeight: element.style.minHeight,
-    }));
+  return depth;
+}
+
+function textHost(node: Text) {
+  const parent = node.parentElement;
+  if (!parent) return null;
+  if (parent.matches(TYPEABLE_SELECTOR)) return parent;
+
+  return parent.closest<HTMLElement>(TYPEABLE_SELECTOR);
+}
+
+function collectTypeItems(block: HTMLElement, claimedNodes?: WeakSet<Text>): TypeItem[] {
+  const items: TypeItem[] = [];
+  const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (!(node instanceof Text)) continue;
+    if (claimedNodes?.has(node)) continue;
+
+    const host = textHost(node);
+    if (!host) continue;
+    if (host.closest(CONTROL_SELECTOR)) continue;
+    if (host.closest(CHROME_SELECTOR)) continue;
+    if (host.closest('[aria-hidden="true"]')) continue;
+
+    const text = node.data;
+    const readableText = text.replace(/\s+/g, ' ').trim();
+    if (readableText.length === 0) continue;
+
+    items.push({
+      host,
+      node,
+      text,
+      previousMinHeight: host.style.minHeight,
+    });
+  }
+
+  return items;
 }
 
 function delayForCharacter(character: string) {
@@ -107,6 +146,8 @@ export default function HoverTypewriter() {
   useEffect(() => {
     const typedBlocks = getTypedBlocks();
     const activeTimers = new Set<number>();
+    const preparedBlocks = new WeakMap<HTMLElement, PreparedBlock>();
+    const preparedBlockList = new Set<PreparedBlock>();
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const schedule = (callback: () => void, delay: number) => {
@@ -118,42 +159,107 @@ export default function HoverTypewriter() {
       activeTimers.add(timer);
     };
 
+    const applyEmptyState = (prepared: PreparedBlock) => {
+      for (const item of prepared.items) {
+        const rect = item.host.getBoundingClientRect();
+        if (rect.height > 0) {
+          item.host.style.minHeight = `${rect.height}px`;
+        }
+
+        item.node.data = '';
+      }
+
+      prepared.block.dataset.typewriterState = 'empty';
+    };
+
     const finish = (block: HTMLElement, items: TypeItem[]) => {
       for (const item of items) {
-        item.element.textContent = item.text;
-        item.element.style.minHeight = item.previousMinHeight;
-        item.element.classList.remove('typewriter-text-active');
+        item.node.data = item.text;
+        item.host.style.minHeight = item.previousMinHeight;
+        item.host.classList.remove('typewriter-text-active');
       }
 
       block.dataset.typewriterState = 'typed';
     };
 
+    const prepareBlock = (block: HTMLElement, claimedNodes?: WeakSet<Text>) => {
+      const existing = preparedBlocks.get(block);
+      if (existing) {
+        for (const item of existing.items) {
+          claimedNodes?.add(item.node);
+        }
+
+        if (existing.block.dataset.typewriterState === 'empty') {
+          applyEmptyState(existing);
+        }
+
+        return existing;
+      }
+
+      const items = collectTypeItems(block, claimedNodes);
+      if (items.length === 0) return null;
+
+      for (const item of items) {
+        claimedNodes?.add(item.node);
+      }
+
+      const key = blockKey(block, items);
+      const prepared = { block, items, key };
+      preparedBlocks.set(block, prepared);
+      preparedBlockList.add(prepared);
+      block.dataset.typewriterKey = key;
+
+      if (typedBlocks.has(key)) {
+        block.dataset.typewriterState = 'typed';
+        return prepared;
+      }
+
+      applyEmptyState(prepared);
+      return prepared;
+    };
+
+    const preparePendingBlocks = (root: ParentNode = document) => {
+      const candidates = Array.from(root.querySelectorAll<HTMLElement>('.motion-route-shell [class*="rounded-"]'))
+        .filter(looksLikeInformationBlock)
+        .sort((a, b) => elementDepth(b) - elementDepth(a));
+      const claimedNodes = new WeakSet<Text>();
+
+      for (const prepared of preparedBlockList) {
+        if (!prepared.block.isConnected) {
+          preparedBlockList.delete(prepared);
+          continue;
+        }
+
+        for (const item of prepared.items) {
+          if (item.node.isConnected) {
+            claimedNodes.add(item.node);
+          }
+        }
+      }
+
+      for (const block of candidates) {
+        prepareBlock(block, claimedNodes);
+      }
+    };
+
     const startTyping = (block: HTMLElement) => {
       if (block.dataset.typewriterState === 'typing' || block.dataset.typewriterState === 'typed') return;
 
-      const key = blockKey(block);
-      if (typedBlocks.has(key)) {
+      const prepared = prepareBlock(block);
+      if (!prepared) return;
+
+      if (typedBlocks.has(prepared.key)) {
         block.dataset.typewriterState = 'typed';
+        finish(block, prepared.items);
         return;
       }
 
-      const items = collectTypeItems(block);
-      if (items.length === 0) return;
-
-      typedBlocks.add(key);
+      typedBlocks.add(prepared.key);
       block.dataset.typewriterState = 'typing';
 
       if (reduceMotion) {
-        finish(block, items);
+        finish(block, prepared.items);
         return;
-      }
-
-      for (const item of items) {
-        const rect = item.element.getBoundingClientRect();
-        if (rect.height > 0) {
-          item.element.style.minHeight = `${rect.height}px`;
-        }
-        item.element.textContent = '';
       }
 
       let itemIndex = 0;
@@ -162,21 +268,21 @@ export default function HoverTypewriter() {
       const step = () => {
         if (!block.isConnected) return;
 
-        const item = items[itemIndex];
+        const item = prepared.items[itemIndex];
         if (!item) {
-          finish(block, items);
+          finish(block, prepared.items);
           return;
         }
 
-        item.element.classList.add('typewriter-text-active');
+        item.host.classList.add('typewriter-text-active');
 
         const nextIndex = Math.min(item.text.length, charIndex + Math.max(1, Math.ceil(item.text.length / 140)));
-        item.element.textContent = item.text.slice(0, nextIndex);
+        item.node.data = item.text.slice(0, nextIndex);
         const nextDelay = delayForCharacter(item.text.charAt(nextIndex - 1));
         charIndex = nextIndex;
 
         if (charIndex >= item.text.length) {
-          item.element.classList.remove('typewriter-text-active');
+          item.host.classList.remove('typewriter-text-active');
           itemIndex += 1;
           charIndex = 0;
           schedule(step, 70);
@@ -195,6 +301,23 @@ export default function HoverTypewriter() {
       startTyping(block);
     };
 
+    preparePendingBlocks();
+
+    let scanTimer: number | null = null;
+    const observer = new MutationObserver(() => {
+      if (scanTimer !== null) {
+        window.clearTimeout(scanTimer);
+      }
+
+      scanTimer = window.setTimeout(() => {
+        scanTimer = null;
+        preparePendingBlocks();
+      }, 80);
+    });
+
+    const routeShell = document.querySelector('.motion-route-shell');
+    observer.observe(routeShell ?? document.body, { childList: true, subtree: true });
+
     document.addEventListener('pointerover', handleInteraction, { passive: true });
     document.addEventListener('pointermove', handleInteraction, { passive: true });
     document.addEventListener('mouseover', handleInteraction, { passive: true });
@@ -207,6 +330,10 @@ export default function HoverTypewriter() {
       document.removeEventListener('mouseover', handleInteraction);
       document.removeEventListener('mousemove', handleInteraction);
       document.removeEventListener('focusin', handleInteraction);
+      observer.disconnect();
+      if (scanTimer !== null) {
+        window.clearTimeout(scanTimer);
+      }
       activeTimers.forEach((timer) => window.clearTimeout(timer));
       activeTimers.clear();
     };
