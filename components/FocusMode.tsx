@@ -105,6 +105,17 @@ const fmtClock = (s: number) => {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 };
 
+// Standard F1 live-timing colours
+const TIMING = { purple: '#b026ff', green: '#22c55e', yellow: '#eab308', idle: '#e5e7eb' } as const;
+type TimingColor = keyof typeof TIMING;
+type Sec = { t: number; c: TimingColor };
+type LapRec = { t: number; c: TimingColor; secs: Sec[] };
+
+// Sector split (roughly even) — each lap's sectors get a small, mostly-slower
+// jitter so no two laps are identical, the way a real stint drifts around pole.
+const SECTOR_FRAC = [0.345, 0.335, 0.32];
+const planLap = (pole: number): number[] => SECTOR_FRAC.map((f) => pole * f * (1 + (Math.random() * 0.018 - 0.005)));
+
 type Phase = 'setup' | 'running' | 'complete';
 type TargetType = 'open' | 'min' | 'laps';
 
@@ -121,6 +132,12 @@ export default function FocusMode() {
   const [ready, setReady] = useState(false);
   const [holding, setHolding] = useState(false);
 
+  // sector timing + variable-lap display state
+  const [curSec, setCurSec] = useState<(Sec | null)[]>([null, null, null]);
+  const [lastLap, setLastLap] = useState<LapRec | null>(null);
+  const [bestLap, setBestLap] = useState<number | null>(null);
+  const [lapNo, setLapNo] = useState(0);
+
   const pathRef = useRef<SVGPathElement | null>(null);
   const trailRef = useRef<SVGPathElement | null>(null);
   const carRef = useRef<SVGGElement | null>(null);
@@ -132,6 +149,18 @@ export default function FocusMode() {
   const finishedRef = useRef<boolean>(false);
   const finalRef = useRef<number>(0);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // variable-lap / sector engine refs
+  const lapStartRef = useRef(0); // elapsed-seconds at which the current lap began
+  const planRef = useRef<number[]>([0, 0, 0]); // planned sector times for current lap
+  const sectorMarkRef = useRef(0); // next sector index to finalize (0..2)
+  const lapNoRef = useRef(0);
+  const bestSecRef = useRef<(number | null)[]>([null, null, null]);
+  const lastSecRef = useRef<(number | null)[]>([null, null, null]);
+  const curSecRef = useRef<(Sec | null)[]>([null, null, null]);
+  const bestLapRef = useRef<number | null>(null);
+  const lastLapRef = useRef<number | null>(null);
+  const hudRef = useRef({ leD: 0, dist: 0, speed: 0, gear: 1, onThrottle: true, drs: false });
 
   useEffect(() => setMounted(true), []);
 
@@ -155,6 +184,21 @@ export default function FocusMode() {
     finishedRef.current = false;
     finalRef.current = 0;
     profileRef.current = null;
+    // reset sector / variable-lap engine
+    lapStartRef.current = 0;
+    planRef.current = planLap(track.pole);
+    sectorMarkRef.current = 0;
+    lapNoRef.current = 0;
+    bestSecRef.current = [null, null, null];
+    lastSecRef.current = [null, null, null];
+    curSecRef.current = [null, null, null];
+    bestLapRef.current = null;
+    lastLapRef.current = null;
+    hudRef.current = { leD: 0, dist: 0, speed: 0, gear: 1, onThrottle: true, drs: false };
+    setCurSec([null, null, null]);
+    setLastLap(null);
+    setBestLap(null);
+    setLapNo(0);
     setPhase('running');
   }, []);
 
@@ -189,29 +233,102 @@ export default function FocusMode() {
     const pole = selected.pole;
     startRef.current = performance.now() - pausedAtRef.current * 1000;
 
+    const finalizeSector = (i: number, t: number) => {
+      const best = bestSecRef.current[i];
+      const last = lastSecRef.current[i];
+      let c: TimingColor = 'yellow';
+      if (best == null || t < best) {
+        c = 'purple';
+        bestSecRef.current[i] = t;
+      } else if (last != null && t < last) {
+        c = 'green';
+      }
+      curSecRef.current[i] = { t, c };
+      sectorMarkRef.current = i + 1;
+      setCurSec([...curSecRef.current]);
+    };
+
+    const finalizeLap = (t: number) => {
+      let c: TimingColor = 'yellow';
+      if (bestLapRef.current == null || t < bestLapRef.current) {
+        c = 'purple';
+        bestLapRef.current = t;
+        setBestLap(t);
+      } else if (lastLapRef.current != null && t < lastLapRef.current) {
+        c = 'green';
+      }
+      const secs = curSecRef.current.map((s) => s ?? { t: 0, c: 'yellow' as TimingColor });
+      setLastLap({ t, c, secs });
+      lastLapRef.current = t;
+      lastSecRef.current = curSecRef.current.map((s) => (s ? s.t : null));
+      lapNoRef.current += 1;
+      setLapNo(lapNoRef.current);
+      curSecRef.current = [null, null, null];
+      setCurSec([null, null, null]);
+    };
+
     const tick = (now: number) => {
       const e = (now - startRef.current) / 1000;
       const prof = profileRef.current;
+
+      // ── advance the lap / sector state machine ──
+      let p = planRef.current;
+      let le = e - lapStartRef.current;
+      let t1 = p[0];
+      let t2 = p[0] + p[1];
+      const t3 = p[0] + p[1] + p[2];
+
+      if (sectorMarkRef.current < 1 && le >= t1) finalizeSector(0, p[0]);
+      if (sectorMarkRef.current < 2 && le >= t2) finalizeSector(1, p[1]);
+      if (le >= t3) {
+        finalizeSector(2, p[2]);
+        finalizeLap(t3);
+        lapStartRef.current += t3;
+        planRef.current = planLap(pole);
+        sectorMarkRef.current = 0;
+        p = planRef.current;
+        le = e - lapStartRef.current;
+        t1 = p[0];
+        t2 = p[0] + p[1];
+      }
+
+      // ── place the car (paced per sector so it hits the 1/3 + 2/3 marks
+      //    exactly when the sector clock does) ──
       if (prof && pathRef.current && carRef.current) {
-        const lapProg = (e % pole) / pole;
-        const dist = lapProg * prof.total;
+        const third = prof.total / 3;
+        let dist;
+        if (le < t1) dist = (le / p[0]) * third;
+        else if (le < t2) dist = third + ((le - t1) / p[1]) * third;
+        else dist = 2 * third + ((le - t2) / p[2]) * third;
+        dist = Math.max(0, Math.min(prof.total - 0.001, dist));
         const pos = pathRef.current.getPointAtLength(dist);
         const ahead = pathRef.current.getPointAtLength((dist + 2) % prof.total);
         const angle = (Math.atan2(ahead.y - pos.y, ahead.x - pos.x) * 180) / Math.PI;
         carRef.current.style.transform = `translate(${pos.x}px, ${pos.y}px) rotate(${angle}deg)`;
-        if (trailRef.current) trailRef.current.style.strokeDashoffset = `${prof.total * (1 - lapProg)}`;
+        if (trailRef.current) trailRef.current.style.strokeDashoffset = `${prof.total * (1 - dist / prof.total)}`;
+        const idx = Math.min(prof.samples - 1, Math.floor((dist / prof.total) * prof.samples));
+        const sp = prof.speeds[idx];
+        const nx = prof.speeds[(idx + 1) % prof.samples];
+        hudRef.current = {
+          leD: le,
+          dist,
+          speed: sp,
+          gear: Math.max(1, Math.min(8, 1 + Math.floor((sp - 60) / 35))),
+          onThrottle: nx >= sp,
+          drs: sp > 290,
+        };
       }
 
       // target checks
       if (targetType === 'min' && e >= targetValue * 60) {
-        finalRef.current = targetValue * 60;
-        setElapsed(targetValue * 60);
+        finalRef.current = e;
+        setElapsed(e);
         finish();
         return;
       }
-      if (targetType === 'laps' && Math.floor(e / pole) >= targetValue) {
-        finalRef.current = targetValue * pole;
-        setElapsed(targetValue * pole);
+      if (targetType === 'laps' && lapNoRef.current >= targetValue) {
+        finalRef.current = e;
+        setElapsed(e);
         finish();
         return;
       }
@@ -264,26 +381,19 @@ export default function FocusMode() {
     if (holdTimer.current) clearTimeout(holdTimer.current);
   };
 
-  // ---- derived HUD values ----
-  const pole = selected?.pole ?? 1;
-  const lapProg = (elapsed % pole) / pole;
-  const lapsDone = Math.floor(elapsed / pole);
-  const sector = lapProg < 1 / 3 ? 1 : lapProg < 2 / 3 ? 2 : 3;
-  let speed = 0;
-  let gear = 1;
-  let onThrottle = true;
-  let drs = false;
-  const prof = profileRef.current;
-  if (prof) {
-    const i = Math.min(prof.samples - 1, Math.floor(lapProg * prof.samples));
-    speed = prof.speeds[i];
-    const nx = prof.speeds[(i + 1) % prof.samples];
-    onThrottle = nx >= speed;
-    gear = Math.max(1, Math.min(8, 1 + Math.floor((speed - 60) / 35)));
-    drs = speed > 290;
-  }
+  // ---- derived HUD values (read per-frame state mirrored into hudRef) ----
+  const hud = hudRef.current;
+  const speed = hud.speed;
+  const gear = hud.gear;
+  const onThrottle = hud.onThrottle;
+  const drs = hud.drs;
+  const leD = hud.leD; // current-lap elapsed
+  const activeIdx = curSec.findIndex((s) => s == null); // sector currently running (-1 if none)
+  const cumPrev = activeIdx <= 0 ? 0 : planRef.current.slice(0, activeIdx).reduce((a, b) => a + b, 0);
+  const liveSec = activeIdx >= 0 ? Math.max(0, leD - cumPrev) : 0;
+  const sector = activeIdx < 0 ? 3 : activeIdx + 1;
   const remaining = targetType === 'min' ? Math.max(0, targetValue * 60 - elapsed) : 0;
-  const distanceKm = selected ? (lapsDone * selected.length).toFixed(1) : '0.0';
+  const distanceKm = selected ? (lapNo * selected.length).toFixed(1) : '0.0';
 
   return (
     <>
@@ -491,13 +601,22 @@ export default function FocusMode() {
               <div className="px-5 pb-6 sm:px-8">
                 {/* big readouts */}
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <Readout label="Lap Clock" value={fmtLap(elapsed % pole)} accent />
+                  <Readout label="Lap Clock" value={fmtLap(leD)} accent />
                   <Readout label="Speed" value={`${speed}`} unit="km/h" />
-                  <Readout label="Lap" value={`${lapsDone}`} sub={targetType === 'laps' ? `/ ${targetValue}` : undefined} />
+                  <Readout label="Lap" value={`${lapNo}`} sub={targetType === 'laps' ? `/ ${targetValue}` : undefined} />
                   <Readout
                     label={targetType === 'min' ? 'Remaining' : 'Focus Time'}
                     value={targetType === 'min' ? fmtClock(remaining) : fmtClock(elapsed)}
                   />
+                </div>
+
+                {/* sector timing — live current lap + last / best */}
+                <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  <SectorBox idx={0} sec={curSec[0]} live={activeIdx === 0 ? liveSec : null} />
+                  <SectorBox idx={1} sec={curSec[1]} live={activeIdx === 1 ? liveSec : null} />
+                  <SectorBox idx={2} sec={curSec[2]} live={activeIdx === 2 ? liveSec : null} />
+                  <TimeBox label="Last Lap" value={lastLap ? fmtLap(lastLap.t) : '—'} color={lastLap ? TIMING[lastLap.c] : undefined} />
+                  <TimeBox label="Best Lap" value={bestLap != null ? fmtLap(bestLap) : '—'} color={bestLap != null ? TIMING.purple : undefined} />
                 </div>
 
                 {/* gear / drs / sector / throttle */}
@@ -537,9 +656,10 @@ export default function FocusMode() {
                 {selected.flag} {selected.country} · {selected.name}
               </p>
 
-              <div className="mt-8 grid w-full max-w-md grid-cols-3 gap-3">
-                <Readout label="Laps" value={`${lapsDone}`} accent />
+              <div className="mt-8 grid w-full max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
+                <Readout label="Laps" value={`${lapNo}`} accent />
                 <Readout label="Distance" value={distanceKm} unit="km" />
+                <Readout label="Best Lap" value={bestLap != null ? fmtLap(bestLap) : '—'} />
                 <Readout label="Focus" value={fmtClock(elapsed)} />
               </div>
 
@@ -586,6 +706,41 @@ function Readout({ label, value, unit, sub, accent }: { label: string; value: st
         </span>
         {unit && <span className="text-[11px] font-bold text-neutral-500">{unit}</span>}
         {sub && <span className="text-[11px] font-bold text-neutral-500">{sub}</span>}
+      </div>
+    </div>
+  );
+}
+
+function SectorBox({ idx, sec, live }: { idx: number; sec: Sec | null; live: number | null }) {
+  let value = '—';
+  let color: string | undefined;
+  const running = !sec && live != null;
+  if (sec) {
+    value = sec.t.toFixed(3);
+    color = TIMING[sec.c];
+  } else if (live != null) {
+    value = live.toFixed(3);
+    color = '#ffffff';
+  }
+  return (
+    <div
+      className="rounded-xl border bg-white/[0.05] px-3 py-2"
+      style={{ borderColor: running ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)' }}
+    >
+      <div className="text-[9px] font-black uppercase tracking-widest text-neutral-500">S{idx + 1}</div>
+      <div className="mt-0.5 font-mono text-[15px] font-black tabular-nums sm:text-[17px]" style={color ? { color } : undefined}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function TimeBox({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2">
+      <div className="text-[9px] font-black uppercase tracking-widest text-neutral-500">{label}</div>
+      <div className="mt-0.5 font-mono text-[15px] font-black tabular-nums sm:text-[17px]" style={color ? { color } : undefined}>
+        {value}
       </div>
     </div>
   );
