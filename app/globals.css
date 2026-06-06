@@ -212,9 +212,72 @@ html.senna .motion-route-shell {
   }
 }
 
+@keyframes siteBlobDriftA {
+  0%, 100% {
+    opacity: 0.72;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  35% {
+    opacity: 0.92;
+    transform: translate3d(-7vw, 5vh, 0) scale(1.08) rotate(-7deg);
+  }
+  70% {
+    opacity: 0.78;
+    transform: translate3d(4vw, -4vh, 0) scale(0.96) rotate(5deg);
+  }
+}
+
+@keyframes siteBlobDriftB {
+  0%, 100% {
+    opacity: 0.66;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  42% {
+    opacity: 0.88;
+    transform: translate3d(7vw, -6vh, 0) scale(1.1) rotate(8deg);
+  }
+  74% {
+    opacity: 0.72;
+    transform: translate3d(-5vw, 4vh, 0) scale(0.98) rotate(-5deg);
+  }
+}
+
+@keyframes siteBlobDriftC {
+  0%, 100% {
+    opacity: 0.62;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  38% {
+    opacity: 0.82;
+    transform: translate3d(5vw, 6vh, 0) scale(1.12) rotate(10deg);
+  }
+  78% {
+    opacity: 0.7;
+    transform: translate3d(-7vw, -3vh, 0) scale(0.94) rotate(-8deg);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .motion-route-shell :where(header, aside, main, footer) {
     animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .motion-route-shell .pointer-events-none > [class*="rounded-full"][class*="blur-"] {
+    animation: siteBlobDriftA 18s ease-in-out infinite;
+    transform-origin: 50% 50%;
+    will-change: opacity, transform;
+  }
+
+  .motion-route-shell .pointer-events-none > [class*="rounded-full"][class*="blur-"]:nth-child(2) {
+    animation-delay: -6s;
+    animation-duration: 23s;
+    animation-name: siteBlobDriftB;
+  }
+
+  .motion-route-shell .pointer-events-none > [class*="rounded-full"][class*="blur-"]:nth-child(3) {
+    animation-delay: -11s;
+    animation-duration: 27s;
+    animation-name: siteBlobDriftC;
   }
 
   .motion-route-shell :where(main) {
@@ -246,7 +309,7 @@ html.senna .motion-route-shell {
     will-change: filter, translate;
   }
 
-  .motion-route-shell :where([class*="bg-gradient"], [class*="bg-clip-text"]):not([class*="animate-"]) {
+  .motion-route-shell :where([class*="bg-gradient"], [class*="bg-clip-text"]):not([class*="animate-"]):not([class*="blur-"]) {
     animation: siteGradientFlow 9s ease-in-out infinite;
     background-size: 180% 180%;
   }
