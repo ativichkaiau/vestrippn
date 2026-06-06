@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
+import SiteMotion from "../components/SiteMotion";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -58,7 +59,7 @@ export default function RootLayout({
           }}
         />
         <AuthProvider>
-          {children}
+          <SiteMotion>{children}</SiteMotion>
         </AuthProvider>
       </body>
     </html>
