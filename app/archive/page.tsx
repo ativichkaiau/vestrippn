@@ -106,7 +106,7 @@ export default function ArchiveHub() {
               panelSubtitle={`${cycleTime} // Vault Secure`}
               metrics={[
                 { label: 'Sectors', value: '4' },
-                { label: 'Apps', value: '4' },
+                { label: 'Apps', value: '6' },
                 { label: 'Vault', value: 'Secure' },
               ]}
               capabilities={[
@@ -247,13 +247,15 @@ export default function ArchiveHub() {
                     <h3 className="text-[12px] font-bold text-purple-600 dark:text-purple-400 tracking-widest uppercase flex items-center gap-3 transition-colors duration-700">
                       <span className="w-1.5 h-4 bg-purple-500 rounded-full shadow-[0_0_14px_rgba(168,85,247,0.45)]"></span> Sector D: Projects & Architecture
                     </h3>
-                    <span className="hidden sm:inline-flex rounded-full bg-purple-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-300">4 Apps</span>
+                    <span className="hidden sm:inline-flex rounded-full bg-purple-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-300">6 Apps</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
                     <ArchiveLink title="Food Screener" url="https://vestrippn-food-screener.vercel.app" icon="🍳" theme="purple" />
                     <ArchiveLink title="SRMA Screener" url="https://vestrippn-srma-telemetry.vercel.app" icon="📊" theme="purple" />
                     <ArchiveLink title="Microbiology Pokedex" url="https://vestrippn-pokedex.vercel.app" icon="🦠" theme="purple" />
                     <ArchiveLink title="Neuro Pathway" url="https://vestrippn-neuro-pathway.vercel.app" icon="🧠" theme="purple" />
+                    <ArchiveLink title="Biochem Pathway" url="https://vestrippn-biochem-pathway.vercel.app" icon="🧬" theme="purple" />
+                    <ArchiveLink title="PhysioHub" url="https://vestrippn-physiohub.vercel.app" icon="🫀" theme="purple" />
                   </div>
                 </motion.section>
 
