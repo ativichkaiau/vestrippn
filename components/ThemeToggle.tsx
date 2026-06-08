@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
+import { setLowPowerMode } from "./useLowPower";
 
 type Livery = 'normal' | 'monza';
 type Mode = 'day' | 'night';
@@ -20,6 +21,7 @@ export default function ThemeToggle() {
   const [mode, setMode] = useState<Mode>('night');
   const [open, setOpen] = useState(false);
   const [ready, setReady] = useState(false);
+  const [lowPower, setLowPower] = useState(false);
 
   // Initialise from storage, falling back to time-of-day for Normal livery
   useEffect(() => {
@@ -34,8 +36,15 @@ export default function ThemeToggle() {
     setLivery(lv);
     setMode(md);
     applyLivery(lv, md);
+    setLowPower(document.documentElement.classList.contains('low-power'));
     setReady(true);
   }, []);
+
+  const toggleLowPower = () => {
+    const next = !lowPower;
+    setLowPower(next);
+    setLowPowerMode(next);
+  };
 
   const choose = (lv: Livery, md?: Mode) => {
     const nextMode = md ?? mode;
@@ -94,6 +103,23 @@ export default function ThemeToggle() {
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Special Livery</div>
             <Row active={livery === 'monza'} onClick={() => choose('monza')} emoji="🏁" title="Rothmans" sub="Williams · Navy · Brass · Red" />
+            <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
+            <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Performance</div>
+            <button
+              onClick={toggleLowPower}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <span className="text-[18px] leading-none">🔋</span>
+              <div className="flex-1 leading-tight">
+                <div className="text-[12px] font-bold text-neutral-900 dark:text-white">Low-Power Mode</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Stops animations · saves battery</div>
+              </div>
+              <span
+                className={`relative h-[18px] w-[32px] shrink-0 rounded-full transition-colors ${lowPower ? 'bg-[#00A598] dark:bg-[#00D2BE]' : 'bg-black/15 dark:bg-white/15'}`}
+              >
+                <span className={`absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow transition-all ${lowPower ? 'left-[16px]' : 'left-[2px]'}`} />
+              </span>
+            </button>
           </div>
         </>
       )}

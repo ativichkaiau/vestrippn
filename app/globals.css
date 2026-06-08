@@ -125,6 +125,19 @@ h1, h2, h3, .font-orbitron {
 .animate-loader-sweep { animation: loaderSweep 1.1s ease-in-out infinite; }
 .animate-loader-pulse { animation: loaderPulse 1.4s ease-in-out infinite; }
 
+/* ════════════════════════════════════════════════════════════════════════
+   LOW-POWER MODE — `html.low-power` kills ambient CSS animation + transitions
+   for battery. Intro/boot overlays use framer-motion (JS) so they're
+   unaffected; route loaders and anything tagged `.lp-keep` stay animated.
+   JS-driven loops (e.g. components/FocusMode, F1Idle) opt out via useLowPower.
+   ════════════════════════════════════════════════════════════════════════ */
+html.low-power *:not(.lp-keep):not(.animate-loader-sweep):not(.animate-loader-pulse),
+html.low-power *:not(.lp-keep)::before,
+html.low-power *:not(.lp-keep)::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 /* ── Hub intro card palette — consumed by components/HubIntro.tsx.
    Defaults match the original AMG/Petronas cyan; switch under html.monza
    so the card auto-rebrands to Rothmans navy/brass/red without prop drilling. */
