@@ -857,7 +857,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
             <Link 
               key={item.name} 
               href={item.href} 
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 shrink-0 group ${
+              className={`flex items-center gap-1 px-2 py-2.5 rounded-full transition-all duration-300 shrink-0 group ${
                 item.active 
                 ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' 
                 : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
