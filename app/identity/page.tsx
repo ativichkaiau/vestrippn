@@ -9,6 +9,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
 import HubIntro from '../../components/HubIntro';
+import { useLowPower } from '../../components/useLowPower';
 
 export default function IdentityHub() {
   const [isMounted, setIsMounted] = useState(false);
@@ -826,14 +827,15 @@ function LegendTile({ name, titles, wins, poles, podiums, theme, epicMoment, fac
 
 // Animated "trackside" idle widget. All original vector animation.
 function F1Idle({ compact = false }: { compact?: boolean }) {
+  const lp = useLowPower();
   return (
     <div className={`${compact ? 'h-full min-h-[250px] p-4' : 'mt-auto h-[420px] p-5'} shrink-0 flex flex-col rounded-3xl border border-black/5 dark:border-white/5 bg-black/[0.03] dark:bg-white/[0.03] relative overflow-hidden transition-colors duration-700`}>
       {/* header */}
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Trackside Telemetry</span>
         <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-red-500 dark:text-red-400">
-          <motion.span className="w-1.5 h-1.5 rounded-full bg-red-500" animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1.2, repeat: Infinity }} />
-          Live
+          <motion.span className="w-1.5 h-1.5 rounded-full bg-red-500" animate={lp ? { opacity: 1 } : { opacity: [1, 0.2, 1] }} transition={lp ? undefined : { duration: 1.2, repeat: Infinity }} />
+          {lp ? 'Idle' : 'Live'}
         </span>
       </div>
 
@@ -861,13 +863,15 @@ function F1Idle({ compact = false }: { compact?: boolean }) {
           />
           {/* start/finish */}
           <rect x="27" y="74" width="6" height="12" rx="1" className="fill-black/30 dark:fill-white/40" />
-          {/* looping car */}
-          <g className="text-cyan-500 dark:text-cyan-400">
+          {/* looping car (parked at start/finish in low-power) */}
+          <g className="text-cyan-500 dark:text-cyan-400" transform={lp ? 'translate(30 80)' : undefined}>
             <circle r="4.5" fill="currentColor" />
             <circle r="8" fill="none" stroke="currentColor" strokeWidth={1.5} opacity={0.5} />
-            <animateMotion dur="5s" repeatCount="indefinite" rotate="auto">
-              <mpath xlinkHref="#idleCircuit" />
-            </animateMotion>
+            {!lp && (
+              <animateMotion dur="5s" repeatCount="indefinite" rotate="auto">
+                <mpath xlinkHref="#idleCircuit" />
+              </animateMotion>
+            )}
           </g>
         </svg>
       </div>
@@ -876,7 +880,7 @@ function F1Idle({ compact = false }: { compact?: boolean }) {
       <div className={`${compact ? 'grid-cols-1 gap-2 mb-2 min-[1500px]:grid-cols-2' : 'grid-cols-2 gap-3 mb-3'} grid`}>
         {/* tyre */}
         <div className="flex items-center gap-3 rounded-2xl bg-black/[0.04] dark:bg-white/[0.04] p-3">
-          <motion.svg viewBox="0 0 40 40" className="w-9 h-9 shrink-0" animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}>
+          <motion.svg viewBox="0 0 40 40" className="w-9 h-9 shrink-0" animate={lp ? { rotate: 0 } : { rotate: 360 }} transition={lp ? undefined : { duration: 0.9, repeat: Infinity, ease: 'linear' }}>
             <circle cx="20" cy="20" r="18" className="fill-neutral-900 dark:fill-black" />
             <circle cx="20" cy="20" r="9" className="fill-none stroke-neutral-600" strokeWidth={2} />
             {[0, 60, 120, 180, 240, 300].map((a) => (
@@ -894,7 +898,7 @@ function F1Idle({ compact = false }: { compact?: boolean }) {
           <svg viewBox="0 0 44 30" className="w-11 h-8 shrink-0">
             <path d="M4,28 A18,18 0 0 1 40,28" fill="none" className="stroke-black/15 dark:stroke-white/15" strokeWidth={3} strokeLinecap="round" />
             <path d="M4,28 A18,18 0 0 1 40,28" fill="none" className="stroke-cyan-500 dark:stroke-cyan-400" strokeWidth={3} strokeLinecap="round" strokeDasharray="56" strokeDashoffset={14} />
-            <motion.line x1="22" y1="28" x2="22" y2="13" className="stroke-red-500 dark:stroke-red-400" strokeWidth={2} strokeLinecap="round" style={{ originX: '22px', originY: '28px' }} animate={{ rotate: [-72, 60, -10, 72, -72] }} transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }} />
+            <motion.line x1="22" y1="28" x2="22" y2="13" className="stroke-red-500 dark:stroke-red-400" strokeWidth={2} strokeLinecap="round" style={{ originX: '22px', originY: '28px' }} animate={lp ? { rotate: 20 } : { rotate: [-72, 60, -10, 72, -72] }} transition={lp ? undefined : { duration: 3.4, repeat: Infinity, ease: 'easeInOut' }} />
             <circle cx="22" cy="28" r="2.5" className="fill-neutral-900 dark:fill-white" />
           </svg>
           <div>
@@ -912,8 +916,8 @@ function F1Idle({ compact = false }: { compact?: boolean }) {
             <motion.span
               key={i}
               className={`h-2 flex-1 max-w-[16px] rounded-[2px] ${col}`}
-              animate={{ opacity: [0.15, 1, 0.15] }}
-              transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut', delay: i * 0.07 }}
+              animate={lp ? { opacity: 0.85 } : { opacity: [0.15, 1, 0.15] }}
+              transition={lp ? undefined : { duration: 1.1, repeat: Infinity, ease: 'easeInOut', delay: i * 0.07 }}
             />
           );
         })}
