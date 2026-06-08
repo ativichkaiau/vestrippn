@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useLowPower } from './useLowPower';
 
 const BLOCK_MIN_HEIGHT = 72;
 const BLOCK_MIN_WIDTH = 140;
@@ -33,6 +34,29 @@ function getTypedBlocks() {
   }
 
   return window.__vestrippnTypedBlocks;
+}
+
+// Module-scoped registries so prepared blocks survive across effect re-runs
+// (needed to restore text the typewriter hid when low-power is toggled on).
+const preparedBlocks = new WeakMap<HTMLElement, PreparedBlock>();
+const preparedBlockList = new Set<PreparedBlock>();
+
+// Reveal any text the typewriter has hidden and stop tracking it.
+function revealAllTypewriterText() {
+  for (const prepared of preparedBlockList) {
+    if (!prepared.block.isConnected) {
+      preparedBlockList.delete(prepared);
+      continue;
+    }
+    for (const item of prepared.items) {
+      if (item.node.isConnected) {
+        item.node.data = item.text;
+        item.host.style.minHeight = item.previousMinHeight;
+        item.host.classList.remove('typewriter-text-active');
+      }
+    }
+    prepared.block.dataset.typewriterState = 'typed';
+  }
 }
 
 function classText(element: HTMLElement) {
@@ -143,11 +167,17 @@ function delayForCharacter(character: string) {
 }
 
 export default function HoverTypewriter() {
+  const lowPower = useLowPower();
+
   useEffect(() => {
+    // Low-power: never hide/type text. Reveal anything already hidden and bail.
+    if (lowPower) {
+      revealAllTypewriterText();
+      return;
+    }
+
     const typedBlocks = getTypedBlocks();
     const activeTimers = new Set<number>();
-    const preparedBlocks = new WeakMap<HTMLElement, PreparedBlock>();
-    const preparedBlockList = new Set<PreparedBlock>();
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const schedule = (callback: () => void, delay: number) => {
@@ -337,7 +367,7 @@ export default function HoverTypewriter() {
       activeTimers.forEach((timer) => window.clearTimeout(timer));
       activeTimers.clear();
     };
-  }, []);
+  }, [lowPower]);
 
   return null;
 }
