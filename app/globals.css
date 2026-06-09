@@ -359,6 +359,42 @@ html.low-power *:not(.lp-keep)::after {
   transition: none !important;
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   GLOBAL UI/UX POLISH — consistent, accessible interaction primitives
+   applied app-wide (focus ring, tap feedback, smooth anchors, disabled).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* No grey flash on mobile taps */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Consistent, livery-aware keyboard focus ring (keyboard nav only) */
+:where(a, button, [role="button"], input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--hub-accent, #00d2be);
+  outline-offset: 2px;
+}
+
+/* Smooth in-page anchor scrolling inside scroll panes (TOCs, hub CTAs) */
+.custom-scrollbar {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  .custom-scrollbar {
+    scroll-behavior: auto;
+  }
+}
+html.low-power .custom-scrollbar {
+  scroll-behavior: auto;
+}
+
+/* Uniform disabled affordance everywhere */
+:where(button, input, select, textarea):disabled,
+:where(a, button, [role="button"])[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 /* ── Hub intro card palette — consumed by components/HubIntro.tsx.
    Defaults match the original AMG/Petronas cyan; switch under html.monza
    so the card auto-rebrands to Rothmans navy/brass/red without prop drilling. */
