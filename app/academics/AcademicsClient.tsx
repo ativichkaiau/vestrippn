@@ -381,25 +381,25 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
               >
                 {[
-                  { name: 'HEN-2', date: '09 JUN', color: 'text-pink-500 dark:text-pink-400' },
+                  { name: 'HEN-2', date: '09 JUN', color: 'text-pink-500 dark:text-pink-400', done: true },
                   { name: 'HMS-2', date: '12 JUN', color: 'text-amber-500 dark:text-amber-400' },
                   { name: 'HNS-2', date: '16 JUN', color: 'text-blue-500 dark:text-blue-400' }
                 ].map(exam => (
                   <motion.div
                     key={exam.name}
                     variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 24 } } }}
-                    whileHover={{ y: -8, scale: 1.03, boxShadow: '0 24px 56px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                    whileTap={{ scale: 0.97 }}
-                    className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default"
+                    whileHover={exam.done ? undefined : { y: -8, scale: 1.03, boxShadow: '0 24px 56px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    whileTap={exam.done ? undefined : { scale: 0.97 }}
+                    className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default transition-all duration-500 ${exam.done ? 'grayscale opacity-50' : ''}`}
                   >
                     <div className="flex justify-between items-start mb-6 relative z-10">
-                      <span className={`font-black tracking-tight text-[20px] lg:text-[22px] ${exam.color} transition-colors duration-700`}>{exam.name}</span>
+                      <span className={`font-black tracking-tight text-[20px] lg:text-[22px] transition-colors duration-700 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : exam.color}`}>{exam.name}</span>
                       <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{exam.date} // 09:00</span>
                     </div>
-                    <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-neutral-900 dark:text-white transition-colors duration-700 relative z-10">
-                      {timers[exam.name] || "--D --H --M"}
+                    <div className={`text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter transition-colors duration-700 relative z-10 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
+                      {exam.done ? 'COMPLETED' : (timers[exam.name] || "--D --H --M")}
                     </div>
-                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest opacity-80 transition-colors duration-700">T-Minus Terminal</div>
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest opacity-80 transition-colors duration-700">{exam.done ? 'Milestone Cleared ✓' : 'T-Minus Terminal'}</div>
                   </motion.div>
                 ))}
               </motion.section>
