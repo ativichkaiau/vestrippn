@@ -108,7 +108,7 @@ export default function IELTSHub() {
 
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
-          <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
+          <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-14">
             
             <HubIntro
               eyebrow="Language Vault"

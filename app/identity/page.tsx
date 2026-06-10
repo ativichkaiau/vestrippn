@@ -10,6 +10,7 @@ import TopNavProfile from '../../components/TopNavProfile';
 import HubIntro from '../../components/HubIntro';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
+import TickNumber from '../../components/TickNumber';
 import { useLowPower } from '../../components/useLowPower';
 
 export default function IdentityHub() {
@@ -70,7 +71,7 @@ export default function IdentityHub() {
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 flex flex-col gap-6 lg:gap-8 p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 overflow-y-auto custom-scrollbar relative">
           
-          <div className="max-w-[1400px] w-full mx-auto space-y-8 lg:space-y-10">
+          <div className="max-w-[1400px] w-full mx-auto space-y-10 lg:space-y-14">
             
             <HubIntro
               eyebrow="Operator Manifest"
@@ -782,7 +783,9 @@ function LegendTile({ name, titles, wins, poles, podiums, theme, epicMoment, fac
       <div className="relative grid grid-cols-3 gap-2 mb-5">
         {stats.map(([label, val]) => (
           <div key={label} className="rounded-2xl bg-black/[0.04] dark:bg-white/[0.04] px-3 py-2.5 text-center transition-colors duration-700">
-            <div className={`text-[20px] lg:text-[22px] font-black tabular-nums leading-none ${textColors[theme]}`}>{val}</div>
+            <div className={`text-[20px] lg:text-[22px] font-black tabular-nums leading-none ${textColors[theme]}`}>
+              <TickNumber value={val} />
+            </div>
             <div className="text-[9px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-1">{label}</div>
           </div>
         ))}

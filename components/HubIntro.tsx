@@ -4,6 +4,18 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import HubSignature, { type HubKey } from './HubSignature';
+import TickNumber from './TickNumber';
+
+/* W09 per-hub accents (Tailwind classes so liveries can remap them) */
+const HUB_ACCENT: Record<HubKey, { dot: string; grad: string }> = {
+  academics: { dot: 'bg-blue-400', grad: 'from-blue-400 to-cyan-400' },
+  research: { dot: 'bg-cyan-400', grad: 'from-cyan-400 to-teal-400' },
+  fitness: { dot: 'bg-rose-400', grad: 'from-rose-400 to-orange-300' },
+  tools: { dot: 'bg-amber-400', grad: 'from-amber-400 to-yellow-300' },
+  archive: { dot: 'bg-purple-400', grad: 'from-purple-400 to-fuchsia-400' },
+  identity: { dot: 'bg-teal-400', grad: 'from-teal-400 to-cyan-400' },
+  ielts: { dot: 'bg-indigo-400', grad: 'from-indigo-400 to-purple-400' },
+};
 
 type HubIntroMetric = {
   label: string;
@@ -87,6 +99,7 @@ export default function HubIntro({
   capabilities,
   hub,
 }: HubIntroProps) {
+  const acc = hub ? HUB_ACCENT[hub] : null;
   return (
     <motion.section
       initial={{ opacity: 0, y: 32 }}
@@ -112,6 +125,8 @@ export default function HubIntro({
           WebkitMaskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
         }}
       />
+      {/* hub-colored hairline — the W09 color signature of the page */}
+      {acc && <span className={`absolute left-8 top-0 h-[3px] w-28 rounded-b-full opacity-90 sm:left-12 ${acc.dot}`} />}
 
       <div className="relative z-10 grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
         <div className="text-center lg:text-left">
@@ -120,23 +135,27 @@ export default function HubIntro({
             style={{ color: 'var(--hub-text-soft)' }}
           >
             <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
+              className={`h-1.5 w-1.5 rounded-full ${acc ? acc.dot : ''}`}
+              style={acc ? undefined : { backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
             />
             {eyebrow}
           </div>
 
-          <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
+          <h1 className="mx-auto max-w-4xl text-[34px] font-black leading-[0.95] tracking-tighter sm:text-[52px] lg:mx-0 lg:text-[64px]">
             {title}{' '}
-            <span
-              className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(120deg, var(--hub-accent) 0%, var(--hub-accent-deep) 100%)' }}
-            >
-              {titleAccent}
-            </span>
+            {acc ? (
+              <span className={`bg-gradient-to-r bg-clip-text text-transparent ${acc.grad}`}>{titleAccent}</span>
+            ) : (
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: 'linear-gradient(120deg, var(--hub-accent) 0%, var(--hub-accent-deep) 100%)' }}
+              >
+                {titleAccent}
+              </span>
+            )}
           </h1>
 
-          <p className="mx-auto mt-5 max-w-2xl text-sm font-medium leading-7 text-slate-300 sm:text-base lg:mx-0">
+          <p className="mx-auto mt-4 max-w-2xl text-sm font-medium leading-7 text-slate-300 sm:text-[15px] lg:mx-0">
             {description}
           </p>
 
@@ -154,7 +173,10 @@ export default function HubIntro({
           <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 lg:justify-start">
             {chips.map((label) => (
               <span key={label} className="inline-flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full" style={{ backgroundColor: 'var(--hub-accent)' }} />
+                <span
+                  className={`h-1 w-1 rounded-full ${acc ? acc.dot : ''}`}
+                  style={acc ? undefined : { backgroundColor: 'var(--hub-accent)' }}
+                />
                 {label}
               </span>
             ))}
@@ -187,7 +209,9 @@ export default function HubIntro({
               {metrics.map((metric) => (
                 <div key={metric.label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
                   <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">{metric.label}</div>
-                  <div className="mt-1 truncate text-sm font-black text-white">{metric.value}</div>
+                  <div className="mt-1 truncate text-sm font-black tabular-nums text-white">
+                    <TickNumber value={metric.value} />
+                  </div>
                 </div>
               ))}
             </div>
