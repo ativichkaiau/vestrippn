@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import FitnessCard from '../../components/FitnessCard';
 import TopNavProfile from '../../components/TopNavProfile';
+import MissionBlock from '../../components/MissionBlock';
+import { NavRail, MobileHubNav } from '../../components/HubNav';
 import HubIntro from '../../components/HubIntro';
 import { syncFitnessHubData } from '@/app/actions';
 
@@ -62,17 +63,6 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
     calories: meals.reduce((s, m) => s + m.calories, 0),
   };
 
-  const navItems = [
-    { name: 'Dashboard', icon: '◉', href: '/', active: false },
-    { name: 'Academics', icon: '▲', href: '/academics', active: false },
-    { name: 'Research', icon: '◆', href: '/research', active: false },
-    { name: 'Fitness', icon: '◈', href: '/fitness', active: true },
-    { name: 'Archive', icon: '▥', href: '/archive', active: false },
-    { name: 'IELTS', icon: '◎', href: '/ielts', active: false },
-    { name: 'Tools', icon: '⚙', href: '/tools', active: false },
-    { name: 'Identity', icon: '⚇', href: '/identity', active: false },
-  ];
-
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   if (!isMounted) return null;
@@ -117,19 +107,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
       <div className="flex flex-1 overflow-hidden relative z-10">
         
         {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
-        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isSidebarExpanded ? 'w-[240px] px-6' : 'w-[88px] px-4'}`}>
-          <nav className="space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
-            {navItems.map((item) => (
-              <Link key={item.name} href={item.href} className={`flex items-center ${isSidebarExpanded ? 'px-4' : 'justify-center'} py-3 rounded-2xl transition-all duration-300 group relative ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
-                <span className={`text-[18px] shrink-0 transition-opacity duration-300 ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
-                <span className={`text-[13px] font-bold tracking-tight whitespace-nowrap transition-all duration-500 ${isSidebarExpanded ? 'max-w-[150px] opacity-100 ml-4' : 'max-w-0 opacity-0 ml-0'}`}>{item.name}</span>
-              </Link>
-            ))}
-          </nav>
-          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className={`mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${isSidebarExpanded ? 'p-5' : 'p-4 aspect-square'}`}>
-            {isSidebarExpanded ? <Clock /> : <span className="text-xl group-hover:rotate-12 transition-transform duration-300">⏱️</span>}
-          </button>
-        </aside>
+        <NavRail active="Fitness" expanded={isSidebarExpanded} onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)} />
 
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
@@ -156,6 +134,14 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
                 { icon: '🏃', title: 'Training Rhythm', desc: 'Workout days, streaks, and body-system consistency stay visible.' },
                 { icon: '🍳', title: 'Nutrition Control', desc: 'Macro targets and food screening support better day-to-day execution.' },
               ]}
+              hub="fitness"
+            />
+
+            <MissionBlock
+              accent="rose"
+              title="Today's Session · Protect the Streak"
+              detail="Log training to keep cadence and streak telemetry alive."
+              cta={{ label: 'Open monitor', href: '#vitality-monitor' }}
             />
 
             {/* SECTOR 1: VITALITY MONITOR (3-PANE) */}
@@ -277,14 +263,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
         </main>
 
         {/* --- MOBILE-ONLY FLOATING NAVIGATION HUD --- */}
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
-          {navItems.map((item) => (
-            <Link key={item.name} href={item.href} className={`flex items-center gap-1 px-2 py-2.5 rounded-full transition-all duration-300 shrink-0 group ${item.active ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}>
-               <span className={`text-[16px] ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
-               {item.active && <span className="text-[11px] font-bold tracking-tight pr-1 animate-in fade-in zoom-in duration-300">{item.name}</span>}
-            </Link>
-          ))}
-        </nav>
+        <MobileHubNav active="Fitness" />
 
       </div>
 
