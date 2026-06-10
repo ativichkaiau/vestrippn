@@ -15,6 +15,7 @@ import FitnessCard from '../components/FitnessCard';
 import IdentityAnchor from '../components/IdentityAnchor';
 import TopNavProfile from '../components/TopNavProfile';
 import { NavRail, MobileHubNav } from '../components/HubNav';
+import TickNumber from '../components/TickNumber';
 import Link from 'next/link';
 
 type SiteLivery = 'normal' | 'monza' | 'senna';
@@ -150,7 +151,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
 
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-5 lg:p-8 pb-32 lg:pb-8 transition-all duration-500">
-          <div className="max-w-[1400px] mx-auto space-y-6 lg:space-y-8">
+          <div className="max-w-[1400px] mx-auto space-y-8 lg:space-y-12">
             
             {/* PRODUCT INTRO HERO */}
             <motion.section
@@ -257,7 +258,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       ].map(([label, value]) => (
                         <div key={label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
                           <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">{label}</div>
-                          <div className="mt-1 truncate text-sm font-black text-white">{value}</div>
+                          <div className="mt-1 truncate text-sm font-black tabular-nums text-white"><TickNumber value={value} /></div>
                         </div>
                       ))}
                     </div>

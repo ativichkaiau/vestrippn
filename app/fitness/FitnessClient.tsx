@@ -111,7 +111,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
 
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
-          <div className="max-w-[1400px] mx-auto space-y-8 lg:space-y-10">
+          <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-14">
             
             <HubIntro
               eyebrow="Body System Telemetry"

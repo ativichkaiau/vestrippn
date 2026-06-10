@@ -408,6 +408,11 @@ html.low-power .custom-scrollbar {
 h1, h2 { text-wrap: balance; }
 p { text-wrap: pretty; }
 
+/* Controlled motion: status-dot pulses breathe slowly instead of blinking */
+.motion-route-shell .animate-pulse {
+  animation-duration: 2.8s;
+}
+
 .w09-sig {
   position: relative;
   display: inline-block;

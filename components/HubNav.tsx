@@ -17,7 +17,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import Clock from './Clock';
 
 export type HubName =
@@ -41,6 +41,20 @@ export const HUBS: { name: HubName; icon: string; href: string }[] = [
   { name: 'Identity', icon: '⚇', href: '/identity' },
 ];
 
+/* W09 color coding — every hub owns a hue, used by the rail, the mobile
+   chips, and the hero. Tailwind classes (not inline hex) so the special
+   liveries can remap the whole system through their color-ramp overrides. */
+export const HUB_THEME: Record<HubName, { bar: string; icon: string }> = {
+  Dashboard: { bar: 'bg-sky-400', icon: 'text-sky-400' },
+  Academics: { bar: 'bg-blue-400', icon: 'text-blue-400' },
+  Research: { bar: 'bg-cyan-400', icon: 'text-cyan-400' },
+  Fitness: { bar: 'bg-rose-400', icon: 'text-rose-400' },
+  Archive: { bar: 'bg-purple-400', icon: 'text-purple-400' },
+  IELTS: { bar: 'bg-indigo-400', icon: 'text-indigo-400' },
+  Tools: { bar: 'bg-amber-400', icon: 'text-amber-400' },
+  Identity: { bar: 'bg-teal-400', icon: 'text-teal-400' },
+};
+
 export function NavRail({ active, expanded, onToggle }: { active: HubName; expanded: boolean; onToggle: () => void }) {
   return (
     <aside
@@ -49,46 +63,49 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
       }`}
     >
       <nav className="space-y-1.5 overflow-y-auto custom-scrollbar overflow-x-hidden">
-        {HUBS.map((item) => {
+        {HUBS.map((item, i) => {
           const isActive = item.name === active;
+          const theme = HUB_THEME[item.name];
           return (
-            <Link
-              key={item.name}
-              href={item.href}
-              aria-current={isActive ? 'page' : undefined}
-              className={`group relative flex rounded-2xl transition-all duration-300 ${
-                expanded ? 'flex-row items-center px-4 py-3' : 'flex-col items-center justify-center px-1 py-2.5'
-              } ${
-                isActive
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md'
-                  : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-            >
-              {isActive && (
-                <span
-                  className="absolute left-[3px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full"
-                  style={{ backgroundColor: 'var(--hub-accent)' }}
-                />
-              )}
-              <span
-                className={`text-[18px] shrink-0 leading-none transition-transform duration-300 ${
-                  isActive ? '' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'
+            <Fragment key={item.name}>
+              {i === 1 && <div className="mx-2 my-2 h-px bg-black/5 dark:bg-white/10" />}
+              <Link
+                href={item.href}
+                aria-current={isActive ? 'page' : undefined}
+                className={`group relative flex rounded-2xl transition-all duration-300 ${
+                  expanded ? 'flex-row items-center px-4 py-3' : 'flex-col items-center justify-center px-1 py-2.5'
+                } ${
+                  isActive
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md'
+                    : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
-                {item.icon}
-              </span>
-              {expanded ? (
-                <span className="ml-4 max-w-[150px] whitespace-nowrap text-[13px] font-bold tracking-tight">{item.name}</span>
-              ) : (
+                {isActive && (
+                  <span className={`absolute left-[3px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full ${theme.bar}`} />
+                )}
                 <span
-                  className={`mt-1 overflow-hidden whitespace-nowrap text-[8px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    isActive ? 'max-h-4 opacity-100' : 'max-h-0 opacity-0 group-hover:max-h-4 group-hover:opacity-100'
+                  className={`text-[18px] shrink-0 leading-none transition-transform duration-300 ${
+                    isActive ? theme.icon : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'
                   }`}
                 >
-                  {item.name}
+                  {item.icon}
                 </span>
-              )}
-            </Link>
+                {expanded ? (
+                  <>
+                    <span className="ml-4 max-w-[150px] whitespace-nowrap text-[13px] font-bold tracking-tight">{item.name}</span>
+                    {isActive && <span className={`ml-auto h-1.5 w-1.5 rounded-full ${theme.bar}`} />}
+                  </>
+                ) : (
+                  <span
+                    className={`mt-1 overflow-hidden whitespace-nowrap text-[8px] font-black uppercase tracking-widest transition-all duration-300 ${
+                      isActive ? 'max-h-4 opacity-100' : 'max-h-0 opacity-0 group-hover:max-h-4 group-hover:opacity-100'
+                    }`}
+                  >
+                    {item.name}
+                  </span>
+                )}
+              </Link>
+            </Fragment>
           );
         })}
       </nav>
@@ -121,6 +138,7 @@ export function MobileHubNav({ active }: { active: HubName }) {
     <nav className="lg:hidden fixed bottom-6 inset-x-0 mx-auto h-[60px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center px-2 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-fit sm:max-w-[92vw] overflow-x-auto no-scrollbar transition-all duration-700">
       {HUBS.map((item) => {
         const isActive = item.name === active;
+        const theme = HUB_THEME[item.name];
         return (
           <Link
             key={item.name}
@@ -133,7 +151,8 @@ export function MobileHubNav({ active }: { active: HubName }) {
                 : 'text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/10'
             }`}
           >
-            <span className="text-[14px] leading-none">{item.icon}</span>
+            {isActive && <span className={`h-1.5 w-1.5 rounded-full ${theme.bar}`} />}
+            <span className={`text-[14px] leading-none ${isActive ? theme.icon : ''}`}>{item.icon}</span>
             <span className="whitespace-nowrap text-[10px] font-bold tracking-tight">{item.name}</span>
           </Link>
         );

@@ -9,6 +9,7 @@ import TopNavProfile from '../../components/TopNavProfile';
 import HubIntro from '../../components/HubIntro';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
+import TickNumber from '../../components/TickNumber';
 
 export default function ArchiveHub() {
   const [isMounted, setIsMounted] = useState(false);
@@ -68,7 +69,7 @@ export default function ArchiveHub() {
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 flex flex-col gap-6 lg:gap-8 p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 overflow-y-auto custom-scrollbar relative">
           
-          <div className="max-w-[1400px] w-full mx-auto space-y-8 lg:space-y-10">
+          <div className="max-w-[1400px] w-full mx-auto space-y-10 lg:space-y-14">
             
             <HubIntro
               eyebrow="Archive & Project Registry"
@@ -121,31 +122,31 @@ export default function ArchiveHub() {
               <div className="grid grid-cols-2 lg:flex lg:justify-between items-center bg-transparent px-6 lg:px-10 py-6 lg:py-8 border-b border-black/5 dark:border-white/5 shrink-0 gap-6 transition-colors duration-700"> 
                 
                 <div className="flex gap-8 lg:gap-12 order-2 lg:order-1"> 
-                  <div> 
-                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Speed</div> 
-                    <div className="text-[28px] lg:text-[36px] text-cyan-600 dark:text-cyan-400 font-black leading-none tracking-tighter transition-colors duration-700">314</div> 
-                  </div> 
-                  <div> 
-                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Index</div> 
-                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none tracking-tighter transition-colors duration-700">56.5<span className="text-[14px] text-neutral-400 ml-1">%</span></div> 
-                  </div> 
-                </div> 
-                
-                <div className="flex flex-col items-center col-span-2 lg:col-span-1 order-1 lg:order-2 border-b lg:border-none border-black/5 dark:border-white/5 pb-6 lg:pb-0 transition-colors duration-700"> 
-                  <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-2 uppercase tracking-widest transition-colors duration-700">Vault Tier</div> 
-                  <div className="text-[48px] lg:text-[64px] text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] font-black leading-none tracking-tighter transition-colors duration-700">8</div> 
-                </div> 
+                  <div>
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Speed</div>
+                    <div className="text-[28px] lg:text-[36px] text-cyan-600 dark:text-cyan-400 font-black leading-none tracking-tighter transition-colors duration-700"><TickNumber value="314" /></div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Index</div>
+                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none tracking-tighter transition-colors duration-700"><TickNumber value="56.5" /><span className="text-[14px] text-neutral-400 ml-1">%</span></div>
+                  </div>
+                </div>
 
-                <div className="flex gap-8 lg:gap-12 text-right justify-end order-3"> 
-                  <div> 
-                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Mode</div> 
-                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none uppercase tracking-tighter transition-colors duration-700">V3.0</div> 
-                  </div> 
-                  <div> 
-                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Battery</div> 
-                    <div className="text-[28px] lg:text-[36px] text-amber-500 dark:text-amber-400 font-black leading-none tracking-tighter transition-colors duration-700">82<span className="text-[14px] text-neutral-400 ml-1">%</span></div> 
-                  </div> 
-                </div> 
+                <div className="flex flex-col items-center col-span-2 lg:col-span-1 order-1 lg:order-2 border-b lg:border-none border-black/5 dark:border-white/5 pb-6 lg:pb-0 transition-colors duration-700">
+                  <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-2 uppercase tracking-widest transition-colors duration-700">Vault Tier</div>
+                  <div className="text-[48px] lg:text-[64px] text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] font-black leading-none tracking-tighter transition-colors duration-700"><TickNumber value="8" /></div>
+                </div>
+
+                <div className="flex gap-8 lg:gap-12 text-right justify-end order-3">
+                  <div>
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Mode</div>
+                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none uppercase tracking-tighter transition-colors duration-700">V3.0</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Battery</div>
+                    <div className="text-[28px] lg:text-[36px] text-amber-500 dark:text-amber-400 font-black leading-none tracking-tighter transition-colors duration-700"><TickNumber value="82" /><span className="text-[14px] text-neutral-400 ml-1">%</span></div>
+                  </div>
+                </div>
               </div> 
 
               {/* Action Bar */} 
