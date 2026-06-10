@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import Clock from "../../components/Clock";
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
 import TopNavProfile from '../../components/TopNavProfile';
+import MissionBlock from '../../components/MissionBlock';
+import { NavRail, MobileHubNav } from '../../components/HubNav';
 import HubIntro from '../../components/HubIntro';
 import FocusMode from '../../components/FocusMode';
 import { syncAnkiData } from '@/app/actions';
@@ -247,17 +248,6 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
     return () => clearInterval(tick);
   }, []);
 
-  const navItems = [
-    { name: 'Dashboard', icon: '◉', href: '/', active: false },
-    { name: 'Academics', icon: '▲', href: '/academics', active: true },
-    { name: 'Research', icon: '◆', href: '/research', active: false },
-    { name: 'Fitness', icon: '◈', href: '/fitness', active: false },
-    { name: 'Archive', icon: '▥', href: '/archive', active: false },
-    { name: 'IELTS', icon: '◎', href: '/ielts', active: false },
-    { name: 'Tools', icon: '⚙', href: '/tools', active: false },
-    { name: 'Identity', icon: '⚇', href: '/identity', active: false },
-  ];
-
   if (!isMounted) return null;
 
   return (
@@ -307,41 +297,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
 
       <div className="flex flex-1 overflow-hidden relative z-10">
         
-        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
-          isSidebarExpanded ? 'w-[240px] px-6' : 'w-[88px] px-4'
-        }`}>
-          <nav className="space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
-            {navItems.map((item) => (
-              <Link 
-                key={item.name} 
-                href={item.href} 
-                title={!isSidebarExpanded ? item.name : undefined}
-                className={`flex items-center ${isSidebarExpanded ? 'px-4' : 'justify-center'} py-3 rounded-2xl transition-all duration-300 group relative ${
-                  item.active 
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' 
-                  : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                }`}
-              >
-                <span className={`text-[18px] shrink-0 transition-opacity duration-300 ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>
-                  {item.icon}
-                </span>
-                <span className={`text-[13px] font-bold tracking-tight whitespace-nowrap transition-all duration-500 ${
-                  isSidebarExpanded ? 'max-w-[150px] opacity-100 ml-4' : 'max-w-0 opacity-0 ml-0'
-                }`}>
-                  {item.name}
-                </span>
-              </Link>
-            ))}
-          </nav>
-          <button 
-            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-            className={`mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${
-              isSidebarExpanded ? 'p-5' : 'p-4 aspect-square'
-            }`}
-          >
-            {isSidebarExpanded ? <Clock /> : <span className="text-xl group-hover:rotate-12 transition-transform duration-300">⏱️</span>}
-          </button>
-        </aside>
+        <NavRail active="Academics" expanded={isSidebarExpanded} onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)} />
 
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
           <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-12">
@@ -367,6 +323,14 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 { icon: '📚', title: 'Milestone Awareness', desc: 'Countdowns and live subject telemetry keep the immediate academic picture visible.' },
                 { icon: '🩺', title: 'Clinical Simulation', desc: 'Interactive cases connect theory to decision-making under pressure.' },
               ]}
+              hub="academics"
+            />
+
+            <MissionBlock
+              accent="amber"
+              title="HMS-2 · Human Musculoskeletal System-2"
+              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HMS-2'] || '--D --H --M'}</span> · 12 JUN // 09:00</>}
+              cta={{ label: 'View milestones', href: '#milestones' }}
             />
 
             {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
@@ -376,6 +340,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Critical Milestones</h3>
               </div>
               <motion.section
+                id="milestones"
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8"
                 initial="hidden" animate="visible"
                 variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
@@ -801,28 +766,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
         </main>
 
         {/* --- MOBILE-ONLY FLOATING NAVIGATION HUD --- */}
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[64px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-3 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
-          {navItems.map((item) => (
-            <Link 
-              key={item.name} 
-              href={item.href} 
-              className={`flex items-center gap-1 px-2 py-2.5 rounded-full transition-all duration-300 shrink-0 group ${
-                item.active 
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' 
-                : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-            >
-               <span className={`text-[16px] ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>
-                 {item.icon}
-               </span>
-               {item.active && (
-                 <span className="text-[11px] font-bold tracking-tight pr-1 animate-in fade-in zoom-in duration-300">
-                   {item.name}
-                 </span>
-               )}
-            </Link>
-          ))}
-        </nav>
+        <MobileHubNav active="Academics" />
 
       </div>
     </div>

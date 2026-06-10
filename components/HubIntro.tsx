@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
+import HubSignature, { type HubKey } from './HubSignature';
 
 type HubIntroMetric = {
   label: string;
@@ -29,6 +30,7 @@ type HubIntroProps = {
   panelSubtitle: string;
   metrics: HubIntroMetric[];
   capabilities: HubIntroCapability[];
+  hub?: HubKey;
 };
 
 function isExternalHref(href: string) {
@@ -83,6 +85,7 @@ export default function HubIntro({
   panelSubtitle,
   metrics,
   capabilities,
+  hub,
 }: HubIntroProps) {
   return (
     <motion.section
@@ -169,12 +172,15 @@ export default function HubIntro({
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">{panelSubtitle}</p>
                 <h2 className="mt-1 text-lg font-black tracking-tight">{panelTitle}</h2>
               </div>
-              <span
-                className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
-                style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.15)', color: 'var(--hub-text-soft-2)' }}
-              >
-                Online
-              </span>
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                <span
+                  className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+                  style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.15)', color: 'var(--hub-text-soft-2)' }}
+                >
+                  Online
+                </span>
+                {hub && <HubSignature hub={hub} />}
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3">

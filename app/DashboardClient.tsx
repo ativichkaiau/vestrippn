@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Clock from "../components/Clock";
 import ThemeToggle from "../components/ThemeToggle"; 
 import TodaysCommand from "../components/TodaysCommand";
 import NotificationCenter from '../components/NotificationCenter';
@@ -15,6 +14,7 @@ import ResearchCard from '../components/ResearchCard';
 import FitnessCard from '../components/FitnessCard';
 import IdentityAnchor from '../components/IdentityAnchor';
 import TopNavProfile from '../components/TopNavProfile';
+import { NavRail, MobileHubNav } from '../components/HubNav';
 import Link from 'next/link';
 
 type SiteLivery = 'normal' | 'monza' | 'senna';
@@ -58,17 +58,6 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
   }, []);
 
   if (!isMounted) return <LoadingScreen />;
-
-  const navItems = [
-    { name: 'Dashboard', icon: '◉', href: '/', active: true },
-    { name: 'Academics', icon: '▲', href: '/academics' },
-    { name: 'Research', icon: '◆', href: '/research' },
-    { name: 'Fitness', icon: '◈', href: '/fitness' },
-    { name: 'Archive', icon: '▥', href: '/archive' },
-    { name: 'IELTS', icon: '◎', href: '/ielts' },
-    { name: 'Tools', icon: '⚙', href: '/tools' },
-    { name: 'Identity', icon: '⚇', href: '/identity' },
-  ];
 
   const platformModules = [
     { title: 'Academics', href: '/academics', icon: '📚', desc: 'Class command, exams, cases, and study telemetry in one place.', stat: 'MedCMU OS' },
@@ -157,47 +146,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
       <div className="flex flex-1 overflow-hidden relative z-10">
         
         {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
-        <aside className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl backdrop-saturate-150 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
-          isSidebarExpanded ? 'w-[220px] px-5' : 'w-[80px] px-3'
-        }`}>
-          <nav className="space-y-1.5 overflow-y-auto custom-scrollbar overflow-x-hidden">
-            {navItems.map((item) => (
-              <Link 
-                key={item.name} 
-                href={item.href} 
-                title={!isSidebarExpanded ? item.name : undefined}
-                className={`flex items-center ${isSidebarExpanded ? 'px-4' : 'justify-center'} py-2.5 rounded-xl transition-all duration-300 group relative ${
-                  item.active 
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-sm' 
-                  : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                }`}
-              >
-                <span className={`text-[16px] shrink-0 transition-opacity duration-300 ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>
-                  {item.icon}
-                </span>
-                <span className={`text-[12px] font-bold tracking-tight whitespace-nowrap transition-all duration-500 ${
-                  isSidebarExpanded ? 'max-w-[150px] opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'
-                }`}>
-                  {item.name}
-                </span>
-              </Link>
-            ))}
-          </nav>
-          
-          <button 
-            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-            title={isSidebarExpanded ? "Collapse Panel" : "Expand Time Sync"}
-            className={`mt-4 w-full rounded-2xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${
-              isSidebarExpanded ? 'p-4' : 'p-3 aspect-square'
-            }`}
-          >
-            {isSidebarExpanded ? (
-              <Clock />
-            ) : (
-              <span className="text-lg group-hover:rotate-12 transition-transform duration-300">⏱️</span>
-            )}
-          </button>
-        </aside>
+        <NavRail active="Dashboard" expanded={isSidebarExpanded} onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)} />
 
         {/* --- MAIN WORKSPACE --- */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-5 lg:p-8 pb-32 lg:pb-8 transition-all duration-500">
@@ -499,28 +448,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
         </main>
 
         {/* --- MOBILE-ONLY FLOATING NAVIGATION HUD --- */}
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 h-[60px] bg-white/80 dark:bg-[#111111]/80 backdrop-blur-3xl backdrop-saturate-150 border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center justify-center px-2 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-auto overflow-x-auto no-scrollbar transition-all duration-700">
-          {navItems.map((item) => (
-            <Link 
-              key={item.name} 
-              href={item.href} 
-              className={`flex items-center gap-1 px-2 py-2 rounded-full transition-all duration-300 shrink-0 group ${
-                item.active 
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md' 
-                : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-            >
-               <span className={`text-[15px] ${item.active ? '' : 'opacity-70 group-hover:opacity-100'}`}>
-                 {item.icon}
-               </span>
-               {item.active && (
-                 <span className="text-[10px] font-bold tracking-tight pr-1 animate-in fade-in zoom-in duration-300">
-                   {item.name}
-                 </span>
-               )}
-            </Link>
-          ))}
-        </nav>
+        <MobileHubNav active="Dashboard" />
 
       </div>
     </div>

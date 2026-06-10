@@ -322,7 +322,9 @@ html.senna .motion-route-shell {
     translate: 0 -1px;
   }
 
-  .motion-route-shell :where([class*="backdrop-blur"]):not([class*="animate-"]) {
+  /* fixed-position glass (navs, docks) is excluded: animating `translate`
+     would override Tailwind v4 translate utilities and shift their anchoring */
+  .motion-route-shell :where([class*="backdrop-blur"]):not([class*="animate-"]):not([class*="fixed"]) {
     animation: siteSurfaceBreath 11s ease-in-out infinite;
     will-change: filter, translate;
   }
@@ -394,6 +396,48 @@ html.low-power .custom-scrollbar {
   cursor: not-allowed;
   opacity: 0.55;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   W09 — typographic rhythm + hub animation signatures.
+   Signatures are tiny per-hub motion motifs (components/HubSignature.tsx):
+   precise, slow, and quiet. Reduced-motion users get the static motif;
+   low-power mode freezes them via the global animation kill above.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Balanced headings, no orphaned words in paragraphs */
+h1, h2 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+.w09-sig {
+  position: relative;
+  display: inline-block;
+  width: 58px;
+  height: 18px;
+  overflow: hidden;
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w09-sig-sweep { animation: w09SigSweep 2.8s ease-in-out infinite; }
+  .w09-sig-beam { animation: w09SigBeam 2.4s ease-in-out infinite; }
+  .w09-sig-ecg { stroke-dasharray: 30 70; animation: w09SigEcg 2.2s linear infinite; }
+  .w09-sig-launch > span:not(:first-child) { animation: w09SigLaunch 1.9s ease-in-out infinite; }
+  .w09-sig-launch > span:nth-child(3) { animation-delay: 0.25s; }
+  .w09-sig-launch > span:nth-child(4) { animation-delay: 0.5s; }
+  .w09-sig-scan { animation: w09SigScan 2.6s ease-in-out infinite; }
+  .w09-sig-radar { animation: w09SigRadar 3.2s linear infinite; }
+  .w09-sig-cards > span { animation: w09SigCards 2.4s ease-in-out infinite; }
+  .w09-sig-cards > span:nth-child(2) { animation-delay: 0.2s; }
+  .w09-sig-cards > span:nth-child(3) { animation-delay: 0.4s; }
+}
+
+@keyframes w09SigSweep { 0% { transform: translateX(-18px); } 55%, 100% { transform: translateX(62px); } }
+@keyframes w09SigBeam { 0% { transform: translateX(0); } 55%, 100% { transform: translateX(50px); } }
+@keyframes w09SigEcg { to { stroke-dashoffset: -100; } }
+@keyframes w09SigLaunch { 0% { transform: translateY(0); opacity: 0; } 35% { opacity: 1; } 80%, 100% { transform: translateY(-9px); opacity: 0; } }
+@keyframes w09SigScan { 0% { transform: translateY(0); } 55%, 100% { transform: translateY(14px); } }
+@keyframes w09SigRadar { to { transform: rotate(360deg); } }
+@keyframes w09SigCards { 0%, 100% { transform: translateY(0); opacity: 0.55; } 50% { transform: translateY(-3px); opacity: 1; } }
 
 /* ── Hub intro card palette — consumed by components/HubIntro.tsx.
    Defaults match the original AMG/Petronas cyan; switch under html.monza
