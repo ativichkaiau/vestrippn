@@ -10,6 +10,7 @@
     "validate:cases": "node scripts/validate-branching-cases.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@auth/prisma-adapter": "^2.11.2",
     "@notionhq/client": "^5.20.0",
     "@prisma/adapter-pg": "^7.8.0",
