@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import ThemeToggle from "../components/ThemeToggle"; 
 import TodaysCommand from "../components/TodaysCommand";
 import NotificationCenter from '../components/NotificationCenter';
@@ -543,10 +543,418 @@ function IntroPhaseRail({
   );
 }
 
+type RaceIntroTheme = {
+  id: 'w09' | 'williams' | 'senna';
+  title: string;
+  chassis: string;
+  eyebrow: string;
+  mode: string;
+  subtitle: string;
+  bg: string;
+  accent: string;
+  secondary: string;
+  tertiary: string;
+  softText: string;
+  halo: string;
+  stripe: string;
+  trackPath: string;
+  metrics: { label: string; value: string }[];
+  phases: { label: string; value: string }[];
+  status: (cycle: string) => string[];
+};
+
+const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
+  w09: {
+    id: 'w09',
+    title: 'W09 EQ POWER+',
+    chassis: 'VEStriPPN 3.0',
+    eyebrow: 'Grid Launch Sequence',
+    mode: 'Carbon Silver Petronas',
+    subtitle: 'Cockpit online for mission, study, research, and planner handoff.',
+    bg: '#030506',
+    accent: '#00d2be',
+    secondary: '#d9e2ea',
+    tertiary: '#6be6ff',
+    softText: '#b9fff4',
+    halo: 'rgba(0,210,190,0.58)',
+    stripe: 'linear-gradient(90deg, transparent, rgba(217,226,234,0.92), rgba(0,210,190,0.88), transparent)',
+    trackPath: 'M14 124 C74 30 164 34 178 105 C190 164 273 159 302 90 C334 12 460 30 492 104 C517 161 436 199 340 176 C238 151 189 207 112 188 C58 175 36 155 14 124Z',
+    metrics: [
+      { label: 'ERS', value: 'DEPLOY' },
+      { label: 'DRS', value: 'READY' },
+      { label: 'TYRE', value: 'WINDOW' },
+    ],
+    phases: [
+      { label: 'Pit Wall', value: 'Mission map' },
+      { label: 'Power Unit', value: 'Planner queue' },
+      { label: 'Telemetry', value: 'Hub sync' },
+    ],
+    status: (cycle) => [
+      'FIVE LIGHTS HOLDING',
+      'ERS DEPLOYMENT MAP LOADED',
+      'TYRE WINDOW AND BRAKE BIAS LOCKED',
+      `${cycle} // LIGHTS OUT TO W09`,
+    ],
+  },
+  williams: {
+    id: 'williams',
+    title: 'WILLIAMS FW18',
+    chassis: 'VEStriPPN Heritage',
+    eyebrow: 'Pit Wall Release',
+    mode: 'Navy White Gold Red',
+    subtitle: 'A premium heritage livery handoff with clean race-control precision.',
+    bg: '#070216',
+    accent: '#c59955',
+    secondary: '#ffffff',
+    tertiary: '#d5172d',
+    softText: '#f3e3c6',
+    halo: 'rgba(197,153,85,0.62)',
+    stripe: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.92), rgba(197,153,85,0.88), rgba(213,23,45,0.74), transparent)',
+    trackPath: 'M28 94 C76 42 145 32 184 70 C222 108 184 164 242 184 C299 203 315 126 369 92 C421 59 482 84 495 130 C511 187 441 216 364 188 C303 166 267 221 183 205 C88 187 3 149 28 94Z',
+    metrics: [
+      { label: 'GARAGE', value: 'CLEAR' },
+      { label: 'RADIO', value: 'CHECK' },
+      { label: 'LIVERY', value: 'FW18' },
+    ],
+    phases: [
+      { label: 'Pit Wall', value: 'Release window' },
+      { label: 'Heritage', value: 'Stripe armed' },
+      { label: 'Cockpit', value: 'Mission ready' },
+    ],
+    status: (cycle) => [
+      'GANTRY LIGHTS SET',
+      'PIT WALL RADIO CHECK COMPLETE',
+      'HERITAGE STRIPE AND OUT-LAP MAP ARMED',
+      `${cycle} // WILLIAMS OUT-LAP`,
+    ],
+  },
+  senna: {
+    id: 'senna',
+    title: 'SENNA S1',
+    chassis: 'VEStriPPN Focus',
+    eyebrow: 'Qualifying Run',
+    mode: 'Yellow Green Blue',
+    subtitle: 'Apex-first focus mode with rapid telemetry and clean handoff.',
+    bg: '#061329',
+    accent: '#ffd400',
+    secondary: '#00a651',
+    tertiary: '#1f6feb',
+    softText: '#fff3b8',
+    halo: 'rgba(255,212,0,0.60)',
+    stripe: 'linear-gradient(90deg, transparent, rgba(255,212,0,0.95), rgba(0,166,81,0.84), rgba(31,111,235,0.80), transparent)',
+    trackPath: 'M18 160 C70 70 151 44 211 75 C266 104 222 166 279 190 C345 218 382 124 448 106 C500 92 533 142 494 184 C441 242 333 218 255 230 C145 246 70 224 18 160Z',
+    metrics: [
+      { label: 'APEX', value: 'TRACE' },
+      { label: 'THROTTLE', value: 'CLEAN' },
+      { label: 'FOCUS', value: 'Q-LAP' },
+    ],
+    phases: [
+      { label: 'Helmet Band', value: 'Locked' },
+      { label: 'Apex Line', value: 'Loaded' },
+      { label: 'Throttle Map', value: 'Clean' },
+    ],
+    status: (cycle) => [
+      'YELLOW BAND LOCKED',
+      'APEX TRACE AND BRAKE MARKERS LOADED',
+      'THROTTLE MAP CLEAN FOR FLYING LAP',
+      `${cycle} // SENNA FLYING LAP`,
+    ],
+  },
+};
+
+function RaceStartLights({ theme, reduceMotion }: { theme: RaceIntroTheme; reduceMotion: boolean }) {
+  return (
+    <div className="flex items-center justify-center gap-2 rounded-full border border-white/10 bg-black/35 px-3 py-2 shadow-[0_18px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+      {[0, 1, 2, 3, 4].map((light) => (
+        <motion.span
+          key={light}
+          className="h-3 w-3 rounded-full border border-white/15 sm:h-3.5 sm:w-3.5"
+          style={{ background: theme.tertiary }}
+          initial={{ opacity: 0.18, scale: 0.86 }}
+          animate={
+            reduceMotion
+              ? { opacity: 0.78, scale: 1 }
+              : {
+                  opacity: [0.18, 1, 1, 0.2],
+                  scale: [0.86, 1.08, 1.08, 0.9],
+                  boxShadow: [`0 0 0 ${theme.tertiary}`, `0 0 24px ${theme.tertiary}`, `0 0 24px ${theme.tertiary}`, `0 0 0 ${theme.tertiary}`],
+                }
+          }
+          transition={{ delay: 0.35 + light * 0.22, duration: 2.9, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function RaceTrackTrace({ theme, reduceMotion }: { theme: RaceIntroTheme; reduceMotion: boolean }) {
+  return (
+    <svg className="absolute inset-0 h-full w-full opacity-70" viewBox="0 0 520 260" aria-hidden>
+      <motion.path
+        d={theme.trackPath}
+        fill="none"
+        stroke="rgba(255,255,255,0.16)"
+        strokeWidth="24"
+        strokeLinecap="round"
+      />
+      <motion.path
+        d={theme.trackPath}
+        fill="none"
+        stroke={theme.accent}
+        strokeWidth="3"
+        strokeLinecap="round"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={reduceMotion ? { pathLength: 1, opacity: 0.78 } : { pathLength: [0, 1], opacity: [0, 0.92, 0.72] }}
+        transition={{ delay: 0.9, duration: 2.6, ease: [0.16, 1, 0.3, 1] }}
+      />
+      <motion.path
+        d={theme.trackPath}
+        fill="none"
+        stroke={theme.secondary}
+        strokeDasharray="3 18"
+        strokeWidth="8"
+        strokeLinecap="round"
+        initial={{ pathOffset: 0 }}
+        animate={reduceMotion ? { pathOffset: 0 } : { pathOffset: [0, -1] }}
+        transition={{ delay: 1.4, duration: 3.8, ease: 'linear' }}
+        opacity="0.42"
+      />
+    </svg>
+  );
+}
+
+function RaceIntroTelemetry({ theme }: { theme: RaceIntroTheme }) {
+  return (
+    <motion.div
+      className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 2.65, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {theme.metrics.map((metric, i) => (
+        <motion.div
+          key={metric.label}
+          className="min-w-0 border border-white/10 bg-white/[0.045] px-3 py-2.5 text-left backdrop-blur-md"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.78 + i * 0.1, duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="text-[8px] font-black uppercase tracking-[0.24em] text-white/38">{metric.label}</div>
+          <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px] font-black uppercase text-white">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: theme.accent, boxShadow: `0 0 18px ${theme.halo}` }} />
+            <span className="truncate">{metric.value}</span>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroTheme }) {
+  const reduceMotion = useReducedMotion();
+  const reduced = Boolean(reduceMotion);
+  const statuses = theme.status(cycle);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden px-4 py-4 text-white sm:py-8"
+      style={{ backgroundColor: theme.bg }}
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: reduced ? 1 : 1.035, filter: reduced ? 'none' : 'blur(8px)' }}
+      transition={{ duration: reduced ? 0.2 : 0.65, ease: [0.76, 0, 0.24, 1] }}
+    >
+      <div
+        className="absolute inset-0 opacity-95"
+        style={{
+          backgroundImage: [
+            `radial-gradient(circle at 18% -8%, ${theme.halo}, transparent 38%)`,
+            `radial-gradient(ellipse at 96% 4%, ${theme.tertiary}44, transparent 42%)`,
+            `linear-gradient(115deg, transparent 0 43%, ${theme.accent}26 43% 44%, transparent 44% 100%)`,
+            `linear-gradient(180deg, ${theme.bg} 0%, #020204 100%)`,
+          ].join(', '),
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.13]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.72) 1px, transparent 1px)',
+          backgroundSize: '72px 72px',
+          maskImage: 'radial-gradient(ellipse at center, #000 22%, transparent 76%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 22%, transparent 76%)',
+        }}
+      />
+      <motion.div
+        className="absolute left-[-12%] right-[-12%] top-[15%] h-12 -skew-y-6 sm:h-16"
+        style={{ background: theme.stripe }}
+        initial={{ x: '-110%', opacity: 0 }}
+        animate={reduced ? { x: '0%', opacity: 0.5 } : { x: ['-110%', '0%', '8%'], opacity: [0, 0.92, 0.58] }}
+        transition={{ delay: 0.28, duration: 1.4, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-[2px]"
+        style={{ background: theme.stripe }}
+        initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.25, duration: reduced ? 0.1 : 0.9, ease: [0.16, 1, 0.3, 1] }}
+      />
+
+      <div className="relative z-10 grid w-[min(94vw,1040px)] gap-3 sm:gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+        <motion.section
+          className="relative min-h-[300px] overflow-hidden border border-white/12 bg-black/28 p-4 shadow-[0_32px_110px_rgba(0,0,0,0.48)] backdrop-blur-xl sm:min-h-[430px] sm:p-6"
+          initial={{ opacity: 0, y: 22, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.15, duration: reduced ? 0.15 : 0.62, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <RaceTrackTrace theme={theme} reduceMotion={reduced} />
+          <div className="relative z-10 flex h-full min-h-[268px] flex-col justify-between sm:min-h-[382px]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <motion.div
+                  className="text-[10px] font-black uppercase tracking-[0.32em]"
+                  style={{ color: theme.softText }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45, duration: 0.42 }}
+                >
+                  {theme.eyebrow}
+                </motion.div>
+                <motion.div
+                  className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/45"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.72, duration: 0.42 }}
+                >
+                  Race control handoff
+                </motion.div>
+              </div>
+              <RaceStartLights theme={theme} reduceMotion={reduced} />
+            </div>
+
+            <div className="py-5 sm:py-10">
+              <motion.div
+                className="text-[12px] font-black uppercase tracking-[0.2em] text-white/52"
+                initial={{ opacity: 0, x: -18 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {theme.chassis}
+              </motion.div>
+              <motion.h1
+                className="mt-2 max-w-[780px] text-[clamp(44px,11vw,104px)] font-black uppercase leading-[0.9] text-white"
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.18, duration: reduced ? 0.15 : 0.68, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {theme.title}
+              </motion.h1>
+              <motion.div
+                className="mt-4 h-[3px] w-[min(78vw,520px)] origin-left"
+                style={{ background: theme.stripe, boxShadow: `0 0 24px ${theme.halo}` }}
+                initial={{ scaleX: 0, opacity: 0 }}
+                animate={{ scaleX: 1, opacity: 1 }}
+                transition={{ delay: 1.72, duration: reduced ? 0.1 : 0.85, ease: [0.16, 1, 0.3, 1] }}
+              />
+              <motion.p
+                className="mt-4 max-w-xl text-[13px] font-semibold leading-relaxed text-white/70 sm:text-[15px]"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.95, duration: 0.45 }}
+              >
+                {theme.subtitle}
+              </motion.p>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-3">
+              {theme.phases.map((phase, i) => (
+                <motion.div
+                  key={phase.label}
+                  className="border-l-2 bg-white/[0.035] px-3 py-2.5"
+                  style={{ borderColor: i === 1 ? theme.secondary : theme.accent }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 2.15 + i * 0.1, duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <div className="text-[8px] font-black uppercase tracking-[0.24em] text-white/36">{phase.label}</div>
+                  <div className="mt-1 truncate text-[12px] font-black uppercase text-white">{phase.value}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.aside
+          className="border border-white/12 bg-black/36 p-3 shadow-[0_28px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-5"
+          initial={{ opacity: 0, x: 22 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.55, duration: reduced ? 0.15 : 0.58, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-[9px] font-black uppercase tracking-[0.28em] text-white/40">Livery Mode</div>
+              <div className="mt-2 text-xl font-black uppercase text-white">{theme.mode}</div>
+            </div>
+            <div
+              className="flex h-12 w-12 items-center justify-center border border-white/14 text-[18px] font-black"
+              style={{ color: theme.bg, background: theme.accent, boxShadow: `0 0 34px ${theme.halo}` }}
+            >
+              V
+            </div>
+          </div>
+
+          <div className="mt-4 sm:mt-6">
+            <RaceIntroTelemetry theme={theme} />
+          </div>
+
+          <div className="mt-4 h-[2px] overflow-hidden bg-white/10 sm:mt-6">
+            <motion.div
+              className="h-full w-1/3"
+              style={{ background: theme.stripe }}
+              initial={{ x: '-120%' }}
+              animate={reduced ? { x: '180%' } : { x: ['-120%', '360%'] }}
+              transition={{ delay: 1.2, duration: reduced ? 0.1 : 3.8, ease: 'easeInOut' }}
+            />
+          </div>
+
+          <div className="mt-4 h-9 overflow-hidden sm:mt-5 sm:h-10">
+            {statuses.map((status, i) => {
+              const isLast = i === statuses.length - 1;
+              return (
+                <motion.div
+                  key={status}
+                  className="absolute flex max-w-[min(80vw,360px)] items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-white/62"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={isLast || reduced ? { opacity: 1, y: 0 } : { opacity: [0, 1, 1, 0], y: [10, 0, 0, -8] }}
+                  transition={{
+                    delay: reduced ? 0.5 : 1.55 + i * 1.12,
+                    duration: isLast || reduced ? 0.5 : 1.18,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: isLast ? theme.accent : theme.tertiary }} />
+                  <span>{status}</span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.aside>
+      </div>
+    </motion.div>
+  );
+}
+
+function useRaceIntroSystem() {
+  return true;
+}
+
 /* ════════════════════════════════════════════════════════════
    INTRO OVERLAY — boot sequence (every page load, ~7s)
    ════════════════════════════════════════════════════════════ */
 function IntroOverlay({ cycle }: { cycle: string }) {
+  if (useRaceIntroSystem()) {
+    return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.w09} />;
+  }
+
   const word = 'VESTRIPPN'.split('');
   const status = [
     { t: 'INITIALIZING W09 COMMAND SURFACE', at: 1.8 },
@@ -721,6 +1129,10 @@ function IntroOverlay({ cycle }: { cycle: string }) {
    and a generic bold sans-serif — not the trademarked logotype.
    ════════════════════════════════════════════════════════════ */
 function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
+  if (useRaceIntroSystem()) {
+    return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.williams} />;
+  }
+
   const word = 'VESTRIPPN'.split('');
   const status = [
     { t: 'LOADING WILLIAMS LIVERY', at: 1.8 },
@@ -949,6 +1361,10 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
    Uses a generic motorsport tribute treatment, not a sponsor logotype.
    ════════════════════════════════════════════════════════════ */
 function SennaIntroOverlay({ cycle }: { cycle: string }) {
+  if (useRaceIntroSystem()) {
+    return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.senna} />;
+  }
+
   const word = 'VESTRIPPN'.split('');
   const status = [
     { t: 'LOADING SENNA LIVERY', at: 1.8 },
