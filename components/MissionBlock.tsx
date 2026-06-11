@@ -8,7 +8,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-type Accent = 'cyan' | 'amber' | 'rose' | 'purple' | 'emerald' | 'blue' | 'indigo';
+type Accent = 'cyan' | 'amber' | 'rose' | 'purple' | 'emerald' | 'blue' | 'indigo' | 'teal' | 'sky';
 
 const ACCENTS: Record<Accent, { bar: string; dot: string; text: string }> = {
   cyan: { bar: 'bg-cyan-500', dot: 'bg-cyan-500', text: 'text-cyan-600 dark:text-cyan-400' },
@@ -18,6 +18,8 @@ const ACCENTS: Record<Accent, { bar: string; dot: string; text: string }> = {
   emerald: { bar: 'bg-emerald-500', dot: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
   blue: { bar: 'bg-blue-500', dot: 'bg-blue-500', text: 'text-blue-600 dark:text-blue-400' },
   indigo: { bar: 'bg-indigo-500', dot: 'bg-indigo-500', text: 'text-indigo-600 dark:text-indigo-400' },
+  teal: { bar: 'bg-teal-500', dot: 'bg-teal-500', text: 'text-teal-600 dark:text-teal-400' },
+  sky: { bar: 'bg-sky-500', dot: 'bg-sky-500', text: 'text-sky-600 dark:text-sky-400' },
 };
 
 export default function MissionBlock({

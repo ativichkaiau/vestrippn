@@ -282,7 +282,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">V</div>
             <div className="flex items-baseline">
               <span>VESTRIPPN</span>
-              <span className="text-blue-600 dark:text-blue-400 transition-colors duration-700">3.0</span>
+              <span className="text-blue-500 dark:text-blue-400 transition-colors duration-700">3.0</span>
             </div>
           </Link>
         </div>
@@ -327,7 +327,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             />
 
             <MissionBlock
-              accent="amber"
+              accent="blue"
               title="HMS-2 · Human Musculoskeletal System-2"
               detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HMS-2'] || '--D --H --M'}</span> · 12 JUN // 09:00</>}
               cta={{ label: 'View milestones', href: '#milestones' }}

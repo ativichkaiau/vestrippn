@@ -50,7 +50,7 @@ export default function ArchiveHub() {
           </button>
           <Link href="/" className="font-black text-[20px] lg:text-[22px] tracking-tighter flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">V</div>
-            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="text-cyan-500 dark:text-cyan-400 transition-colors duration-700">3.0</span></div>
+            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="text-purple-500 dark:text-purple-400 transition-colors duration-700">3.0</span></div>
           </Link>
         </div>
         <div className="flex gap-4 lg:gap-6 items-center">
