@@ -59,7 +59,7 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
   return (
     <aside
       className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
-        expanded ? 'w-[240px] px-6' : 'w-[88px] px-4'
+        expanded ? 'w-[248px] px-6' : 'w-[108px] px-4'
       }`}
     >
       <nav className="space-y-1.5 overflow-y-auto custom-scrollbar overflow-x-hidden">
