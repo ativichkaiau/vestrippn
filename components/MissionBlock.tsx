@@ -6,7 +6,10 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import Link from 'next/link';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { ReactNode } from 'react';
+import { fadeUp, hoverLift, pressTap, statePulse, telemetryLine } from './motionPresets';
+import { useLowPower } from './useLowPower';
 
 type Accent = 'cyan' | 'amber' | 'rose' | 'purple' | 'emerald' | 'blue' | 'indigo' | 'teal';
 
@@ -33,20 +36,31 @@ export default function MissionBlock({
   cta?: { label: string; href: string; external?: boolean };
 }) {
   const a = ACCENTS[accent];
+  const reduceMotion = useReducedMotion();
+  const lowPower = useLowPower();
+  const motionOff = Boolean(reduceMotion || lowPower);
 
   const ctaClass =
-    'shrink-0 inline-flex items-center gap-2 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-black px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 hover:opacity-90 active:scale-95';
+    'w09-magnetic w09-launch-button shrink-0 inline-flex items-center gap-2 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-black px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 hover:opacity-90 active:scale-95';
 
   return (
-    <section
+    <motion.section
+      variants={motionOff ? undefined : fadeUp}
+      initial={motionOff ? false : 'hidden'}
+      animate={motionOff ? undefined : 'show'}
+      whileHover={motionOff ? undefined : hoverLift}
+      whileTap={motionOff ? undefined : pressTap}
       className="relative flex flex-col gap-3 overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-4 pl-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-colors duration-700 dark:border-white/5 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5 sm:pl-6"
       aria-label="Current mission"
+      data-motion="mission"
+      data-state="active"
     >
-      <span className={`absolute inset-y-0 left-0 w-[4px] ${a.bar}`} />
+      <motion.span variants={motionOff ? undefined : telemetryLine} className={`absolute inset-y-0 left-0 w-[4px] origin-top ${a.bar}`} />
+      {!motionOff && <span className="w09-mission-scan" aria-hidden />}
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${a.dot}`} />
-          <span className={`text-[9px] font-black uppercase tracking-[0.25em] ${a.text}`}>Current Mission</span>
+          <motion.span animate={statePulse(motionOff)} className={`h-1.5 w-1.5 animate-pulse rounded-full ${a.dot}`} />
+          <span className={`w09-state text-[9px] font-black uppercase tracking-[0.25em] ${a.text}`} data-state="active">Current Mission</span>
         </div>
         <h2 className="mt-1.5 truncate text-[15px] font-black tracking-tight text-neutral-900 dark:text-white sm:text-[17px]">
           {title}
@@ -65,6 +79,6 @@ export default function MissionBlock({
             {cta.label}
           </Link>
         ))}
-    </section>
+    </motion.section>
   );
 }

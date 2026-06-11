@@ -84,6 +84,8 @@ export default function DomainHealth() {
           <div 
             key={domain.name} 
             onClick={() => toggleStatus(index)}
+            data-motion-card
+            data-state={domain.status === 'good' ? 'online' : domain.status === 'warning' ? 'critical' : 'locked'}
             className="flex justify-between items-center group cursor-pointer p-2.5 -mx-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 active:scale-[0.98] select-none"
           >
             <span className="text-[13px] font-semibold tracking-tight text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors duration-300">

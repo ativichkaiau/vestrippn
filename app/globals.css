@@ -125,6 +125,44 @@ h1, h2, h3, .font-orbitron {
 .animate-loader-sweep { animation: loaderSweep 1.1s ease-in-out infinite; }
 .animate-loader-pulse { animation: loaderPulse 1.4s ease-in-out infinite; }
 
+.w09-boot-ring {
+  border: 1px solid rgba(0, 165, 152, 0.34);
+  border-radius: 18px;
+  inset: -5px;
+  opacity: 0.9;
+  position: absolute;
+}
+
+.w09-boot-step {
+  animation: w09BootStep 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w09-boot-ring {
+    animation: w09BootRing 1.25s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .w09-boot-ring,
+  .w09-boot-step,
+  .animate-loader-sweep,
+  .animate-loader-pulse {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@keyframes w09BootRing {
+  0%, 100% { opacity: 0.42; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes w09BootStep {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 /* --- SITE-WIDE MOTION SYSTEM ---
    Root route transitions live in components/SiteMotion.tsx. These global
    primitives add a soft, livery-aware pulse to the whole interface while
@@ -322,10 +360,8 @@ html.senna .motion-route-shell {
     translate: 0 -1px;
   }
 
-  /* fixed-position glass (navs, docks) is excluded: animating `translate`
-     would override Tailwind v4 translate utilities and shift their anchoring */
-  .motion-route-shell :where([class*="backdrop-blur"]):not([class*="animate-"]):not([class*="fixed"]) {
-    animation: siteSurfaceBreath 11s ease-in-out infinite;
+  .motion-route-shell :where([data-motion="hero"]):not([class*="animate-"]) {
+    animation: siteSurfaceBreath 14s ease-in-out infinite;
     will-change: filter, translate;
   }
 
@@ -443,6 +479,204 @@ p { text-wrap: pretty; }
 @keyframes w09SigScan { 0% { transform: translateY(0); } 55%, 100% { transform: translateY(14px); } }
 @keyframes w09SigRadar { to { transform: rotate(360deg); } }
 @keyframes w09SigCards { 0%, 100% { transform: translateY(0); opacity: 0.55; } 50% { transform: translateY(-3px); opacity: 1; } }
+
+/* ════════════════════════════════════════════════════════════════════════
+   W09 F2 MOTION PRIMITIVES — precise, shared cockpit interactions.
+   These are deliberately small: transform/opacity only, and all are covered
+   by the reduced-motion + low-power guards above.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.w09-route-sweep {
+  background: linear-gradient(90deg, transparent, rgba(var(--motion-accent-rgb), 0.72), transparent);
+  height: 1px;
+  inset: 72px 0 auto;
+  pointer-events: none;
+  position: fixed;
+  transform-origin: 0 50%;
+  z-index: 120;
+}
+
+[data-motion-card],
+.w09-nav-link,
+.w09-nav-chip,
+.w09-magnetic {
+  transform: translateZ(0);
+}
+
+[data-motion-card] {
+  transition-property: translate, opacity, filter, box-shadow, border-color, background-color, color;
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: translate, filter;
+}
+
+.w09-nav-link,
+.w09-nav-chip {
+  overflow: hidden;
+}
+
+.w09-nav-link::after,
+.w09-nav-chip::after,
+.w09-launch-button::after,
+[data-motion-card]::after {
+  background: linear-gradient(90deg, transparent, rgba(var(--hub-accent-rgb), 0.22), transparent);
+  border-radius: inherit;
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-115%);
+}
+
+.w09-nav-link,
+.w09-nav-chip,
+.w09-launch-button,
+[data-motion-card] {
+  overflow: hidden;
+  position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w09-magnetic:hover,
+  .w09-magnetic:focus-visible {
+    filter: saturate(1.08);
+    translate: 0 -1px;
+  }
+
+  .motion-route-shell [data-motion-card]:where(:hover, :focus-within) {
+    filter: saturate(1.05);
+    translate: 0 -2px;
+  }
+
+  .w09-nav-link:hover::after,
+  .w09-nav-link:focus-visible::after,
+  .w09-nav-chip:hover::after,
+  .w09-nav-chip:focus-visible::after,
+  .w09-launch-button:hover::after,
+  .w09-launch-button:focus-visible::after,
+  [data-motion-card]:hover::after,
+  [data-motion-card]:focus-visible::after {
+    animation: w09InteractionSweep 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .w09-active-bar,
+  .w09-nav-link[data-state="active"] > span:first-child,
+  .w09-nav-chip[data-state="active"] > span:first-child {
+    animation: w09ActiveChipPulse 2.7s ease-in-out infinite;
+  }
+
+  [data-motion="mission"] {
+    animation-delay: 110ms;
+  }
+
+  [data-motion="mission"] .w09-mission-scan {
+    animation: w09MissionScan 2.9s ease-in-out 340ms 2;
+  }
+
+  .w09-state[data-state="online"],
+  .w09-state[data-state="active"] {
+    animation: w09StateBreath 2.8s ease-in-out infinite;
+  }
+
+  .w09-state[data-state="syncing"] {
+    animation: w09StateSync 1.35s ease-in-out infinite;
+  }
+
+  .w09-state[data-state="completed"] {
+    animation: w09StateComplete 780ms cubic-bezier(0.16, 1, 0.3, 1) 1;
+  }
+
+  .w09-state[data-state="critical"] {
+    animation: w09StateCritical 1.8s ease-in-out infinite;
+  }
+}
+
+.w09-mission-scan {
+  background: linear-gradient(90deg, transparent, rgba(var(--hub-accent-rgb), 0.42), transparent);
+  height: 1px;
+  inset: 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-100%);
+}
+
+.w09-state[data-state="online"] {
+  box-shadow: 0 0 0 1px rgba(var(--hub-accent-rgb), 0.12), 0 0 20px rgba(var(--hub-accent-rgb), 0.12);
+}
+
+.w09-state[data-state="active"] {
+  text-shadow: 0 0 14px rgba(var(--hub-accent-rgb), 0.16);
+}
+
+.w09-state[data-state="locked"] {
+  opacity: 0.82;
+  box-shadow: inset 0 0 0 1px rgba(115, 115, 115, 0.18);
+}
+
+.w09-state[data-state="critical"] {
+  color: rgb(239, 68, 68);
+}
+
+[data-motion-card][data-state="online"] {
+  box-shadow: inset 0 0 0 1px rgba(var(--hub-accent-rgb), 0.06);
+}
+
+[data-motion-card][data-state="locked"] {
+  filter: saturate(0.82);
+  opacity: 0.78;
+}
+
+[data-motion-card][data-state="critical"] {
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+}
+
+@keyframes w09InteractionSweep {
+  0% { opacity: 0; transform: translateX(-115%); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(115%); }
+}
+
+@keyframes w09ActiveChipPulse {
+  0%, 100% {
+    filter: saturate(1);
+    opacity: 0.78;
+    transform: scale(1);
+  }
+  50% {
+    filter: saturate(1.24);
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes w09MissionScan {
+  0% { opacity: 0; transform: translateX(-100%); }
+  22% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+
+@keyframes w09StateBreath {
+  0%, 100% { filter: brightness(1); opacity: 0.78; }
+  50% { filter: brightness(1.16); opacity: 1; }
+}
+
+@keyframes w09StateSync {
+  0%, 100% { opacity: 0.54; translate: -1px 0; }
+  50% { opacity: 1; translate: 1px 0; }
+}
+
+@keyframes w09StateComplete {
+  0% { filter: brightness(1); }
+  35% { filter: brightness(1.35); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes w09StateCritical {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.24); }
+}
 
 /* ── Hub intro card palette — consumed by components/HubIntro.tsx.
    Defaults match the original AMG/Petronas cyan; switch under html.monza

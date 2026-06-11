@@ -55,7 +55,7 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
 
         {/* Dynamic Status Indicator */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
+          <div className="w09-state flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700" data-state={isLoading ? 'syncing' : 'online'}>
             <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`}></span>
             <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase transition-colors duration-700">
               {isLoading ? 'Decrypting' : 'Live Feed'}
@@ -83,6 +83,7 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
           notifications.map((note) => (
             <div 
               key={note.id} 
+              data-motion-card
               className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 flex flex-col gap-2 group/note"
             >
               {/* Note Header: Source Pill & Time */}

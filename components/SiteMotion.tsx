@@ -3,24 +3,36 @@
 import type { ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { routeTransition, routeVariants, w09Ease } from './motionPresets';
+import { useLowPower } from './useLowPower';
 
 export default function SiteMotion({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
+  const lowPower = useLowPower();
+  const motionOff = Boolean(reduceMotion || lowPower);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={pathname}
         className="motion-route-shell"
-        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-        animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-        exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-        transition={{
-          duration: reduceMotion ? 0.08 : 0.34,
-          ease: [0.16, 1, 0.3, 1],
-        }}
+        variants={routeVariants(motionOff)}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={routeTransition(motionOff)}
+        data-motion-route
       >
+        {!motionOff && (
+          <motion.span
+            aria-hidden
+            className="w09-route-sweep"
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: [0, 1, 1], opacity: [0, 0.46, 0] }}
+            transition={{ duration: 0.58, ease: w09Ease, times: [0, 0.42, 1] }}
+          />
+        )}
         {children}
       </motion.div>
     </AnimatePresence>

@@ -101,7 +101,7 @@ export default function ResearchCard({
       
       {/* STATUS INDICATOR */}
       <div className="absolute -top-12 right-0 flex items-center gap-2">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700">
+        <div className="w09-state flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 transition-colors duration-700" data-state={isSearching ? 'syncing' : 'online'}>
           <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse`}></span>
           <span className="text-[10px] font-bold tracking-wide text-neutral-500 dark:text-neutral-400 uppercase transition-colors duration-700">
             Covidence Live
@@ -110,7 +110,7 @@ export default function ResearchCard({
       </div>
 
       {/* PROJECT TELEMETRY */}
-      <div className="mb-6 p-5 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-colors duration-700">
+      <div data-motion-card className="mb-6 p-5 bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5 transition-colors duration-700">
         <div className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2 transition-colors duration-700">
           <span className="w-1.5 h-1.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-colors duration-700"></span>
           Active Review
@@ -126,7 +126,7 @@ export default function ResearchCard({
             { id: 'fullText', label: 'Full Text', val: stats.fullText, color: 'bg-amber-500 dark:bg-amber-400' },
             { id: 'extraction', label: 'Extraction', val: stats.extraction, color: 'bg-emerald-500 dark:bg-emerald-400' }
           ].map((stat) => (
-            <div key={stat.id} className="group/stat cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 -mx-2 px-2 py-1 rounded-lg transition-all duration-300" onClick={() => handleUpdateStat(stat.id, stat.val)}>
+            <div key={stat.id} data-motion-card className="group/stat cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 -mx-2 px-2 py-1 rounded-lg transition-all duration-300" onClick={() => handleUpdateStat(stat.id, stat.val)}>
               <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest mb-1.5 transition-colors duration-700">
                 <span className="text-neutral-500 dark:text-neutral-400 group-hover/stat:text-neutral-700 dark:group-hover/stat:text-neutral-200 transition-colors duration-300">
                   {stat.label}
@@ -177,6 +177,7 @@ export default function ResearchCard({
                 key={paper.id} 
                 href={`https://pubmed.ncbi.nlm.nih.gov/${paper.id}/`} 
                 target="_blank" 
+                data-motion-card
                 className="group/paper block bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl p-3.5 transition-all duration-300 border border-transparent dark:border-white/5 active:scale-[0.99]"
               >
                 <div className="text-[13px] text-neutral-800 dark:text-neutral-200 font-bold line-clamp-2 leading-snug group-hover/paper:text-blue-600 dark:group-hover/paper:text-blue-400 transition-colors mb-2">

@@ -9,10 +9,12 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import HubSignature, { type HubKey } from './HubSignature';
 import TickNumber from './TickNumber';
+import { fadeUp, hoverLift, pressTap, slidePanel, softScale, staggerContainer, statePulse, telemetryLine } from './motionPresets';
+import { useLowPower } from './useLowPower';
 
 /* W09 per-hub accents (Tailwind classes so liveries can remap them) */
 const HUB_ACCENT: Record<HubKey, { dot: string; grad: string; text: string; chipBg: string; icon: string }> = {
@@ -68,8 +70,8 @@ function IntroAction({
 }) {
   const className =
     variant === 'primary'
-      ? 'inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[12px] font-black uppercase tracking-widest text-slate-950 transition-transform hover:-translate-y-0.5 active:scale-95'
-      : 'inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-[12px] font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-95';
+      ? 'w09-magnetic w09-launch-button inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[12px] font-black uppercase tracking-widest text-slate-950 transition-transform hover:-translate-y-0.5 active:scale-95'
+      : 'w09-magnetic inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-[12px] font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-95';
 
   const style =
     variant === 'primary'
@@ -108,13 +110,19 @@ export default function HubIntro({
   hub,
 }: HubIntroProps) {
   const acc = hub ? HUB_ACCENT[hub] : null;
+  const reduceMotion = useReducedMotion();
+  const lowPower = useLowPower();
+  const motionOff = Boolean(reduceMotion || lowPower);
+
   return (
     <motion.section
-      initial={{ opacity: 0, y: 32 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      variants={motionOff ? undefined : softScale}
+      initial={motionOff ? false : 'hidden'}
+      animate={motionOff ? undefined : 'show'}
       className="relative overflow-hidden rounded-[32px] border border-white/10 px-5 py-6 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8 lg:rounded-[40px] lg:px-10 lg:py-9"
       style={{ backgroundColor: 'var(--hub-bg)' }}
+      data-motion="hero"
+      data-hub={hub ?? 'overview'}
     >
       {/* atmosphere */}
       <div
@@ -135,7 +143,12 @@ export default function HubIntro({
         }}
       />
       {/* hub-colored hairline — the W09 color signature of the page */}
-      {acc && <span className={`absolute left-8 top-0 h-[3px] w-28 rounded-b-full opacity-90 sm:left-12 ${acc.dot}`} />}
+      {acc && (
+        <motion.span
+          variants={motionOff ? undefined : telemetryLine}
+          className={`absolute left-8 top-0 h-[3px] w-28 origin-left rounded-b-full opacity-90 sm:left-12 ${acc.dot}`}
+        />
+      )}
 
       {/* cockpit corner brackets */}
       <span className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 rounded-tl-lg border-l-2 border-t-2 border-white/15" />
@@ -143,9 +156,12 @@ export default function HubIntro({
       <span className="pointer-events-none absolute bottom-3.5 left-3.5 h-5 w-5 rounded-bl-lg border-b-2 border-l-2 border-white/15" />
       <span className="pointer-events-none absolute bottom-3.5 right-3.5 h-5 w-5 rounded-br-lg border-b-2 border-r-2 border-white/15" />
 
-      <div className="relative z-10">
+      <motion.div variants={motionOff ? undefined : staggerContainer(0.08, 0.08)} className="relative z-10">
         {/* ── SYSTEM STRIP ── */}
-        <div className="mb-7 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-white/10 pb-5">
+        <motion.div
+          variants={motionOff ? undefined : fadeUp}
+          className="mb-7 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-white/10 pb-5"
+        >
           <div className="flex min-w-0 items-center gap-3 text-left">
             {acc && (
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-[17px] ${acc.chipBg} ${acc.text}`}>
@@ -162,19 +178,21 @@ export default function HubIntro({
               {panelSubtitle}
             </span>
             {hub && <HubSignature hub={hub} />}
-            <span
-              className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+            <motion.span
+              animate={statePulse(motionOff)}
+              data-state="online"
+              className="w09-state rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
               style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.15)', color: 'var(--hub-text-soft-2)' }}
             >
               Online
-            </span>
+            </motion.span>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── MAIN GRID ── */}
         <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           {/* title zone */}
-          <div className="text-center lg:text-left">
+          <motion.div variants={motionOff ? undefined : fadeUp} className="text-center lg:text-left">
             <h1 className="mx-auto max-w-4xl text-[34px] font-black leading-[0.95] tracking-tighter sm:text-[52px] lg:mx-0 lg:text-[64px]">
               {title}{' '}
               {acc ? (
@@ -215,37 +233,52 @@ export default function HubIntro({
                 </span>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* telemetry stack */}
-          <div className="relative">
+          <motion.div variants={motionOff ? undefined : slidePanel} className="relative">
             <div
               className="absolute -inset-8 rounded-[36px] blur-3xl"
               style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}
             />
-            <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.07] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+            <motion.div
+              whileHover={motionOff ? undefined : hoverLift}
+              whileTap={motionOff ? undefined : pressTap}
+              className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.07] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+              data-motion-card
+            >
               {/* ticking metrics */}
               <div className="grid grid-cols-3 gap-2.5">
                 {metrics.map((metric) => (
-                  <div key={metric.label} className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3 text-center">
+                  <motion.div
+                    key={metric.label}
+                    variants={motionOff ? undefined : softScale}
+                    className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3 text-center"
+                    data-motion-card
+                  >
                     <div className={`truncate text-[17px] font-black tabular-nums leading-tight ${acc ? acc.text : 'text-white'}`}>
                       <TickNumber value={metric.value} />
                     </div>
                     <div className="mt-1 truncate text-[8px] font-black uppercase tracking-widest text-slate-500">{metric.label}</div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
               {/* capability rows */}
               <div className="mt-3 space-y-2">
                 {capabilities.map((card) => (
-                  <div key={card.title} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-3.5 py-3 text-left">
+                  <motion.div
+                    key={card.title}
+                    variants={motionOff ? undefined : fadeUp}
+                    className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-3.5 py-3 text-left"
+                    data-motion-card
+                  >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-lg">{card.icon}</span>
                     <div className="min-w-0">
                       <div className="text-[12px] font-black tracking-tight">{card.title}</div>
                       <div className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-4 text-slate-400">{card.desc}</div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
@@ -253,17 +286,18 @@ export default function HubIntro({
               <div className="mt-3 flex items-center justify-between rounded-2xl bg-black/20 px-3.5 py-2">
                 <span className="text-[8px] font-black uppercase tracking-[0.25em] text-slate-500">Hub Telemetry</span>
                 <span className="flex items-center gap-1.5">
-                  <span
+                  <motion.span
+                    animate={statePulse(motionOff)}
                     className={`h-1 w-1 animate-pulse rounded-full ${acc ? acc.dot : ''}`}
                     style={acc ? undefined : { backgroundColor: 'var(--hub-accent)' }}
                   />
                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Nominal</span>
                 </span>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </motion.section>
   );
 }

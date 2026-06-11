@@ -90,7 +90,8 @@ export default function QuickAccess() {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex flex-col items-center justify-center bg-black/5 dark:bg-white/5 border border-transparent hover:border-black/10 dark:hover:border-white/10 rounded-2xl p-4 transition-all duration-300 active:scale-95 animate-in fade-in zoom-in-95"
+            data-motion-card
+            className="w09-launch-button group flex flex-col items-center justify-center bg-black/5 dark:bg-white/5 border border-transparent hover:border-black/10 dark:hover:border-white/10 rounded-2xl p-4 transition-all duration-300 active:scale-95 animate-in fade-in zoom-in-95"
           >
             <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">
               {link.icon}

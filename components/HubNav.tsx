@@ -61,6 +61,7 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
       className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
         expanded ? 'w-[248px] px-6' : 'w-[108px] px-4'
       }`}
+      data-motion="nav-rail"
     >
       <nav className="space-y-1.5 overflow-y-auto custom-scrollbar overflow-x-hidden">
         {HUBS.map((item, i) => {
@@ -72,7 +73,8 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
               <Link
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`group relative flex rounded-2xl transition-all duration-300 ${
+                data-state={isActive ? 'active' : undefined}
+                className={`w09-nav-link group relative flex rounded-2xl transition-all duration-300 ${
                   expanded ? 'flex-row items-center px-4 py-3' : 'flex-col items-center justify-center px-1 py-2.5'
                 } ${
                   isActive
@@ -81,7 +83,7 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
                 }`}
               >
                 {isActive && (
-                  <span className={`absolute left-[3px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full ${theme.bar}`} />
+                  <span className={`w09-active-bar absolute left-[3px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full ${theme.bar}`} />
                 )}
                 <span
                   className={`text-[18px] shrink-0 leading-none transition-transform duration-300 ${
@@ -112,7 +114,7 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
       <button
         onClick={onToggle}
         title={expanded ? 'Collapse rail' : 'Expand rail'}
-        className={`mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${
+        className={`w09-magnetic mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${
           expanded ? 'p-5' : 'p-4 aspect-square'
         }`}
       >
@@ -145,7 +147,8 @@ export function MobileHubNav({ active }: { active: HubName }) {
             href={item.href}
             ref={isActive ? activeRef : undefined}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 transition-all duration-300 first:ml-auto last:mr-auto ${
+            data-state={isActive ? 'active' : undefined}
+            className={`w09-nav-chip flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 transition-all duration-300 first:ml-auto last:mr-auto ${
               isActive
                 ? 'bg-neutral-900 text-white shadow-md dark:bg-white dark:text-black'
                 : 'text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/10'
