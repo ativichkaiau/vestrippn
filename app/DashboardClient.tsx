@@ -20,7 +20,7 @@ import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import Link from 'next/link';
 
 type SiteLivery = 'normal' | 'monza' | 'senna';
-type DashboardTask = { id: string; title: string; completed: boolean; category?: string };
+type DashboardTask = { id: string; title: string; completed: boolean; category: string };
 type DashboardResearch = { title?: string; screening?: number; fullText?: number; extraction?: number };
 type DashboardFitness = { workoutDays?: string; lastWorkout?: string; streak?: number };
 type DashboardNotification = { id: string; source: 'CANVAS' | 'GMAIL' | string; title: string; message: string; time: string };
@@ -29,8 +29,8 @@ type DashboardNotification = { id: string; source: 'CANVAS' | 'GMAIL' | string; 
 interface DashboardProps {
   cloudCommand: string;
   cloudTasks: DashboardTask[];
-  cloudResearch?: DashboardResearch;
-  cloudFitness?: DashboardFitness;
+  cloudResearch?: DashboardResearch | null;
+  cloudFitness?: DashboardFitness | null;
   cloudNotifications?: DashboardNotification[];
 }
 

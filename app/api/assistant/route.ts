@@ -75,9 +75,9 @@ export async function POST(req: Request) {
   const client = new Anthropic();
 
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-opus-4-1-20250805',
     max_tokens: 8192,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'enabled', budget_tokens: 2048 },
     system: [
       { type: 'text', text: CORE_SYSTEM, cache_control: { type: 'ephemeral' } },
       { type: 'text', text: persona },
