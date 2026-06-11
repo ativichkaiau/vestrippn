@@ -1,14 +1,14 @@
 /**
- * W08 — interactive ("choose-your-path") clinical cases.
+ * W09 — interactive ("choose-your-path") clinical cases.
  *
  * ⚠️ PLACEHOLDER TEACHING CONTENT — drafted for the engine. Every "deadly"
  * pathway and all vital signs MUST be clinically reviewed before production use.
  *
  * Depth scales with difficulty: Easy = 4 layers, Medium = 5, Hard = 6.
- * Each layer is a decision point (optimal / suboptimal / deadly). `chain()`
- * auto-wires the graph: optimal/suboptimal advance to the next layer (or
- * survival on the last); deadly is always fatal. Shape mirrors
- * lib/learn/content.ts (BranchingCase); the seed wraps it as branches JSON.
+ * Each layer is a decision point. `chain()` auto-wires the graph:
+ * optimal/suboptimal choices advance to the next layer (or survival on the
+ * last); deadly choices are always fatal. Choice order is deterministically
+ * shuffled so the public UI never teaches "A is always right".
  */
 
 type Outcome = "optimal" | "suboptimal" | "deadly";
@@ -23,7 +23,7 @@ interface Vital {
 }
 interface Choice {
   id: string; label: string; outcome: Outcome;
-  scoreDelta: number; feedback: string; next: string; icon?: string;
+  scoreDelta: number; feedback: string; next: string; icon?: string; detail?: string;
 }
 interface Node {
   content: string; prompt?: string; stageId?: string; stageLabel?: string;
@@ -44,16 +44,87 @@ export interface BranchingCaseSeed {
 const v = (id: string, label: string, value: string | number, unit?: string, trend?: Trend, state?: VState): Vital =>
   ({ id, label, value, unit, trend, state });
 
-// choice spec tuple: [label, feedback, icon?]
-type CS = [string, string, string?];
+// choice spec tuple: [label, feedback, icon?, public detail?]
+type CS = [string, string, string?, string?];
+type ExtraChoiceSpec = { outcome: Outcome; choice: CS; scoreDelta?: number; next?: string };
+type ChoiceDraft = { outcome: Outcome; spec: CS; scoreDelta: number; next?: string };
 interface LayerSpec {
   stage: string; prompt: string; content: string;
   status: PatientStatus; vitals: Vital[];
-  optimal: CS; suboptimal: CS; deadly: CS;
+  optimal: CS; suboptimal: CS; deadly: CS; extra?: ExtraChoiceSpec[];
+}
+
+const CHOICE_IDS = ["a", "b", "c", "d", "e"];
+
+function hash(input: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function stableShuffle<T>(items: T[], seed: string): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = hash(`${seed}:${i}`) % (i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function keepOptimalOffFirstSlot(choices: ChoiceDraft[], seed: string): ChoiceDraft[] {
+  if (choices.length < 2 || choices[0].outcome !== "optimal") return choices;
+  const swapIndex = 1 + (hash(`${seed}:optimal-offset`) % (choices.length - 1));
+  const adjusted = [...choices];
+  [adjusted[0], adjusted[swapIndex]] = [adjusted[swapIndex], adjusted[0]];
+  return adjusted;
+}
+
+function fallbackChoices(layer: LayerSpec): ChoiceDraft[] {
+  const stage = layer.stage.toLowerCase();
+  return [
+    {
+      outcome: "suboptimal",
+      scoreDelta: -8,
+      spec: [
+        "Ask for senior input while starting supportive care",
+        `This is partly reasonable, but the decisive step for ${stage} is delayed.`,
+        "🧭",
+        "Reasonable support, slow execution",
+      ],
+    },
+    {
+      outcome: "suboptimal",
+      scoreDelta: -12,
+      spec: [
+        "Wait for confirmatory results before escalating",
+        `Extra confirmation can help, but waiting during ${stage} increases avoidable risk.`,
+        "🧪",
+        "Plausible, but too slow",
+      ],
+    },
+  ];
+}
+
+function toChoice(id: string, draft: ChoiceDraft, next: string): Choice {
+  const [label, feedback, icon, detail] = draft.spec;
+  return {
+    id,
+    label,
+    outcome: draft.outcome,
+    scoreDelta: draft.scoreDelta,
+    feedback,
+    next: draft.next ?? (draft.outcome === "deadly" ? "died" : next),
+    icon,
+    detail,
+  };
 }
 
 // Builds an N-layer graph + decision-path stages + terminals from layer specs.
 function chain(
+  caseId: string,
   layers: LayerSpec[],
   ends: { survived: string; died: string },
 ): Pick<BranchingCaseSeed, "stages" | "startNodeId" | "nodes"> {
@@ -61,6 +132,22 @@ function chain(
   const stages = layers.map((l, i) => ({ id: `s${i + 1}`, label: l.stage }));
   layers.forEach((l, i) => {
     const next = i === layers.length - 1 ? "survived" : `n${i + 2}`;
+    const baseChoices: ChoiceDraft[] = [
+      { outcome: "optimal", scoreDelta: 0, spec: l.optimal },
+      { outcome: "suboptimal", scoreDelta: -15, spec: l.suboptimal },
+      { outcome: "deadly", scoreDelta: -100, spec: l.deadly },
+      ...(l.extra ?? []).map((extra): ChoiceDraft => ({
+        outcome: extra.outcome,
+        scoreDelta: extra.scoreDelta ?? (extra.outcome === "optimal" ? 0 : extra.outcome === "deadly" ? -100 : -10),
+        spec: extra.choice,
+        next: extra.next,
+      })),
+    ];
+    const choiceDrafts = [...baseChoices, ...fallbackChoices(l)].slice(0, 5);
+    const choiceSeed = `${caseId}:${i + 1}:${l.stage}`;
+    const choices = keepOptimalOffFirstSlot(stableShuffle(choiceDrafts, choiceSeed), choiceSeed)
+      .map((draft, choiceIndex) => toChoice(CHOICE_IDS[choiceIndex] ?? `${choiceIndex + 1}`, draft, next));
+
     nodes[`n${i + 1}`] = {
       stageId: `s${i + 1}`,
       stageLabel: l.stage,
@@ -68,11 +155,7 @@ function chain(
       content: l.content,
       patientStatus: l.status,
       vitals: l.vitals,
-      choices: [
-        { id: "a", label: l.optimal[0], outcome: "optimal", scoreDelta: 0, feedback: l.optimal[1], next, icon: l.optimal[2] },
-        { id: "b", label: l.suboptimal[0], outcome: "suboptimal", scoreDelta: -15, feedback: l.suboptimal[1], next, icon: l.suboptimal[2] },
-        { id: "c", label: l.deadly[0], outcome: "deadly", scoreDelta: -100, feedback: l.deadly[1], next: "died", icon: l.deadly[2] },
-      ],
+      choices,
     };
   });
   nodes.survived = { content: ends.survived, end: "survived", patientStatus: "improving" };
@@ -82,7 +165,7 @@ function chain(
 
 type CaseMeta = Omit<BranchingCaseSeed, "stages" | "startNodeId" | "nodes">;
 function bcase(meta: CaseMeta, layers: LayerSpec[], ends: { survived: string; died: string }): BranchingCaseSeed {
-  return { ...meta, ...chain(layers, ends) };
+  return { ...meta, ...chain(meta.id, layers, ends) };
 }
 
 const DIED = "The patient deteriorates and dies. Review the decision points and try again.";
@@ -857,5 +940,437 @@ export const branchingCases: BranchingCaseSeed[] = [
         deadly: ["Advise stopping steroids when 'feeling better'", "Dangerous advice.", "🚫"] },
     ],
     { survived: "Hydrocortisone and fluids reverse the crisis; he leaves with sick-day rules.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-cardiac-tamponade", title: "Cardiac tamponade after trauma", specialty: "Cardiovascular System",
+      scenario: "A 28-year-old after a stab wound has hypotension, raised JVP, muffled heart sounds, and narrow pulse pressure.",
+      citations: ["ATLS — Thoracic Trauma", "ESC Pericardial Disease"], summary: "Recognise obstructive shock from tamponade and escalate to definitive control.",
+      subtitle: "Obstructive shock with penetrating trauma", difficulty: "Hard", icon: "🫀",
+      patient: { name: "Noah", age: 28, sex: "M", presentation: "Penetrating chest injury, shock", tags: ["Trauma", "Shock", "Cardiac"] },
+    },
+    [
+      { stage: "Recognition", prompt: "He is shocked with distended neck veins — what diagnosis is most urgent?", content: "Chest wound, BP 78/46, quiet heart sounds, lungs clear.", status: "critical",
+        vitals: [v("bp", "BP", "78/46", "mmHg", "down", "critical"), v("jvp", "JVP", "Raised", undefined, "up", "critical")],
+        optimal: ["Treat as cardiac tamponade causing obstructive shock", "Correct — the physiology fits tamponade until proven otherwise.", "🫀", "Obstructive shock pattern"],
+        suboptimal: ["Treat as isolated hypovolaemic shock from blood loss", "Bleeding may coexist, but clear lungs plus raised JVP point to tamponade.", "🩸", "Incomplete differential"],
+        deadly: ["Give high-dose diuretics for the raised JVP", "Removing preload in tamponade precipitates arrest.", "⚠️", "Misreads the physiology"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Focus on tension pneumothorax and needle the chest first", "It is a key trauma differential, but breath sounds are equal and the cardiac signs dominate.", "🪡", "Plausible ATLS distractor"] }] },
+      { stage: "Immediate support", prompt: "While help arrives, what stabilises him best?", content: "He is peri-arrest but still conscious.", status: "critical",
+        vitals: [v("hr", "HR", 138, "bpm", "up", "critical"), v("pulse", "Pulse pressure", "Narrow", undefined, undefined, "critical")],
+        optimal: ["High-flow oxygen, cautious fluid bolus, urgent trauma/cardiothoracic call", "Correct — temporise preload and bring definitive help.", "🚑", "Bridge to source control"],
+        suboptimal: ["Start nitrates for chest discomfort", "Nitrates reduce preload and worsen tamponade physiology.", "💊", "Preload-reducing trap"],
+        deadly: ["Sedate deeply before securing a definitive plan", "Loss of sympathetic tone can cause cardiovascular collapse.", "⚠️", "Peri-arrest induction risk"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Order routine troponins before calling the trauma team", "Labs can follow; escalation cannot wait.", "🧪", "Right test, wrong priority"] }] },
+      { stage: "Bedside confirmation", prompt: "Which investigation gives the fastest useful confirmation?", content: "He remains unstable in resus.", status: "critical",
+        vitals: [v("bp", "BP", "82/48", "mmHg", "flat", "critical")],
+        optimal: ["Focused bedside ultrasound for pericardial effusion", "Correct — FAST/echo can confirm tamponade at the bedside.", "🔍", "Immediate bedside evidence"],
+        suboptimal: ["CT angiography of the chest", "Detailed but too slow and unsafe in unstable shock.", "🩻", "Definitive-looking delay"],
+        deadly: ["Transfer for MRI to define the pericardium", "This delays lifesaving treatment in an unstable patient.", "🧲", "Unsafe diagnostic delay"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Portable chest X-ray as the deciding test", "Useful for trauma overview, but it cannot rule out tamponade.", "🩻", "Insufficient rule-out"] }] },
+      { stage: "Decompression", prompt: "He crashes before theatre is ready — next move?", content: "Echo shows pericardial fluid and right-sided chamber collapse.", status: "critical",
+        vitals: [v("bp", "BP", "64/38", "mmHg", "down", "critical"), v("gcs", "GCS", 9, undefined, "down", "critical")],
+        optimal: ["Emergency pericardiocentesis as a bridge to thoracotomy", "Correct — decompress now while definitive control is mobilised.", "🪡", "Bridge procedure"],
+        suboptimal: ["Give more fluid only and wait for theatre", "Fluids may briefly help, but the obstructive cause remains.", "💧", "Temporising without decompression"],
+        deadly: ["Positive-pressure ventilate without preparation for collapse", "In tamponade, positive pressure can abruptly reduce venous return.", "⚠️", "Airway-hemodynamic trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Repeat ultrasound from multiple windows before acting", "Confirmation is already enough; repeated scans delay decompression.", "🔁", "Over-confirmation"] }] },
+      { stage: "Definitive control", prompt: "Pericardiocentesis improves BP briefly — what definitive care is needed?", content: "Blood reaccumulates in the pericardium.", status: "worsening",
+        vitals: [v("bp", "BP", "92/58", "mmHg", "up", "warning"), v("hr", "HR", 124, "bpm", "down", "warning")],
+        optimal: ["Emergency surgical exploration and repair of cardiac injury", "Correct — traumatic tamponade needs definitive haemorrhage control.", "🔪", "Definitive source control"],
+        suboptimal: ["Observe after the drain because the BP improved", "Transient improvement does not repair the cardiac wound.", "👀", "False reassurance"],
+        deadly: ["Remove the pericardial drain and discharge if vitals settle", "Reaccumulation and exsanguination are likely.", "🚫", "Premature closure"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -12, choice: ["Admit to a monitored bed without cardiothoracic transfer", "Monitoring alone cannot control the source.", "🛏️", "Passive management"] }] },
+      { stage: "Recovery", prompt: "After repair, what should be prioritised?", content: "He is stabilising in critical care.", status: "improving",
+        vitals: [v("bp", "BP", "114/70", "mmHg", "up", "normal"), v("hr", "HR", 92, "bpm", "down", "normal")],
+        optimal: ["ICU monitoring, repeat echo, trauma survey, and wound care", "Correct — monitor recurrence and complete trauma care.", "📈", "Structured post-op care"],
+        suboptimal: ["Stop monitoring once the first post-op BP is normal", "Tamponade, bleeding, and missed injuries can recur.", "🛏️", "Under-monitoring"],
+        deadly: ["Restart anticoagulation empirically without an indication", "Unnecessary anticoagulation risks recurrent bleeding.", "⚠️", "Iatrogenic bleed risk"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Focus only on the cardiac wound and skip secondary survey", "The cardiac injury is central, but other trauma can still be missed.", "🔍", "Incomplete trauma care"] }] },
+    ],
+    { survived: "Tamponade is decompressed, the cardiac wound is repaired, and he stabilises in ICU.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-near-fatal-asthma", title: "Near-fatal asthma attack", specialty: "Respiratory System",
+      scenario: "A 19-year-old with asthma is exhausted, silent-chested, SpO₂ 86%, and has a rising CO₂.",
+      citations: ["BTS/SIGN Asthma", "GINA Severe Asthma"], summary: "Escalate severe asthma before respiratory arrest.",
+      subtitle: "Silent chest with ventilatory failure", difficulty: "Hard", icon: "🫁",
+      patient: { name: "Imani", age: 19, sex: "F", presentation: "Exhaustion, wheeze now silent", tags: ["Asthma", "Airway", "Emergency"] },
+    },
+    [
+      { stage: "Severity", prompt: "How should this presentation be classified?", content: "She can barely speak. The chest is quiet rather than wheezy.", status: "critical",
+        vitals: [v("spo2", "SpO₂", 86, "%", "down", "critical"), v("co2", "PaCO₂", 7.1, "kPa", "up", "critical")],
+        optimal: ["Near-fatal asthma with impending ventilatory failure", "Correct — a silent chest and rising CO₂ are red flags.", "🚨", "High-risk physiology"],
+        suboptimal: ["Moderate asthma because wheeze is minimal", "Minimal wheeze here reflects poor air movement, not improvement.", "💨", "Classic trap"],
+        deadly: ["Reassure because the respiratory rate is falling", "A falling rate in exhaustion can precede arrest.", "⚠️", "False improvement"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Treat as panic first because she is frightened", "Anxiety may coexist, but the gases and silent chest are dangerous.", "🧠", "Anchoring bias"] }] },
+      { stage: "First-line treatment", prompt: "What immediate treatment bundle is best?", content: "She is hypoxic and tiring.", status: "critical",
+        vitals: [v("rr", "RR", 34, "/min", "up", "critical"), v("hr", "HR", 138, "bpm", "up", "warning")],
+        optimal: ["High-flow oxygen, nebulised salbutamol/ipratropium, systemic steroid", "Correct — treat bronchospasm and inflammation immediately.", "🫧", "Severe asthma bundle"],
+        suboptimal: ["Metered-dose inhaler only while waiting for peak flow", "She is too unwell for this to be sufficient.", "💨", "Undertreatment"],
+        deadly: ["Sedate her to slow the breathing", "Sedation can remove respiratory drive and precipitate arrest.", "⚠️", "Respiratory-drive risk"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Give steroids only and reassess in 30 minutes", "Steroids matter, but they are not fast enough alone.", "💊", "Correct drug, incomplete bundle"] }] },
+      { stage: "Escalation", prompt: "Poor response after initial nebulisers — next?", content: "Peak flow is unobtainable and she is tiring.", status: "critical",
+        vitals: [v("spo2", "SpO₂", 88, "%", "flat", "critical"), v("co2", "PaCO₂", 7.5, "kPa", "up", "critical")],
+        optimal: ["Give IV magnesium and call ICU/anaesthetics early", "Correct — refractory severe asthma needs early escalation.", "🚑", "Escalation before crash"],
+        suboptimal: ["Repeat salbutamol only with no escalation", "More bronchodilator helps, but not enough without senior airway planning.", "🔁", "Partial escalation"],
+        deadly: ["Send for CT pulmonary angiography before escalation", "Transport and delay are unsafe in near-arrest asthma.", "🩻", "Diagnostic overreach"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Wait for a formal spirometry result", "Formal testing is unrealistic and unsafe here.", "📈", "Wrong test for acuity"] }] },
+      { stage: "Ventilation decision", prompt: "She becomes drowsy — what now?", content: "GCS falls and CO₂ rises further.", status: "critical",
+        vitals: [v("gcs", "GCS", 10, undefined, "down", "critical"), v("co2", "PaCO₂", 8.4, "kPa", "up", "critical")],
+        optimal: ["Prepare controlled intubation by senior airway team", "Correct — drowsiness and hypercapnia mean ventilatory failure.", "🫁", "Planned airway control"],
+        suboptimal: ["Trial non-invasive ventilation without ICU presence", "It may be considered selectively, but this patient is failing rapidly.", "🎚️", "Risky bridge"],
+        deadly: ["Leave her alone to rest because she is quieter", "Quietness here signals exhaustion and impending arrest.", "🚫", "Dangerous reassurance"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -12, choice: ["Delay intubation until oxygen saturations fall below 80%", "Waiting for deeper hypoxia narrows the margin for safe airway control.", "⏳", "Late threshold"] }] },
+      { stage: "Post-intubation", prompt: "Ventilated with high airway pressures — key strategy?", content: "Dynamic hyperinflation is a risk.", status: "guarded",
+        vitals: [v("pplat", "Plateau pressure", "High", undefined, "up", "warning")],
+        optimal: ["Use permissive hypercapnia, long expiratory time, avoid breath stacking", "Correct — prevent air trapping and barotrauma.", "📉", "Ventilator strategy"],
+        suboptimal: ["Increase respiratory rate to normalise CO₂ quickly", "This worsens air trapping.", "🎚️", "Ventilator trap"],
+        deadly: ["Ignore sudden hypotension after intubation", "Dynamic hyperinflation/tension physiology can cause arrest.", "⚠️", "Post-intubation collapse"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Focus only on bronchodilator dose and ignore ventilator mechanics", "Medication matters, but mechanics can kill after intubation.", "💊", "Incomplete ICU thinking"] }] },
+      { stage: "Recovery", prompt: "She improves after ICU care — discharge planning?", content: "Extubated and stable.", status: "improving",
+        vitals: [v("spo2", "SpO₂", 98, "%", "up", "normal"), v("pef", "PEF", "75% best", undefined, "up", "normal")],
+        optimal: ["Asthma action plan, inhaler technique, triggers, follow-up", "Correct — near-fatal asthma needs prevention planning.", "📋", "Recurrence prevention"],
+        suboptimal: ["Discharge on the same inhalers with no review", "Misses preventable risk factors.", "🚪", "No prevention"],
+        deadly: ["Stop inhaled steroid because symptoms improved", "Stopping controller therapy risks recurrence.", "⚠️", "Controller withdrawal"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Arrange follow-up but skip inhaler-technique review", "Follow-up helps, but technique failure is a common preventable cause.", "🧴", "Missed basics"] }] },
+    ],
+    { survived: "Early escalation prevents arrest, ventilation is controlled safely, and prevention planning is completed.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-ascending-cholangitis", title: "Ascending cholangitis", specialty: "Digestive and Biliary Tract System",
+      scenario: "A 67-year-old with jaundice, RUQ pain, fever, confusion, and hypotension after biliary colic.",
+      citations: ["Tokyo Guidelines 2018", "NICE Gallstone Disease"], summary: "Recognise infected biliary obstruction and arrange urgent drainage.",
+      subtitle: "Septic obstructive jaundice", difficulty: "Hard", icon: "🟡",
+      patient: { name: "Helena", age: 67, sex: "F", presentation: "Jaundice, fever, RUQ pain, confusion", tags: ["Biliary", "Sepsis", "Obstruction"] },
+    },
+    [
+      { stage: "Recognition", prompt: "What syndrome should you recognise?", content: "Charcot triad plus confusion and hypotension.", status: "critical",
+        vitals: [v("bp", "BP", "84/50", "mmHg", "down", "critical"), v("bilirubin", "Bilirubin", 98, "µmol/L", "up", "warning")],
+        optimal: ["Acute ascending cholangitis with septic shock", "Correct — infected obstruction is the key problem.", "🟡", "Reynolds pentad"],
+        suboptimal: ["Uncomplicated biliary colic", "Fever, jaundice, confusion, and shock make this much more severe.", "🫆", "Under-calls severity"],
+        deadly: ["Treat as gastritis and discharge with antacids", "This misses septic obstruction.", "🚪", "Dangerous anchoring"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Treat as viral hepatitis first and await serology", "Hepatitis is possible, but shock plus RUQ pain needs immediate biliary sepsis care.", "🧪", "Plausible differential, wrong priority"] }] },
+      { stage: "First hour", prompt: "What should happen immediately?", content: "She is hypotensive and febrile.", status: "critical",
+        vitals: [v("temp", "Temp", 39.4, "°C", "up", "critical"), v("lac", "Lactate", 4.0, "mmol/L", "up", "critical")],
+        optimal: ["Sepsis bundle: cultures, broad-spectrum IV antibiotics, fluids", "Correct — resuscitate and cover biliary organisms.", "💉", "Immediate sepsis care"],
+        suboptimal: ["Analgesia only until ultrasound confirms stones", "Analgesia helps, but antibiotics and fluids cannot wait.", "💊", "Comfort without control"],
+        deadly: ["Delay antibiotics until ERCP is complete", "Source control matters, but antibiotics must start now.", "⏳", "Timing error"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Give oral antibiotics because the source is biliary", "Shock and vomiting require IV therapy and admission.", "💊", "Route/severity mismatch"] }] },
+      { stage: "Imaging", prompt: "Which imaging is best first once stabilising?", content: "LFTs show obstruction.", status: "guarded",
+        vitals: [v("alp", "ALP", 410, "U/L", "up", "warning")],
+        optimal: ["Urgent ultrasound to look for duct dilatation/gallstones", "Correct — fast first-line biliary imaging.", "🔊", "First-line test"],
+        suboptimal: ["Routine outpatient MRCP", "MRCP can define anatomy, but outpatient timing is unsafe.", "🧲", "Useful test, wrong setting"],
+        deadly: ["Skip imaging and discharge once fever falls", "The obstruction can remain and sepsis can recur.", "🚫", "False response"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["CT head for confusion before treating the abdomen", "Confusion is likely septic encephalopathy; do not derail source work-up.", "🧠", "Distracting symptom"] }] },
+      { stage: "Source control", prompt: "She remains septic with a dilated CBD — next?", content: "CBD stone suspected.", status: "worsening",
+        vitals: [v("bp", "BP", "90/54", "mmHg", "flat", "critical")],
+        optimal: ["Urgent ERCP for biliary decompression", "Correct — infected obstruction needs drainage.", "🔬", "Definitive decompression"],
+        suboptimal: ["Antibiotics alone for 72 hours", "Antibiotics may not penetrate an obstructed infected system well enough.", "💊", "No source control"],
+        deadly: ["Elective cholecystectomy before decompression", "Operating first in uncontrolled septic obstruction is unsafe.", "🔪", "Wrong sequence"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Wait for bilirubin to normalise before ERCP", "The obstruction is why bilirubin is high; waiting delays drainage.", "⏳", "Backwards threshold"] }] },
+      { stage: "If ERCP fails", prompt: "ERCP cannot access the ampulla — what next?", content: "She is still septic.", status: "critical",
+        vitals: [v("lac", "Lactate", 3.7, "mmol/L", "flat", "critical")],
+        optimal: ["Percutaneous transhepatic biliary drainage or surgical drainage", "Correct — find another drainage route.", "🧰", "Alternative source control"],
+        suboptimal: ["Repeat the same failed ERCP tomorrow without a bridge", "A repeat may be reasonable later, but she needs drainage now.", "🔁", "Delay after failed access"],
+        deadly: ["Stop antibiotics because the procedure failed", "This removes the only ongoing infection control.", "🚫", "Compounds failure"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Escalate antibiotics only and cancel drainage", "Broader cover does not replace decompression.", "💊", "Antibiotic overconfidence"] }] },
+      { stage: "Recovery", prompt: "After drainage, what prevents recurrence?", content: "Sepsis resolves and bilirubin falls.", status: "improving",
+        vitals: [v("bilirubin", "Bilirubin", 34, "µmol/L", "down", "warning"), v("temp", "Temp", 36.9, "°C", "down", "normal")],
+        optimal: ["Plan interval cholecystectomy and complete antibiotic course", "Correct — prevent recurrent stones/cholangitis.", "📋", "Definitive prevention"],
+        suboptimal: ["No follow-up because ERCP fixed it", "Gallbladder stones can trigger recurrence.", "🚪", "Missed prevention"],
+        deadly: ["Remove the biliary stent plan from follow-up", "Forgotten stents can obstruct or infect.", "⚠️", "Follow-up hazard"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Continue broad-spectrum antibiotics indefinitely", "Long courses increase harm; source control allows de-escalation.", "💊", "Stewardship miss"] }] },
+    ],
+    { survived: "Sepsis is treated, the duct is drained, and recurrence prevention is planned.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-thyroid-storm", title: "Thyroid storm", specialty: "Endocrine System",
+      scenario: "A 32-year-old with Graves disease has fever, agitation, AF, vomiting, and heart failure after stopping medication.",
+      citations: ["ATA Thyrotoxicosis Guidelines", "Society for Endocrinology"], summary: "Sequence thyroid storm treatment without worsening hormone release.",
+      subtitle: "Life-threatening thyrotoxicosis", difficulty: "Hard", icon: "🔥",
+      patient: { name: "Lina", age: 32, sex: "F", presentation: "Fever, agitation, AF, vomiting", tags: ["Endocrine", "Arrhythmia", "Emergency"] },
+    },
+    [
+      { stage: "Recognition", prompt: "How should this be framed?", content: "Hyperthermia, CNS disturbance, AF, and heart failure.", status: "critical",
+        vitals: [v("temp", "Temp", 40.1, "°C", "up", "critical"), v("hr", "HR", 168, "bpm", "up", "critical")],
+        optimal: ["Treat as thyroid storm on clinical grounds", "Correct — do not wait for labs in a life-threatening presentation.", "🔥", "Clinical emergency"],
+        suboptimal: ["Wait for TSH/T4 before starting therapy", "Labs support the diagnosis, but treatment should start immediately.", "🧪", "Diagnostic delay"],
+        deadly: ["Cardiovert AF first without treating thyrotoxicosis", "Cardioversion alone is unlikely to hold and delays the cause.", "⚡", "Treats consequence only"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Treat as isolated panic and dehydration", "Agitation may mislead, but fever and AF indicate systemic disease.", "🧠", "Anchoring bias"] }] },
+      { stage: "Beta blockade", prompt: "What controls adrenergic symptoms?", content: "She is tachycardic but has pulmonary oedema.", status: "critical",
+        vitals: [v("hr", "HR", 162, "bpm", "flat", "critical"), v("bp", "BP", "104/62", "mmHg", "down", "warning")],
+        optimal: ["Careful beta blockade with senior/ICU input", "Correct — control rate but respect heart failure risk.", "🫀", "Controlled rate strategy"],
+        suboptimal: ["Large propranolol doses without monitoring", "Can precipitate collapse in thyrotoxic heart failure.", "💊", "Dose/context trap"],
+        deadly: ["Give salbutamol for tachycardia", "Beta agonism worsens adrenergic drive.", "⚠️", "Wrong receptor effect"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Avoid all rate control because she has heart failure", "Avoiding rate control entirely leaves dangerous tachyarrhythmia untreated.", "🚫", "Over-correction"] }] },
+      { stage: "Block synthesis", prompt: "Which antithyroid step comes first?", content: "Treatment is starting.", status: "critical",
+        vitals: [v("t4", "Free T4", "Very high", undefined, "up", "critical")],
+        optimal: ["Give propylthiouracil or carbimazole before iodine", "Correct — block new synthesis before blocking release.", "💊", "Sequence matters"],
+        suboptimal: ["Give iodine first, antithyroid drug later", "Iodine before thionamide can fuel hormone synthesis.", "🧂", "Classic sequence trap"],
+        deadly: ["Start levothyroxine because TSH is low", "That worsens thyrotoxicosis.", "⚠️", "Lab misread"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Use only symptomatic benzodiazepines", "Sedation may help agitation but not hormone production.", "🧠", "Symptom-only care"] }] },
+      { stage: "Block release", prompt: "After thionamide, what is added?", content: "One hour after antithyroid medication.", status: "guarded",
+        vitals: [v("temp", "Temp", 39.3, "°C", "down", "warning")],
+        optimal: ["Iodine solution after thionamide timing is established", "Correct — iodine can now reduce release.", "🧂", "Correct sequence"],
+        suboptimal: ["Skip iodine completely", "Antithyroid drugs help, but storm often needs multi-step blockade.", "🚫", "Incomplete blockade"],
+        deadly: ["Give amiodarone as first-line rhythm control", "Iodine load can worsen thyrotoxicosis in this context.", "⚠️", "Drug-content trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Add iodine immediately because fever persists", "The persistence of fever does not remove the need for correct sequence.", "⏱️", "Rushed timing"] }] },
+      { stage: "Steroids and trigger", prompt: "What else is required?", content: "She may have infection as a trigger.", status: "guarded",
+        vitals: [v("wcc", "WCC", 17, "10⁹/L", "up", "warning")],
+        optimal: ["Hydrocortisone, cooling, fluids, and search/treat trigger", "Correct — reduce T4→T3 conversion and treat precipitant.", "🧪", "Whole-bundle care"],
+        suboptimal: ["Antibiotics only and stop endocrine therapy", "Infection may trigger storm, but endocrine treatment must continue.", "💉", "Trigger-only care"],
+        deadly: ["Use aspirin for fever control", "Aspirin can increase free thyroid hormone.", "⚠️", "Medication trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Aggressive cooling only until temperature normalises", "Cooling helps but does not stop hormone-driven toxicity.", "🧊", "Support without cause"] }] },
+      { stage: "Definitive planning", prompt: "Once stable, what is the longer-term plan?", content: "Fever resolves, AF slows.", status: "improving",
+        vitals: [v("hr", "HR", 92, "bpm", "down", "normal")],
+        optimal: ["Endocrinology follow-up for definitive Graves therapy", "Correct — plan radioiodine/surgery/medical strategy.", "📋", "Prevention planning"],
+        suboptimal: ["Stop all medications once symptoms settle", "Relapse risk is high.", "🚪", "Premature stop"],
+        deadly: ["Discharge without explaining sick-day or relapse signs", "Missed recurrence can be dangerous.", "⚠️", "No safety net"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Continue acute high-dose regimen indefinitely", "Acute dosing needs tapering and monitoring, not indefinite continuation.", "💊", "Follow-up nuance"] }] },
+    ],
+    { survived: "Therapy is sequenced correctly, the trigger is treated, and definitive Graves follow-up is arranged.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-compartment-syndrome", title: "Forearm compartment syndrome", specialty: "Gross Anatomy",
+      scenario: "A 21-year-old after a both-bone forearm fracture has escalating pain, pain on passive finger stretch, and tense compartments.",
+      citations: ["BOAST — Compartment Syndrome", "Gray's Anatomy"], summary: "Use limb anatomy to recognise compartment syndrome before nerve and muscle death.",
+      subtitle: "Applied anatomy after fracture", difficulty: "Hard", icon: "🦴",
+      patient: { name: "Kai", age: 21, sex: "M", presentation: "Forearm fracture, escalating pain", tags: ["Anatomy", "Orthopaedics", "Emergency"] },
+    },
+    [
+      { stage: "Red flags", prompt: "Which finding matters most?", content: "Pain is worsening despite opioids and the cast feels tight.", status: "worsening",
+        vitals: [v("pain", "Pain", "Severe", undefined, "up", "critical"), v("pulse", "Radial pulse", "Present", undefined, undefined, "normal")],
+        optimal: ["Pain on passive stretch with tense compartments", "Correct — early compartment syndrome can have intact pulses.", "🦴", "Early diagnostic clue"],
+        suboptimal: ["Wait for absent radial pulse before acting", "Pulselessness is late and may never be the first sign.", "✋", "Late-sign trap"],
+        deadly: ["Reassure because capillary refill is still normal", "Normal perfusion signs do not exclude compartment syndrome.", "🚫", "False reassurance"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Attribute pain entirely to fracture anxiety", "Anxiety can coexist, but passive stretch pain is a red flag.", "🧠", "Anchoring bias"] }] },
+      { stage: "Immediate action", prompt: "What should you do first?", content: "The cast is circumferential.", status: "worsening",
+        vitals: [v("sensation", "Median nerve sensation", "Tingling", undefined, "down", "warning")],
+        optimal: ["Split/remove constrictive dressings and urgently call orthopaedics", "Correct — reduce external pressure and escalate.", "✂️", "Immediate decompression step"],
+        suboptimal: ["Give more opioid and reassess next round", "Analgesia cannot treat rising compartment pressure.", "💊", "Masks progression"],
+        deadly: ["Elevate the limb high above the heart", "Excessive elevation can reduce perfusion pressure.", "⚠️", "Perfusion trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Order routine repeat X-rays before calling", "X-rays do not answer the compartment-pressure question.", "🩻", "Wrong priority"] }] },
+      { stage: "Diagnosis", prompt: "He is drowsy after analgesia and exam is unreliable — next?", content: "Pain assessment is now difficult.", status: "guarded",
+        vitals: [v("pressure", "Clinical concern", "High", undefined, "up", "critical")],
+        optimal: ["Measure compartment pressures if diagnosis uncertain", "Correct — pressures help when exam is unreliable.", "📈", "Objective support"],
+        suboptimal: ["Assume opioids improved the underlying problem", "Sedation can hide ongoing ischaemia.", "💊", "Masked symptoms"],
+        deadly: ["Wait overnight for a senior ward round", "Delay risks irreversible necrosis.", "⏳", "Time-critical delay"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Use Doppler pulse as the only deciding test", "A pulse can remain present despite dangerous compartment pressure.", "🩺", "Single-test trap"] }] },
+      { stage: "Definitive treatment", prompt: "Pressure is high and symptoms persist — next?", content: "Concern remains after cast release.", status: "critical",
+        vitals: [v("pressure", "Compartment pressure", "High", undefined, "up", "critical")],
+        optimal: ["Emergency fasciotomy of involved compartments", "Correct — decompression protects muscle and nerves.", "🔪", "Definitive decompression"],
+        suboptimal: ["Mannitol and observation", "Medical therapy does not replace fasciotomy.", "💧", "False alternative"],
+        deadly: ["Apply a tighter cast to control swelling", "That worsens pressure and ischaemia.", "⚠️", "Mechanical worsening"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Schedule fasciotomy for the morning list", "This is an emergency, not an elective add-on.", "🗓️", "Timing error"] }] },
+      { stage: "Anatomy check", prompt: "After fasciotomy, what must be documented?", content: "Muscle viability is being assessed.", status: "guarded",
+        vitals: [v("motor", "AIN/PIN/ulnar", "Weak", undefined, "down", "warning")],
+        optimal: ["Median/AIN, radial/PIN, ulnar nerve function and perfusion", "Correct — document named nerve territories.", "🧠", "Applied anatomy"],
+        suboptimal: ["Only document radial pulse", "Perfusion alone misses nerve injury.", "✋", "Incomplete neurovascular exam"],
+        deadly: ["Close skin tightly at the first operation", "Swelling can recur and re-compartmentalise.", "⚠️", "Closure trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Check sensation only in the thumb", "One territory is not enough for a forearm injury.", "👆", "Incomplete map"] }] },
+      { stage: "Recovery", prompt: "Wounds are improving — next?", content: "Viable muscle, swelling reducing.", status: "improving",
+        vitals: [v("pain", "Pain", "Improving", undefined, "down", "normal")],
+        optimal: ["Delayed closure/skin graft plan, rehab, neurovascular follow-up", "Correct — recovery requires staged wound and function care.", "📋", "Functional recovery"],
+        suboptimal: ["Discharge without hand therapy", "Stiffness and weakness need rehabilitation.", "🚪", "Rehab miss"],
+        deadly: ["Ignore new increasing pain after closure", "Recurrent compartment syndrome must be considered.", "⚠️", "Missed recurrence"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Focus on bone union only", "Fracture care matters, but soft tissue and nerve recovery drive outcome.", "🦴", "Narrow focus"] }] },
+    ],
+    { survived: "Early fasciotomy saves the limb and staged rehabilitation preserves function.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-falciparum-malaria", title: "Severe falciparum malaria", specialty: "Microbiology and Parasitology",
+      scenario: "A traveller returns from West Africa with fever, confusion, jaundice, AKI, and parasitaemia of 8%.",
+      citations: ["WHO Malaria Guidelines", "UKHSA Malaria Guidance"], summary: "Recognise severe malaria and start parenteral therapy without delay.",
+      subtitle: "Imported fever with organ dysfunction", difficulty: "Hard", icon: "🦟",
+      patient: { name: "Samira", age: 29, sex: "F", presentation: "Fever and confusion after travel", tags: ["Travel", "Parasite", "Emergency"] },
+    },
+    [
+      { stage: "Recognition", prompt: "What makes this severe?", content: "Confusion, jaundice, creatinine rise, and high parasitaemia.", status: "critical",
+        vitals: [v("parasites", "Parasitaemia", "8%", undefined, "up", "critical"), v("gcs", "GCS", 12, undefined, "down", "warning")],
+        optimal: ["Severe falciparum malaria with cerebral/renal involvement", "Correct — organ dysfunction changes treatment urgency.", "🦟", "Severe malaria criteria"],
+        suboptimal: ["Uncomplicated malaria suitable for oral therapy", "Confusion and AKI make this severe.", "💊", "Severity under-called"],
+        deadly: ["Assume viral flu because the fever is non-specific", "Travel fever with organ dysfunction must not be dismissed.", "🚫", "Travel-history miss"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Focus on hepatitis alone because she is jaundiced", "Jaundice can occur in severe malaria; the smear and travel history matter.", "🧪", "Single-organ anchoring"] }] },
+      { stage: "Immediate treatment", prompt: "What treatment should start?", content: "She is vomiting and confused.", status: "critical",
+        vitals: [v("bp", "BP", "96/60", "mmHg", "down", "warning")],
+        optimal: ["IV artesunate immediately with infectious diseases/ICU input", "Correct — severe malaria needs parenteral artesunate.", "💉", "Life-saving therapy"],
+        suboptimal: ["Oral artemisinin combination therapy only", "Oral therapy is inadequate in severe disease.", "💊", "Wrong route/severity"],
+        deadly: ["Wait for a second confirmatory smear before treating", "Treatment delay in severe malaria can be fatal.", "⏳", "Over-confirmation"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Give broad-spectrum antibiotics but no antimalarial yet", "Sepsis cover may be reasonable, but it cannot replace antimalarial therapy.", "🦠", "Co-treatment gap"] }] },
+      { stage: "Supportive care", prompt: "Which complication needs active monitoring?", content: "She is oliguric and acidotic.", status: "critical",
+        vitals: [v("creat", "Creatinine", 260, "µmol/L", "up", "critical"), v("lac", "Lactate", 5.1, "mmol/L", "up", "critical")],
+        optimal: ["Glucose, acidosis, renal function, seizures, and fluid balance", "Correct — severe malaria kills through complications too.", "📈", "ICU monitoring"],
+        suboptimal: ["Aggressive fluid loading for all patients", "Overhydration can worsen pulmonary oedema in severe malaria.", "💧", "Fluid nuance"],
+        deadly: ["Ignore hypoglycaemia risk during treatment", "Hypoglycaemia can cause seizures/coma.", "⚠️", "Metabolic trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Monitor temperature only after artesunate starts", "Fever trend is not enough; organ support is central.", "🌡️", "Narrow monitoring"] }] },
+      { stage: "Transmission and labs", prompt: "What else should be arranged?", content: "Blood film confirms falciparum species.", status: "guarded",
+        vitals: [v("hb", "Hb", 82, "g/L", "down", "warning"), v("plt", "Platelets", 40, "10⁹/L", "down", "warning")],
+        optimal: ["Repeat parasite counts and notify public health/specialists", "Correct — track response and involve expert pathways.", "🔬", "Response tracking"],
+        suboptimal: ["Stop checking smears once treatment starts", "Parasite clearance guides therapy response.", "🚫", "No response marker"],
+        deadly: ["Give platelet transfusion solely for low count without bleeding", "Unnecessary transfusion can harm; manage contextually.", "⚠️", "Lab-number trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Send malaria serology as the main follow-up test", "Serology is not useful for acute response monitoring.", "🧪", "Wrong test"] }] },
+      { stage: "Step-down therapy", prompt: "After IV artesunate and improvement, what next?", content: "Parasitaemia is falling and she can swallow.", status: "improving",
+        vitals: [v("parasites", "Parasitaemia", "0.8%", undefined, "down", "warning")],
+        optimal: ["Complete treatment with a full oral ACT course", "Correct — IV therapy must be followed by definitive oral treatment.", "💊", "Completion therapy"],
+        suboptimal: ["Stop treatment once the fever resolves", "Fever resolution does not equal parasitological cure.", "🌡️", "False endpoint"],
+        deadly: ["Discharge with no follow-up blood film or safety net", "Recrudescence or complications can be missed.", "🚪", "Unsafe closure"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Switch to oral therapy before she can reliably absorb it", "Vomiting or reduced consciousness makes oral absorption unreliable.", "💊", "Premature route switch"] }] },
+      { stage: "Prevention", prompt: "Recovered — what prevention issue should be addressed?", content: "She took no chemoprophylaxis.", status: "improving",
+        vitals: [v("gcs", "GCS", 15, undefined, "up", "normal")],
+        optimal: ["Travel medicine review: prophylaxis, bite avoidance, return-fever advice", "Correct — prevent recurrence and delayed presentations.", "📋", "Future risk reduction"],
+        suboptimal: ["Only advise avoiding travel forever", "That is unhelpful and misses practical prevention.", "🧳", "Poor counselling"],
+        deadly: ["Tell her future fevers can wait a week if mild", "Post-travel fever needs urgent assessment.", "⚠️", "Dangerous safety net"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Document recovery but skip prophylaxis counselling", "The acute episode is over, but prevention is part of safe discharge.", "📝", "Incomplete discharge"] }] },
+    ],
+    { survived: "Parenteral artesunate clears parasitaemia, organ support succeeds, and prevention counselling is completed.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-subarachnoid-haemorrhage", title: "Subarachnoid haemorrhage", specialty: "Nervous and Special Senses System",
+      scenario: "A 43-year-old has a thunderclap headache during exercise, vomiting, photophobia, and transient loss of consciousness.",
+      citations: ["NICE Headaches", "AHA/ASA Aneurysmal SAH"], summary: "Work up thunderclap headache and prevent rebleeding.",
+      subtitle: "Thunderclap headache with meningism", difficulty: "Hard", icon: "🧠",
+      patient: { name: "Evan", age: 43, sex: "M", presentation: "Thunderclap headache, vomiting, photophobia", tags: ["Neuro", "Emergency"] },
+    },
+    [
+      { stage: "Recognition", prompt: "What must be excluded first?", content: "Worst headache of life, maximal at onset.", status: "guarded",
+        vitals: [v("bp", "BP", "178/98", "mmHg", "up", "warning"), v("gcs", "GCS", 14, undefined, "down", "warning")],
+        optimal: ["Subarachnoid haemorrhage from aneurysmal bleed", "Correct — thunderclap headache is SAH until excluded.", "🧠", "Can't-miss diagnosis"],
+        suboptimal: ["Migraine because he has photophobia", "Photophobia can occur in SAH; onset pattern is the key.", "💊", "Symptom overlap trap"],
+        deadly: ["Discharge after analgesia if pain improves", "Analgesic response does not exclude SAH.", "🚪", "False reassurance"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Diagnose exertional headache without imaging", "Exercise trigger does not make thunderclap benign.", "🏃", "Benign-label trap"] }] },
+      { stage: "First imaging", prompt: "Best initial test?", content: "Presentation is within 4 hours.", status: "guarded",
+        vitals: [v("time", "Time since onset", "4 h", undefined, undefined, "warning")],
+        optimal: ["Urgent non-contrast CT head", "Correct — CT is first-line and most sensitive early.", "🩻", "First-line imaging"],
+        suboptimal: ["Outpatient MRI next week", "Too slow for possible SAH.", "🧲", "Unsafe timing"],
+        deadly: ["Lumbar puncture before checking for mass/bleed on CT", "LP first can be unsafe and delays the first-line test.", "⚠️", "Wrong sequence"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Treat pain and observe for recurrent headache", "Observation alone risks missing a sentinel bleed.", "👀", "Watchful waiting trap"] }] },
+      { stage: "CT negative", prompt: "CT is negative but suspicion remains — next?", content: "Scan quality is good but symptoms are classic.", status: "guarded",
+        vitals: [v("neck", "Neck stiffness", "Present", undefined, undefined, "warning")],
+        optimal: ["LP at appropriate timing or CT angiography per pathway", "Correct — further testing is needed if suspicion persists.", "🧪", "Second-line exclusion"],
+        suboptimal: ["Rule out SAH solely from a negative late CT", "Sensitivity falls over time and depends on timing/quality.", "🚫", "Over-reliance"],
+        deadly: ["Anticoagulate for presumed venous sinus thrombosis immediately", "Anticoagulation before excluding SAH can worsen bleeding.", "⚠️", "Premature treatment"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Send home with migraine diary and no safety net", "Classic thunderclap symptoms need a completed pathway.", "📓", "Incomplete pathway"] }] },
+      { stage: "Confirmed SAH", prompt: "SAH confirmed — immediate management?", content: "CT shows basal cistern blood.", status: "critical",
+        vitals: [v("gcs", "GCS", 13, undefined, "down", "warning")],
+        optimal: ["Neurosurgical transfer, BP control, nimodipine, analgesia/antiemetic", "Correct — prevent rebleed and vasospasm while securing aneurysm.", "🚑", "Specialist pathway"],
+        suboptimal: ["Admit locally for routine neurology review tomorrow", "Aneurysmal SAH needs urgent neurosurgical pathway.", "🛏️", "Wrong level of care"],
+        deadly: ["Start aspirin for headache-associated vascular disease", "Antiplatelet therapy can worsen bleeding.", "⚠️", "Medication harm"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Focus only on analgesia because GCS is acceptable", "Symptom control is not enough; rebleeding risk is high.", "💊", "Comfort-only care"] }] },
+      { stage: "Definitive aneurysm", prompt: "CTA shows an anterior communicating aneurysm — next?", content: "He is stable enough for intervention.", status: "guarded",
+        vitals: [v("bp", "BP", "146/82", "mmHg", "down", "warning")],
+        optimal: ["Secure aneurysm by coiling/clipping based on specialist decision", "Correct — definitive aneurysm treatment prevents rebleed.", "🧰", "Secure the source"],
+        suboptimal: ["Delay intervention until headache fully resolves", "Pain resolution does not reduce rebleeding risk.", "⏳", "False endpoint"],
+        deadly: ["Discharge for elective aneurysm clinic", "Rebleeding risk is early and dangerous.", "🚪", "Unsafe delay"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Repeat CT daily but do not secure the aneurysm", "Monitoring does not replace source control.", "🔁", "Surveillance without action"] }] },
+      { stage: "Complications", prompt: "Day 5: new weakness and confusion — concern?", content: "He had been improving after coiling.", status: "worsening",
+        vitals: [v("gcs", "GCS", 12, undefined, "down", "warning")],
+        optimal: ["Delayed cerebral ischaemia/vasospasm; urgent assessment and treatment", "Correct — this timing is classic.", "🧠", "SAH complication"],
+        suboptimal: ["Assume medication sedation and wait", "Sedation can confuse the picture, but new focal signs need urgent review.", "💊", "Attribution error"],
+        deadly: ["Stop nimodipine without specialist advice", "This may worsen vasospasm risk.", "⚠️", "Protective therapy stopped"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Treat as simple delirium only", "Delirium may coexist, but focal neurology after SAH is dangerous.", "🧠", "Missed vascular complication"] }] },
+    ],
+    { survived: "SAH is confirmed, the aneurysm is secured, and vasospasm is recognised early.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-obstructed-pyelonephritis", title: "Obstructed infected kidney", specialty: "Renal and Urinary Tract",
+      scenario: "A 62-year-old with fever, rigors, flank pain, hypotension, and hydronephrosis from a ureteric stone.",
+      citations: ["EAU Urolithiasis", "NICE Pyelonephritis"], summary: "Treat obstructed pyelonephritis as sepsis requiring urgent decompression.",
+      subtitle: "Urosepsis behind a blocked ureter", difficulty: "Hard", icon: "🧪",
+      patient: { name: "Graham", age: 62, sex: "M", presentation: "Fever, rigors, flank pain, shock", tags: ["Urology", "Sepsis", "Obstruction"] },
+    },
+    [
+      { stage: "Recognition", prompt: "What is the key diagnosis?", content: "CT KUB shows an obstructing proximal ureteric stone and hydronephrosis.", status: "critical",
+        vitals: [v("bp", "BP", "86/52", "mmHg", "down", "critical"), v("temp", "Temp", 39.2, "°C", "up", "critical")],
+        optimal: ["Obstructed infected kidney causing urosepsis", "Correct — infected obstruction is a source-control emergency.", "🧪", "Blocked septic system"],
+        suboptimal: ["Uncomplicated renal colic", "Fever, shock, and hydronephrosis make it infected obstruction.", "🪨", "Under-calls infection"],
+        deadly: ["Discharge with oral analgesia and trial of passage", "A septic obstructed kidney can deteriorate quickly.", "🚪", "Unsafe outpatient plan"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Treat as cystitis because urine dip is positive", "A positive dip does not localise or capture obstruction severity.", "🧫", "Wrong severity"] }] },
+      { stage: "First hour", prompt: "What should happen immediately?", content: "He is hypotensive and oliguric.", status: "critical",
+        vitals: [v("lac", "Lactate", 4.6, "mmol/L", "up", "critical"), v("creat", "Creatinine", 220, "µmol/L", "up", "critical")],
+        optimal: ["Sepsis bundle with IV antibiotics, fluids, cultures, senior urology call", "Correct — resuscitate and mobilise decompression.", "💉", "Parallel management"],
+        suboptimal: ["Analgesia and tamsulosin only", "Medical expulsive therapy is not enough in infected obstruction.", "💊", "Renal-colic autopilot"],
+        deadly: ["Wait for urine culture before antibiotics", "Cultures are useful, but antibiotics cannot wait in shock.", "⏳", "Delayed treatment"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Give antibiotics but delay urology until morning", "Antibiotics help, but source control is urgent.", "🕘", "Half-treated source"] }] },
+      { stage: "Source control", prompt: "He remains septic — definitive next step?", content: "Hydronephrosis persists.", status: "critical",
+        vitals: [v("bp", "BP", "90/54", "mmHg", "flat", "critical")],
+        optimal: ["Urgent decompression with nephrostomy or ureteric stent", "Correct — drain the infected obstructed system.", "🧰", "Drainage priority"],
+        suboptimal: ["Elective lithotripsy in a few weeks", "Definitive stone treatment waits until sepsis is controlled.", "🪨", "Wrong phase"],
+        deadly: ["Give NSAIDs despite AKI and shock", "NSAIDs can worsen renal perfusion here.", "⚠️", "Renal perfusion trap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Repeat CT before calling interventional radiology", "The obstructed source is already identified.", "🩻", "Redundant imaging"] }] },
+      { stage: "If stent fails", prompt: "Retrograde stent cannot pass the stone — next?", content: "He is still febrile.", status: "worsening",
+        vitals: [v("temp", "Temp", 38.9, "°C", "flat", "warning")],
+        optimal: ["Percutaneous nephrostomy for decompression", "Correct — use the alternative drainage route.", "🪡", "Alternative access"],
+        suboptimal: ["Try repeated stent attempts for hours", "Repeated attempts delay decompression.", "🔁", "Procedural fixation"],
+        deadly: ["Cancel decompression and continue analgesia", "Undrained pus under pressure remains dangerous.", "🚫", "No source control"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Broaden antibiotics only", "Broader antibiotics cannot fully compensate for a blocked infected kidney.", "💊", "Antibiotic overconfidence"] }] },
+      { stage: "After drainage", prompt: "What should be monitored?", content: "A nephrostomy drains cloudy urine.", status: "guarded",
+        vitals: [v("bp", "BP", "104/66", "mmHg", "up", "warning"), v("urine", "Urine output", "Improving", undefined, "up", "normal")],
+        optimal: ["Renal function, urine output, cultures, and sepsis response", "Correct — confirm physiological recovery and tailor therapy.", "📈", "Response monitoring"],
+        suboptimal: ["Remove the nephrostomy as soon as fever dips", "Drainage must remain until safe definitive plan.", "🚫", "Premature drain removal"],
+        deadly: ["Ignore falling urine output after drainage", "Blocked tube or worsening AKI can be missed.", "⚠️", "Monitoring failure"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Continue empiric antibiotics without reviewing cultures", "Initial empiric cover is right, but cultures should refine therapy.", "🧫", "Stewardship miss"] }] },
+      { stage: "Definitive stone plan", prompt: "Once sepsis settles, what next?", content: "Creatinine improves and inflammatory markers fall.", status: "improving",
+        vitals: [v("creat", "Creatinine", 118, "µmol/L", "down", "warning")],
+        optimal: ["Plan definitive stone treatment after infection control", "Correct — treat the stone once safe.", "📋", "Staged urology care"],
+        suboptimal: ["No stone follow-up because drainage worked", "The stone remains a recurrence risk.", "🚪", "Missed recurrence prevention"],
+        deadly: ["Remove all antibiotics before source cultures return", "Premature stopping can allow relapse.", "⚠️", "Treatment gap"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Immediate lithotripsy while still septic", "Stone clearance is needed, but not before stabilisation.", "🪨", "Wrong timing"] }] },
+    ],
+    { survived: "The infected kidney is drained, sepsis resolves, and definitive stone treatment is staged safely.", died: DIED },
+  ),
+  bcase(
+    {
+      id: "bcase-ruptured-ectopic", title: "Ruptured ectopic pregnancy", specialty: "Reproductive System and Perinatal Period",
+      scenario: "A 27-year-old with 7 weeks amenorrhoea has unilateral pelvic pain, shoulder-tip pain, syncope, and hypotension.",
+      citations: ["NICE Ectopic Pregnancy", "RCOG Early Pregnancy"], summary: "Recognise unstable ectopic pregnancy and prioritise surgical control.",
+      subtitle: "Early pregnancy collapse", difficulty: "Hard", icon: "🤰",
+      patient: { name: "Nora", age: 27, sex: "F", presentation: "Syncope, pelvic pain, positive pregnancy test", tags: ["Pregnancy", "Haemorrhage", "Emergency"] },
+    },
+    [
+      { stage: "Recognition", prompt: "What is the leading concern?", content: "Positive pregnancy test, abdominal tenderness, shoulder-tip pain.", status: "critical",
+        vitals: [v("bp", "BP", "82/46", "mmHg", "down", "critical"), v("hr", "HR", 132, "bpm", "up", "critical")],
+        optimal: ["Ruptured ectopic pregnancy with intra-abdominal bleeding", "Correct — shock in early pregnancy is ectopic until proven otherwise.", "🩸", "Can't-miss diagnosis"],
+        suboptimal: ["Uncomplicated miscarriage", "Syncope, shock, and shoulder-tip pain suggest intraperitoneal bleeding.", "🧪", "Under-calls instability"],
+        deadly: ["Discharge with analgesia for ovarian cyst pain", "This misses haemorrhagic shock.", "🚪", "Unsafe reassurance"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Treat as gastroenteritis because she vomited", "Vomiting can occur with peritoneal irritation and shock.", "🍽️", "Distracting symptom"] }] },
+      { stage: "Immediate management", prompt: "What should happen now?", content: "She is pale and clammy.", status: "critical",
+        vitals: [v("shock", "Shock index", "High", undefined, "up", "critical")],
+        optimal: ["ABC resuscitation, large-bore IV access, bloods/crossmatch, call gynae/theatre", "Correct — resuscitate and mobilise surgery in parallel.", "🚑", "Parallel emergency care"],
+        suboptimal: ["Wait for serial beta-hCG before escalation", "Serial hCG is for stable diagnostic uncertainty, not shock.", "🧪", "Stable-patient algorithm trap"],
+        deadly: ["Give methotrexate in resus", "Methotrexate is not for ruptured unstable ectopic pregnancy.", "⚠️", "Wrong treatment phase"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -10, choice: ["Book outpatient early-pregnancy scan", "Outpatient pathways are unsafe in haemodynamic instability.", "🗓️", "Wrong setting"] }] },
+      { stage: "Imaging", prompt: "Should imaging delay treatment?", content: "Portable ultrasound is nearby but she remains hypotensive.", status: "critical",
+        vitals: [v("bp", "BP", "78/44", "mmHg", "flat", "critical")],
+        optimal: ["Use bedside ultrasound only if it does not delay theatre", "Correct — unstable rupture is a surgical emergency.", "🔍", "Imaging as adjunct"],
+        suboptimal: ["Formal transvaginal scan before any theatre call", "Useful in stable patients, dangerous if it delays source control.", "🔊", "Diagnostic delay"],
+        deadly: ["Send to radiology unmonitored for CT abdomen", "Transporting unstable haemorrhage is unsafe.", "🩻", "Unsafe transfer"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Rely on a negative bedside scan to stop escalation", "A limited scan can miss ectopic or early bleeding.", "🚫", "False negative trap"] }] },
+      { stage: "Definitive treatment", prompt: "She remains unstable — definitive treatment?", content: "Free fluid seen in the pelvis.", status: "critical",
+        vitals: [v("hb", "Hb", 78, "g/L", "down", "critical")],
+        optimal: ["Emergency laparoscopy/laparotomy for haemostasis", "Correct — control the bleeding source.", "🔪", "Definitive control"],
+        suboptimal: ["Observe after one fluid bolus", "Temporary BP response does not stop bleeding.", "💧", "False response"],
+        deadly: ["Discharge if pain settles after opioids", "Analgesia can mask ongoing haemorrhage.", "🚪", "Masked bleeding"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Admit to ward and repeat Hb in six hours", "Ward observation delays theatre in an unstable patient.", "🛏️", "Too passive"] }] },
+      { stage: "Blood products", prompt: "Massive bleeding is confirmed — what support is needed?", content: "Two litres of blood in the abdomen.", status: "critical",
+        vitals: [v("ebl", "Blood loss", 2000, "mL", "up", "critical")],
+        optimal: ["Activate major haemorrhage protocol and give balanced blood products", "Correct — resuscitate haemorrhage while operating.", "🩸", "Haemorrhage control"],
+        suboptimal: ["Crystalloid-only resuscitation", "Dilution and coagulopathy worsen outcomes.", "💧", "Fluid-only trap"],
+        deadly: ["Delay transfusion until post-op Hb returns", "In active shock, waiting for labs can be fatal.", "⏳", "Lab delay"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Give iron infusion as the main correction", "Iron does not treat acute haemorrhagic shock.", "💊", "Chronic-anaemia logic"] }] },
+      { stage: "Aftercare", prompt: "After salpingectomy, what must be addressed?", content: "She stabilises post-op.", status: "improving",
+        vitals: [v("bp", "BP", "112/68", "mmHg", "up", "normal"), v("hr", "HR", 88, "bpm", "down", "normal")],
+        optimal: ["Anti-D if indicated, counselling, follow-up, future ectopic risk advice", "Correct — physical and reproductive aftercare matter.", "📋", "Complete aftercare"],
+        suboptimal: ["Discharge without discussing future pregnancy risk", "Recurrence risk and early scan advice should be covered.", "🚪", "Counselling gap"],
+        deadly: ["Ignore ongoing post-op shoulder-tip pain and hypotension", "Persistent bleeding must be reconsidered.", "⚠️", "Missed ongoing bleed"],
+        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Focus only on contraception and skip emotional support", "Contraception may matter, but ectopic loss also needs counselling.", "🧠", "Incomplete care"] }] },
+    ],
+    { survived: "Rapid surgery controls haemorrhage, transfusion restores stability, and reproductive aftercare is arranged.", died: DIED },
   ),
 ];

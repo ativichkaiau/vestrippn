@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "validate:cases": "node scripts/validate-branching-cases.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",

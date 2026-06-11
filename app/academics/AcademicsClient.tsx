@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
@@ -19,7 +19,10 @@ interface Exam { name: string; date: Date; color: string; }
 interface AcademicsProps {
   initialCanvasData?: {
     subjects: Subject[];
-    metrics: any;
+    metrics: {
+      quizzes?: number;
+      assignments?: number;
+    };
   };
   ankiData?: {
     due: number;
@@ -58,9 +61,41 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const [isSafari, setIsSafari] = useState(false);
 
   // W09 clinical cases — live entry into /learn/cases
-  type ClinicalCase = { id: string; title: string; specialty: string | null; summary: string };
+  type ClinicalCase = {
+    id: string;
+    title: string;
+    specialty: string | null;
+    type?: 'linear' | 'branching';
+    summary: string;
+    patient?: string;
+    difficulty?: string;
+    stages?: number;
+    icon?: string;
+    tags?: string[];
+  };
   const [clinicalCases, setClinicalCases] = useState<ClinicalCase[]>([]);
   const [clinicalLoading, setClinicalLoading] = useState(true);
+  const clinicalSystemCount = useMemo(
+    () => new Set(clinicalCases.map((c) => c.specialty).filter(Boolean)).size,
+    [clinicalCases],
+  );
+  const hardCaseCount = useMemo(
+    () => clinicalCases.filter((c) => c.difficulty?.toLowerCase() === 'hard').length,
+    [clinicalCases],
+  );
+  const featuredClinicalCases = useMemo(() => {
+    const difficultyRank = (difficulty?: string) =>
+      difficulty?.toLowerCase() === 'hard' ? 0 : difficulty?.toLowerCase() === 'medium' ? 1 : 2;
+    return [...clinicalCases]
+      .sort((a, b) => {
+        const rareDelta = Number(b.tags?.some((tag) => tag.toLowerCase() === 'rare')) - Number(a.tags?.some((tag) => tag.toLowerCase() === 'rare'));
+        if (rareDelta !== 0) return rareDelta;
+        const difficultyDelta = difficultyRank(a.difficulty) - difficultyRank(b.difficulty);
+        if (difficultyDelta !== 0) return difficultyDelta;
+        return (b.stages ?? 0) - (a.stages ?? 0);
+      })
+      .slice(0, 6);
+  }, [clinicalCases]);
 
   useEffect(() => {
     (async () => {
@@ -76,7 +111,8 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   }, []);
 
   useEffect(() => {
-    setIsMounted(true);
+    const frame = window.requestAnimationFrame(() => setIsMounted(true));
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -218,8 +254,11 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   // rely on the desktop add-on (which pushes straight to Postgres instead).
   useEffect(() => {
     const safari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
-    setIsSafari(safari);
-    if (!safari) syncFromAnki(true);
+    const timer = window.setTimeout(() => {
+      setIsSafari(safari);
+      if (!safari) syncFromAnki(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -367,7 +406,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                   >
                     <div className="flex justify-between items-start mb-6 relative z-10">
                       <span className={`font-black tracking-tight text-[20px] lg:text-[22px] transition-colors duration-700 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : exam.color}`}>{exam.name}</span>
-                      <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{exam.date} // 09:00</span>
+                      <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{`${exam.date} // 09:00`}</span>
                     </div>
                     <div className={`text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter transition-colors duration-700 relative z-10 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
                       {exam.done ? 'COMPLETED' : (timers[exam.name] || "--D --H --M")}
@@ -496,7 +535,11 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 <span className="w-1.5 h-4 bg-rose-500 rounded-full animate-pulse"></span>
                 <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Clinical Cases</h3>
                 {!clinicalLoading && clinicalCases.length > 0 && (
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 uppercase tracking-widest">{clinicalCases.length} Systems</span>
+                  <>
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 uppercase tracking-widest">{clinicalCases.length} Cases</span>
+                    <span className="hidden sm:inline-flex text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 uppercase tracking-widest">{clinicalSystemCount} Systems</span>
+                    <span className="hidden md:inline-flex text-[9px] font-black px-2 py-0.5 rounded-md bg-red-500/15 text-red-600 dark:text-red-400 uppercase tracking-widest">{hardCaseCount} Hard</span>
+                  </>
                 )}
                 <Link href="/learn/cases" className="ml-auto text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 hover:translate-x-0.5 transition-transform">Open all →</Link>
               </div>
@@ -506,25 +549,49 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                   [1, 2, 3].map((n) => (
                     <div key={n} className="h-[92px] rounded-[24px] bg-black/5 dark:bg-white/5 animate-pulse" />
                   ))
-                ) : clinicalCases.length > 0 ? (
-                  clinicalCases.slice(0, 6).map((c) => (
+                ) : featuredClinicalCases.length > 0 ? (
+                  featuredClinicalCases.map((c) => {
+                    const rare = c.tags?.some((tag) => tag.toLowerCase() === 'rare');
+                    const layerLabel = c.stages ? `${c.stages} layer${c.stages === 1 ? '' : 's'}` : null;
+                    return (
                     <Link
                       key={c.id}
                       href="/learn/cases"
                       className="group bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
+                        <div className="flex min-w-0 gap-3">
+                          <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-rose-500/10 text-xl">{c.icon || '🩺'}</span>
+                          <div className="min-w-0">
                           {c.specialty && (
                             <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">{c.specialty}</div>
                           )}
                           <div className="text-[15px] font-bold text-neutral-900 dark:text-white tracking-tight">{c.title}</div>
+                          </div>
                         </div>
                         <span className="shrink-0 text-rose-400 group-hover:translate-x-1 transition-transform">→</span>
                       </div>
-                      <div className="mt-1.5 text-[12px] text-neutral-500 dark:text-neutral-400 line-clamp-2">{c.summary}</div>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {c.difficulty && (
+                          <span className={`rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${
+                            c.difficulty.toLowerCase() === 'hard'
+                              ? 'bg-red-500/15 text-red-600 dark:text-red-400'
+                              : c.difficulty.toLowerCase() === 'medium'
+                                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                          }`}>
+                            {c.difficulty}
+                          </span>
+                        )}
+                        {layerLabel && <span className="rounded-md bg-black/5 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-neutral-500 dark:bg-white/10 dark:text-neutral-400">{layerLabel}</span>}
+                        {rare && <span className="rounded-md bg-purple-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400">Rare</span>}
+                        {c.type === 'branching' && <span className="rounded-md bg-rose-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">Interactive</span>}
+                      </div>
+                      <div className="mt-2 text-[12px] text-neutral-500 dark:text-neutral-400 line-clamp-2">{c.patient || c.summary}</div>
+                      {c.patient && <div className="mt-1 text-[11px] text-neutral-400 dark:text-neutral-500 line-clamp-1">{c.summary}</div>}
                     </Link>
-                  ))
+                    );
+                  })
                 ) : (
                   <Link
                     href="/learn/cases"

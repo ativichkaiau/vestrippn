@@ -21,12 +21,18 @@ export default function CasesClient() {
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    const h = new Date().getHours();
-    setCycle(h < 6 || h >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
-    setShowIntro(true);
-    const t = setTimeout(() => setShowIntro(false), 5400);
-    return () => clearTimeout(t);
+    let introTimer: number | null = null;
+    const frame = window.requestAnimationFrame(() => {
+      setIsMounted(true);
+      const h = new Date().getHours();
+      setCycle(h < 6 || h >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
+      setShowIntro(true);
+      introTimer = window.setTimeout(() => setShowIntro(false), 5400);
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (introTimer !== null) window.clearTimeout(introTimer);
+    };
   }, []);
 
   useEffect(() => {
