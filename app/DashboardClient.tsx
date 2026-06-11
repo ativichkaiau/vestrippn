@@ -129,7 +129,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
             <div className="w-7 h-7 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[14px] transition-colors duration-700">V</div>
             <div className="flex items-baseline">
               <span>VESTRIPPN</span>
-              <span className="text-blue-600 dark:text-blue-400 transition-colors duration-700">3.0</span>
+              <span className="transition-colors duration-700" style={{ color: 'var(--hub-accent)' }}>3.0</span>
             </div>
           </Link>
         </div>
@@ -298,7 +298,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       <h3 className="mt-5 text-lg font-black tracking-tight text-neutral-900 dark:text-white">{module.title}</h3>
                       <p className="mt-2 min-h-[48px] text-sm font-medium leading-6 text-neutral-500 dark:text-neutral-400">{module.desc}</p>
                       <div className="mt-5 flex items-center justify-between border-t border-black/5 pt-4 dark:border-white/5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#00A598]">Open module</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--hub-accent)' }}>Open module</span>
                         <span className="text-neutral-300 transition-transform group-hover:translate-x-1 dark:text-neutral-600">→</span>
                       </div>
                     </Link>
@@ -347,7 +347,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
             >
               <div className="flex flex-col gap-2 px-1 text-center sm:text-left">
                 <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-neutral-400 shadow-sm backdrop-blur-xl dark:border-white/5 dark:bg-white/5 dark:text-neutral-500 sm:mx-0">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#00A598] shadow-[0_0_12px_rgba(0,165,152,0.65)]" />
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 12px rgba(var(--hub-accent-rgb), 0.65)' }} />
                   Live cockpit
                 </div>
                 <h2 className="text-[22px] font-black tracking-tight text-neutral-900 dark:text-white sm:text-[28px]">Today’s command center</h2>
@@ -415,7 +415,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     className="flex flex-col bg-white/60 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 border border-black/5 dark:border-white/5 rounded-[24px] lg:rounded-[32px] p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-colors duration-700 cursor-default"
                   >
                     <h3 className="font-bold text-[14px] tracking-tight mb-4 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00A598] animate-pulse"></span> Domain Health
+                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--hub-accent)' }}></span> Domain Health
                     </h3>
                     <DomainHealth />
                   </motion.div>

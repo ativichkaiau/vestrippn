@@ -327,7 +327,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             />
 
             <MissionBlock
-              accent="amber"
+              accent="blue"
               title="HMS-2 · Human Musculoskeletal System-2"
               detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HMS-2'] || '--D --H --M'}</span> · 12 JUN // 09:00</>}
               cta={{ label: 'View milestones', href: '#milestones' }}
