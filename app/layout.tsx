@@ -18,8 +18,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VESTRIPPN 3.0 // W08 EQ Power+",
-  description: "Personal Telemetry & Operating System · Powered by Claude",
+  title: "VESTRIPPN 3.0 // W09 EQ Power+",
+  description: "Personal telemetry, mission control, and Claude-ready command surfaces.",
   // 🚨 THE FIX: This injects the Google site verification tag into your <head>
   verification: {
     google: "googlecd69efda792e89e4",
@@ -56,7 +56,7 @@ export default function RootLayout({
       >
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var lv=localStorage.getItem('vest_livery');var md=localStorage.getItem('vest_mode');var h=new Date().getHours();if(md!=='day'&&md!=='night'){md=(h<6||h>=18)?'night':'day';}var el=document.documentElement;if(lv==='monza'||lv==='senna'){el.classList.add('dark',lv,'w08-'+lv);}else{if(md==='night'){el.classList.add('dark');}else{el.classList.remove('dark');}}if(localStorage.getItem('vest_lowpower')==='1'){el.classList.add('low-power');}}catch(e){}})();`,
+            __html: `(function(){try{var lv=localStorage.getItem('vest_livery');var md=localStorage.getItem('vest_mode');var h=new Date().getHours();if(md!=='day'&&md!=='night'){md=(h<6||h>=18)?'night':'day';}var el=document.documentElement;if(lv==='monza'||lv==='senna'){el.classList.add('dark',lv,'w09-'+lv);}else{if(md==='night'){el.classList.add('dark');}else{el.classList.remove('dark');}}if(localStorage.getItem('vest_lowpower')==='1'){el.classList.add('low-power');}}catch(e){}})();`,
           }}
         />
         <AuthProvider>

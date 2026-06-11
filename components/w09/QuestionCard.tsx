@@ -44,14 +44,14 @@ export default function QuestionCard({
   };
 
   return (
-    <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-5 shadow-[var(--w08-shadow)] [font-family:var(--w08-font-display)]">
+    <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)] [font-family:var(--w09-font-display)]">
       <div className="mb-4 flex items-start gap-3">
         {number != null && (
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--w08-accent-primary)] text-xs font-bold text-[color:var(--w08-accent-contrast)]">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--w09-accent-primary)] text-xs font-bold text-[color:var(--w09-accent-contrast)]">
             {number}
           </span>
         )}
-        <p className="font-medium leading-relaxed text-[color:var(--w08-text)]">{prompt}</p>
+        <p className="font-medium leading-relaxed text-[color:var(--w09-text)]">{prompt}</p>
       </div>
 
       <div className="space-y-2">
@@ -61,12 +61,12 @@ export default function QuestionCard({
           const isWrong = answered && isSel && correctId != null && correctId !== opt.id;
 
           const stateBorder = isCorrect
-            ? 'border-[color:var(--w08-success)]'
+            ? 'border-[color:var(--w09-success)]'
             : isWrong
-            ? 'border-[color:var(--w08-danger)]'
+            ? 'border-[color:var(--w09-danger)]'
             : isSel
-            ? 'border-[color:var(--w08-accent-primary)]'
-            : 'border-[color:var(--w08-border)]';
+            ? 'border-[color:var(--w09-accent-primary)]'
+            : 'border-[color:var(--w09-border)]';
 
           return (
             <button
@@ -75,20 +75,20 @@ export default function QuestionCard({
               onClick={() => choose(opt.id)}
               aria-pressed={isSel}
               disabled={disabled || answered}
-              className={`flex w-full items-center gap-3 rounded-[var(--w08-radius)] border px-4 py-3 text-left transition-[background-color,border-color,transform] duration-[var(--w08-motion-duration)] ease-[var(--w08-motion-ease)] active:scale-[0.99] ${stateBorder} ${
-                isSel ? 'bg-[var(--w08-surface-raised)]' : 'bg-[var(--w08-bg)] hover:bg-[var(--w08-surface-raised)]'
+              className={`flex w-full items-center gap-3 rounded-[var(--w09-radius)] border px-4 py-3 text-left transition-[background-color,border-color,transform] duration-[var(--w09-motion-duration)] ease-[var(--w09-motion-ease)] active:scale-[0.99] ${stateBorder} ${
+                isSel ? 'bg-[var(--w09-surface-raised)]' : 'bg-[var(--w09-bg)] hover:bg-[var(--w09-surface-raised)]'
               }`}
             >
               <span
                 className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border ${
                   isSel
-                    ? 'border-[color:var(--w08-accent-primary)] bg-[var(--w08-accent-primary)]'
-                    : 'border-[color:var(--w08-border)]'
+                    ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-accent-primary)]'
+                    : 'border-[color:var(--w09-border)]'
                 }`}
               />
-              <span className="text-sm text-[color:var(--w08-text)]">{opt.label}</span>
-              {isCorrect && <span className="ml-auto text-xs font-bold text-[color:var(--w08-success)]">✓</span>}
-              {isWrong && <span className="ml-auto text-xs font-bold text-[color:var(--w08-danger)]">✕</span>}
+              <span className="text-sm text-[color:var(--w09-text)]">{opt.label}</span>
+              {isCorrect && <span className="ml-auto text-xs font-bold text-[color:var(--w09-success)]">✓</span>}
+              {isWrong && <span className="ml-auto text-xs font-bold text-[color:var(--w09-danger)]">✕</span>}
             </button>
           );
         })}

@@ -10,6 +10,7 @@ import TopNavProfile from '../../components/TopNavProfile';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
 import HubIntro from '../../components/HubIntro';
+import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 import { syncFitnessHubData } from '@/app/actions';
 
 export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
@@ -35,12 +36,9 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
   const [isLogging, setIsLogging] = useState(false);
   const [newMeal, setNewMeal] = useState({ name: '', protein: '', carbs: '', fats: '', calories: '' });
   const [isMounted, setIsMounted] = useState(false);
-  const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
 
   useEffect(() => {
     setIsMounted(true);
-    const currentHour = new Date().getHours();
-    setCycleTime(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
   }, []);
 
   // 2. The Debounced Cloud Sync Engine
@@ -124,7 +122,8 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
               secondaryLabel="Food Screener ↗"
               chips={['Workout Streak', 'Macro Protocol', 'Nutrition Log', 'Recovery']}
               panelTitle="Fitness Ops"
-              panelSubtitle={`${cycleTime} // Telemetry Active`}
+              panelSubtitle="Current focus: protect the streak"
+              contextLabel="Training target: log today's session"
               metrics={[
                 { label: 'Streak', value: `${cloudFitness?.streak ?? 0}` },
                 { label: 'Mode', value: 'Train' },
@@ -142,6 +141,15 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
               title="Today's Session · Protect the Streak"
               detail="Log training to keep cadence and streak telemetry alive."
               cta={{ label: 'Open monitor', href: '#vitality-monitor' }}
+            />
+
+            <CockpitIntelligencePanel
+              hub="fitness"
+              contextItems={[
+                { label: 'Current focus', value: 'Protect the streak' },
+                { label: 'Streak', value: `${cloudFitness?.streak ?? 0} days` },
+                { label: 'Calories', value: `${targets.calories} target` },
+              ]}
             />
 
             {/* SECTOR 1: VITALITY MONITOR (3-PANE) */}

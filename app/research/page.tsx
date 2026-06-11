@@ -29,14 +29,14 @@ export default async function ResearchPage() {
       savedExtractions = fetchedExtractions;
 
       // 2. Vercel Telemetry Log
-      console.log(`[RESEARCH UPLINK] Synced ${savedExtractions.length} extractions in ${Date.now() - startTime}ms for Operator ${session.user.id}`);
+      console.log(`[RESEARCH SYNC] Loaded ${savedExtractions.length} extractions in ${Date.now() - startTime}ms for Operator ${session.user.id}`);
       
     } catch (error) {
       console.error("[CRITICAL] Research Postgres Uplink Failed:", error);
       // Fails gracefully: Variables remain null/empty so the UI doesn't crash
     }
   } else {
-    console.warn("[RESEARCH UPLINK] No active session found. Serving local skeleton state.");
+    console.warn("[RESEARCH SYNC] No active session found. Serving local skeleton state.");
   }
 
   return (

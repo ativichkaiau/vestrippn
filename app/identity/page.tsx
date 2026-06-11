@@ -12,16 +12,14 @@ import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
 import TickNumber from '../../components/TickNumber';
 import { useLowPower } from '../../components/useLowPower';
+import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 
 export default function IdentityHub() {
   const [isMounted, setIsMounted] = useState(false);
-  const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   useEffect(() => { 
     setIsMounted(true); 
-    const currentHour = new Date().getHours();
-    setCycleTime(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
   }, []);
 
   if (!isMounted) return null;
@@ -84,7 +82,8 @@ export default function IdentityHub() {
               secondaryLabel="View Archive ↗"
               chips={['MedCMU', 'Research', 'Olympiads', 'Systems']}
               panelTitle="Identity Ops"
-              panelSubtitle={`${cycleTime} // Authorized`}
+              panelSubtitle="Portfolio: MD x Engineer"
+              contextLabel="Profile focus: systems builder"
               metrics={[
                 { label: 'Mode', value: 'MFD' },
                 { label: 'Focus', value: 'Clinical' },
@@ -102,6 +101,15 @@ export default function IdentityHub() {
               title="Builder Trajectory · MD × Engineer"
               detail="Story, achievements, and systems evidence assembled into one operator manifest."
               cta={{ label: 'Open profile', href: '#identity-mfd' }}
+            />
+
+            <CockpitIntelligencePanel
+              hub="identity"
+              contextItems={[
+                { label: 'Profile', value: 'MD x Engineer' },
+                { label: 'Evidence', value: 'Projects + awards' },
+                { label: 'Audience', value: 'Portfolio readers' },
+              ]}
             />
 
             <IdentityGifGrid />
@@ -153,7 +161,7 @@ export default function IdentityHub() {
                       Former Academic President and Research Club President of MedCMU, with international Olympiad experience across Astronomy, Astrophysics, Earth Science, and Linguistics.
                     </p>
                     <p>
-                      Builder of the <span className="font-bold text-cyan-600 dark:text-cyan-400">VESTRIPPN3.0-AMG W08 <span className="bg-clip-text text-transparent whitespace-nowrap" style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}>EQ Power+</span></span> ecosystem — a cloud-integrated operational platform designed for research telemetry, academic management, workflow automation, and AI-assisted medical infrastructure, <span className="font-bold text-[#D97757]">powered by Claude</span>.
+                      Builder of the <span className="font-bold text-cyan-600 dark:text-cyan-400">VESTRIPPN3.0-AMG W09 <span className="bg-clip-text text-transparent whitespace-nowrap" style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}>EQ Power+</span></span> ecosystem — a cloud-integrated operational platform designed for research telemetry, academic management, workflow automation, and AI-assisted medical infrastructure, <span className="font-bold text-[#D97757]">powered by Claude</span>.
                     </p>
                   </div>
 

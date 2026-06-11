@@ -10,6 +10,7 @@ import TopNavProfile from '../../components/TopNavProfile';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
 import HubIntro from '../../components/HubIntro';
+import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 
 /* ── Research Hub: multi-source contract types (see app/api/research/*) ── */
 type ResearchSource = 'pubmed' | 'europepmc' | 'crossref' | 'cochrane' | 'scopus' | 'sciencedirect';
@@ -75,18 +76,18 @@ const SOURCE_LABEL: Record<AnySource, string> = {
   googlescholar: 'Google Scholar',
 };
 
-// Each source maps to a distinct --w08-* token so the palette stays consistent
+// Each source maps to a distinct --w09-* token so the palette stays consistent
 // across liveries (no new colors). Cochrane → danger (high-signal reviews);
 // Scopus → tertiary (the gold sub-color, mirrors Elsevier's warm hue under Monza).
 const SOURCE_COLOR: Record<AnySource, string> = {
-  pubmed: 'var(--w08-accent-primary)',
-  europepmc: 'var(--w08-success)',
-  crossref: 'var(--w08-accent-secondary)',
-  cochrane: 'var(--w08-danger)',
-  scopus: 'var(--w08-accent-tertiary)',
-  sciencedirect: 'var(--w08-focus-ring)',
-  clinicalkey: 'var(--w08-text-muted)',
-  googlescholar: 'var(--w08-text-muted)',
+  pubmed: 'var(--w09-accent-primary)',
+  europepmc: 'var(--w09-success)',
+  crossref: 'var(--w09-accent-secondary)',
+  cochrane: 'var(--w09-danger)',
+  scopus: 'var(--w09-accent-tertiary)',
+  sciencedirect: 'var(--w09-focus-ring)',
+  clinicalkey: 'var(--w09-text-muted)',
+  googlescholar: 'var(--w09-text-muted)',
 };
 
 /** Build all idempotency keys for a result/extraction (mirrors server logic). */
@@ -121,7 +122,6 @@ const QUICK_LINKS: { id: QuickLinkId; icon: string; label: string }[] = [
 
 export default function ResearchClient({ cloudResearch, cloudExtractions = [] }: ResearchProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   /* ── Multi-source search state ── */
@@ -148,11 +148,9 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [openAbstracts, setOpenAbstracts] = useState<Set<string>>(new Set());
 
-  /* ── Mount + cycle + load source availability ── */
+  /* ── Mount + load source availability ── */
   useEffect(() => {
     setIsMounted(true);
-    const currentHour = new Date().getHours();
-    setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
     (async () => {
       try {
         const r = await fetch('/api/research/sources');
@@ -305,7 +303,8 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               secondaryLabel="SRMA Engine ↗"
               chips={['PubMed', 'Europe PMC', 'Scopus', 'ScienceDirect']}
               panelTitle="Research Ops"
-              panelSubtitle={`${cycle} // Extraction Active`}
+              panelSubtitle="Research pipeline: SRMA extraction"
+              contextLabel="Pipeline: Brugada SRMA"
               metrics={[
                 { label: 'Sources', value: '7' },
                 { label: 'Vault', value: `${cloudExtractions.length}` },
@@ -325,44 +324,53 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               cta={{ label: 'Launch SRMA ↗', href: 'https://vestrippn-srma-telemetry.vercel.app', external: true }}
             />
 
+            <CockpitIntelligencePanel
+              hub="research"
+              contextItems={[
+                { label: 'Current pipeline', value: 'Brugada SRMA' },
+                { label: 'Saved papers', value: `${cloudExtractions.length}` },
+                { label: 'Sources', value: `${RESULT_SOURCES.length} APIs` },
+              ]}
+            />
+
             {/* SECTOR 1: MULTI-SOURCE LITERATURE SEARCH */}
             <motion.section
               id="literature-search"
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
-              className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] shadow-[var(--w08-shadow)] overflow-hidden text-[color:var(--w08-text)] relative"
+              className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] shadow-[var(--w09-shadow)] overflow-hidden text-[color:var(--w09-text)] relative"
             >
               {/* Header */}
               <div className="flex items-center gap-2 px-6 lg:px-8 pt-6">
-                <span className="w-1.5 h-4 rounded-full" style={{ backgroundColor: 'var(--w08-accent-primary)' }} />
-                <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">Multi-Source Literature Search</h3>
+                <span className="w-1.5 h-4 rounded-full" style={{ backgroundColor: 'var(--w09-accent-primary)' }} />
+                <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">Multi-Source Literature Search</h3>
                 {searchData && (
-                  <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">
                     {searchData.results.length} merged · deduped · year-sorted
                   </span>
                 )}
               </div>
 
               {/* Sticky search bar */}
-              <div className="sticky top-0 z-30 px-6 lg:px-8 py-4 bg-[var(--w08-surface)] border-b border-[color:var(--w08-border)] mt-4 backdrop-blur-md backdrop-saturate-150">
+              <div className="sticky top-0 z-30 px-6 lg:px-8 py-4 bg-[var(--w09-surface)] border-b border-[color:var(--w09-border)] mt-4 backdrop-blur-md backdrop-saturate-150">
                 <div className="relative">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search PubMed, Europe PMC, Crossref / Cochrane, Scopus, ScienceDirect…"
-                    className="w-full bg-[var(--w08-surface-raised)] border border-[color:var(--w08-border)] rounded-full pl-12 pr-14 py-3.5 text-[14px] text-[color:var(--w08-text)] outline-none transition placeholder:text-[color:var(--w08-text-muted)] focus:ring-2 focus:ring-[color:var(--w08-focus-ring)]"
+                    className="w-full bg-[var(--w09-surface-raised)] border border-[color:var(--w09-border)] rounded-full pl-12 pr-14 py-3.5 text-[14px] text-[color:var(--w09-text)] outline-none transition placeholder:text-[color:var(--w09-text-muted)] focus:ring-2 focus:ring-[color:var(--w09-focus-ring)]"
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base text-[color:var(--w08-text-muted)]">🔎</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base text-[color:var(--w09-text-muted)]">🔎</span>
                   {searching && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] uppercase tracking-widest text-[color:var(--w08-text-muted)]">Searching…</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] uppercase tracking-widest text-[color:var(--w09-text-muted)]">Searching…</span>
                   )}
                   {!searching && searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
                       aria-label="Clear search"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-full text-[color:var(--w08-text-muted)] hover:text-[color:var(--w08-text)] hover:bg-[var(--w08-surface)]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-full text-[color:var(--w09-text-muted)] hover:text-[color:var(--w09-text)] hover:bg-[var(--w09-surface)]"
                     >✕</button>
                   )}
                 </div>
@@ -379,11 +387,11 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                       target="_blank"
                       rel="noopener noreferrer"
                       title={searchQuery.trim() && link.id !== 'srma' ? `Open “${searchQuery}” on ${link.label}` : `Open ${link.label}`}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] hover:bg-[var(--w08-surface)] px-4 py-2.5 text-[12px] font-bold text-[color:var(--w08-text)] transition-all active:scale-95 shadow-sm"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] hover:bg-[var(--w09-surface)] px-4 py-2.5 text-[12px] font-bold text-[color:var(--w09-text)] transition-all active:scale-95 shadow-sm"
                     >
                       <span className="text-lg leading-none">{link.icon}</span>
                       {link.label}
-                      <span className="text-[10px] uppercase tracking-widest text-[color:var(--w08-text-muted)] ml-0.5">↗</span>
+                      <span className="text-[10px] uppercase tracking-widest text-[color:var(--w09-text-muted)] ml-0.5">↗</span>
                     </a>
                   );
                 })}
@@ -407,10 +415,10 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                       title={!available ? meta?.reason : `Toggle ${SOURCE_LABEL[s]}`}
                       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition ${
                         !available
-                          ? 'border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] text-[color:var(--w08-text-muted)] opacity-60 cursor-not-allowed'
+                          ? 'border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-text-muted)] opacity-60 cursor-not-allowed'
                           : active
                             ? ''
-                            : 'border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] text-[color:var(--w08-text-muted)] hover:bg-[var(--w08-surface)]'
+                            : 'border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-text-muted)] hover:bg-[var(--w09-surface)]'
                       }`}
                       style={
                         active && available
@@ -432,20 +440,20 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
 
               {/* Channel status strip — per-source outcome */}
               {searchData && searchData.channels.length > 0 && (
-                <div className="px-6 lg:px-8 pt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">
+                <div className="px-6 lg:px-8 pt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">
                   {searchData.channels.map((ch) => {
                     const color = SOURCE_COLOR[ch.source];
                     const dotColor = !ch.ok
-                      ? 'var(--w08-danger)'
+                      ? 'var(--w09-danger)'
                       : ch.count > 0
-                        ? 'var(--w08-success)'
-                        : 'var(--w08-text-muted)';
+                        ? 'var(--w09-success)'
+                        : 'var(--w09-text-muted)';
                     return (
                       <span
                         key={ch.source}
                         title={!ch.ok ? ch.error ?? 'Channel error' : `${SOURCE_LABEL[ch.source]} returned ${ch.count}`}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-2.5 py-1"
-                        style={!ch.ok ? { borderColor: 'var(--w08-danger)', color: 'var(--w08-danger)' } : undefined}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-2.5 py-1"
+                        style={!ch.ok ? { borderColor: 'var(--w09-danger)', color: 'var(--w09-danger)' } : undefined}
                       >
                         <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: dotColor }} />
                         <span style={ch.ok ? { color } : undefined}>{SOURCE_LABEL[ch.source]}</span>
@@ -462,8 +470,8 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                 const sd = sources.find((s) => s.source === 'sciencedirect');
                 if (scopus && sd && !scopus.available && !sd.available) {
                   return (
-                    <div className="mx-6 lg:mx-8 mt-4 rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-4 py-2.5 text-[11px] text-[color:var(--w08-text-muted)]">
-                      Set <code className="font-mono text-[color:var(--w08-text)]">ELSEVIER_API_KEY</code> in Vercel to enable Scopus + ScienceDirect.
+                    <div className="mx-6 lg:mx-8 mt-4 rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-2.5 text-[11px] text-[color:var(--w09-text-muted)]">
+                      Set <code className="font-mono text-[color:var(--w09-text)]">ELSEVIER_API_KEY</code> in Vercel to enable Scopus + ScienceDirect.
                     </div>
                   );
                 }
@@ -473,13 +481,13 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               {/* Results / empty / error */}
               <div className="px-6 lg:px-8 py-6 space-y-3">
                 {!searchQuery.trim() && (
-                  <div className="rounded-[var(--w08-radius)] border border-dashed border-[color:var(--w08-border)] px-6 py-10 text-center text-sm text-[color:var(--w08-text-muted)]">
+                  <div className="rounded-[var(--w09-radius)] border border-dashed border-[color:var(--w09-border)] px-6 py-10 text-center text-sm text-[color:var(--w09-text-muted)]">
                     Search the literature across PubMed, Europe PMC, Cochrane, Scopus, ScienceDirect — open ClinicalKey & Scholar in a tab.
                   </div>
                 )}
 
                 {searchError && (
-                  <div className="rounded-[var(--w08-radius)] border px-4 py-3 text-sm" style={{ borderColor: 'var(--w08-danger)', color: 'var(--w08-danger)', backgroundColor: 'var(--w08-surface-raised)' }}>
+                  <div className="rounded-[var(--w09-radius)] border px-4 py-3 text-sm" style={{ borderColor: 'var(--w09-danger)', color: 'var(--w09-danger)', backgroundColor: 'var(--w09-surface-raised)' }}>
                     Search failed: {searchError}
                   </div>
                 )}
@@ -490,7 +498,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                     const scholar = searchData.deepLinks.find((d) => d.source === 'googlescholar');
                     const ck = searchData.deepLinks.find((d) => d.source === 'clinicalkey');
                     return (
-                      <div className="rounded-[var(--w08-radius)] border border-dashed border-[color:var(--w08-border)] px-6 py-10 text-center text-sm text-[color:var(--w08-text-muted)]">
+                      <div className="rounded-[var(--w09-radius)] border border-dashed border-[color:var(--w09-border)] px-6 py-10 text-center text-sm text-[color:var(--w09-text-muted)]">
                         No results. Try a broader query, or open it in{' '}
                         {scholar && (
                           <a className="underline" href={scholar.url} target="_blank" rel="noopener noreferrer">Scholar</a>
@@ -512,12 +520,12 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                     return (
                       <article
                         key={key}
-                        className="group rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] p-4 lg:p-5 transition hover:shadow-[var(--w08-shadow)]"
+                        className="group rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] p-4 lg:p-5 transition hover:shadow-[var(--w09-shadow)]"
                       >
                         <div className="flex items-start gap-3">
                           {/* Source pill */}
                           <span
-                            className="shrink-0 inline-flex items-center gap-1.5 rounded-full border bg-[var(--w08-surface)] px-2.5 py-1 text-[10px] font-black uppercase tracking-widest"
+                            className="shrink-0 inline-flex items-center gap-1.5 rounded-full border bg-[var(--w09-surface)] px-2.5 py-1 text-[10px] font-black uppercase tracking-widest"
                             style={{ color, borderColor: color }}
                           >
                             <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
@@ -530,16 +538,16 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                                 href={r.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block text-[15px] font-bold text-[color:var(--w08-text)] leading-snug hover:underline"
+                                className="block text-[15px] font-bold text-[color:var(--w09-text)] leading-snug hover:underline"
                               >
                                 {r.title}
                               </a>
                             ) : (
-                              <div className="text-[15px] font-bold text-[color:var(--w08-text)] leading-snug">{r.title}</div>
+                              <div className="text-[15px] font-bold text-[color:var(--w09-text)] leading-snug">{r.title}</div>
                             )}
 
                             {(r.authors || r.journal || r.year) && (
-                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] text-[color:var(--w08-text-muted)]">
+                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] text-[color:var(--w09-text-muted)]">
                                 {r.authors && <span className="truncate max-w-full">{r.authors}</span>}
                                 {(r.journal || r.year) && (
                                   <span className="italic">
@@ -553,13 +561,13 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                               <button
                                 type="button"
                                 onClick={() => toggleAbstract(key)}
-                                className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)] hover:text-[color:var(--w08-text)]"
+                                className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)] hover:text-[color:var(--w09-text)]"
                               >
                                 {open ? 'Hide abstract −' : 'Show abstract +'}
                               </button>
                             )}
                             {r.abstract && open && (
-                              <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-[color:var(--w08-text)]">{r.abstract}</p>
+                              <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-[color:var(--w09-text)]">{r.abstract}</p>
                             )}
                           </div>
 
@@ -567,8 +575,8 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                             type="button"
                             onClick={() => saveResult(r)}
                             disabled={saved || saving}
-                            className="shrink-0 inline-flex items-center gap-1 rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface)] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)] hover:text-[color:var(--w08-text)] disabled:cursor-not-allowed"
-                            style={saved ? { color: 'var(--w08-success)', borderColor: 'var(--w08-success)' } : undefined}
+                            className="shrink-0 inline-flex items-center gap-1 rounded-full border border-[color:var(--w09-border)] bg-[var(--w09-surface)] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)] hover:text-[color:var(--w09-text)] disabled:cursor-not-allowed"
+                            style={saved ? { color: 'var(--w09-success)', borderColor: 'var(--w09-success)' } : undefined}
                             title={saved ? 'Already in your vault' : 'Save to vault'}
                           >
                             {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save'}
@@ -585,25 +593,25 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
             <motion.section
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] shadow-[var(--w08-shadow)] p-6 lg:p-8 text-[color:var(--w08-text)]"
+              className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] shadow-[var(--w09-shadow)] p-6 lg:p-8 text-[color:var(--w09-text)]"
             >
               <div className="flex items-center gap-2 mb-5">
-                <span className="w-1.5 h-4 rounded-full" style={{ backgroundColor: 'var(--w08-accent-tertiary)' }} />
-                <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">Vault · {vault.length} saved</h3>
+                <span className="w-1.5 h-4 rounded-full" style={{ backgroundColor: 'var(--w09-accent-tertiary)' }} />
+                <h3 className="text-[12px] lg:text-[13px] font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">Vault · {vault.length} saved</h3>
               </div>
               {vault.length === 0 ? (
-                <div className="rounded-[var(--w08-radius)] border border-dashed border-[color:var(--w08-border)] px-6 py-8 text-center text-sm text-[color:var(--w08-text-muted)]">
+                <div className="rounded-[var(--w09-radius)] border border-dashed border-[color:var(--w09-border)] px-6 py-8 text-center text-sm text-[color:var(--w09-text-muted)]">
                   Save results to keep them here. Idempotent on DOI → PMID → title.
                 </div>
               ) : (
                 <ul className="space-y-2.5">
                   {vault.slice(0, 20).map((v) => {
-                    const color = v.source ? SOURCE_COLOR[v.source as ResearchSource] : 'var(--w08-text-muted)';
+                    const color = v.source ? SOURCE_COLOR[v.source as ResearchSource] : 'var(--w09-text-muted)';
                     return (
-                      <li key={v.id} className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] p-3 lg:p-4">
+                      <li key={v.id} className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] p-3 lg:p-4">
                         <div className="flex items-start gap-3">
                           <span
-                            className="shrink-0 inline-flex items-center gap-1 rounded-full border bg-[var(--w08-surface)] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest"
+                            className="shrink-0 inline-flex items-center gap-1 rounded-full border bg-[var(--w09-surface)] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest"
                             style={{ color, borderColor: color }}
                           >
                             <span className="h-1 w-1 rounded-full" style={{ backgroundColor: color }} />
@@ -611,14 +619,14 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                           </span>
                           <div className="min-w-0 flex-1">
                             {v.url ? (
-                              <a href={v.url} target="_blank" rel="noopener noreferrer" className="font-bold text-[color:var(--w08-text)] hover:underline">
+                              <a href={v.url} target="_blank" rel="noopener noreferrer" className="font-bold text-[color:var(--w09-text)] hover:underline">
                                 {v.title}
                               </a>
                             ) : (
-                              <div className="font-bold text-[color:var(--w08-text)]">{v.title}</div>
+                              <div className="font-bold text-[color:var(--w09-text)]">{v.title}</div>
                             )}
                             {(v.authors || v.journal || v.year) && (
-                              <div className="text-[11px] text-[color:var(--w08-text-muted)]">
+                              <div className="text-[11px] text-[color:var(--w09-text-muted)]">
                                 {v.authors && <span>{v.authors}</span>}
                                 {(v.journal || v.year) && (
                                   <span className="italic"> · {v.journal}{v.journal && v.year ? ' ' : ''}{v.year ?? ''}</span>
@@ -631,7 +639,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                     );
                   })}
                   {vault.length > 20 && (
-                    <li className="text-center text-[11px] text-[color:var(--w08-text-muted)]">+ {vault.length - 20} more saved earlier</li>
+                    <li className="text-center text-[11px] text-[color:var(--w09-text-muted)]">+ {vault.length - 20} more saved earlier</li>
                   )}
                 </ul>
               )}

@@ -1,8 +1,8 @@
 'use client';
 
 import { Fragment, useState } from 'react';
-import ChatPane, { type ChatMessage } from '@/components/w08/ChatPane';
-import CitationPopover, { type Citation } from '@/components/w08/CitationPopover';
+import ChatPane, { type ChatMessage } from '@/components/w09/ChatPane';
+import CitationPopover, { type Citation } from '@/components/w09/CitationPopover';
 
 type Msg = { id: string; role: 'user' | 'assistant'; content: string; citations?: Citation[] };
 
@@ -99,17 +99,17 @@ export default function DasChatClient() {
   const view: ChatMessage[] = msgs.map((m) => ({ id: m.id, role: m.role, content: renderContent(m) }));
 
   return (
-    <main className="flex h-screen flex-col bg-[var(--w08-bg)] text-[color:var(--w08-text)]">
-      <header className="border-b border-[color:var(--w08-border)] px-5 py-4">
-        <h1 className="text-lg font-bold [font-family:var(--w08-font-display)]">DAS · Chat</h1>
-        <p className="text-sm text-[color:var(--w08-text-muted)]">
+    <main className="flex h-screen flex-col bg-[var(--w09-bg)] text-[color:var(--w09-text)]">
+      <header className="border-b border-[color:var(--w09-border)] px-5 py-4">
+        <h1 className="text-lg font-bold [font-family:var(--w09-font-display)]">DAS · Chat</h1>
+        <p className="text-sm text-[color:var(--w09-text-muted)]">
           Ask questions grounded in your ingested sources.
         </p>
       </header>
 
       {error && (
         <div className="mx-auto mt-3 w-full max-w-3xl px-4">
-          <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-danger)] bg-[var(--w08-surface)] px-4 py-2 text-sm text-[color:var(--w08-danger)]">
+          <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-danger)] bg-[var(--w09-surface)] px-4 py-2 text-sm text-[color:var(--w09-danger)]">
             {error}
           </div>
         </div>

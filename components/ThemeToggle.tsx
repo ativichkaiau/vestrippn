@@ -7,9 +7,9 @@ type Mode = 'day' | 'night';
 
 function applyLivery(lv: Livery, md: Mode) {
   const el = document.documentElement;
-  el.classList.remove('monza', 'senna', 'w08-monza', 'w08-senna');
+  el.classList.remove('monza', 'senna', 'w09-monza', 'w09-senna');
   if (lv === 'monza' || lv === 'senna') {
-    el.classList.add('dark', lv, `w08-${lv}`);
+    el.classList.add('dark', lv, `w09-${lv}`);
   } else {
     if (md === 'night') el.classList.add('dark');
     else el.classList.remove('dark');
@@ -55,11 +55,15 @@ export default function ThemeToggle() {
     const lv: Livery = isLivery(storedLivery) ? storedLivery : 'normal';
     const md: Mode = storedMode === 'day' || storedMode === 'night' ? storedMode : autoMode;
 
-    setLivery(lv);
-    setMode(md);
     applyLivery(lv, md);
-    setLowPower(document.documentElement.classList.contains('low-power'));
-    setReady(true);
+    const handle = window.setTimeout(() => {
+      setLivery(lv);
+      setMode(md);
+      setLowPower(document.documentElement.classList.contains('low-power'));
+      setReady(true);
+    }, 0);
+
+    return () => window.clearTimeout(handle);
   }, []);
 
   const toggleLowPower = () => {

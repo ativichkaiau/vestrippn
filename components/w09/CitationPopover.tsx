@@ -45,7 +45,7 @@ export default function CitationPopover({ label = 1, citation }: CitationPopover
         aria-describedby={open ? id : undefined}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="align-super text-[0.7em] font-bold leading-none px-1 py-0.5 rounded-[calc(var(--w08-radius)/3)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] text-[color:var(--w08-accent-primary)] transition-colors duration-[var(--w08-motion-duration)] hover:bg-[var(--w08-accent-primary)] hover:text-[color:var(--w08-accent-contrast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--w08-focus-ring)]"
+        className="align-super text-[0.7em] font-bold leading-none px-1 py-0.5 rounded-[calc(var(--w09-radius)/3)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-accent-primary)] transition-colors duration-[var(--w09-motion-duration)] hover:bg-[var(--w09-accent-primary)] hover:text-[color:var(--w09-accent-contrast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--w09-focus-ring)]"
       >
         {label}
       </button>
@@ -56,14 +56,14 @@ export default function CitationPopover({ label = 1, citation }: CitationPopover
           role="tooltip"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
-          className="absolute left-0 top-full z-50 mt-1.5 block w-64 p-3 text-left rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] shadow-[var(--w08-shadow)] [font-family:var(--w08-font-display)]"
+          className="absolute left-0 top-full z-50 mt-1.5 block w-64 p-3 text-left rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] shadow-[var(--w09-shadow)] [font-family:var(--w09-font-display)]"
         >
-          <span className="block text-sm font-semibold text-[color:var(--w08-text)]">{citation.title}</span>
+          <span className="block text-sm font-semibold text-[color:var(--w09-text)]">{citation.title}</span>
           {citation.source && (
-            <span className="mt-0.5 block text-xs text-[color:var(--w08-text-muted)]">{citation.source}</span>
+            <span className="mt-0.5 block text-xs text-[color:var(--w09-text-muted)]">{citation.source}</span>
           )}
           {citation.snippet && (
-            <span className="mt-2 block text-xs leading-relaxed text-[color:var(--w08-text)] opacity-90">
+            <span className="mt-2 block text-xs leading-relaxed text-[color:var(--w09-text)] opacity-90">
               {citation.snippet}
             </span>
           )}
@@ -72,7 +72,7 @@ export default function CitationPopover({ label = 1, citation }: CitationPopover
               href={citation.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-block text-xs font-semibold text-[color:var(--w08-accent-primary)] hover:underline"
+              className="mt-2 inline-block text-xs font-semibold text-[color:var(--w09-accent-primary)] hover:underline"
             >
               Open source →
             </a>

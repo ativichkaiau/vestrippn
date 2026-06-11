@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import CaseStepper from '@/components/w08/CaseStepper';
+import CaseStepper from '@/components/w09/CaseStepper';
 import BranchingPlayer from './BranchingPlayer';
 import { type CaseDetail, type CaseSummary, colorFor, difficultyColor, isRare, nonRareTags, specialtyIcon } from './types';
 
@@ -97,13 +97,13 @@ export default function CasesClient() {
 
       {/* --- MAIN WORKSPACE --- */}
       <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-10 relative z-10">
-        <div className="mx-auto w-full max-w-5xl text-[color:var(--w08-text)]">
+        <div className="mx-auto w-full max-w-5xl text-[color:var(--w09-text)]">
           {/* Back to Dashboard */}
           <Link href="/" className="mb-6 inline-flex items-center gap-2 rounded-full border border-black/5 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl px-4 py-2 text-[13px] font-bold text-neutral-600 dark:text-neutral-300 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/90 dark:hover:bg-white/10 active:scale-95">
             <span className="text-base leading-none">←</span> Dashboard
           </Link>
-        <h1 className="text-2xl font-black tracking-tight [font-family:var(--w08-font-display)]">Interactive Case Simulator</h1>
-        <p className="mt-1 text-sm text-[color:var(--w08-text-muted)]">
+        <h1 className="text-2xl font-black tracking-tight [font-family:var(--w09-font-display)]">Interactive Case Simulator</h1>
+        <p className="mt-1 text-sm text-[color:var(--w09-text-muted)]">
           Navigate a clinical case and see how your choices affect patient outcomes in real time.
         </p>
 
@@ -112,20 +112,20 @@ export default function CasesClient() {
           <>
             {/* Intro explainer */}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-5 shadow-[var(--w08-shadow)]">
-                <h3 className="mb-3 text-sm font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">💡 How Your Choices Matter</h3>
-                <ul className="space-y-2 text-sm text-[color:var(--w08-text)]">
-                  <li><span style={{ color: '#10b981' }}>✓</span> <b>Optimal choices</b> <span className="text-[color:var(--w08-text-muted)]">improve vitals and outcomes</span></li>
-                  <li><span style={{ color: '#f59e0b' }}>⚠</span> <b>Suboptimal choices</b> <span className="text-[color:var(--w08-text-muted)]">slow recovery and raise risk</span></li>
-                  <li><span style={{ color: '#ef4444' }}>✕</span> <b>Harmful choices</b> <span className="text-[color:var(--w08-text-muted)]">trigger complications</span></li>
+              <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)]">
+                <h3 className="mb-3 text-sm font-bold text-[color:var(--w09-text)] [font-family:var(--w09-font-display)]">💡 How Your Choices Matter</h3>
+                <ul className="space-y-2 text-sm text-[color:var(--w09-text)]">
+                  <li><span style={{ color: '#10b981' }}>✓</span> <b>Optimal choices</b> <span className="text-[color:var(--w09-text-muted)]">improve vitals and outcomes</span></li>
+                  <li><span style={{ color: '#f59e0b' }}>⚠</span> <b>Suboptimal choices</b> <span className="text-[color:var(--w09-text-muted)]">slow recovery and raise risk</span></li>
+                  <li><span style={{ color: '#ef4444' }}>✕</span> <b>Harmful choices</b> <span className="text-[color:var(--w09-text-muted)]">trigger complications</span></li>
                 </ul>
               </div>
-              <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-5 shadow-[var(--w08-shadow)]">
-                <h3 className="mb-2 text-sm font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">❤️‍🩹 Real-Time Vital Signs</h3>
-                <p className="text-sm text-[color:var(--w08-text-muted)]">
+              <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)]">
+                <h3 className="mb-2 text-sm font-bold text-[color:var(--w09-text)] [font-family:var(--w09-font-display)]">❤️‍🩹 Real-Time Vital Signs</h3>
+                <p className="text-sm text-[color:var(--w09-text-muted)]">
                   Vitals change dynamically with your decisions — each choice cascades through the patient&apos;s stability.
                 </p>
-                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--w08-surface-raised)]">
+                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--w09-surface-raised)]">
                   <div className="h-full w-full rounded-full" style={{ background: 'linear-gradient(90deg,#10b981,#f59e0b,#ef4444)' }} />
                 </div>
               </div>
@@ -146,8 +146,8 @@ export default function CasesClient() {
                         active
                           ? color
                             ? ''
-                            : 'border-transparent bg-[var(--w08-accent-primary)] text-[color:var(--w08-accent-contrast)]'
-                          : 'border-[color:var(--w08-border)] bg-[var(--w08-surface)] text-[color:var(--w08-text-muted)] hover:bg-[var(--w08-surface-raised)]'
+                            : 'border-transparent bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
+                          : 'border-[color:var(--w09-border)] bg-[var(--w09-surface)] text-[color:var(--w09-text-muted)] hover:bg-[var(--w09-surface-raised)]'
                       }`}
                     >
                       {color && !active && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />}
@@ -158,17 +158,17 @@ export default function CasesClient() {
               </div>
             )}
 
-            {error && <p className="mt-4 text-sm text-[color:var(--w08-danger)]">{error}</p>}
+            {error && <p className="mt-4 text-sm text-[color:var(--w09-danger)]">{error}</p>}
 
-            <h2 className="mt-7 mb-3 text-xs font-black uppercase tracking-widest text-[color:var(--w08-text-muted)]">Select a clinical case</h2>
+            <h2 className="mt-7 mb-3 text-xs font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">Select a clinical case</h2>
             {loading ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {[1, 2, 3, 4].map((n) => (
-                  <div key={n} className="h-36 rounded-[var(--w08-radius)] bg-[var(--w08-surface)] animate-pulse" />
+                  <div key={n} className="h-36 rounded-[var(--w09-radius)] bg-[var(--w09-surface)] animate-pulse" />
                 ))}
               </div>
             ) : visible.length === 0 ? (
-              <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-8 text-center text-sm text-[color:var(--w08-text-muted)]">
+              <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-8 text-center text-sm text-[color:var(--w09-text-muted)]">
                 No cases available.
               </div>
             ) : (
@@ -185,25 +185,25 @@ export default function CasesClient() {
                       onClick={() => openCase(c.id)}
                       disabled={opening}
                       style={{ borderLeftColor: color ?? undefined, borderLeftWidth: color ? '3px' : undefined }}
-                      className="group flex flex-col rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-5 text-left shadow-[var(--w08-shadow)] transition-all duration-[var(--w08-motion-duration)] hover:-translate-y-0.5 hover:bg-[var(--w08-surface-raised)] active:scale-[0.99] disabled:opacity-60"
+                      className="group flex flex-col rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 text-left shadow-[var(--w09-shadow)] transition-all duration-[var(--w09-motion-duration)] hover:-translate-y-0.5 hover:bg-[var(--w09-surface-raised)] active:scale-[0.99] disabled:opacity-60"
                     >
                       <div className="flex items-center gap-2.5">
                         <span className="shrink-0 text-2xl">{c.icon || specialtyIcon(c.specialty)}</span>
-                        <span className="min-w-0 flex-1 truncate text-base font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">{c.title}</span>
+                        <span className="min-w-0 flex-1 truncate text-base font-bold text-[color:var(--w09-text)] [font-family:var(--w09-font-display)]">{c.title}</span>
                         <span className="flex shrink-0 items-center gap-1.5">
                           {rare && (
-                            <span className="rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white" style={{ backgroundColor: 'var(--w08-danger)' }}>
+                            <span className="rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white" style={{ backgroundColor: 'var(--w09-danger)' }}>
                               ★ Rare
                             </span>
                           )}
                           {c.type === 'branching' && (
-                            <span className="rounded-md bg-[var(--w08-surface-raised)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ color: color ?? 'var(--w08-text-muted)' }}>
+                            <span className="rounded-md bg-[var(--w09-surface-raised)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ color: color ?? 'var(--w09-text-muted)' }}>
                               ◆ Interactive
                             </span>
                           )}
                         </span>
                       </div>
-                      <p className="mt-2 text-sm text-[color:var(--w08-text-muted)]">{c.patient ?? c.summary}</p>
+                      <p className="mt-2 text-sm text-[color:var(--w09-text-muted)]">{c.patient ?? c.summary}</p>
                       {hasMeta && (
                         <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                           {c.difficulty && (
@@ -213,10 +213,10 @@ export default function CasesClient() {
                             </span>
                           )}
                           {layers && (
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">{layers}</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">{layers}</span>
                           )}
                           {extraTags.map((t) => (
-                            <span key={t} className="rounded-full border border-[color:var(--w08-border)] bg-[var(--w08-surface-raised)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--w08-text-muted)]">
+                            <span key={t} className="rounded-full border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--w09-text-muted)]">
                               {t}
                             </span>
                           ))}
@@ -239,31 +239,31 @@ export default function CasesClient() {
         {detail?.type === 'linear' && (
           <section
             ref={playerRef}
-            style={activeColor ? ({ '--w08-accent-primary': activeColor, '--w08-focus-ring': activeColor, '--w08-accent-contrast': '#ffffff' } as CSSProperties) : undefined}
-            className="mt-8 overflow-hidden rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] shadow-[var(--w08-shadow)]"
+            style={activeColor ? ({ '--w09-accent-primary': activeColor, '--w09-focus-ring': activeColor, '--w09-accent-contrast': '#ffffff' } as CSSProperties) : undefined}
+            className="mt-8 overflow-hidden rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] shadow-[var(--w09-shadow)]"
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[color:var(--w08-border)] px-6 py-5" style={activeColor ? { backgroundColor: `${activeColor}14` } : undefined}>
+            <div className="flex items-start justify-between gap-4 border-b border-[color:var(--w09-border)] px-6 py-5" style={activeColor ? { backgroundColor: `${activeColor}14` } : undefined}>
               <div>
-                <h2 className="text-lg font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">{detail.title}</h2>
-                <p className="mt-0.5 text-xs font-bold uppercase tracking-widest" style={{ color: activeColor ?? 'var(--w08-text-muted)' }}>
+                <h2 className="text-lg font-bold text-[color:var(--w09-text)] [font-family:var(--w09-font-display)]">{detail.title}</h2>
+                <p className="mt-0.5 text-xs font-bold uppercase tracking-widest" style={{ color: activeColor ?? 'var(--w09-text-muted)' }}>
                   Step {current + 1} of {detail.steps.length}
                   {detail.steps[current]?.label ? ` · ${detail.steps[current].label}` : ''}
                 </p>
               </div>
-              <button onClick={() => setDetail(null)} aria-label="Close case" className="shrink-0 rounded-full px-2.5 py-1 text-sm text-[color:var(--w08-text-muted)] transition-colors hover:bg-[var(--w08-surface-raised)] hover:text-[color:var(--w08-text)]">
+              <button onClick={() => setDetail(null)} aria-label="Close case" className="shrink-0 rounded-full px-2.5 py-1 text-sm text-[color:var(--w09-text-muted)] transition-colors hover:bg-[var(--w09-surface-raised)] hover:text-[color:var(--w09-text)]">
                 ✕
               </button>
             </div>
             <div className="p-6">
               <CaseStepper steps={detail.steps} current={current} onStep={goToStep} />
-              <div className="mt-6 min-h-40 whitespace-pre-line rounded-[var(--w08-radius)] bg-[var(--w08-surface-raised)] p-5 text-sm leading-relaxed text-[color:var(--w08-text)]">
+              <div className="mt-6 min-h-40 whitespace-pre-line rounded-[var(--w09-radius)] bg-[var(--w09-surface-raised)] p-5 text-sm leading-relaxed text-[color:var(--w09-text)]">
                 {opening ? 'Loading…' : detail.steps[current]?.content || 'No content for this step.'}
               </div>
               <div className="mt-4 flex items-center justify-between">
-                <button onClick={() => goToStep(current - 1)} disabled={current === 0} className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-bg)] px-4 py-2 text-sm font-semibold text-[color:var(--w08-text)] transition-opacity active:scale-95 disabled:opacity-40">
+                <button onClick={() => goToStep(current - 1)} disabled={current === 0} className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-bg)] px-4 py-2 text-sm font-semibold text-[color:var(--w09-text)] transition-opacity active:scale-95 disabled:opacity-40">
                   ← Prev
                 </button>
-                <button onClick={() => goToStep(current + 1)} disabled={current >= detail.steps.length - 1} className="rounded-[var(--w08-radius)] bg-[var(--w08-accent-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--w08-accent-contrast)] transition-opacity active:scale-95 disabled:opacity-40">
+                <button onClick={() => goToStep(current + 1)} disabled={current >= detail.steps.length - 1} className="rounded-[var(--w09-radius)] bg-[var(--w09-accent-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--w09-accent-contrast)] transition-opacity active:scale-95 disabled:opacity-40">
                   Next →
                 </button>
               </div>

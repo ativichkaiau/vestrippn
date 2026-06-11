@@ -9,6 +9,7 @@ import TopNavProfile from '../../components/TopNavProfile';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
 import HubIntro from '../../components/HubIntro';
+import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 import FocusMode from '../../components/FocusMode';
 import { syncAnkiData } from '@/app/actions';
 
@@ -37,7 +38,6 @@ const PINNED_CANVAS_SUBJECTS: Subject[] = [
 
 export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
   const secretExamPodBuffer = useRef('');
@@ -57,7 +57,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [isSafari, setIsSafari] = useState(false);
 
-  // W08 clinical cases — live entry into /learn/cases
+  // W09 clinical cases — live entry into /learn/cases
   type ClinicalCase = { id: string; title: string; specialty: string | null; summary: string };
   const [clinicalCases, setClinicalCases] = useState<ClinicalCase[]>([]);
   const [clinicalLoading, setClinicalLoading] = useState(true);
@@ -77,8 +77,6 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
 
   useEffect(() => {
     setIsMounted(true);
-    const currentHour = new Date().getHours();
-    setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
   }, []);
 
   useEffect(() => {
@@ -135,9 +133,9 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
 
     try {
       await syncAnkiData(next.due, next.new, next.reviewedToday, next.streak);
-      console.log(`[UPLINK] ANKI ${key} -> ${newVal} synced to Postgres`);
+      console.log(`[ANKI SYNC] ${key} -> ${newVal} saved to Postgres`);
     } catch (e) {
-      console.error('[UPLINK] ANKI sync failed:', e);
+      console.error('[ANKI SYNC] Save failed:', e);
       // Roll back on failure
       setLiveAnki(liveAnki);
       prevAnkiRef.current = liveAnki;
@@ -313,7 +311,8 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               secondaryLabel="Study Vault ↗"
               chips={['Exam Countdown', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
               panelTitle="Academic Ops"
-              panelSubtitle={`${cycle} // Knowledge Base`}
+              panelSubtitle="Next exam: HMS-2"
+              contextLabel="Study focus: HMS-2"
               metrics={[
                 { label: 'Exams', value: '3' },
                 { label: 'Mode', value: 'Live' },
@@ -331,6 +330,15 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               title="HMS-2 · Human Musculoskeletal System-2"
               detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HMS-2'] || '--D --H --M'}</span> · 12 JUN // 09:00</>}
               cta={{ label: 'View milestones', href: '#milestones' }}
+            />
+
+            <CockpitIntelligencePanel
+              hub="academics"
+              contextItems={[
+                { label: 'Current mission', value: 'HMS-2 exam prep' },
+                { label: 'Canvas courses', value: `${canvasSubjects.length} tracked` },
+                { label: 'Anki due', value: `${liveAnki.due} cards` },
+              ]}
             />
 
             {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
@@ -482,7 +490,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               </motion.div>
             </div>
 
-            {/* SECTOR 2.6: CLINICAL CASES (W08) — live entry into /learn/cases */}
+            {/* SECTOR 2.6: CLINICAL CASES (W09) — live entry into /learn/cases */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 px-2">
                 <span className="w-1.5 h-4 bg-rose-500 rounded-full animate-pulse"></span>

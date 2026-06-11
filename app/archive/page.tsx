@@ -10,16 +10,14 @@ import HubIntro from '../../components/HubIntro';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
 import TickNumber from '../../components/TickNumber';
+import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 
 export default function ArchiveHub() {
   const [isMounted, setIsMounted] = useState(false);
-  const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   useEffect(() => { 
     setIsMounted(true); 
-    const currentHour = new Date().getHours();
-    setCycleTime(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
   }, []);
 
   if (!isMounted) return null;
@@ -82,7 +80,8 @@ export default function ArchiveHub() {
               secondaryLabel="Launch Linktree ↗"
               chips={['Medical Notes', 'Olympiad Vault', 'Project Apps', 'Drive Registry']}
               panelTitle="Archive Ops"
-              panelSubtitle={`${cycleTime} // Vault Secure`}
+              panelSubtitle="Archive: 6 deployed apps"
+              contextLabel="Recent archive: project registry"
               metrics={[
                 { label: 'Sectors', value: '4' },
                 { label: 'Apps', value: '6' },
@@ -100,6 +99,15 @@ export default function ArchiveHub() {
               title="Knowledge Vault · 6 Apps Deployed"
               detail="Medical foundations, olympiad vaults, and project architecture stay indexed and launch-ready."
               cta={{ label: 'Browse archive', href: '#archive-directory' }}
+            />
+
+            <CockpitIntelligencePanel
+              hub="archive"
+              contextItems={[
+                { label: 'Recent archive', value: 'Project registry' },
+                { label: 'Apps', value: '6 deployed' },
+                { label: 'Vault', value: 'Medical notes' },
+              ]}
             />
 
             {/* --- MAIN HUD: F1 COCKPIT ARCHIVE (Neo-Glassmorphic) --- */}

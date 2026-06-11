@@ -98,17 +98,17 @@ export function specialtyIcon(specialty: string | null): string {
   return '🩺';
 }
 
-/** Difficulty → a w08 token color (reuses success/secondary/danger; no warning token exists). */
+/** Difficulty → a w09 token color (reuses success/secondary/danger; no warning token exists). */
 export function difficultyColor(difficulty?: string): string {
   switch (difficulty?.toLowerCase()) {
     case 'easy':
-      return 'var(--w08-success)';
+      return 'var(--w09-success)';
     case 'hard':
-      return 'var(--w08-danger)';
+      return 'var(--w09-danger)';
     case 'medium':
-      return 'var(--w08-accent-secondary)';
+      return 'var(--w09-accent-secondary)';
     default:
-      return 'var(--w08-text-muted)';
+      return 'var(--w09-text-muted)';
   }
 }
 /** The "Rare"/"zebra" flag among a case's tags (case-insensitive). */

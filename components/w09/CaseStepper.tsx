@@ -33,7 +33,7 @@ export default function CaseStepper({
   };
 
   return (
-    <ol className={`flex ${isVertical ? 'flex-col gap-2' : 'items-center gap-2'} [font-family:var(--w08-font-display)]`}>
+    <ol className={`flex ${isVertical ? 'flex-col gap-2' : 'items-center gap-2'} [font-family:var(--w09-font-display)]`}>
       {steps.map((step, i) => {
         const done = i < active;
         const isActive = i === active;
@@ -51,19 +51,19 @@ export default function CaseStepper({
               className="flex items-center gap-2 text-left"
             >
               <span
-                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xs font-bold transition-colors duration-[var(--w08-motion-duration)] ${
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xs font-bold transition-colors duration-[var(--w09-motion-duration)] ${
                   isActive
-                    ? 'border-[color:var(--w08-accent-primary)] bg-[var(--w08-accent-primary)] text-[color:var(--w08-accent-contrast)]'
+                    ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
                     : done
-                    ? 'border-[color:var(--w08-accent-primary)] bg-[var(--w08-surface-raised)] text-[color:var(--w08-accent-primary)]'
-                    : 'border-[color:var(--w08-border)] bg-[var(--w08-bg)] text-[color:var(--w08-text-muted)]'
+                    ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-accent-primary)]'
+                    : 'border-[color:var(--w09-border)] bg-[var(--w09-bg)] text-[color:var(--w09-text-muted)]'
                 }`}
               >
                 {done ? '✓' : i + 1}
               </span>
               <span
                 className={`whitespace-nowrap text-sm font-medium ${
-                  isActive ? 'text-[color:var(--w08-text)]' : 'text-[color:var(--w08-text-muted)]'
+                  isActive ? 'text-[color:var(--w09-text)]' : 'text-[color:var(--w09-text-muted)]'
                 }`}
               >
                 {step.label}
@@ -73,7 +73,7 @@ export default function CaseStepper({
             {!last && (
               <span
                 aria-hidden
-                className={`block bg-[color:var(--w08-border)] ${isVertical ? 'ml-4 h-4 w-px' : 'h-px min-w-4 flex-1'} ${
+                className={`block bg-[color:var(--w09-border)] ${isVertical ? 'ml-4 h-4 w-px' : 'h-px min-w-4 flex-1'} ${
                   done ? 'opacity-100' : 'opacity-50'
                 }`}
               />

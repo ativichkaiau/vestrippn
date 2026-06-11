@@ -9,6 +9,7 @@ import TopNavProfile from '../../components/TopNavProfile';
 import HubIntro from '../../components/HubIntro';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
+import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 
 interface Module { id: number; text: string; }
 
@@ -18,7 +19,6 @@ export default function IELTSHub() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [isMounted, setIsMounted] = useState(false);
-  const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const [modules, setModules] = useState<Module[]>([
@@ -32,8 +32,6 @@ export default function IELTSHub() {
 
   useEffect(() => {
     setIsMounted(true);
-    const currentHour = new Date().getHours();
-    setCycleTime(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
 
     const savedModules = localStorage.getItem('vest_ielts_modules_v3');
     if (savedModules) setModules(JSON.parse(savedModules));
@@ -53,7 +51,7 @@ export default function IELTSHub() {
       const data = await response.json();
       if (response.ok && data.length > 0) setLexiconData(data[0]);
       else setSearchError('TOKEN_NOT_FOUND');
-    } catch (e) { setSearchError('UPLINK_FAILURE'); }
+    } catch (e) { setSearchError('SEARCH_UNAVAILABLE'); }
     finally { setIsSearching(false); }
   };
 
@@ -121,7 +119,8 @@ export default function IELTSHub() {
               secondaryLabel="Archive Hub ↗"
               chips={['Writing', 'Speaking', 'Vocabulary', 'Reference Vault']}
               panelTitle="IELTS Ops"
-              panelSubtitle={`${cycleTime} // Lexicon Active`}
+              panelSubtitle="IELTS focus: writing and speaking"
+              contextLabel="Drill focus: writing + speaking"
               metrics={[
                 { label: 'Bands', value: '4' },
                 { label: 'Vault', value: 'Drive' },
@@ -139,6 +138,15 @@ export default function IELTSHub() {
               title="English Readiness · IELTS 8.0 Archive"
               detail="Vocabulary buffer and writing bank stay warm for the next official sitting."
               cta={{ label: 'Open vault', href: '#ielts-vault' }}
+            />
+
+            <CockpitIntelligencePanel
+              hub="ielts"
+              contextItems={[
+                { label: 'Drill focus', value: 'Writing + speaking' },
+                { label: 'Vocabulary', value: `${modules.length} modules` },
+                { label: 'Vault', value: 'NotebookLM ready' },
+              ]}
             />
 
             {/* SECTOR 1: AI VAULT PORTAL */}

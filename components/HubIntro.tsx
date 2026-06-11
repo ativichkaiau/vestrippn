@@ -5,7 +5,7 @@
    Structure: system strip (hub badge · eyebrow · ops · signature · status)
    → title zone (gradient headline, description, CTAs, chips)
    → telemetry stack (ticking metrics, capability rows, status footer).
-   Same props API as the W08 version, so hub pages need no changes.
+   Shared W09 shell, so hub pages only provide operational content.
    ════════════════════════════════════════════════════════════════════════ */
 
 import Link from 'next/link';
@@ -13,7 +13,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import HubSignature, { type HubKey } from './HubSignature';
 import TickNumber from './TickNumber';
-import { fadeUp, hoverLift, pressTap, slidePanel, softScale, staggerContainer, statePulse, telemetryLine } from './motionPresets';
+import { fadeUp, hoverLift, pressTap, slidePanel, softScale, staggerContainer, telemetryLine } from './motionPresets';
 import { useLowPower } from './useLowPower';
 
 /* W09 per-hub accents (Tailwind classes so liveries can remap them) */
@@ -53,6 +53,7 @@ type HubIntroProps = {
   metrics: HubIntroMetric[];
   capabilities: HubIntroCapability[];
   hub?: HubKey;
+  contextLabel?: string;
 };
 
 function isExternalHref(href: string) {
@@ -108,6 +109,7 @@ export default function HubIntro({
   metrics,
   capabilities,
   hub,
+  contextLabel,
 }: HubIntroProps) {
   const acc = hub ? HUB_ACCENT[hub] : null;
   const reduceMotion = useReducedMotion();
@@ -178,14 +180,6 @@ export default function HubIntro({
               {panelSubtitle}
             </span>
             {hub && <HubSignature hub={hub} />}
-            <motion.span
-              animate={statePulse(motionOff)}
-              data-state="online"
-              className="w09-state rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
-              style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.15)', color: 'var(--hub-text-soft-2)' }}
-            >
-              Online
-            </motion.span>
           </div>
         </motion.div>
 
@@ -284,14 +278,15 @@ export default function HubIntro({
 
               {/* status footer */}
               <div className="mt-3 flex items-center justify-between rounded-2xl bg-black/20 px-3.5 py-2">
-                <span className="text-[8px] font-black uppercase tracking-[0.25em] text-slate-500">Hub Telemetry</span>
+                <span className="text-[8px] font-black uppercase tracking-[0.25em] text-slate-500">Assistant Context</span>
                 <span className="flex items-center gap-1.5">
-                  <motion.span
-                    animate={statePulse(motionOff)}
-                    className={`h-1 w-1 animate-pulse rounded-full ${acc ? acc.dot : ''}`}
+                  <span
+                    className={`h-1 w-1 rounded-full ${acc ? acc.dot : ''}`}
                     style={acc ? undefined : { backgroundColor: 'var(--hub-accent)' }}
                   />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Nominal</span>
+                  <span className="max-w-[180px] truncate text-[9px] font-black uppercase tracking-widest text-slate-400">
+                    {contextLabel || panelSubtitle}
+                  </span>
                 </span>
               </div>
             </motion.div>

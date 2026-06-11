@@ -888,101 +888,101 @@ html.senna .custom-scrollbar { scrollbar-color: rgba(255, 212, 0, 0.48) transpar
 html.senna .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 166, 81, 0.68); }
 
 /* ════════════════════════════════════════════════════════════════════════
-   W08 THEME CONTRACT  —  see components/w08/THEME_CONTRACT.md
-   Additive. W07 is unaffected (it does not consume --w08-* variables).
+   W09 THEME CONTRACT  —  see components/w09/THEME_CONTRACT.md
+   Additive. W07 is unaffected (it does not consume --w09-* variables).
    Neutral defaults on :root (light) and .dark (dark). Liveries override via
-   .w08-monza / .w08-esther / .w08-senna on <html> OR any wrapper element.
+   .w09-monza / .w09-esther / .w09-senna on <html> OR any wrapper element.
    ════════════════════════════════════════════════════════════════════════ */
 :root {
-  --w08-bg:             hsl(0 0% 100%);
-  --w08-surface:        hsl(0 0% 98%);
-  --w08-surface-raised: hsl(0 0% 100%);
-  --w08-border:         hsl(0 0% 90%);
-  --w08-text:           hsl(0 0% 12%);
-  --w08-text-muted:     hsl(0 0% 45%);
-  --w08-accent-primary:   hsl(222 14% 24%);
-  --w08-accent-secondary: hsl(222 10% 46%);
-  --w08-accent-tertiary:  hsl(38 92% 50%);
-  --w08-accent-contrast:  hsl(0 0% 100%);
-  --w08-success:        hsl(152 55% 38%);
-  --w08-danger:         hsl(0 65% 51%);
-  --w08-focus-ring:     hsl(222 14% 40%);
-  --w08-radius:         1rem;
-  --w08-shadow:         0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --w08-font-display:   var(--font-sans, ui-sans-serif, system-ui, sans-serif);
-  --w08-motion-duration: 200ms;
-  --w08-motion-ease:    cubic-bezier(0.16, 1, 0.3, 1);
+  --w09-bg:             hsl(0 0% 100%);
+  --w09-surface:        hsl(0 0% 98%);
+  --w09-surface-raised: hsl(0 0% 100%);
+  --w09-border:         hsl(0 0% 90%);
+  --w09-text:           hsl(0 0% 12%);
+  --w09-text-muted:     hsl(0 0% 45%);
+  --w09-accent-primary:   hsl(222 14% 24%);
+  --w09-accent-secondary: hsl(222 10% 46%);
+  --w09-accent-tertiary:  hsl(38 92% 50%);
+  --w09-accent-contrast:  hsl(0 0% 100%);
+  --w09-success:        hsl(152 55% 38%);
+  --w09-danger:         hsl(0 65% 51%);
+  --w09-focus-ring:     hsl(222 14% 40%);
+  --w09-radius:         1rem;
+  --w09-shadow:         0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --w09-font-display:   var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  --w09-motion-duration: 200ms;
+  --w09-motion-ease:    cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Neutral when W07 dark mode is active. Class-only selector so a livery class
    on the same <html> wins by source order. */
 .dark {
-  --w08-bg:             hsl(0 0% 5%);
-  --w08-surface:        hsl(0 0% 8%);
-  --w08-surface-raised: hsl(0 0% 11%);
-  --w08-border:         hsl(0 0% 18%);
-  --w08-text:           hsl(0 0% 96%);
-  --w08-text-muted:     hsl(0 0% 60%);
-  --w08-accent-primary:   hsl(0 0% 92%);
-  --w08-accent-secondary: hsl(0 0% 65%);
-  --w08-accent-tertiary:  hsl(38 92% 55%);
-  --w08-accent-contrast:  hsl(0 0% 8%);
-  --w08-focus-ring:     hsl(0 0% 70%);
-  --w08-shadow:         0 8px 30px rgba(0, 0, 0, 0.5);
+  --w09-bg:             hsl(0 0% 5%);
+  --w09-surface:        hsl(0 0% 8%);
+  --w09-surface-raised: hsl(0 0% 11%);
+  --w09-border:         hsl(0 0% 18%);
+  --w09-text:           hsl(0 0% 96%);
+  --w09-text-muted:     hsl(0 0% 60%);
+  --w09-accent-primary:   hsl(0 0% 92%);
+  --w09-accent-secondary: hsl(0 0% 65%);
+  --w09-accent-tertiary:  hsl(38 92% 55%);
+  --w09-accent-contrast:  hsl(0 0% 8%);
+  --w09-focus-ring:     hsl(0 0% 70%);
+  --w09-shadow:         0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* ── Livery: ROTHMANS WILLIAMS (navy · white · brass-gold · classic red) ── */
-.w08-monza {
-  --w08-bg:             #150840;
-  --w08-surface:        rgba(197, 153, 85, 0.06);
-  --w08-surface-raised: rgba(197, 153, 85, 0.10);
-  --w08-border:         rgba(197, 153, 85, 0.30);
-  --w08-text:           #f7f3ea;
-  --w08-text-muted:     #b3a98f;
-  --w08-accent-primary:   #c59955;
-  --w08-accent-secondary: #ffffff;
-  --w08-accent-tertiary:  #d5172d; /* classic red flash */
-  --w08-accent-contrast:  #210e6f;
-  --w08-success:        #c59955;
-  --w08-danger:         #d5172d;
-  --w08-focus-ring:     #c59955;
-  --w08-shadow:         0 10px 40px rgba(6, 3, 21, 0.7);
+.w09-monza {
+  --w09-bg:             #150840;
+  --w09-surface:        rgba(197, 153, 85, 0.06);
+  --w09-surface-raised: rgba(197, 153, 85, 0.10);
+  --w09-border:         rgba(197, 153, 85, 0.30);
+  --w09-text:           #f7f3ea;
+  --w09-text-muted:     #b3a98f;
+  --w09-accent-primary:   #c59955;
+  --w09-accent-secondary: #ffffff;
+  --w09-accent-tertiary:  #d5172d; /* classic red flash */
+  --w09-accent-contrast:  #210e6f;
+  --w09-success:        #c59955;
+  --w09-danger:         #d5172d;
+  --w09-focus-ring:     #c59955;
+  --w09-shadow:         0 10px 40px rgba(6, 3, 21, 0.7);
 }
 
 /* ── Livery: ESTHER BUNNY (pink · pastel · soft motion · cozy) ── */
-.w08-esther {
-  --w08-bg:             #fff4f8;
-  --w08-surface:        #ffffff;
-  --w08-surface-raised: #fffafc;
-  --w08-border:         #ffd6e6;
-  --w08-text:           #4a2c38;
-  --w08-text-muted:     #b07f90;
-  --w08-accent-primary:   #ff8fb1;
-  --w08-accent-secondary: #ffc2d6;
-  --w08-accent-tertiary:  #8ec5ff; /* soft sky to complement the pinks */
-  --w08-accent-contrast:  #4a2c38;
-  --w08-success:        #6fcf97;
-  --w08-danger:         #ef6f8b;
-  --w08-focus-ring:     #ff8fb1;
-  --w08-radius:         1.5rem;
-  --w08-shadow:         0 8px 24px rgba(255, 143, 177, 0.28);
-  --w08-motion-duration: 320ms;
+.w09-esther {
+  --w09-bg:             #fff4f8;
+  --w09-surface:        #ffffff;
+  --w09-surface-raised: #fffafc;
+  --w09-border:         #ffd6e6;
+  --w09-text:           #4a2c38;
+  --w09-text-muted:     #b07f90;
+  --w09-accent-primary:   #ff8fb1;
+  --w09-accent-secondary: #ffc2d6;
+  --w09-accent-tertiary:  #8ec5ff; /* soft sky to complement the pinks */
+  --w09-accent-contrast:  #4a2c38;
+  --w09-success:        #6fcf97;
+  --w09-danger:         #ef6f8b;
+  --w09-focus-ring:     #ff8fb1;
+  --w09-radius:         1.5rem;
+  --w09-shadow:         0 8px 24px rgba(255, 143, 177, 0.28);
+  --w09-motion-duration: 320ms;
 }
 
 /* ── Livery: SENNA (yellow · blue · green · analog motorsport) ── */
-.w08-senna {
-  --w08-bg:             #0d1b2a;
-  --w08-surface:        #13243a;
-  --w08-surface-raised: #182c46;
-  --w08-border:         #244b7a;
-  --w08-text:           #f1f5f9;
-  --w08-text-muted:     #9fb3c8;
-  --w08-accent-primary:   #ffd400;
-  --w08-accent-secondary: #00a651;
-  --w08-accent-tertiary:  #1f6feb; /* racing blue, matches the focus ring */
-  --w08-accent-contrast:  #0d1b2a;
-  --w08-success:        #00a651;
-  --w08-danger:         #e63946;
-  --w08-focus-ring:     #1f6feb;
-  --w08-shadow:         0 8px 24px rgba(0, 0, 0, 0.55);
+.w09-senna {
+  --w09-bg:             #0d1b2a;
+  --w09-surface:        #13243a;
+  --w09-surface-raised: #182c46;
+  --w09-border:         #244b7a;
+  --w09-text:           #f1f5f9;
+  --w09-text-muted:     #9fb3c8;
+  --w09-accent-primary:   #ffd400;
+  --w09-accent-secondary: #00a651;
+  --w09-accent-tertiary:  #1f6feb; /* racing blue, matches the focus ring */
+  --w09-accent-contrast:  #0d1b2a;
+  --w09-success:        #00a651;
+  --w09-danger:         #e63946;
+  --w09-focus-ring:     #1f6feb;
+  --w09-shadow:         0 8px 24px rgba(0, 0, 0, 0.55);
 }

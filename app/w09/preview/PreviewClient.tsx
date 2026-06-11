@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import ChatPane from '@/components/w08/ChatPane';
-import CitationPopover from '@/components/w08/CitationPopover';
-import QuestionCard from '@/components/w08/QuestionCard';
-import CaseStepper from '@/components/w08/CaseStepper';
+import ChatPane from '../../../components/w09/ChatPane';
+import CitationPopover from '../../../components/w09/CitationPopover';
+import QuestionCard from '../../../components/w09/QuestionCard';
+import CaseStepper from '../../../components/w09/CaseStepper';
 
 type Livery = 'neutral' | 'monza' | 'esther' | 'senna';
 
@@ -17,8 +17,8 @@ const LIVERIES: { id: Livery; label: string }[] = [
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-5 shadow-[var(--w08-shadow)]">
-      <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)]">{title}</h2>
+    <section className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)]">
+      <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">{title}</h2>
       {children}
     </section>
   );
@@ -26,7 +26,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function PreviewClient() {
   const [livery, setLivery] = useState<Livery>('neutral');
-  const wrapperClass = livery === 'neutral' ? '' : `w08-${livery}`;
+  const wrapperClass = livery === 'neutral' ? '' : `w09-${livery}`;
 
   const steps = [
     { id: 'a', label: 'Presentation' },
@@ -56,7 +56,7 @@ export default function PreviewClient() {
       </div>
 
       {/* Themed surface */}
-      <div className={`${wrapperClass} mx-auto max-w-5xl rounded-2xl bg-[var(--w08-bg)] p-6`}>
+      <div className={`${wrapperClass} mx-auto max-w-5xl rounded-2xl bg-[var(--w09-bg)] p-6`}>
         <div className="grid gap-6 lg:grid-cols-2">
           <Section title="QuestionCard">
             <QuestionCard
@@ -79,7 +79,7 @@ export default function PreviewClient() {
           </Section>
 
           <Section title="CitationPopover">
-            <p className="text-sm leading-relaxed text-[color:var(--w08-text)]">
+            <p className="text-sm leading-relaxed text-[color:var(--w09-text)]">
               The primary endpoint is overall survival at 12 months
               <CitationPopover
                 label="1"

@@ -9,16 +9,14 @@ import TopNavProfile from '../../components/TopNavProfile';
 import HubIntro from '../../components/HubIntro';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
+import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 
 export default function ToolsHub() {
   const [isMounted, setIsMounted] = useState(false);
-  const [cycleTime, setCycleTime] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   useEffect(() => { 
     setIsMounted(true); 
-    const currentHour = new Date().getHours();
-    setCycleTime(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
   }, []);
 
   if (!isMounted) return null;
@@ -80,7 +78,8 @@ export default function ToolsHub() {
               secondaryLabel="MSCA Hub"
               chips={['Planner Link', 'MSCA Sheets', 'AI Tools', 'Utilities']}
               panelTitle="Tools Ops"
-              panelSubtitle={`${cycleTime} // API Active`}
+              panelSubtitle="Planner: 2026 Master Planner"
+              contextLabel="Launch focus: planner + MSCA"
               metrics={[
                 { label: 'Sectors', value: '5' },
                 { label: 'Planner', value: 'Link' },
@@ -98,6 +97,15 @@ export default function ToolsHub() {
               title="Daily Ops · Planner + MSCA Hub"
               detail="Set today's plan in the Master Planner, then deploy shortcuts from the tool matrix."
               cta={{ label: 'Open planner', href: '#master-planner' }}
+            />
+
+            <CockpitIntelligencePanel
+              hub="tools"
+              contextItems={[
+                { label: 'Primary tool', value: 'Master Planner' },
+                { label: 'Utility set', value: 'MSCA sheets' },
+                { label: 'Next action', value: 'Choose launch path' },
+              ]}
             />
 
             {/* MASTER IGNITION: NOTION PLANNER — fast launch card */}

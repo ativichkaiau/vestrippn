@@ -102,13 +102,13 @@ export default function BranchingPlayer({
 
   return (
     <section
-      style={specialtyColor ? ({ '--w08-accent-primary': specialtyColor, '--w08-focus-ring': specialtyColor, '--w08-accent-contrast': '#ffffff' } as CSSProperties) : undefined}
+      style={specialtyColor ? ({ '--w09-accent-primary': specialtyColor, '--w09-focus-ring': specialtyColor, '--w09-accent-contrast': '#ffffff' } as CSSProperties) : undefined}
       className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-[280px_1fr]"
     >
       {/* ───────── Sidebar ───────── */}
       <aside className="space-y-4">
         {/* Status */}
-        <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-4 text-center shadow-[var(--w08-shadow)]">
+        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4 text-center shadow-[var(--w09-shadow)]">
           <div className="text-4xl leading-none">{sv.emoji}</div>
           <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: sv.color }}>
             <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: sv.color }} />
@@ -118,7 +118,7 @@ export default function BranchingPlayer({
 
         {/* Feedback callout */}
         {feedback && (
-          <div className="rounded-[var(--w08-radius)] p-4 text-sm font-medium text-white" style={{ backgroundColor: OUTCOME_COLOR[feedback.outcome] }}>
+          <div className="rounded-[var(--w09-radius)] p-4 text-sm font-medium text-white" style={{ backgroundColor: OUTCOME_COLOR[feedback.outcome] }}>
             <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-widest opacity-90">
               <span>{OUTCOME_LABEL[feedback.outcome]}</span>
               <span className="tabular-nums">{signed(feedback.scoreDelta)}</span>
@@ -136,7 +136,7 @@ export default function BranchingPlayer({
                 className="rounded-xl border p-2.5"
                 style={{ borderColor: `${vitalColor(v.state)}55`, backgroundColor: `${vitalColor(v.state)}12` }}
               >
-                <div className="text-[9px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)]">{v.label}</div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">{v.label}</div>
                 <div className="mt-0.5 text-sm font-black tabular-nums" style={{ color: vitalColor(v.state) }}>
                   {v.value}
                   {v.unit ?? ''} <span className="text-xs">{trendArrow(v.trend)}</span>
@@ -145,12 +145,12 @@ export default function BranchingPlayer({
             ))}
           </div>
         ) : (
-          <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-4 shadow-[var(--w08-shadow)]">
-            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)]">
+          <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4 shadow-[var(--w09-shadow)]">
+            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
               <span>Patient Stability</span>
               <span style={{ color: sv.color }}>{d.score}</span>
             </div>
-            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-[var(--w08-surface-raised)]">
+            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-[var(--w09-surface-raised)]">
               <div className="h-full rounded-full transition-[width,background-color] duration-300" style={{ width: `${ratio * 100}%`, backgroundColor: sv.color }} />
             </div>
           </div>
@@ -158,11 +158,11 @@ export default function BranchingPlayer({
 
         {/* Decision path — scales to 4–6 stages (wraps + scrolls if tall). */}
         {d.stages && d.stages.length > 0 && (
-          <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-4 shadow-[var(--w08-shadow)]">
+          <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4 shadow-[var(--w09-shadow)]">
             <div className="mb-3 flex items-baseline justify-between gap-2">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)]">Decision Path</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">Decision Path</h4>
               {stageIndex > -1 && (
-                <span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)] tabular-nums">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)] tabular-nums">
                   {stageIndex + 1}/{d.stages.length}
                 </span>
               )}
@@ -175,21 +175,21 @@ export default function BranchingPlayer({
                   <li key={st.id}>
                     <div className="flex items-center gap-2.5">
                       <span
-                        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${active ? 'ring-2 ring-[color:var(--w08-focus-ring)]' : ''}`}
+                        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${active ? 'ring-2 ring-[color:var(--w09-focus-ring)]' : ''}`}
                         style={
                           active || done
-                            ? { backgroundColor: 'var(--w08-accent-primary)', color: 'var(--w08-accent-contrast)' }
-                            : { backgroundColor: 'var(--w08-surface-raised)', color: 'var(--w08-text-muted)' }
+                            ? { backgroundColor: 'var(--w09-accent-primary)', color: 'var(--w09-accent-contrast)' }
+                            : { backgroundColor: 'var(--w09-surface-raised)', color: 'var(--w09-text-muted)' }
                         }
                       >
                         {done ? '✓' : i + 1}
                       </span>
-                      <span className={`min-w-0 break-words text-xs font-bold uppercase leading-tight tracking-wider ${active ? 'text-[color:var(--w08-text)]' : 'text-[color:var(--w08-text-muted)]'}`}>
+                      <span className={`min-w-0 break-words text-xs font-bold uppercase leading-tight tracking-wider ${active ? 'text-[color:var(--w09-text)]' : 'text-[color:var(--w09-text-muted)]'}`}>
                         {st.label}
                       </span>
                     </div>
                     {active && !ended && (
-                      <div className="ml-[2.1rem] mt-1.5 rounded-md border border-[color:var(--w08-accent-primary)] bg-[var(--w08-surface-raised)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--w08-text-muted)]">
+                      <div className="ml-[2.1rem] mt-1.5 rounded-md border border-[color:var(--w09-accent-primary)] bg-[var(--w09-surface-raised)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--w09-text-muted)]">
                         → Waiting for choice…
                       </div>
                     )}
@@ -202,7 +202,7 @@ export default function BranchingPlayer({
 
         <button
           onClick={onClose}
-          className="w-full rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--w08-text-muted)] transition-colors hover:bg-[var(--w08-surface-raised)]"
+          className="w-full rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)] transition-colors hover:bg-[var(--w09-surface-raised)]"
         >
           ← All cases
         </button>
@@ -211,32 +211,32 @@ export default function BranchingPlayer({
       {/* ───────── Main ───────── */}
       <div className="space-y-5">
         {/* Patient header */}
-        <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-5 shadow-[var(--w08-shadow)]">
+        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)]">
           <div className="flex items-center gap-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--w08-surface-raised)] text-xl">👤</div>
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--w09-surface-raised)] text-xl">👤</div>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">
+              <h2 className="text-lg font-bold text-[color:var(--w09-text)] [font-family:var(--w09-font-display)]">
                 {patientName}
                 {d.patient?.age ? `, ${d.patient.age}${d.patient.sex ?? ''}` : ''}
               </h2>
-              {patientMeta && <p className="mt-0.5 truncate text-sm text-[color:var(--w08-text-muted)]">{patientMeta}</p>}
+              {patientMeta && <p className="mt-0.5 truncate text-sm text-[color:var(--w09-text-muted)]">{patientMeta}</p>}
             </div>
           </div>
         </div>
 
         {/* Stage / situation */}
-        <div className="rounded-[var(--w08-radius)] border border-[color:var(--w08-border)] bg-[var(--w08-surface)] p-6 shadow-[var(--w08-shadow)]">
+        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-[var(--w09-shadow)]">
           {d.node.stageLabel && (
-            <div className="mb-3 text-[11px] font-black uppercase tracking-[0.15em] text-[color:var(--w08-text-muted)]">{d.node.stageLabel}</div>
+            <div className="mb-3 text-[11px] font-black uppercase tracking-[0.15em] text-[color:var(--w09-text-muted)]">{d.node.stageLabel}</div>
           )}
-          <p className="whitespace-pre-line text-[15px] leading-relaxed text-[color:var(--w08-text)]">{d.node.content}</p>
+          <p className="whitespace-pre-line text-[15px] leading-relaxed text-[color:var(--w09-text)]">{d.node.content}</p>
 
-          {error && <p className="mt-4 text-sm text-[color:var(--w08-danger)]">{error}</p>}
+          {error && <p className="mt-4 text-sm text-[color:var(--w09-danger)]">{error}</p>}
 
           {!ended && (
             <>
-              {d.node.prompt && <h3 className="mt-6 text-lg font-bold text-[color:var(--w08-text)] [font-family:var(--w08-font-display)]">{d.node.prompt}</h3>}
-              <div className="mt-3 text-[11px] font-black uppercase tracking-widest text-[color:var(--w08-text-muted)]">Select an option</div>
+              {d.node.prompt && <h3 className="mt-6 text-lg font-bold text-[color:var(--w09-text)] [font-family:var(--w09-font-display)]">{d.node.prompt}</h3>}
+              <div className="mt-3 text-[11px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">Select an option</div>
               <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {d.node.choices.map((ch, i) => {
                   const key = CHOICE_KEYS[i] ?? `${i + 1}`;
@@ -246,16 +246,16 @@ export default function BranchingPlayer({
                       key={ch.id}
                       onClick={() => setSelected(ch.id)}
                       disabled={busy}
-                      className={`group flex flex-col rounded-2xl border bg-[var(--w08-bg)] p-5 text-left transition-all duration-[var(--w08-motion-duration)] hover:-translate-y-0.5 active:scale-[0.99] disabled:opacity-60 ${
-                        sel ? 'border-[color:var(--w08-accent-primary)] ring-2 ring-[color:var(--w08-focus-ring)]' : 'border-[color:var(--w08-border)] hover:bg-[var(--w08-surface-raised)]'
+                      className={`group flex flex-col rounded-2xl border bg-[var(--w09-bg)] p-5 text-left transition-all duration-[var(--w09-motion-duration)] hover:-translate-y-0.5 active:scale-[0.99] disabled:opacity-60 ${
+                        sel ? 'border-[color:var(--w09-accent-primary)] ring-2 ring-[color:var(--w09-focus-ring)]' : 'border-[color:var(--w09-border)] hover:bg-[var(--w09-surface-raised)]'
                       }`}
                     >
                       <div className="mb-4 flex items-start justify-between">
-                        <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--w08-surface-raised)] text-xl">{ch.icon || key}</span>
-                        <span className="rounded-md bg-[var(--w08-surface-raised)] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--w08-text-muted)]">{key}</span>
+                        <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--w09-surface-raised)] text-xl">{ch.icon || key}</span>
+                        <span className="rounded-md bg-[var(--w09-surface-raised)] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--w09-text-muted)]">{key}</span>
                       </div>
-                      <div className="text-sm font-semibold text-[color:var(--w08-text)]">{ch.label}</div>
-                      {ch.detail && <div className="mt-1 text-xs text-[color:var(--w08-text-muted)]">{ch.detail}</div>}
+                      <div className="text-sm font-semibold text-[color:var(--w09-text)]">{ch.label}</div>
+                      {ch.detail && <div className="mt-1 text-xs text-[color:var(--w09-text-muted)]">{ch.detail}</div>}
                     </button>
                   );
                 })}
@@ -264,7 +264,7 @@ export default function BranchingPlayer({
                 <button
                   onClick={submit}
                   disabled={!selected || busy}
-                  className="rounded-full bg-[var(--w08-accent-primary)] px-8 py-2.5 text-sm font-semibold text-[color:var(--w08-accent-contrast)] shadow-[var(--w08-shadow)] transition-transform active:scale-95 disabled:opacity-40"
+                  className="rounded-full bg-[var(--w09-accent-primary)] px-8 py-2.5 text-sm font-semibold text-[color:var(--w09-accent-contrast)] shadow-[var(--w09-shadow)] transition-transform active:scale-95 disabled:opacity-40"
                 >
                   {busy ? 'Submitting…' : '✓ Submit Answer'}
                 </button>
@@ -274,7 +274,7 @@ export default function BranchingPlayer({
 
           {ended && (
             <div
-              className="mt-6 rounded-[var(--w08-radius)] border p-6 text-center"
+              className="mt-6 rounded-[var(--w09-radius)] border p-6 text-center"
               style={{
                 borderColor: d.status === 'survived' ? '#10b981' : '#ef4444',
                 backgroundColor: `${d.status === 'survived' ? '#10b981' : '#ef4444'}14`,
@@ -284,11 +284,11 @@ export default function BranchingPlayer({
               <div className="mt-2 text-lg font-black uppercase tracking-widest" style={{ color: d.status === 'survived' ? '#10b981' : '#ef4444' }}>
                 {d.status === 'survived' ? 'Patient Survived' : 'Patient Died'}
               </div>
-              <div className="mt-1 text-sm text-[color:var(--w08-text-muted)]">Final vitals: {d.score}</div>
+              <div className="mt-1 text-sm text-[color:var(--w09-text-muted)]">Final vitals: {d.score}</div>
               <button
                 onClick={reset}
                 disabled={busy}
-                className="mt-4 rounded-full bg-[var(--w08-accent-primary)] px-6 py-2 text-sm font-semibold text-[color:var(--w08-accent-contrast)] transition-transform active:scale-95 disabled:opacity-50"
+                className="mt-4 rounded-full bg-[var(--w09-accent-primary)] px-6 py-2 text-sm font-semibold text-[color:var(--w09-accent-contrast)] transition-transform active:scale-95 disabled:opacity-50"
               >
                 {busy ? 'Restarting…' : '↻ Restart case'}
               </button>

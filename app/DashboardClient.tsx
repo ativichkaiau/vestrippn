@@ -16,6 +16,7 @@ import IdentityAnchor from '../components/IdentityAnchor';
 import TopNavProfile from '../components/TopNavProfile';
 import { NavRail, MobileHubNav } from '../components/HubNav';
 import TickNumber from '../components/TickNumber';
+import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import Link from 'next/link';
 
 type SiteLivery = 'normal' | 'monza' | 'senna';
@@ -36,6 +37,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
   const [livery, setLivery] = useState<SiteLivery>('normal');
+  const pendingTaskCount = Array.isArray(cloudTasks) ? cloudTasks.filter((task) => !task.completed).length : 0;
 
   useEffect(() => {
     setIsMounted(true);
@@ -253,8 +255,8 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       {[
                         ['Domains', '8'],
-                        ['Mode', 'W08'],
-                        ['Status', 'Nominal'],
+                        ['Version', 'W09'],
+                        ['Pending', `${pendingTaskCount}`],
                       ].map(([label, value]) => (
                         <div key={label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
                           <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">{label}</div>
@@ -266,6 +268,15 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                 </div>
               </div>
             </motion.section>
+
+            <CockpitIntelligencePanel
+              hub="dashboard"
+              contextItems={[
+                { label: 'Current mission', value: cloudCommand || 'Daily command' },
+                { label: 'Pending tasks', value: `${pendingTaskCount}` },
+                { label: 'Research', value: cloudResearch?.title || 'SRMA pipeline' },
+              ]}
+            />
 
             {/* PLATFORM INTRO MODULES */}
             <motion.section
@@ -493,10 +504,10 @@ function LoadingScreen() {
 function IntroOverlay({ cycle }: { cycle: string }) {
   const word = 'VESTRIPPN'.split('');
   const status = [
-    { t: 'INITIALIZING TELEMETRY CORE', at: 1.8 },
-    { t: 'SYNCING CLOUD UPLINK', at: 3.2 },
-    { t: 'CALIBRATING NEURAL MATRIX', at: 4.6 },
-    { t: `${cycle} // SYSTEM ONLINE`, at: 6.0 },
+    { t: 'LOADING MISSION CONTEXT', at: 1.8 },
+    { t: 'PREPARING PLANNER TASKS', at: 3.2 },
+    { t: 'INDEXING HUB SHORTCUTS', at: 4.6 },
+    { t: `${cycle} // COCKPIT READY`, at: 6.0 },
   ];
 
   return (
@@ -594,7 +605,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
         >
           <span className="italic text-black bg-white px-3 py-1 rounded-[10px] tracking-tight">///AMG</span>
           <span>
-            <span className="text-[#00A598]">W08</span>{' '}
+            <span className="text-[#00A598]">W09</span>{' '}
             <span
               className="bg-clip-text text-transparent whitespace-nowrap"
               style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}
@@ -610,7 +621,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 2.7, duration: 0.5 }}
         >
-          Powered by <span className="text-[#D97757]">Claude</span>
+          Claude-ready command surface
         </motion.div>
 
         {/* Telemetry progress bar */}
@@ -660,10 +671,10 @@ function IntroOverlay({ cycle }: { cycle: string }) {
 function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
   const word = 'VESTRIPPN'.split('');
   const status = [
-    { t: 'IGNITION SEQUENCE PRIMED', at: 1.8 },
-    { t: 'TELEMETRY UPLINK SECURED', at: 3.2 },
-    { t: 'PIT WALL LINK ESTABLISHED', at: 4.6 },
-    { t: `${cycle} // SYSTEM ONLINE`, at: 6.0 },
+    { t: 'LOADING LIVERY CONTEXT', at: 1.8 },
+    { t: 'PREPARING PLANNER TASKS', at: 3.2 },
+    { t: 'INDEXING HUB SHORTCUTS', at: 4.6 },
+    { t: `${cycle} // COCKPIT READY`, at: 6.0 },
   ];
 
   return (
@@ -830,7 +841,7 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 2.7, duration: 0.5 }}
         >
-          Powered by <span style={{ color: '#C59955' }}>Claude</span>
+          Claude-ready command surface
         </motion.div>
 
         {/* Telemetry progress bar — gold→red */}
@@ -881,10 +892,10 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
 function SennaIntroOverlay({ cycle }: { cycle: string }) {
   const word = 'VESTRIPPN'.split('');
   const status = [
-    { t: 'HELMET STRIPES ALIGNED', at: 1.8 },
-    { t: 'ANALOG TELEMETRY ARMED', at: 3.2 },
-    { t: 'RACE MEMORY ONLINE', at: 4.6 },
-    { t: `${cycle} // SENNA LIVERY ACTIVE`, at: 6.0 },
+    { t: 'LOADING SENNA LIVERY', at: 1.8 },
+    { t: 'PREPARING MEMORY CONTEXT', at: 3.2 },
+    { t: 'INDEXING HUB SHORTCUTS', at: 4.6 },
+    { t: `${cycle} // COCKPIT READY`, at: 6.0 },
   ];
 
   return (
