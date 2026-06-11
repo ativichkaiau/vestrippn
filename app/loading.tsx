@@ -1,10 +1,10 @@
 export default function Loading() {
   const steps = [
-    'Initializing VEStriPPN Core',
-    'Syncing cockpit modules',
-    'Loading research vault',
-    'Calibrating academic telemetry',
-    'Cockpit online',
+    'Preparing W09 cockpit',
+    'Syncing mission context',
+    'Loading study and research hubs',
+    'Calibrating livery accents',
+    'Command surface ready',
   ];
 
   return (
@@ -16,13 +16,13 @@ export default function Loading() {
             <span className="w09-boot-ring lp-keep" aria-hidden />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#00A598]">W09 Motion Layer</div>
-            <div className="mt-1 truncate text-lg font-black tracking-tight">Cockpit Boot</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[color:var(--hub-accent)]">W09 Intro</div>
+            <div className="mt-1 truncate text-lg font-black tracking-tight">Cockpit Handoff</div>
           </div>
         </div>
 
         <div className="mt-6 h-[3px] overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
-          <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-[#00A598] to-blue-400 animate-loader-sweep" />
+          <div className="h-full w-1/3 rounded-full animate-loader-sweep" style={{ background: 'linear-gradient(90deg,var(--hub-accent),var(--hub-accent-deep))' }} />
         </div>
 
         <div className="mt-5 space-y-2">
@@ -33,7 +33,7 @@ export default function Loading() {
               style={{ animationDelay: `${i * 120}ms` }}
             >
               <span className="truncate">{step}</span>
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#00A598]" />
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--hub-accent)]" />
             </div>
           ))}
         </div>

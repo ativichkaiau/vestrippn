@@ -126,7 +126,7 @@ h1, h2, h3, .font-orbitron {
 .animate-loader-pulse { animation: loaderPulse 1.4s ease-in-out infinite; }
 
 .w09-boot-ring {
-  border: 1px solid rgba(0, 165, 152, 0.34);
+  border: 1px solid rgba(var(--hub-accent-rgb), 0.34);
   border-radius: 18px;
   inset: -5px;
   opacity: 0.9;
@@ -680,7 +680,7 @@ p { text-wrap: pretty; }
 
 /* ── Hub intro card palette — consumed by components/HubIntro.tsx.
    Defaults match the original AMG/Petronas cyan; switch under html.monza
-   so the card auto-rebrands to Rothmans navy/brass/red without prop drilling. */
+   so the card auto-rebrands to Williams navy/gold/red without prop drilling. */
 :root {
   --hub-accent: #00d2be;
   --hub-accent-deep: #036b62;
@@ -693,8 +693,8 @@ p { text-wrap: pretty; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   ROTHMANS WILLIAMS LIVERY — Rothmans navy base + brass-gold accent + red flash
-   Activated by `html.monza` (class name preserved; semantic is now Rothmans).
+   WILLIAMS LIVERY — heritage navy base + brass-gold accent + red flash
+   Activated by `html.monza` (class name preserved for stored preferences).
    Palette: navy #210E6F · white · brass #C59955 · classic red #D5172D.
    ════════════════════════════════════════════════════════════════════════ */
 
@@ -703,14 +703,14 @@ p { text-wrap: pretty; }
    variables, so these overrides cascade to text/bg/border/gradient/ring/fill
    across both base and dark: variants (incl. /10 /20 opacity tints). */
 html.monza {
-  /* Rothmans brass / gold — primary chromatic accent on navy */
+  /* Williams brass / gold — primary chromatic accent on navy */
   --rwg-50:#faf3e8; --rwg-100:#f3e3c6; --rwg-200:#e8cd97; --rwg-300:#ddb76b; --rwg-400:#d3a957;
   --rwg-500:#c59955; --rwg-600:#ad8042; --rwg-700:#876237; --rwg-800:#6b4d2e; --rwg-900:#553e27; --rwg-950:#2e2014;
-  /* Classic Rothmans red — warm flash */
+  /* Classic Williams red — warm flash */
   --rwr-50:#fef1f2; --rwr-100:#fde3e5; --rwr-200:#fbc6cb; --rwr-300:#f59ba4; --rwr-400:#ed5e6d;
   --rwr-500:#d5172d; --rwr-600:#c20f24; --rwr-700:#a30b1d; --rwr-800:#870c1c; --rwr-900:#720d1d; --rwr-950:#40040a;
 
-  /* Warm ramps (red/orange/amber/yellow) keep the classic Rothmans red flash */
+  /* Warm ramps (red/orange/amber/yellow) keep the classic Williams red flash */
   --color-red-50:var(--rwr-50); --color-red-100:var(--rwr-100); --color-red-200:var(--rwr-200); --color-red-300:var(--rwr-300); --color-red-400:var(--rwr-400); --color-red-500:var(--rwr-500); --color-red-600:var(--rwr-600); --color-red-700:var(--rwr-700); --color-red-800:var(--rwr-800); --color-red-900:var(--rwr-900); --color-red-950:var(--rwr-950);
   --color-orange-50:var(--rwr-50); --color-orange-100:var(--rwr-100); --color-orange-200:var(--rwr-200); --color-orange-300:var(--rwr-300); --color-orange-400:var(--rwr-400); --color-orange-500:var(--rwr-500); --color-orange-600:var(--rwr-600); --color-orange-700:var(--rwr-700); --color-orange-800:var(--rwr-800); --color-orange-900:var(--rwr-900); --color-orange-950:var(--rwr-950);
   --color-amber-50:var(--rwg-50); --color-amber-100:var(--rwg-100); --color-amber-200:var(--rwg-200); --color-amber-300:var(--rwg-300); --color-amber-400:var(--rwg-400); --color-amber-500:var(--rwg-500); --color-amber-600:var(--rwg-600); --color-amber-700:var(--rwg-700); --color-amber-800:var(--rwg-800); --color-amber-900:var(--rwg-900); --color-amber-950:var(--rwg-950);
@@ -728,14 +728,14 @@ html.monza {
   --color-rose-50:var(--rwr-50); --color-rose-100:var(--rwr-100); --color-rose-200:var(--rwr-200); --color-rose-300:var(--rwr-300); --color-rose-400:var(--rwr-400); --color-rose-500:var(--rwr-500); --color-rose-600:var(--rwr-600); --color-rose-700:var(--rwr-700); --color-rose-800:var(--rwr-800); --color-rose-900:var(--rwr-900); --color-rose-950:var(--rwr-950);
 }
 
-/* 1. Rothmans navy on the page backdrop with the signature white wing-band
+/* 1. Williams navy on the page backdrop with the signature white wing-band
    and pinstripes, a top sheen, and warm gold + red flashes. */
 html.monza body {
   background-color: #150840;
   background-image:
-    /* fine white pinstripes — the Rothmans sidepod accent lines */
+    /* fine white pinstripes — the Williams sidepod accent lines */
     repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0, rgba(255, 255, 255, 0.045) 1px, transparent 1px, transparent 7px),
-    /* broad white wing band along the top — flagship Rothmans split */
+    /* broad white wing band along the top — flagship Williams split */
     linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0, rgba(255, 255, 255, 0.10) 4%, transparent 4%, transparent 7%, rgba(255, 255, 255, 0.06) 7%, rgba(255, 255, 255, 0.06) 9%, transparent 9%),
     /* gold trim line just under the wing band */
     linear-gradient(180deg, transparent 9.6%, rgba(197, 153, 85, 0.45) 9.6%, rgba(197, 153, 85, 0.45) 9.9%, transparent 9.9%),
@@ -770,7 +770,7 @@ html.monza .dark\:border-white\/10 {
   border-color: rgba(197, 153, 85, 0.26) !important;
 }
 
-/* 4. Retint the AMG teal accent to Rothmans brass-gold (#C59955) */
+/* 4. Retint the AMG teal accent to Williams brass-gold (#C59955) */
 html.monza .text-\[\#00A598\] { color: #c59955 !important; }
 html.monza .bg-\[\#00A598\] { background-color: #c59955 !important; }
 html.monza .border-\[\#00A598\] { border-color: #c59955 !important; }
@@ -778,7 +778,7 @@ html.monza .from-\[\#00A598\] { --tw-gradient-from: #c59955 var(--tw-gradient-fr
 html.monza .to-\[\#00A598\] { --tw-gradient-to: #c59955 var(--tw-gradient-to-position) !important; }
 html.monza .fill-\[\#00A598\] { fill: #c59955 !important; }
 
-/* The Claude coral accent (#D97757) becomes the classic Rothmans red */
+/* The Claude coral accent (#D97757) becomes the classic Williams red */
 html.monza .text-\[\#D97757\] { color: #d5172d !important; }
 html.monza .bg-\[\#D97757\] { background-color: #d5172d !important; }
 html.monza .border-\[\#D97757\] { border-color: #d5172d !important; }
@@ -931,7 +931,7 @@ html.senna .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: 
   --w09-shadow:         0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* ── Livery: ROTHMANS WILLIAMS (navy · white · brass-gold · classic red) ── */
+/* ── Livery: WILLIAMS (navy · white · brass-gold · classic red) ── */
 .w09-monza {
   --w09-bg:             #150840;
   --w09-surface:        rgba(197, 153, 85, 0.06);

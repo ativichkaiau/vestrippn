@@ -24,7 +24,7 @@ every primitive with zero component edits.
 | `--w09-text-muted` | Secondary / supporting text |
 | `--w09-accent-primary` | Primary brand accent (buttons, active state) |
 | `--w09-accent-secondary` | Secondary accent (chrome / pastel / green, per livery) |
-| `--w09-accent-tertiary` | Optional third accent / sub-color (Monza: amber-gold, per livery) |
+| `--w09-accent-tertiary` | Optional third accent / sub-color (Williams: red flash, per livery) |
 | `--w09-accent-contrast` | Text/icon color that sits **on** an accent fill |
 | `--w09-success` | Positive state (correct answer, completed) |
 | `--w09-danger` | Negative state (wrong answer, error) |
@@ -49,7 +49,7 @@ descendants. Apply it to `<html>` (app-wide) **or** any wrapper element
 
 | Livery | Class | Identity |
 | --- | --- | --- |
-| Monza | `.w09-monza` | carbon fibre · chrome · Petronas cyan · black-silver |
+| Williams | `.w09-monza` | navy · white · brass-gold · classic red |
 | Esther Bunny | `.w09-esther` | pink · pastel · soft motion · cozy (larger radius, slower motion) |
 | Senna | `.w09-senna` | yellow · blue · green · analog motorsport |
 
@@ -88,7 +88,5 @@ ease-[var(--w09-motion-ease)]
 - `QuestionCard` — IELTS practice (uncontrolled or controlled)
 - `CaseStepper` — Clinical Cases progress (uncontrolled or controlled)
 
-> Scope note: Phase A ships the **contract + neutral defaults + livery stubs**.
-> Final palette tuning for each livery is a later phase. The existing global
-> `html.monza` retint in `globals.css` is a separate W07-era system and is left
-> untouched (additive decision).
+> Scope note: `.w09-monza` remains the class name for compatibility with older
+> stored preferences, but the visible livery identity is Williams.

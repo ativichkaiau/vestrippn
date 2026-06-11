@@ -20,14 +20,18 @@ import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import Link from 'next/link';
 
 type SiteLivery = 'normal' | 'monza' | 'senna';
+type DashboardTask = { id: string; title: string; completed: boolean; category?: string };
+type DashboardResearch = { title?: string; screening?: number; fullText?: number; extraction?: number };
+type DashboardFitness = { workoutDays?: string; lastWorkout?: string; streak?: number };
+type DashboardNotification = { id: string; source: 'CANVAS' | 'GMAIL' | string; title: string; message: string; time: string };
 
 // --- ADD THE PROPS INTERFACE ---
 interface DashboardProps {
   cloudCommand: string;
-  cloudTasks: any[];
-  cloudResearch?: any;
-  cloudFitness?: any;
-  cloudNotifications?: any[];
+  cloudTasks: DashboardTask[];
+  cloudResearch?: DashboardResearch;
+  cloudFitness?: DashboardFitness;
+  cloudNotifications?: DashboardNotification[];
 }
 
 // --- RECEIVE THE PROPS FROM THE SERVER ---
@@ -40,24 +44,27 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
   const pendingTaskCount = Array.isArray(cloudTasks) ? cloudTasks.filter((task) => !task.completed).length : 0;
 
   useEffect(() => {
-    setIsMounted(true);
-    const currentHour = new Date().getHours();
-    if (currentHour < 6 || currentHour >= 18) {
-      setCycle('NIGHT_CYCLE');
-    } else {
-      setCycle('DAY_CYCLE');
-    }
+    let hideIntroTimer: number | undefined;
+    const mountTimer = window.setTimeout(() => {
+      setIsMounted(true);
+      const currentHour = new Date().getHours();
+      setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
 
-    // Pick livery before showing intro so the Williams variant can swap in
-    try {
-      const stored = localStorage.getItem('vest_livery');
-      setLivery(stored === 'monza' || stored === 'senna' ? stored : 'normal');
-    } catch {}
+      // Pick livery before showing intro so the Williams variant can swap in.
+      try {
+        const stored = localStorage.getItem('vest_livery');
+        setLivery(stored === 'monza' || stored === 'senna' ? stored : 'normal');
+      } catch {}
 
-    // Boot sequence plays on every page load
-    setShowIntro(true);
-    const t = setTimeout(() => setShowIntro(false), 7000);
-    return () => clearTimeout(t);
+      // Boot sequence plays on every page load.
+      setShowIntro(true);
+      hideIntroTimer = window.setTimeout(() => setShowIntro(false), 7000);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(mountTimer);
+      if (hideIntroTimer) window.clearTimeout(hideIntroTimer);
+    };
   }, []);
 
   if (!isMounted) return <LoadingScreen />;
@@ -393,14 +400,14 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     <h2 className="font-bold text-[18px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">Research Ops</h2>
                   </div>
                   <div className="flex-1 flex flex-col text-neutral-700 dark:text-neutral-200 transition-colors duration-700">
-                     <ResearchCard
+                    <ResearchCard
                        initialTitle={cloudResearch?.title}
                        initialStats={cloudResearch ? {
-                         screening: cloudResearch.screening,
-                         fullText: cloudResearch.fullText,
-                         extraction: cloudResearch.extraction
+                         screening: cloudResearch.screening ?? 0,
+                         fullText: cloudResearch.fullText ?? 0,
+                         extraction: cloudResearch.extraction ?? 0
                        } : undefined}
-                     />
+                    />
                   </div>
                 </motion.div>
               </div>
@@ -476,7 +483,7 @@ function LoadingScreen() {
       <div className="relative flex flex-col items-center gap-6">
         <div
           className="absolute -inset-10 rounded-full blur-3xl opacity-40 dark:opacity-50"
-          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.45), rgba(20,184,166,0.25) 45%, transparent 72%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(var(--hub-accent-rgb),0.38), rgba(var(--hub-secondary-rgb),0.20) 45%, transparent 72%)' }}
         />
         <motion.div
           className="relative w-14 h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center text-[26px] font-black"
@@ -488,7 +495,7 @@ function LoadingScreen() {
         <div className="relative h-[3px] w-32 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             className="h-full w-1/3 rounded-full"
-            style={{ background: 'linear-gradient(90deg,#00d2be,#036b62)' }}
+            style={{ background: 'linear-gradient(90deg,var(--hub-accent),var(--hub-accent-deep))' }}
             animate={{ x: ['-120%', '380%'] }}
             transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -498,16 +505,59 @@ function LoadingScreen() {
   );
 }
 
+function IntroPhaseRail({
+  phases,
+  accent,
+  halo,
+}: {
+  phases: { label: string; value: string }[];
+  accent: string;
+  halo: string;
+}) {
+  return (
+    <motion.div
+      className="mt-8 grid w-[min(88vw,560px)] grid-cols-1 gap-2 sm:grid-cols-3"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 3.05, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {phases.map((phase, i) => (
+        <motion.div
+          key={phase.label}
+          className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2.5 text-left shadow-[0_16px_42px_rgba(0,0,0,0.20)] backdrop-blur-md"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 3.15 + i * 0.1, duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="text-[8px] font-black uppercase tracking-[0.22em] text-neutral-500">{phase.label}</div>
+          <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px] font-black uppercase text-white">
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{ background: accent, boxShadow: `0 0 18px ${halo}` }}
+            />
+            <span className="truncate">{phase.value}</span>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════
    INTRO OVERLAY — boot sequence (every page load, ~7s)
    ════════════════════════════════════════════════════════════ */
 function IntroOverlay({ cycle }: { cycle: string }) {
   const word = 'VESTRIPPN'.split('');
   const status = [
-    { t: 'LOADING MISSION CONTEXT', at: 1.8 },
-    { t: 'PREPARING PLANNER TASKS', at: 3.2 },
-    { t: 'INDEXING HUB SHORTCUTS', at: 4.6 },
-    { t: `${cycle} // COCKPIT READY`, at: 6.0 },
+    { t: 'INITIALIZING W09 COMMAND SURFACE', at: 1.8 },
+    { t: 'SYNCING MISSION + TASK QUEUE', at: 3.2 },
+    { t: 'CALIBRATING STUDY / RESEARCH HUBS', at: 4.6 },
+    { t: `${cycle} // W09 READY`, at: 6.0 },
+  ];
+  const phases = [
+    { label: 'Focus', value: 'Current mission' },
+    { label: 'Queue', value: 'Planner tasks' },
+    { label: 'Access', value: 'Hub shortcuts' },
   ];
 
   return (
@@ -603,7 +653,7 @@ function IntroOverlay({ cycle }: { cycle: string }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 2.3, duration: 0.5 }}
         >
-          <span className="italic text-black bg-white px-3 py-1 rounded-[10px] tracking-tight">///AMG</span>
+          <span className="italic text-black bg-white px-3 py-1 rounded-[10px] tracking-tight">{'///AMG'}</span>
           <span>
             <span className="text-[#00A598]">W09</span>{' '}
             <span
@@ -621,11 +671,13 @@ function IntroOverlay({ cycle }: { cycle: string }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 2.7, duration: 0.5 }}
         >
-          Claude-ready command surface
+          Mission, study, research, planner
         </motion.div>
 
+        <IntroPhaseRail phases={phases} accent="#00d2be" halo="rgba(0,210,190,0.72)" />
+
         {/* Telemetry progress bar */}
-        <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(99,102,241,0.35)]">
+        <div className="mt-8 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(99,102,241,0.35)]">
           <motion.div
             className="h-full rounded-full"
             style={{ background: 'linear-gradient(90deg,#00d2be,#036b62)' }}
@@ -663,18 +715,23 @@ function IntroOverlay({ cycle }: { cycle: string }) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   WILLIAMS INTRO OVERLAY — Rothmans-era tribute boot sequence.
-   Activates only when the Rothmans (Williams) livery is on.
+   WILLIAMS INTRO OVERLAY — heritage navy/gold/red boot sequence.
+   Activates when the Williams special livery is on.
    Uses public palette navy #210E6F · brass #C59955 · red #D5172D
    and a generic bold sans-serif — not the trademarked logotype.
    ════════════════════════════════════════════════════════════ */
 function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
   const word = 'VESTRIPPN'.split('');
   const status = [
-    { t: 'LOADING LIVERY CONTEXT', at: 1.8 },
-    { t: 'PREPARING PLANNER TASKS', at: 3.2 },
-    { t: 'INDEXING HUB SHORTCUTS', at: 4.6 },
-    { t: `${cycle} // COCKPIT READY`, at: 6.0 },
+    { t: 'LOADING WILLIAMS LIVERY', at: 1.8 },
+    { t: 'ALIGNING HERITAGE TRIM', at: 3.2 },
+    { t: 'SYNCING MISSION HANDOFF', at: 4.6 },
+    { t: `${cycle} // WILLIAMS READY`, at: 6.0 },
+  ];
+  const phases = [
+    { label: 'Livery', value: 'Williams heritage' },
+    { label: 'Palette', value: 'Navy / gold / red' },
+    { label: 'Handoff', value: 'Mission ready' },
   ];
 
   return (
@@ -841,11 +898,13 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 2.7, duration: 0.5 }}
         >
-          Claude-ready command surface
+          Williams special livery
         </motion.div>
 
+        <IntroPhaseRail phases={phases} accent="#C59955" halo="rgba(197,153,85,0.74)" />
+
         {/* Telemetry progress bar — gold→red */}
-        <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(197,153,85,0.4)]">
+        <div className="mt-8 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(197,153,85,0.4)]">
           <motion.div
             className="h-full rounded-full"
             style={{ background: 'linear-gradient(90deg,#C59955,#D5172D)' }}
@@ -893,9 +952,14 @@ function SennaIntroOverlay({ cycle }: { cycle: string }) {
   const word = 'VESTRIPPN'.split('');
   const status = [
     { t: 'LOADING SENNA LIVERY', at: 1.8 },
-    { t: 'PREPARING MEMORY CONTEXT', at: 3.2 },
-    { t: 'INDEXING HUB SHORTCUTS', at: 4.6 },
-    { t: `${cycle} // COCKPIT READY`, at: 6.0 },
+    { t: 'CALIBRATING FOCUS SIGNAL', at: 3.2 },
+    { t: 'SYNCING LAP-LINE HANDOFF', at: 4.6 },
+    { t: `${cycle} // SENNA READY`, at: 6.0 },
+  ];
+  const phases = [
+    { label: 'Livery', value: 'Senna special' },
+    { label: 'Signal', value: 'Focus line' },
+    { label: 'Flow', value: 'Rapid handoff' },
   ];
 
   return (
@@ -1030,10 +1094,12 @@ function SennaIntroOverlay({ cycle }: { cycle: string }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 2.7, duration: 0.5 }}
         >
-          Powered by <span style={{ color: '#00a651' }}>Claude</span>
+          Precision focus livery
         </motion.div>
 
-        <div className="mt-12 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(255,212,0,0.42)]">
+        <IntroPhaseRail phases={phases} accent="#ffd400" halo="rgba(255,212,0,0.70)" />
+
+        <div className="mt-8 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(255,212,0,0.42)]">
           <motion.div
             className="h-full rounded-full"
             style={{ background: 'linear-gradient(90deg,#ffd400,#00a651,#1f6feb)' }}

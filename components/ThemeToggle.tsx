@@ -20,7 +20,21 @@ function isLivery(value: string | null): value is Livery {
   return value === 'normal' || value === 'monza' || value === 'senna';
 }
 
-function LiveryRow({ active, onClick, emoji, title, sub }: { active: boolean; onClick: () => void; emoji: string; title: string; sub: string }) {
+function LiveryRow({
+  active,
+  onClick,
+  emoji,
+  title,
+  sub,
+  swatches = [],
+}: {
+  active: boolean;
+  onClick: () => void;
+  emoji: string;
+  title: string;
+  sub: string;
+  swatches?: string[];
+}) {
   return (
     <button
       onClick={onClick}
@@ -31,7 +45,20 @@ function LiveryRow({ active, onClick, emoji, title, sub }: { active: boolean; on
       <span className="text-[18px] leading-none">{emoji}</span>
       <div className="flex-1 leading-tight">
         <div className="text-[12px] font-bold text-neutral-900 dark:text-white">{title}</div>
-        <div className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{sub}</div>
+        <div className="mt-0.5 flex min-w-0 items-center gap-2">
+          <div className="truncate text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{sub}</div>
+          {swatches.length > 0 && (
+            <div className="flex shrink-0 items-center gap-0.5" aria-hidden>
+              {swatches.map((swatch) => (
+                <span
+                  key={swatch}
+                  className="h-2 w-2 rounded-full border border-black/10 dark:border-white/20"
+                  style={{ backgroundColor: swatch }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       {active && <span className="text-[12px] text-[#00A598] dark:text-[#00D2BE] font-black">✓</span>}
     </button>
@@ -86,7 +113,7 @@ export default function ThemeToggle() {
     return <div className="w-[104px] h-[38px] rounded-full bg-black/5 dark:bg-white/5 animate-pulse" />;
   }
 
-  const label = livery === 'monza' ? 'Rothmans' : livery === 'senna' ? 'Senna' : mode === 'night' ? 'Night' : 'Day';
+  const label = livery === 'monza' ? 'Williams' : livery === 'senna' ? 'Senna' : mode === 'night' ? 'Night' : 'Day';
   const icon = livery === 'monza' ? '🏁' : livery === 'senna' ? '🇧🇷' : mode === 'night' ? '🌙' : '☀️';
 
   return (
@@ -112,8 +139,22 @@ export default function ThemeToggle() {
             <LiveryRow active={livery === 'normal' && mode === 'night'} onClick={() => choose('normal', 'night')} emoji="🌙" title="Night" sub="Deep Carbon" />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Special Liveries</div>
-            <LiveryRow active={livery === 'monza'} onClick={() => choose('monza')} emoji="🏁" title="Rothmans" sub="Williams · Navy · Brass · Red" />
-            <LiveryRow active={livery === 'senna'} onClick={() => choose('senna')} emoji="🇧🇷" title="Senna" sub="Yellow · Green · Blue" />
+            <LiveryRow
+              active={livery === 'monza'}
+              onClick={() => choose('monza')}
+              emoji="🏁"
+              title="Williams"
+              sub="Navy · Gold · Red"
+              swatches={['#210E6F', '#FFFFFF', '#C59955', '#D5172D']}
+            />
+            <LiveryRow
+              active={livery === 'senna'}
+              onClick={() => choose('senna')}
+              emoji="🇧🇷"
+              title="Senna"
+              sub="Yellow · Green · Blue"
+              swatches={['#FFD400', '#00A651', '#1F6FEB']}
+            />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Performance</div>
             <button

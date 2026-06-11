@@ -10,7 +10,7 @@ type Livery = 'neutral' | 'monza' | 'esther' | 'senna';
 
 const LIVERIES: { id: Livery; label: string }[] = [
   { id: 'neutral', label: 'Neutral' },
-  { id: 'monza', label: 'Rothmans' },
+  { id: 'monza', label: 'Williams' },
   { id: 'esther', label: 'Esther Bunny' },
   { id: 'senna', label: 'Senna' },
 ];
