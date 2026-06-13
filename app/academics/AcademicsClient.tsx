@@ -38,6 +38,11 @@ const SECRET_EXAMPOD_URL = 'https://williamspod.vercel.app';
 const PINNED_CANVAS_SUBJECTS: Subject[] = [
   { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
 ];
+const COMPLETED_CANVAS_SUBJECT_IDS = new Set(['26702']);
+
+function isCompletedCanvasSubject(subject: Subject) {
+  return COMPLETED_CANVAS_SUBJECT_IDS.has(subject.id) || /human musculoskeletal system-2|hms-2/i.test(subject.name);
+}
 
 export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -265,7 +270,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   useEffect(() => {
     const exams: Exam[] = [
       { name: 'HEN-2', date: new Date('2026-06-09T09:00:00'), color: 'text-pink-500 dark:text-pink-400' },
-      { name: 'HMS-2', date: new Date('2026-06-12T09:00:00'), color: 'text-amber-500 dark:text-amber-400' },
+      { name: 'HMS-2', date: new Date('2026-06-12T09:00:00'), color: 'text-neutral-400 dark:text-neutral-500' },
       { name: 'HNS-2', date: new Date('2026-06-16T09:00:00'), color: 'text-blue-500 dark:text-blue-400' },
     ];
 
@@ -350,8 +355,8 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               secondaryLabel="Study Vault ↗"
               chips={['Exam Countdown', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
               panelTitle="Academic Ops"
-              panelSubtitle="Next exam: HMS-2"
-              contextLabel="Study focus: HMS-2"
+              panelSubtitle="HMS-2 finished · Next: HNS-2"
+              contextLabel="Study focus: HNS-2"
               metrics={[
                 { label: 'Exams', value: '3' },
                 { label: 'Mode', value: 'Live' },
@@ -366,15 +371,16 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
 
             <MissionBlock
               accent="blue"
-              title="HMS-2 · Human Musculoskeletal System-2"
-              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HMS-2'] || '--D --H --M'}</span> · 12 JUN // 09:00</>}
+              title="HNS-2 · Nervous & Special Senses"
+              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HNS-2'] || '--D --H --M'}</span> · 16 JUN // 09:00</>}
               cta={{ label: 'View milestones', href: '#milestones' }}
             />
 
             <CockpitIntelligencePanel
               hub="academics"
               contextItems={[
-                { label: 'Current mission', value: 'HMS-2 exam prep' },
+                { label: 'Current mission', value: 'HNS-2 exam prep' },
+                { label: 'Completed module', value: 'HMS-2 finished' },
                 { label: 'Canvas courses', value: `${canvasSubjects.length} tracked` },
                 { label: 'Anki due', value: `${liveAnki.due} cards` },
               ]}
@@ -394,7 +400,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               >
                 {[
                   { name: 'HEN-2', date: '09 JUN', color: 'text-pink-500 dark:text-pink-400', done: true },
-                  { name: 'HMS-2', date: '12 JUN', color: 'text-amber-500 dark:text-amber-400' },
+                  { name: 'HMS-2', date: '12 JUN', color: 'text-neutral-400 dark:text-neutral-500', done: true },
                   { name: 'HNS-2', date: '16 JUN', color: 'text-blue-500 dark:text-blue-400' }
                 ].map(exam => (
                   <motion.div
@@ -436,30 +442,35 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10 flex-1">
-                  {canvasSubjects.length > 0 ? canvasSubjects.map(sub => (
+                  {canvasSubjects.length > 0 ? canvasSubjects.map(sub => {
+                    const subjectCompleted = isCompletedCanvasSubject(sub);
+                    return (
                     <a 
                       key={sub.id} 
                       href={`https://mango-cmu.instructure.com/courses/${sub.id}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="group/sub min-w-0 block"
+                      className={`group/sub min-w-0 block rounded-2xl transition-all duration-300 ${subjectCompleted ? 'grayscale opacity-[0.55] hover:opacity-70' : ''}`}
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-[13px] font-bold text-neutral-700 dark:text-neutral-300 group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400 transition-colors truncate pr-2 flex items-center gap-1.5">
+                        <span className={`text-[13px] font-bold transition-colors truncate pr-2 flex items-center gap-1.5 ${subjectCompleted ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-700 dark:text-neutral-300 group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400'}`}>
                           {sub.name}
-                          <svg className="w-3.5 h-3.5 opacity-0 group-hover/sub:opacity-100 transition-opacity text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <svg className={`w-3.5 h-3.5 opacity-0 group-hover/sub:opacity-100 transition-opacity ${subjectCompleted ? 'text-neutral-400' : 'text-blue-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                         </span>
-                        <span className="text-blue-600 dark:text-blue-400 font-black shrink-0 transition-colors duration-700">
-                          {sub.progress !== null ? `${sub.progress}%` : '--%'}
+                        <span className={`font-black shrink-0 transition-colors duration-700 ${subjectCompleted ? 'text-neutral-400 dark:text-neutral-500' : 'text-blue-600 dark:text-blue-400'}`}>
+                          {subjectCompleted ? 'Done' : (sub.progress !== null ? `${sub.progress}%` : '--%')}
                         </span>
                       </div>
                       <div className="h-[4px] w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden transition-colors duration-700">
-                        <div className="h-full bg-blue-600 dark:bg-blue-400 transition-all duration-1000 rounded-full" style={{ width: `${sub.progress || 0}%` }}></div>
+                        <div
+                          className={`h-full transition-all duration-1000 rounded-full ${subjectCompleted ? 'bg-neutral-300 dark:bg-neutral-600' : 'bg-blue-600 dark:bg-blue-400'}`}
+                          style={{ width: subjectCompleted ? '100%' : `${sub.progress || 0}%` }}
+                        ></div>
                       </div>
                     </a>
-                  )) : (
+                  )}) : (
                     <div className="col-span-full flex items-center justify-center py-10 text-neutral-400 dark:text-neutral-500 font-medium italic text-[13px] transition-colors duration-700">Awaiting Mango Cloud Sync...</div>
                   )}
                 </div>
@@ -818,13 +829,13 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                      <div className="text-[16px] font-bold text-neutral-900 dark:text-white mb-2 truncate pr-4 transition-colors duration-700">HEN-2: Endocrine Synthesis</div>
                      <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
                   </a>
-                  <a href="https://notebooklm.google.com/notebook/04b9e08c-0d3d-4234-adb3-24ca38479dcb" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                  <a href="https://notebooklm.google.com/notebook/04b9e08c-0d3d-4234-adb3-24ca38479dcb" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl opacity-[0.55] grayscale hover:opacity-70 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
                      <div className="flex justify-between items-center mb-4">
-                        <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest transition-colors duration-700">Musculoskeletal Vault</div>
+                        <div className="text-[10px] font-bold text-neutral-500 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Musculoskeletal Vault</div>
                         <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🦴</span>
                      </div>
-                     <div className="text-[16px] font-bold text-neutral-900 dark:text-white mb-2 truncate pr-4 transition-colors duration-700">HMS-2: Human Musculoskeletal System</div>
-                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
+                     <div className="text-[16px] font-bold text-neutral-500 dark:text-neutral-500 mb-2 truncate pr-4 transition-colors duration-700">HMS-2: Human Musculoskeletal System</div>
+                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Finished</div>
                   </a>
                   <a href="https://notebooklm.google.com/notebook/d3cb8676-b859-4263-b5ff-65afaaf665e5" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
                      <div className="flex justify-between items-center mb-4">
