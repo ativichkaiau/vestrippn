@@ -2,13 +2,13 @@
 import { useEffect, useState } from "react";
 import { setLowPowerMode } from "./useLowPower";
 
-type Livery = 'normal' | 'monza' | 'senna';
+type Livery = 'normal' | 'monza' | 'senna' | 'verstappen';
 type Mode = 'day' | 'night';
 
 function applyLivery(lv: Livery, md: Mode) {
   const el = document.documentElement;
-  el.classList.remove('monza', 'senna', 'w09-monza', 'w09-senna');
-  if (lv === 'monza' || lv === 'senna') {
+  el.classList.remove('monza', 'senna', 'verstappen', 'w09-monza', 'w09-senna', 'w09-verstappen');
+  if (lv === 'monza' || lv === 'senna' || lv === 'verstappen') {
     el.classList.add('dark', lv, `w09-${lv}`);
   } else {
     if (md === 'night') el.classList.add('dark');
@@ -17,7 +17,7 @@ function applyLivery(lv: Livery, md: Mode) {
 }
 
 function isLivery(value: string | null): value is Livery {
-  return value === 'normal' || value === 'monza' || value === 'senna';
+  return value === 'normal' || value === 'monza' || value === 'senna' || value === 'verstappen';
 }
 
 function LiveryRow({
@@ -113,8 +113,8 @@ export default function ThemeToggle() {
     return <div className="w-[104px] h-[38px] rounded-full bg-black/5 dark:bg-white/5 animate-pulse" />;
   }
 
-  const label = livery === 'monza' ? 'Williams' : livery === 'senna' ? 'Senna' : mode === 'night' ? 'Night' : 'Day';
-  const icon = livery === 'monza' ? '🏁' : livery === 'senna' ? '🇧🇷' : mode === 'night' ? '🌙' : '☀️';
+  const label = livery === 'monza' ? 'Williams' : livery === 'senna' ? 'Senna' : livery === 'verstappen' ? 'Verstappen' : mode === 'night' ? 'Night' : 'Day';
+  const icon = livery === 'monza' ? '🏁' : livery === 'senna' ? '🇧🇷' : livery === 'verstappen' ? '🇳🇱' : mode === 'night' ? '🌙' : '☀️';
 
   return (
     <div className="relative">
@@ -154,6 +154,14 @@ export default function ThemeToggle() {
               title="Senna"
               sub="Yellow · Green · Blue"
               swatches={['#FFD400', '#00A651', '#1F6FEB']}
+            />
+            <LiveryRow
+              active={livery === 'verstappen'}
+              onClick={() => choose('verstappen')}
+              emoji="🇳🇱"
+              title="Verstappen"
+              sub="Dutch Orange · Navy"
+              swatches={['#FF6B00', '#061A3A', '#FFFFFF', '#1D4ED8', '#DC2626']}
             />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Performance</div>

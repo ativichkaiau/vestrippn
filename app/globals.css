@@ -189,6 +189,11 @@ html.senna .motion-route-shell {
   --motion-secondary-rgb: 31, 111, 235;
 }
 
+html.verstappen .motion-route-shell {
+  --motion-accent-rgb: 255, 107, 0;
+  --motion-secondary-rgb: 29, 78, 216;
+}
+
 .motion-route-shell::before {
   animation: siteAuraDrift 18s ease-in-out infinite;
   background:
@@ -888,10 +893,98 @@ html.senna .custom-scrollbar { scrollbar-color: rgba(255, 212, 0, 0.48) transpar
 html.senna .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 166, 81, 0.68); }
 
 /* ════════════════════════════════════════════════════════════════════════
+   VERSTAPPEN LIVERY — Dutch orange attack + deep navy + white/blue/red flash
+   Activated by `html.verstappen`. The treatment is original: orange push-lap
+   energy, Dutch national stripe language, and a dark race-control base.
+   ════════════════════════════════════════════════════════════════════════ */
+
+html.verstappen {
+  --vpo-50:#fff7ed; --vpo-100:#ffedd5; --vpo-200:#fed7aa; --vpo-300:#fdba74; --vpo-400:#fb923c;
+  --vpo-500:#ff6b00; --vpo-600:#ea580c; --vpo-700:#c2410c; --vpo-800:#9a3412; --vpo-900:#7c2d12; --vpo-950:#431407;
+  --vpb-50:#eff6ff; --vpb-100:#dbeafe; --vpb-200:#bfdbfe; --vpb-300:#93c5fd; --vpb-400:#60a5fa;
+  --vpb-500:#1d4ed8; --vpb-600:#1e40af; --vpb-700:#1e3a8a; --vpb-800:#172554; --vpb-900:#0b1b3f; --vpb-950:#061225;
+  --vpr-50:#fef2f2; --vpr-100:#fee2e2; --vpr-200:#fecaca; --vpr-300:#fca5a5; --vpr-400:#f87171;
+  --vpr-500:#dc2626; --vpr-600:#b91c1c; --vpr-700:#991b1b; --vpr-800:#7f1d1d; --vpr-900:#651313; --vpr-950:#390707;
+
+  --color-red-50:var(--vpr-50); --color-red-100:var(--vpr-100); --color-red-200:var(--vpr-200); --color-red-300:var(--vpr-300); --color-red-400:var(--vpr-400); --color-red-500:var(--vpr-500); --color-red-600:var(--vpr-600); --color-red-700:var(--vpr-700); --color-red-800:var(--vpr-800); --color-red-900:var(--vpr-900); --color-red-950:var(--vpr-950);
+  --color-orange-50:var(--vpo-50); --color-orange-100:var(--vpo-100); --color-orange-200:var(--vpo-200); --color-orange-300:var(--vpo-300); --color-orange-400:var(--vpo-400); --color-orange-500:var(--vpo-500); --color-orange-600:var(--vpo-600); --color-orange-700:var(--vpo-700); --color-orange-800:var(--vpo-800); --color-orange-900:var(--vpo-900); --color-orange-950:var(--vpo-950);
+  --color-amber-50:var(--vpo-50); --color-amber-100:var(--vpo-100); --color-amber-200:var(--vpo-200); --color-amber-300:var(--vpo-300); --color-amber-400:var(--vpo-400); --color-amber-500:var(--vpo-500); --color-amber-600:var(--vpo-600); --color-amber-700:var(--vpo-700); --color-amber-800:var(--vpo-800); --color-amber-900:var(--vpo-900); --color-amber-950:var(--vpo-950);
+  --color-yellow-50:var(--vpo-50); --color-yellow-100:var(--vpo-100); --color-yellow-200:var(--vpo-200); --color-yellow-300:var(--vpo-300); --color-yellow-400:var(--vpo-400); --color-yellow-500:var(--vpo-500); --color-yellow-600:var(--vpo-600); --color-yellow-700:var(--vpo-700); --color-yellow-800:var(--vpo-800); --color-yellow-900:var(--vpo-900); --color-yellow-950:var(--vpo-950);
+  --color-emerald-50:var(--vpo-50); --color-emerald-100:var(--vpo-100); --color-emerald-200:var(--vpo-200); --color-emerald-300:var(--vpo-300); --color-emerald-400:var(--vpo-400); --color-emerald-500:var(--vpo-500); --color-emerald-600:var(--vpo-600); --color-emerald-700:var(--vpo-700); --color-emerald-800:var(--vpo-800); --color-emerald-900:var(--vpo-900); --color-emerald-950:var(--vpo-950);
+  --color-teal-50:var(--vpo-50); --color-teal-100:var(--vpo-100); --color-teal-200:var(--vpo-200); --color-teal-300:var(--vpo-300); --color-teal-400:var(--vpo-400); --color-teal-500:var(--vpo-500); --color-teal-600:var(--vpo-600); --color-teal-700:var(--vpo-700); --color-teal-800:var(--vpo-800); --color-teal-900:var(--vpo-900); --color-teal-950:var(--vpo-950);
+  --color-cyan-50:var(--vpb-50); --color-cyan-100:var(--vpb-100); --color-cyan-200:var(--vpb-200); --color-cyan-300:var(--vpb-300); --color-cyan-400:var(--vpb-400); --color-cyan-500:var(--vpb-500); --color-cyan-600:var(--vpb-600); --color-cyan-700:var(--vpb-700); --color-cyan-800:var(--vpb-800); --color-cyan-900:var(--vpb-900); --color-cyan-950:var(--vpb-950);
+  --color-sky-50:var(--vpb-50); --color-sky-100:var(--vpb-100); --color-sky-200:var(--vpb-200); --color-sky-300:var(--vpb-300); --color-sky-400:var(--vpb-400); --color-sky-500:var(--vpb-500); --color-sky-600:var(--vpb-600); --color-sky-700:var(--vpb-700); --color-sky-800:var(--vpb-800); --color-sky-900:var(--vpb-900); --color-sky-950:var(--vpb-950);
+  --color-blue-50:var(--vpb-50); --color-blue-100:var(--vpb-100); --color-blue-200:var(--vpb-200); --color-blue-300:var(--vpb-300); --color-blue-400:var(--vpb-400); --color-blue-500:var(--vpb-500); --color-blue-600:var(--vpb-600); --color-blue-700:var(--vpb-700); --color-blue-800:var(--vpb-800); --color-blue-900:var(--vpb-900); --color-blue-950:var(--vpb-950);
+  --color-indigo-50:var(--vpb-50); --color-indigo-100:var(--vpb-100); --color-indigo-200:var(--vpb-200); --color-indigo-300:var(--vpb-300); --color-indigo-400:var(--vpb-400); --color-indigo-500:var(--vpb-500); --color-indigo-600:var(--vpb-600); --color-indigo-700:var(--vpb-700); --color-indigo-800:var(--vpb-800); --color-indigo-900:var(--vpb-900); --color-indigo-950:var(--vpb-950);
+  --color-purple-50:var(--vpb-50); --color-purple-100:var(--vpb-100); --color-purple-200:var(--vpb-200); --color-purple-300:var(--vpb-300); --color-purple-400:var(--vpb-400); --color-purple-500:var(--vpb-500); --color-purple-600:var(--vpb-600); --color-purple-700:var(--vpb-700); --color-purple-800:var(--vpb-800); --color-purple-900:var(--vpb-900); --color-purple-950:var(--vpb-950);
+  --color-fuchsia-50:var(--vpo-50); --color-fuchsia-100:var(--vpo-100); --color-fuchsia-200:var(--vpo-200); --color-fuchsia-300:var(--vpo-300); --color-fuchsia-400:var(--vpo-400); --color-fuchsia-500:var(--vpo-500); --color-fuchsia-600:var(--vpo-600); --color-fuchsia-700:var(--vpo-700); --color-fuchsia-800:var(--vpo-800); --color-fuchsia-900:var(--vpo-900); --color-fuchsia-950:var(--vpo-950);
+  --color-pink-50:var(--vpr-50); --color-pink-100:var(--vpr-100); --color-pink-200:var(--vpr-200); --color-pink-300:var(--vpr-300); --color-pink-400:var(--vpr-400); --color-pink-500:var(--vpr-500); --color-pink-600:var(--vpr-600); --color-pink-700:var(--vpr-700); --color-pink-800:var(--vpr-800); --color-pink-900:var(--vpr-900); --color-pink-950:var(--vpr-950);
+  --color-rose-50:var(--vpr-50); --color-rose-100:var(--vpr-100); --color-rose-200:var(--vpr-200); --color-rose-300:var(--vpr-300); --color-rose-400:var(--vpr-400); --color-rose-500:var(--vpr-500); --color-rose-600:var(--vpr-600); --color-rose-700:var(--vpr-700); --color-rose-800:var(--vpr-800); --color-rose-900:var(--vpr-900); --color-rose-950:var(--vpr-950);
+
+  --hub-accent: #ff6b00;
+  --hub-accent-deep: #1d4ed8;
+  --hub-accent-rgb: 255, 107, 0;
+  --hub-secondary-rgb: 29, 78, 216;
+  --hub-grad-rgb: 5, 11, 22;
+  --hub-bg: #050b16;
+  --hub-text-soft: #fed7aa;
+  --hub-text-soft-2: #bfdbfe;
+}
+
+html.verstappen body {
+  background-color: #050b16;
+  background-image:
+    repeating-linear-gradient(100deg, rgba(255, 107, 0, 0.060) 0, rgba(255, 107, 0, 0.060) 1px, transparent 1px, transparent 15px),
+    linear-gradient(116deg, transparent 0 39%, rgba(220, 38, 38, 0.18) 39% 40.4%, rgba(255, 255, 255, 0.20) 40.4% 42.2%, rgba(29, 78, 216, 0.22) 42.2% 44%, transparent 44%),
+    radial-gradient(circle at 20% -10%, rgba(255, 107, 0, 0.36), transparent 40%),
+    radial-gradient(ellipse at 94% 6%, rgba(29, 78, 216, 0.30), transparent 43%),
+    radial-gradient(ellipse at 14% 110%, rgba(220, 38, 38, 0.16), transparent 50%),
+    linear-gradient(180deg, #061a3a 0%, #050b16 76%);
+  background-attachment: fixed;
+}
+
+html.verstappen .dark\:bg-\[\#050505\],
+html.verstappen .dark\:bg-\[\#0A0A0A\],
+html.verstappen .dark\:bg-black\/40,
+html.verstappen .dark\:bg-black\/20 {
+  background-color: rgba(5, 11, 22, 0.66) !important;
+}
+
+html.verstappen .dark\:bg-white\/5 {
+  background-color: rgba(255, 107, 0, 0.075) !important;
+}
+html.verstappen .dark\:border-white\/5,
+html.verstappen .dark\:border-white\/10 {
+  border-color: rgba(255, 107, 0, 0.26) !important;
+}
+
+html.verstappen .text-\[\#00A598\],
+html.verstappen .text-\[\#00D2BE\] { color: #ff6b00 !important; }
+html.verstappen .bg-\[\#00A598\],
+html.verstappen .bg-\[\#00D2BE\] { background-color: #ff6b00 !important; }
+html.verstappen .border-\[\#00A598\],
+html.verstappen .border-\[\#00D2BE\] { border-color: #ff6b00 !important; }
+html.verstappen .from-\[\#00A598\],
+html.verstappen .from-\[\#00D2BE\] { --tw-gradient-from: #ff6b00 var(--tw-gradient-from-position) !important; }
+html.verstappen .to-\[\#00A598\],
+html.verstappen .to-\[\#00D2BE\] { --tw-gradient-to: #1d4ed8 var(--tw-gradient-to-position) !important; }
+html.verstappen .fill-\[\#00A598\],
+html.verstappen .fill-\[\#00D2BE\] { fill: #ff6b00 !important; }
+
+html.verstappen .text-\[\#D97757\] { color: #dc2626 !important; }
+html.verstappen .bg-\[\#D97757\] { background-color: #dc2626 !important; }
+html.verstappen .border-\[\#D97757\] { border-color: #dc2626 !important; }
+
+html.verstappen ::selection { background-color: rgba(255, 107, 0, 0.44); color: #ffffff; }
+html.verstappen .custom-scrollbar { scrollbar-color: rgba(255, 107, 0, 0.50) transparent; }
+html.verstappen .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(29, 78, 216, 0.70); }
+
+/* ════════════════════════════════════════════════════════════════════════
    W09 THEME CONTRACT  —  see components/w09/THEME_CONTRACT.md
    Additive. W07 is unaffected (it does not consume --w09-* variables).
    Neutral defaults on :root (light) and .dark (dark). Liveries override via
-   .w09-monza / .w09-esther / .w09-senna on <html> OR any wrapper element.
+   .w09-monza / .w09-esther / .w09-senna / .w09-verstappen on <html> OR any
+   wrapper element.
    ════════════════════════════════════════════════════════════════════════ */
 :root {
   --w09-bg:             hsl(0 0% 100%);
@@ -985,4 +1078,22 @@ html.senna .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: 
   --w09-danger:         #e63946;
   --w09-focus-ring:     #1f6feb;
   --w09-shadow:         0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Livery: VERSTAPPEN (Dutch orange · deep navy · white/blue/red flash) ── */
+.w09-verstappen {
+  --w09-bg:             #050b16;
+  --w09-surface:        rgba(255, 107, 0, 0.065);
+  --w09-surface-raised: rgba(29, 78, 216, 0.14);
+  --w09-border:         rgba(255, 107, 0, 0.30);
+  --w09-text:           #f8fafc;
+  --w09-text-muted:     #bfdbfe;
+  --w09-accent-primary:   #ff6b00;
+  --w09-accent-secondary: #ffffff;
+  --w09-accent-tertiary:  #1d4ed8;
+  --w09-accent-contrast:  #061225;
+  --w09-success:        #ff6b00;
+  --w09-danger:         #dc2626;
+  --w09-focus-ring:     #ff6b00;
+  --w09-shadow:         0 10px 38px rgba(0, 0, 0, 0.58);
 }

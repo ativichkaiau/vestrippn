@@ -19,7 +19,7 @@ import TickNumber from '../components/TickNumber';
 import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import Link from 'next/link';
 
-type SiteLivery = 'normal' | 'monza' | 'senna';
+type SiteLivery = 'normal' | 'monza' | 'senna' | 'verstappen';
 type DashboardTask = { id: string; title: string; completed: boolean; category: string };
 type DashboardResearch = { title?: string; screening?: number; fullText?: number; extraction?: number };
 type DashboardFitness = { workoutDays?: string; lastWorkout?: string; streak?: number };
@@ -53,7 +53,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
       // Pick livery before showing intro so the Williams variant can swap in.
       try {
         const stored = localStorage.getItem('vest_livery');
-        setLivery(stored === 'monza' || stored === 'senna' ? stored : 'normal');
+        setLivery(stored === 'monza' || stored === 'senna' || stored === 'verstappen' ? stored : 'normal');
       } catch {}
 
       // Boot sequence plays on every page load.
@@ -93,7 +93,9 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
             ? <WilliamsIntroOverlay cycle={cycle} />
             : livery === 'senna'
               ? <SennaIntroOverlay cycle={cycle} />
-              : <IntroOverlay cycle={cycle} />
+              : livery === 'verstappen'
+                ? <VerstappenIntroOverlay cycle={cycle} />
+                : <IntroOverlay cycle={cycle} />
         )}
       </AnimatePresence>
 
@@ -544,7 +546,7 @@ function IntroPhaseRail({
 }
 
 type RaceIntroTheme = {
-  id: 'w09' | 'williams' | 'senna';
+  id: 'w09' | 'williams' | 'senna' | 'verstappen';
   title: string;
   chassis: string;
   eyebrow: string;
@@ -658,6 +660,38 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
       'APEX TRACE AND BRAKE MARKERS LOADED',
       'THROTTLE MAP CLEAN FOR FLYING LAP',
       `${cycle} // SENNA FLYING LAP`,
+    ],
+  },
+  verstappen: {
+    id: 'verstappen',
+    title: 'VERSTAPPEN MV1',
+    chassis: 'VEStriPPN Dutch Lion',
+    eyebrow: 'Orange Attack Launch',
+    mode: 'Dutch Orange Navy White',
+    subtitle: 'Aggressive push-lap energy with a precise command cockpit handoff.',
+    bg: '#050b16',
+    accent: '#ff6b00',
+    secondary: '#ffffff',
+    tertiary: '#1d4ed8',
+    softText: '#fed7aa',
+    halo: 'rgba(255,107,0,0.66)',
+    stripe: 'linear-gradient(90deg, transparent, rgba(255,107,0,0.96), rgba(255,255,255,0.90), rgba(29,78,216,0.86), rgba(220,38,38,0.72), transparent)',
+    trackPath: 'M22 132 C50 68 112 40 170 58 C220 73 230 128 184 158 C132 192 162 234 240 224 C314 216 302 154 358 118 C426 74 506 108 500 170 C494 231 394 236 324 202 C270 176 234 144 170 172 C94 204 1 188 22 132Z',
+    metrics: [
+      { label: 'ATTACK', value: 'PUSH' },
+      { label: 'DELTA', value: 'PURPLE' },
+      { label: 'ORANGE', value: 'ARMED' },
+    ],
+    phases: [
+      { label: 'Dutch Line', value: 'Loaded' },
+      { label: 'Brake Bias', value: 'Forward' },
+      { label: 'Beast Mode', value: 'Released' },
+    ],
+    status: (cycle) => [
+      'ORANGE SIGNAL ARMED',
+      'DUTCH STRIPE AND PUSH MAP LOADED',
+      'OVERTAKE MODE READY FOR LAP ONE',
+      `${cycle} // VERSTAPPEN ATTACK LAP`,
     ],
   },
 };
@@ -1552,4 +1586,8 @@ function SennaIntroOverlay({ cycle }: { cycle: string }) {
       </div>
     </motion.div>
   );
+}
+
+function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
+  return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.verstappen} />;
 }

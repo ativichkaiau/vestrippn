@@ -6,13 +6,14 @@ import CitationPopover from '../../../components/w09/CitationPopover';
 import QuestionCard from '../../../components/w09/QuestionCard';
 import CaseStepper from '../../../components/w09/CaseStepper';
 
-type Livery = 'neutral' | 'monza' | 'esther' | 'senna';
+type Livery = 'neutral' | 'monza' | 'esther' | 'senna' | 'verstappen';
 
 const LIVERIES: { id: Livery; label: string }[] = [
   { id: 'neutral', label: 'Neutral' },
   { id: 'monza', label: 'Williams' },
   { id: 'esther', label: 'Esther Bunny' },
   { id: 'senna', label: 'Senna' },
+  { id: 'verstappen', label: 'Verstappen' },
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
