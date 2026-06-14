@@ -44,13 +44,12 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
   const pendingTaskCount = Array.isArray(cloudTasks) ? cloudTasks.filter((task) => !task.completed).length : 0;
 
   useEffect(() => {
-    let hideIntroTimer: number | undefined;
     const mountTimer = window.setTimeout(() => {
       setIsMounted(true);
       const currentHour = new Date().getHours();
       setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
 
-      // Pick livery before showing intro so the Williams variant can swap in.
+      // Pick livery before showing intro so special variants can swap in.
       try {
         const stored = localStorage.getItem('vest_livery');
         setLivery(stored === 'monza' || stored === 'senna' || stored === 'verstappen' ? stored : 'normal');
@@ -58,14 +57,18 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
 
       // Boot sequence plays on every page load.
       setShowIntro(true);
-      hideIntroTimer = window.setTimeout(() => setShowIntro(false), 7000);
     }, 0);
 
     return () => {
       window.clearTimeout(mountTimer);
-      if (hideIntroTimer) window.clearTimeout(hideIntroTimer);
     };
   }, []);
+
+  useEffect(() => {
+    if (!showIntro) return undefined;
+    const hideIntroTimer = window.setTimeout(() => setShowIntro(false), 7000);
+    return () => window.clearTimeout(hideIntroTimer);
+  }, [showIntro]);
 
   if (!isMounted) return <LoadingScreen />;
 
@@ -518,20 +521,20 @@ function IntroPhaseRail({
 }) {
   return (
     <motion.div
-      className="mt-8 grid w-[min(88vw,560px)] grid-cols-1 gap-2 sm:grid-cols-3"
+      className="mt-7 grid w-full max-w-2xl grid-cols-1 border border-white/10 bg-white/10 sm:grid-cols-3"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 3.05, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: 2.55, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
     >
       {phases.map((phase, i) => (
         <motion.div
           key={phase.label}
-          className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2.5 text-left shadow-[0_16px_42px_rgba(0,0,0,0.20)] backdrop-blur-md"
+          className="min-w-0 bg-black/45 px-3 py-2.5 text-left backdrop-blur-md"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 3.15 + i * 0.1, duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 2.65 + i * 0.08, duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="text-[8px] font-black uppercase tracking-[0.22em] text-neutral-500">{phase.label}</div>
+          <div className="font-mono text-[8px] font-black uppercase tracking-[0.22em] text-white/38">{phase.label}</div>
           <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px] font-black uppercase text-white">
             <span
               className="h-1.5 w-1.5 shrink-0 rounded-full"
@@ -760,20 +763,20 @@ function RaceTrackTrace({ theme, reduceMotion }: { theme: RaceIntroTheme; reduce
 function RaceIntroTelemetry({ theme }: { theme: RaceIntroTheme }) {
   return (
     <motion.div
-      className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3"
+      className="grid w-full grid-cols-3 border border-white/10 bg-white/10"
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 2.65, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: 2.28, duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
     >
       {theme.metrics.map((metric, i) => (
         <motion.div
           key={metric.label}
-          className="min-w-0 border border-white/10 bg-white/[0.045] px-3 py-2.5 text-left backdrop-blur-md"
+          className="min-w-0 bg-black/48 px-3 py-2.5 text-left backdrop-blur-md"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.78 + i * 0.1, duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 2.4 + i * 0.08, duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="text-[8px] font-black uppercase tracking-[0.24em] text-white/38">{metric.label}</div>
+          <div className="font-mono text-[8px] font-black uppercase tracking-[0.24em] text-white/38">{metric.label}</div>
           <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px] font-black uppercase text-white">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: theme.accent, boxShadow: `0 0 18px ${theme.halo}` }} />
             <span className="truncate">{metric.value}</span>
@@ -787,373 +790,245 @@ function RaceIntroTelemetry({ theme }: { theme: RaceIntroTheme }) {
 function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroTheme }) {
   const reduceMotion = useReducedMotion();
   const reduced = Boolean(reduceMotion);
-  const statuses = theme.status(cycle);
+  const statuses = [
+    ['01', 'Cockpit glass calibrated'],
+    ['02', 'Mission queue synchronized'],
+    ['03', `${cycle} // W09 ready`],
+  ];
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden px-4 py-4 text-white sm:py-8"
+      className="fixed inset-0 z-[200] overflow-hidden text-white"
       style={{ backgroundColor: theme.bg }}
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: reduced ? 1 : 1.035, filter: reduced ? 'none' : 'blur(8px)' }}
-      transition={{ duration: reduced ? 0.2 : 0.65, ease: [0.76, 0, 0.24, 1] }}
+      exit={{ opacity: 0, filter: reduced ? 'none' : 'blur(8px)' }}
+      transition={{ duration: reduced ? 0.18 : 0.62, ease: [0.76, 0, 0.24, 1] }}
     >
       <div
-        className="absolute inset-0 opacity-95"
+        className="absolute inset-0"
         style={{
           backgroundImage: [
-            `radial-gradient(circle at 18% -8%, ${theme.halo}, transparent 38%)`,
-            `radial-gradient(ellipse at 96% 4%, ${theme.tertiary}44, transparent 42%)`,
-            `linear-gradient(115deg, transparent 0 43%, ${theme.accent}26 43% 44%, transparent 44% 100%)`,
-            `linear-gradient(180deg, ${theme.bg} 0%, #020204 100%)`,
+            `radial-gradient(circle at 50% -18%, ${theme.halo}, transparent 31%)`,
+            `radial-gradient(ellipse at 90% 90%, ${theme.tertiary}24, transparent 44%)`,
+            'linear-gradient(180deg, rgba(255,255,255,0.035) 0%, transparent 26%)',
+            `linear-gradient(140deg, ${theme.bg} 0%, #020405 56%, #000 100%)`,
           ].join(', '),
         }}
       />
       <div
-        className="absolute inset-0 opacity-[0.13]"
+        className="absolute inset-0 opacity-[0.105]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.72) 1px, transparent 1px)',
-          backgroundSize: '72px 72px',
-          maskImage: 'radial-gradient(ellipse at center, #000 22%, transparent 76%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 22%, transparent 76%)',
+            'linear-gradient(rgba(255,255,255,0.72) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.58) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+          maskImage: 'linear-gradient(180deg, transparent 0%, #000 20%, #000 72%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 20%, #000 72%, transparent 100%)',
         }}
       />
       <motion.div
-        className="absolute left-[-12%] right-[-12%] top-[15%] h-12 -skew-y-6 sm:h-16"
-        style={{ background: theme.stripe }}
-        initial={{ x: '-110%', opacity: 0 }}
-        animate={reduced ? { x: '0%', opacity: 0.5 } : { x: ['-110%', '0%', '8%'], opacity: [0, 0.92, 0.58] }}
-        transition={{ delay: 0.28, duration: 1.4, ease: [0.76, 0, 0.24, 1] }}
+        className="absolute left-[-20%] top-[17%] h-px w-[140%]"
+        style={{ background: theme.stripe, boxShadow: `0 0 34px ${theme.halo}` }}
+        initial={{ scaleX: 0, opacity: 0, transformOrigin: '0% 50%' }}
+        animate={{ scaleX: 1, opacity: reduced ? 0.55 : [0, 0.95, 0.68] }}
+        transition={{ delay: 0.18, duration: reduced ? 0.1 : 1.18, ease: [0.76, 0, 0.24, 1] }}
       />
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-[2px]"
+        className="absolute bottom-[13%] left-[-18%] h-[2px] w-[136%]"
         style={{ background: theme.stripe }}
-        initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.25, duration: reduced ? 0.1 : 0.9, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ x: '-100%', opacity: 0 }}
+        animate={{ x: '0%', opacity: 0.7 }}
+        transition={{ delay: 0.52, duration: reduced ? 0.1 : 1.15, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute inset-y-0 left-[12%] w-px bg-white/12"
+        initial={{ scaleY: 0, opacity: 0 }}
+        animate={{ scaleY: 1, opacity: 1 }}
+        transition={{ delay: 0.42, duration: reduced ? 0.1 : 0.9, ease: [0.16, 1, 0.3, 1] }}
+      />
+      <motion.div
+        className="absolute inset-y-0 right-[13%] w-px bg-white/10"
+        initial={{ scaleY: 0, opacity: 0 }}
+        animate={{ scaleY: 1, opacity: 1 }}
+        transition={{ delay: 0.58, duration: reduced ? 0.1 : 0.9, ease: [0.16, 1, 0.3, 1] }}
       />
 
-      <div className="relative z-10 grid w-[min(94vw,1040px)] gap-3 sm:gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-        <motion.section
-          className="relative min-h-[300px] overflow-hidden border border-white/12 bg-black/28 p-4 shadow-[0_32px_110px_rgba(0,0,0,0.48)] backdrop-blur-xl sm:min-h-[430px] sm:p-6"
-          initial={{ opacity: 0, y: 22, scale: 0.985 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.15, duration: reduced ? 0.15 : 0.62, ease: [0.16, 1, 0.3, 1] }}
+      <div className="relative z-10 flex h-full flex-col justify-between px-5 py-6 sm:px-9 sm:py-8 lg:px-12">
+        <motion.header
+          className="flex items-start justify-between gap-5"
+          initial={{ opacity: 0, y: -14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38, duration: 0.46, ease: [0.16, 1, 0.3, 1] }}
         >
-          <RaceTrackTrace theme={theme} reduceMotion={reduced} />
-          <div className="relative z-10 flex h-full min-h-[268px] flex-col justify-between sm:min-h-[382px]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <motion.div
-                  className="text-[10px] font-black uppercase tracking-[0.32em]"
-                  style={{ color: theme.softText }}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.45, duration: 0.42 }}
-                >
-                  {theme.eyebrow}
-                </motion.div>
-                <motion.div
-                  className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/45"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.72, duration: 0.42 }}
-                >
-                  Race control handoff
-                </motion.div>
-              </div>
-              <RaceStartLights theme={theme} reduceMotion={reduced} />
+          <div>
+            <div className="font-mono text-[9px] font-black uppercase tracking-[0.34em]" style={{ color: theme.softText }}>
+              {theme.eyebrow}
             </div>
-
-            <div className="py-5 sm:py-10">
-              <motion.div
-                className="text-[12px] font-black uppercase tracking-[0.2em] text-white/52"
-                initial={{ opacity: 0, x: -18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {theme.chassis}
-              </motion.div>
-              <motion.h1
-                className="mt-2 max-w-[780px] text-[clamp(44px,11vw,104px)] font-black uppercase leading-[0.9] text-white"
-                initial={{ opacity: 0, y: 22 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.18, duration: reduced ? 0.15 : 0.68, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {theme.title}
-              </motion.h1>
-              <motion.div
-                className="mt-4 h-[3px] w-[min(78vw,520px)] origin-left"
-                style={{ background: theme.stripe, boxShadow: `0 0 24px ${theme.halo}` }}
-                initial={{ scaleX: 0, opacity: 0 }}
-                animate={{ scaleX: 1, opacity: 1 }}
-                transition={{ delay: 1.72, duration: reduced ? 0.1 : 0.85, ease: [0.16, 1, 0.3, 1] }}
-              />
-              <motion.p
-                className="mt-4 max-w-xl text-[13px] font-semibold leading-relaxed text-white/70 sm:text-[15px]"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.95, duration: 0.45 }}
-              >
-                {theme.subtitle}
-              </motion.p>
-            </div>
-
-            <div className="grid gap-2 sm:grid-cols-3">
-              {theme.phases.map((phase, i) => (
-                <motion.div
-                  key={phase.label}
-                  className="border-l-2 bg-white/[0.035] px-3 py-2.5"
-                  style={{ borderColor: i === 1 ? theme.secondary : theme.accent }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 2.15 + i * 0.1, duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <div className="text-[8px] font-black uppercase tracking-[0.24em] text-white/36">{phase.label}</div>
-                  <div className="mt-1 truncate text-[12px] font-black uppercase text-white">{phase.value}</div>
-                </motion.div>
-              ))}
-            </div>
+            <div className="mt-2 text-[11px] font-black uppercase tracking-[0.26em] text-white/42">Silver arrow calibration</div>
           </div>
-        </motion.section>
+          <RaceStartLights theme={theme} reduceMotion={reduced} />
+        </motion.header>
 
-        <motion.aside
-          className="border border-white/12 bg-black/36 p-3 shadow-[0_28px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-5"
-          initial={{ opacity: 0, x: 22 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.55, duration: reduced ? 0.15 : 0.58, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-[9px] font-black uppercase tracking-[0.28em] text-white/40">Livery Mode</div>
-              <div className="mt-2 text-xl font-black uppercase text-white">{theme.mode}</div>
-            </div>
-            <div
-              className="flex h-12 w-12 items-center justify-center border border-white/14 text-[18px] font-black"
-              style={{ color: theme.bg, background: theme.accent, boxShadow: `0 0 34px ${theme.halo}` }}
-            >
-              V
-            </div>
-          </div>
-
-          <div className="mt-4 sm:mt-6">
-            <RaceIntroTelemetry theme={theme} />
-          </div>
-
-          <div className="mt-4 h-[2px] overflow-hidden bg-white/10 sm:mt-6">
+        <main className="grid flex-1 items-center gap-8 py-6 lg:grid-cols-[0.88fr_1.12fr] lg:py-0">
+          <motion.section
+            className="min-w-0"
+            initial={{ opacity: 0, x: -28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.72, duration: reduced ? 0.15 : 0.68, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="font-mono text-[10px] font-black uppercase tracking-[0.32em] text-white/44">{theme.chassis}</div>
+            <h1 className="mt-3 text-[clamp(58px,13vw,148px)] font-black uppercase leading-[0.76] tracking-[-0.08em] text-white">
+              W09
+            </h1>
             <motion.div
-              className="h-full w-1/3"
-              style={{ background: theme.stripe }}
-              initial={{ x: '-120%' }}
-              animate={reduced ? { x: '180%' } : { x: ['-120%', '360%'] }}
-              transition={{ delay: 1.2, duration: reduced ? 0.1 : 3.8, ease: 'easeInOut' }}
+              className="mt-4 h-[3px] w-[min(82vw,560px)] origin-left"
+              style={{ background: theme.stripe, boxShadow: `0 0 26px ${theme.halo}` }}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              transition={{ delay: 1.24, duration: reduced ? 0.1 : 0.82, ease: [0.16, 1, 0.3, 1] }}
             />
-          </div>
+            <motion.div
+              className="mt-5 text-[clamp(22px,4.8vw,54px)] font-black uppercase leading-none tracking-[-0.04em]"
+              style={{ color: theme.accent }}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.42, duration: reduced ? 0.15 : 0.56, ease: [0.16, 1, 0.3, 1] }}
+            >
+              EQ Power+
+            </motion.div>
+            <motion.p
+              className="mt-5 max-w-xl text-sm font-semibold leading-7 text-white/60 sm:text-base"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.68, duration: 0.44 }}
+            >
+              {theme.subtitle}
+            </motion.p>
+            <IntroPhaseRail phases={theme.phases} accent={theme.accent} halo={theme.halo} />
+          </motion.section>
 
-          <div className="mt-4 h-9 overflow-hidden sm:mt-5 sm:h-10">
-            {statuses.map((status, i) => {
-              const isLast = i === statuses.length - 1;
-              return (
-                <motion.div
-                  key={status}
-                  className="absolute flex max-w-[min(80vw,360px)] items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-white/62"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={isLast || reduced ? { opacity: 1, y: 0 } : { opacity: [0, 1, 1, 0], y: [10, 0, 0, -8] }}
-                  transition={{
-                    delay: reduced ? 0.5 : 1.55 + i * 1.12,
-                    duration: isLast || reduced ? 0.5 : 1.18,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                >
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: isLast ? theme.accent : theme.tertiary }} />
-                  <span>{status}</span>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.aside>
+          <motion.section
+            className="relative min-h-[300px] overflow-hidden lg:min-h-[560px]"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.86, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <RaceTrackTrace theme={theme} reduceMotion={reduced} />
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `radial-gradient(ellipse at center, ${theme.halo}, transparent 44%)`,
+                opacity: 0.22,
+              }}
+            />
+            <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 820 520" aria-hidden>
+              <motion.path
+                d="M92 292 C206 206 335 179 505 209 C604 226 683 257 760 308"
+                fill="none"
+                stroke="rgba(255,255,255,0.18)"
+                strokeWidth="54"
+                strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ delay: 1.02, duration: reduced ? 0.1 : 1.15, ease: [0.16, 1, 0.3, 1] }}
+              />
+              <motion.path
+                d="M112 280 C238 214 361 198 496 225 C588 244 660 272 748 300"
+                fill="none"
+                stroke={theme.secondary}
+                strokeWidth="12"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.96 }}
+                transition={{ delay: 1.18, duration: reduced ? 0.1 : 1.05, ease: [0.16, 1, 0.3, 1] }}
+              />
+              <motion.path
+                d="M128 305 C268 258 380 253 486 270 C580 285 660 306 748 324"
+                fill="none"
+                stroke={theme.accent}
+                strokeWidth="7"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.95 }}
+                transition={{ delay: 1.46, duration: reduced ? 0.1 : 0.86, ease: [0.16, 1, 0.3, 1] }}
+              />
+              <motion.path
+                d="M258 244 L400 180 L594 226 L652 276 L448 296 L220 294 Z"
+                fill="rgba(255,255,255,0.055)"
+                stroke="rgba(255,255,255,0.34)"
+                strokeWidth="2"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.38, duration: reduced ? 0.1 : 0.58 }}
+              />
+              <motion.path
+                d="M360 186 L492 214 L420 250 Z"
+                fill={theme.accent}
+                opacity="0.78"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 1.72, duration: reduced ? 0.1 : 0.44, ease: [0.76, 0, 0.24, 1] }}
+                style={{ transformOrigin: '360px 218px' }}
+              />
+              {[250, 604].map((cx, i) => (
+                <motion.g key={cx} initial={{ scale: 0.72, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.58 + i * 0.12, duration: 0.42 }}>
+                  <circle cx={cx} cy="306" r="43" fill="#030506" stroke="rgba(255,255,255,0.44)" strokeWidth="8" />
+                  <circle cx={cx} cy="306" r="17" fill={theme.accent} opacity="0.82" />
+                </motion.g>
+              ))}
+              <motion.line
+                x1="88"
+                y1="156"
+                x2="768"
+                y2="156"
+                stroke={theme.accent}
+                strokeWidth="2"
+                strokeDasharray="10 18"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.64 }}
+                transition={{ delay: 2.05, duration: reduced ? 0.1 : 0.82 }}
+              />
+            </svg>
+
+            <motion.div
+              className="absolute bottom-2 right-0 w-[min(94vw,430px)] sm:bottom-9"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 2.18, duration: 0.45 }}
+            >
+              <RaceIntroTelemetry theme={theme} />
+            </motion.div>
+          </motion.section>
+        </main>
+
+        <motion.footer
+          className="grid gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-white/46 sm:grid-cols-3"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.9, duration: 0.45 }}
+        >
+          {statuses.map(([index, status], i) => (
+            <motion.div
+              key={index}
+              className="flex items-center gap-3 border-t border-white/12 pt-3"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 3.02 + i * 0.1, duration: 0.34 }}
+            >
+              <span style={{ color: i === statuses.length - 1 ? theme.accent : theme.secondary }}>{index}</span>
+              <span>{status}</span>
+            </motion.div>
+          ))}
+        </motion.footer>
       </div>
     </motion.div>
   );
-}
-
-function useRaceIntroSystem() {
-  return true;
 }
 
 /* ════════════════════════════════════════════════════════════
    INTRO OVERLAY — boot sequence (every page load, ~7s)
    ════════════════════════════════════════════════════════════ */
 function IntroOverlay({ cycle }: { cycle: string }) {
-  if (useRaceIntroSystem()) {
-    return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.w09} />;
-  }
-
-  const word = 'VESTRIPPN'.split('');
-  const status = [
-    { t: 'INITIALIZING W09 COMMAND SURFACE', at: 1.8 },
-    { t: 'SYNCING MISSION + TASK QUEUE', at: 3.2 },
-    { t: 'CALIBRATING STUDY / RESEARCH HUBS', at: 4.6 },
-    { t: `${cycle} // W09 READY`, at: 6.0 },
-  ];
-  const phases = [
-    { label: 'Focus', value: 'Current mission' },
-    { label: 'Queue', value: 'Planner tasks' },
-    { label: 'Access', value: 'Hub shortcuts' },
-  ];
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#050505] overflow-hidden"
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
-      transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
-    >
-      {/* Animated aurora — layered colored glows */}
-      <motion.div
-        className="absolute -top-[20%] -left-[10%] w-[55%] h-[55%] rounded-full blur-[140px] bg-gradient-to-br from-teal-400/40 to-cyan-500/30"
-        initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: [0, 0.9, 0.6, 0.9], scale: [0.6, 1.1, 1], x: [0, 40, 0], y: [0, 30, 0] }}
-        transition={{ duration: 7, ease: 'easeInOut', times: [0, 0.3, 0.6, 1] }}
-      />
-      <motion.div
-        className="absolute top-[8%] -right-[10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-gradient-to-br from-indigo-500/35 to-fuchsia-500/30"
-        initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: [0, 0.8, 0.55, 0.8], scale: [0.6, 1, 1.1], x: [0, -30, 0] }}
-        transition={{ duration: 7, ease: 'easeInOut', delay: 0.3 }}
-      />
-      <motion.div
-        className="absolute -bottom-[20%] left-[18%] w-[55%] h-[55%] rounded-full blur-[150px] bg-gradient-to-tr from-amber-400/25 to-rose-500/25"
-        initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: [0, 0.7, 0.5, 0.7], scale: [0.6, 1.1, 1], y: [0, -30, 0] }}
-        transition={{ duration: 7, ease: 'easeInOut', delay: 0.6 }}
-      />
-
-      {/* Telemetry grid */}
-      <div
-        className="absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-          backgroundSize: '46px 46px',
-          maskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 78%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 78%)',
-        }}
-      />
-
-      {/* Logo + Wordmark */}
-      <div className="relative z-10 flex flex-col items-center">
-        <motion.div
-          className="relative w-16 h-16 lg:w-20 lg:h-20 bg-white text-black rounded-2xl flex items-center justify-center text-[34px] lg:text-[42px] font-black mb-8 shadow-[0_0_60px_rgba(99,102,241,0.5)]"
-          initial={{ scale: 0, rotate: -120, opacity: 0 }}
-          animate={{ scale: 1, rotate: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 17, delay: 0.4 }}
-        >
-          <motion.span
-            className="absolute -inset-[3px] rounded-[18px] -z-10"
-            style={{ background: 'linear-gradient(120deg,#00d2be,#036b62)' }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-          />
-          V
-        </motion.div>
-
-        <div className="relative flex items-baseline tracking-tighter font-black text-[44px] sm:text-[64px] lg:text-[80px] leading-none">
-          {word.map((ch, i) => (
-            <motion.span
-              key={i}
-              className="text-white inline-block"
-              initial={{ y: 60, opacity: 0, rotateX: -90 }}
-              animate={{ y: 0, opacity: 1, rotateX: 0 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.9 + i * 0.09 }}
-            >
-              {ch}
-            </motion.span>
-          ))}
-          <motion.span
-            className="inline-block bg-clip-text text-transparent"
-            style={{ backgroundImage: 'linear-gradient(120deg, #00d2be, #036b62)' }}
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.9 }}
-          >
-            3.0
-          </motion.span>
-          {/* shimmer sweep across the wordmark */}
-          <motion.span
-            className="pointer-events-none absolute inset-0"
-            style={{ background: 'linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.5) 50%, transparent 62%)', mixBlendMode: 'overlay' }}
-            initial={{ x: '-130%', opacity: 0 }}
-            animate={{ x: '130%', opacity: [0, 1, 1, 0] }}
-            transition={{ delay: 2.2, duration: 1.2, ease: 'easeInOut' }}
-          />
-        </div>
-
-        <motion.div
-          className="mt-4 flex items-center gap-3 text-[10px] sm:text-[12px] font-bold uppercase tracking-[0.4em] text-neutral-500"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.3, duration: 0.5 }}
-        >
-          <span className="italic text-black bg-white px-3 py-1 rounded-[10px] tracking-tight">{'///AMG'}</span>
-          <span>
-            <span className="text-[#00A598]">W09</span>{' '}
-            <span
-              className="bg-clip-text text-transparent whitespace-nowrap"
-              style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}
-            >
-              EQ Power+
-            </span>
-          </span>
-        </motion.div>
-
-        <motion.div
-          className="mt-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-600"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.7, duration: 0.5 }}
-        >
-          Mission, study, research, planner
-        </motion.div>
-
-        <IntroPhaseRail phases={phases} accent="#00d2be" halo="rgba(0,210,190,0.72)" />
-
-        {/* Telemetry progress bar */}
-        <div className="mt-8 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(99,102,241,0.35)]">
-          <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg,#00d2be,#036b62)' }}
-            initial={{ width: '0%' }}
-            animate={{ width: ['0%', '38%', '64%', '100%'] }}
-            transition={{ delay: 1.6, duration: 4.6, ease: 'easeInOut', times: [0, 0.35, 0.7, 1] }}
-          />
-        </div>
-
-        {/* Boot status */}
-        <div className="mt-5 h-4 relative w-full text-center">
-          {status.map((s, i) => {
-            const isLast = i === status.length - 1;
-            return (
-              <motion.span
-                key={i}
-                className="absolute inset-0 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-400"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isLast ? [0, 1, 1] : [0, 1, 1, 0] }}
-                transition={{
-                  delay: s.at,
-                  duration: isLast ? 1.0 : 1.3,
-                  times: isLast ? [0, 0.4, 1] : [0, 0.2, 0.75, 1],
-                }}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isLast ? 'bg-teal-400' : 'bg-indigo-400'}`} />
-                {s.t}
-              </motion.span>
-            );
-          })}
-        </div>
-      </div>
-    </motion.div>
-  );
+  return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.w09} />;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1163,229 +1038,183 @@ function IntroOverlay({ cycle }: { cycle: string }) {
    and a generic bold sans-serif — not the trademarked logotype.
    ════════════════════════════════════════════════════════════ */
 function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
-  if (useRaceIntroSystem()) {
-    return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.williams} />;
-  }
-
-  const word = 'VESTRIPPN'.split('');
-  const status = [
-    { t: 'LOADING WILLIAMS LIVERY', at: 1.8 },
-    { t: 'ALIGNING HERITAGE TRIM', at: 3.2 },
-    { t: 'SYNCING MISSION HANDOFF', at: 4.6 },
-    { t: `${cycle} // WILLIAMS READY`, at: 6.0 },
-  ];
-  const phases = [
-    { label: 'Livery', value: 'Williams heritage' },
-    { label: 'Palette', value: 'Navy / gold / red' },
-    { label: 'Handoff', value: 'Mission ready' },
+  const reduceMotion = useReducedMotion();
+  const reduced = Boolean(reduceMotion);
+  const readouts = [
+    ['Garage', 'Heritage bay open'],
+    ['Stripe', 'White / brass / red'],
+    ['Release', `${cycle} ready`],
   ];
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
-      style={{ backgroundColor: '#0a0322' }}
+      className="fixed inset-0 z-[200] overflow-hidden bg-[#080316] text-white"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
-      transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+      exit={{ opacity: 0, filter: reduced ? 'none' : 'blur(10px)' }}
+      transition={{ duration: reduced ? 0.18 : 0.72, ease: [0.76, 0, 0.24, 1] }}
     >
-      {/* Navy base + pinstripes + gold/red ambient washes */}
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage:
-            'repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 7px), radial-gradient(circle at 28% -10%, rgba(197,153,85,0.32), transparent 48%), radial-gradient(ellipse at 105% 110%, rgba(213,23,45,0.20), transparent 55%), linear-gradient(180deg, #210e6f 0%, #0a0322 78%)',
+          backgroundImage: [
+            'linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)',
+            'linear-gradient(rgba(255,255,255,0.038) 1px, transparent 1px)',
+            'radial-gradient(circle at 17% 8%, rgba(197,153,85,0.28), transparent 34%)',
+            'radial-gradient(ellipse at 90% 92%, rgba(213,23,45,0.18), transparent 45%)',
+            'linear-gradient(135deg, #210e6f 0%, #0a0322 62%, #05010f 100%)',
+          ].join(', '),
+          backgroundSize: '52px 52px, 52px 52px, auto, auto, auto',
         }}
       />
-
-      {/* Gold + red trim bars sweep in along top & bottom edges */}
       <motion.div
-        className="absolute top-0 left-0 right-0 h-[3px]"
-        style={{ background: '#C59955' }}
-        initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.2, duration: 0.7, ease: 'easeOut' }}
-      />
-      <motion.div
-        className="absolute top-[4px] left-0 right-0 h-[2px]"
-        style={{ background: '#D5172D' }}
-        initial={{ scaleX: 0, transformOrigin: '100% 50%' }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.4, duration: 0.7, ease: 'easeOut' }}
-      />
-      <motion.div
-        className="absolute bottom-[4px] left-0 right-0 h-[2px]"
-        style={{ background: '#D5172D' }}
-        initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.4, duration: 0.7, ease: 'easeOut' }}
-      />
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 h-[3px]"
-        style={{ background: '#C59955' }}
-        initial={{ scaleX: 0, transformOrigin: '100% 50%' }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.2, duration: 0.7, ease: 'easeOut' }}
-      />
-
-      {/* Checkered-flag wedge sweeping in from the left */}
-      <motion.div
-        className="absolute top-1/2 -translate-y-1/2 left-0 h-40 w-40 sm:h-56 sm:w-56"
-        style={{
-          backgroundImage:
-            'repeating-conic-gradient(#ffffff 0deg 90deg, #0a0322 90deg 180deg)',
-          backgroundSize: '22px 22px',
-          maskImage: 'linear-gradient(90deg, #000, transparent 75%)',
-          WebkitMaskImage: 'linear-gradient(90deg, #000, transparent 75%)',
-          opacity: 0.22,
-        }}
+        className="absolute left-[-5%] top-[12%] h-[13vh] w-[115%] -skew-y-6 bg-white shadow-[0_26px_90px_rgba(255,255,255,0.22)]"
         initial={{ x: '-120%' }}
-        animate={{ x: '0%' }}
-        transition={{ delay: 0.6, duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+        animate={{ x: 0 }}
+        transition={{ delay: 0.1, duration: reduced ? 0.1 : 0.9, ease: [0.76, 0, 0.24, 1] }}
       />
       <motion.div
-        className="absolute top-1/2 -translate-y-1/2 right-0 h-40 w-40 sm:h-56 sm:w-56"
-        style={{
-          backgroundImage:
-            'repeating-conic-gradient(#ffffff 0deg 90deg, #0a0322 90deg 180deg)',
-          backgroundSize: '22px 22px',
-          maskImage: 'linear-gradient(270deg, #000, transparent 75%)',
-          WebkitMaskImage: 'linear-gradient(270deg, #000, transparent 75%)',
-          opacity: 0.22,
-        }}
+        className="absolute left-[-5%] top-[25%] h-[8px] w-[115%] -skew-y-6 bg-[#c59955]"
         initial={{ x: '120%' }}
-        animate={{ x: '0%' }}
-        transition={{ delay: 0.6, duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+        animate={{ x: 0 }}
+        transition={{ delay: 0.34, duration: reduced ? 0.1 : 0.74, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute left-[-5%] top-[27%] h-[5px] w-[115%] -skew-y-6 bg-[#d5172d]"
+        initial={{ x: '-120%' }}
+        animate={{ x: 0 }}
+        transition={{ delay: 0.48, duration: reduced ? 0.1 : 0.74, ease: [0.76, 0, 0.24, 1] }}
       />
 
-      {/* Logo + Wordmark */}
-      <div className="relative z-10 flex flex-col items-center">
-        <motion.div
-          className="relative w-16 h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center text-[34px] lg:text-[42px] font-black mb-8 shadow-[0_0_60px_rgba(197,153,85,0.55)]"
-          style={{ background: '#ffffff', color: '#210e6f' }}
-          initial={{ scale: 0, rotate: -120, opacity: 0 }}
-          animate={{ scale: 1, rotate: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 17, delay: 0.4 }}
+      <motion.div
+        className="absolute bottom-[-8%] right-[-4%] hidden text-[min(28vw,260px)] font-black leading-none text-white/[0.045] sm:block"
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.7, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      >
+        FW18
+      </motion.div>
+
+      <motion.div
+        className="absolute left-6 top-6 flex items-center gap-3 sm:left-10 sm:top-9"
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.62, duration: 0.48 }}
+      >
+        <span className="h-3 w-3 rounded-full bg-[#c59955] shadow-[0_0_28px_rgba(197,153,85,0.75)]" />
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-white/55">Heritage garage</span>
+      </motion.div>
+
+      <div className="relative z-10 grid h-full grid-rows-[1fr_auto] px-5 py-5 sm:px-10 sm:py-8 lg:grid-cols-[0.95fr_1.05fr] lg:grid-rows-1 lg:items-center">
+        <motion.section
+          className="flex min-h-0 flex-col justify-center pt-16 sm:pt-24 lg:pt-0"
+          initial={{ opacity: 0, x: -38 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.82, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
         >
-          <motion.span
-            className="absolute -inset-[3px] rounded-[18px] -z-10"
-            style={{ background: 'linear-gradient(120deg,#C59955,#D5172D)' }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-          />
-          V
-        </motion.div>
-
-        <div className="relative flex items-baseline tracking-tighter font-black text-[44px] sm:text-[64px] lg:text-[80px] leading-none">
-          {word.map((ch, i) => (
-            <motion.span
-              key={i}
-              className="text-white inline-block"
-              initial={{ y: 60, opacity: 0, rotateX: -90 }}
-              animate={{ y: 0, opacity: 1, rotateX: 0 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.9 + i * 0.09 }}
-            >
-              {ch}
-            </motion.span>
-          ))}
-          <motion.span
-            className="inline-block"
-            style={{ color: '#C59955' }}
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.9 }}
-          >
-            FW
-          </motion.span>
-          <motion.span
-            className="inline-block"
-            style={{ color: '#D5172D' }}
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 2.05 }}
-          >
-            18
-          </motion.span>
-          {/* shimmer sweep across the wordmark */}
-          <motion.span
-            className="pointer-events-none absolute inset-0"
-            style={{ background: 'linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.55) 50%, transparent 62%)', mixBlendMode: 'overlay' }}
-            initial={{ x: '-130%', opacity: 0 }}
-            animate={{ x: '130%', opacity: [0, 1, 1, 0] }}
-            transition={{ delay: 2.2, duration: 1.2, ease: 'easeInOut' }}
-          />
-        </div>
-
-        {/* Wing-band team reference — original layout, generic typography */}
-        <motion.div
-          className="mt-7 flex flex-col items-center"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.3, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="h-[2px] w-48 sm:w-64" style={{ background: '#C59955' }} />
-          <div
-            className="mt-[3px] px-6 py-1.5 text-[15px] sm:text-[19px] font-black tracking-tight"
-            style={{ color: '#210e6f', background: '#ffffff' }}
-          >
-            WILLIAMS
-          </div>
-          <div
-            className="mt-[3px] px-6 py-1 text-[11px] sm:text-[13px] font-black tracking-[0.22em]"
-            style={{ color: '#ffffff' }}
-          >
-            R E N A U L T
-          </div>
-          <div className="mt-[2px] h-[2px] w-48 sm:w-64" style={{ background: '#D5172D' }} />
-        </motion.div>
-
-        <motion.div
-          className="mt-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-400"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.7, duration: 0.5 }}
-        >
-          Williams special livery
-        </motion.div>
-
-        <IntroPhaseRail phases={phases} accent="#C59955" halo="rgba(197,153,85,0.74)" />
-
-        {/* Telemetry progress bar — gold→red */}
-        <div className="mt-8 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(197,153,85,0.4)]">
-          <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg,#C59955,#D5172D)' }}
-            initial={{ width: '0%' }}
-            animate={{ width: ['0%', '38%', '64%', '100%'] }}
-            transition={{ delay: 1.6, duration: 4.6, ease: 'easeInOut', times: [0, 0.35, 0.7, 1] }}
-          />
-        </div>
-
-        {/* Boot status */}
-        <div className="mt-5 h-4 relative w-full text-center">
-          {status.map((s, i) => {
-            const isLast = i === status.length - 1;
-            return (
+          <div className="font-mono text-[10px] font-black uppercase tracking-[0.32em] text-[#c59955]">Pit board release</div>
+          <h1 className="mt-4 text-[clamp(50px,12vw,132px)] font-black uppercase leading-[0.78] tracking-[-0.06em]">
+            Williams
+            <span className="block text-white/72">FW18</span>
+          </h1>
+          <div className="mt-6 flex w-[min(78vw,470px)] flex-col gap-2">
+            {['#ffffff', '#c59955', '#d5172d'].map((color, i) => (
               <motion.span
-                key={i}
-                className="absolute inset-0 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-400"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isLast ? [0, 1, 1] : [0, 1, 1, 0] }}
-                transition={{
-                  delay: s.at,
-                  duration: isLast ? 1.0 : 1.3,
-                  times: isLast ? [0, 0.4, 1] : [0, 0.2, 0.75, 1],
-                }}
+                key={color}
+                className="h-2 origin-left"
+                style={{ background: color }}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 1.05 + i * 0.16, duration: reduced ? 0.1 : 0.74, ease: [0.16, 1, 0.3, 1] }}
+              />
+            ))}
+          </div>
+          <p className="mt-6 max-w-lg text-sm font-semibold leading-7 text-white/58 sm:text-base">
+            Heritage livery armed like a garage door opening: quiet navy, white wing band, brass trim, red release line.
+          </p>
+        </motion.section>
+
+        <motion.section
+          className="relative flex min-h-[260px] items-center justify-center lg:min-h-[520px]"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.02, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <svg className="h-[min(48vh,390px)] w-[min(88vw,620px)] overflow-visible" viewBox="0 0 620 360" aria-hidden>
+            <motion.path
+              d="M70 248 C146 176 208 156 296 166 C378 176 438 208 540 226"
+              fill="none"
+              stroke="rgba(255,255,255,0.20)"
+              strokeWidth="42"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 1.12, duration: reduced ? 0.1 : 1.1, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <motion.path
+              d="M96 226 C176 150 280 136 390 180 C454 205 500 214 558 204"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="12"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 1.34, duration: reduced ? 0.1 : 1.0, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <motion.path
+              d="M116 247 C206 195 292 185 392 212 C444 225 490 232 548 225"
+              fill="none"
+              stroke="#c59955"
+              strokeWidth="8"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 1.56, duration: reduced ? 0.1 : 0.9, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <motion.path
+              d="M130 264 C224 231 300 225 388 244 C438 255 493 259 552 249"
+              fill="none"
+              stroke="#d5172d"
+              strokeWidth="5"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 1.72, duration: reduced ? 0.1 : 0.82, ease: [0.16, 1, 0.3, 1] }}
+            />
+            {[142, 474].map((cx, i) => (
+              <motion.g key={cx} initial={{ scale: 0.65, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.5 + i * 0.18, duration: 0.48 }}>
+                <circle cx={cx} cy="264" r="37" fill="#070216" stroke="#ffffff" strokeWidth="6" />
+                <circle cx={cx} cy="264" r="17" fill="#c59955" />
+              </motion.g>
+            ))}
+            <motion.rect x="402" y="134" width="86" height="18" fill="#ffffff" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 1.88, duration: 0.42 }} />
+            <motion.rect x="492" y="142" width="44" height="8" fill="#d5172d" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 2.02, duration: 0.32 }} />
+          </svg>
+
+          <div className="absolute bottom-2 right-0 grid w-[min(88vw,360px)] gap-2 sm:bottom-8">
+            {readouts.map(([label, value], i) => (
+              <motion.div
+                key={label}
+                className="flex items-center justify-between border border-white/12 bg-black/28 px-4 py-3 backdrop-blur-xl"
+                initial={{ opacity: 0, x: 28 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 2.08 + i * 0.12, duration: 0.38 }}
               >
-                <span
-                  className="w-1.5 h-1.5 rounded-full animate-pulse"
-                  style={{ background: isLast ? '#C59955' : '#D5172D' }}
-                />
-                {s.t}
-              </motion.span>
-            );
-          })}
-        </div>
+                <span className="font-mono text-[8px] font-black uppercase tracking-[0.24em] text-white/42">{label}</span>
+                <span className="truncate pl-4 text-[11px] font-black uppercase text-white">{value}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
       </div>
+
+      <motion.div
+        className="absolute bottom-5 left-5 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-white/42 sm:left-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2.75, duration: 0.45 }}
+      >
+        {`${cycle} // Williams iconic sequence`}
+      </motion.div>
     </motion.div>
   );
 }
@@ -1395,199 +1224,306 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
    Uses a generic motorsport tribute treatment, not a sponsor logotype.
    ════════════════════════════════════════════════════════════ */
 function SennaIntroOverlay({ cycle }: { cycle: string }) {
-  if (useRaceIntroSystem()) {
-    return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.senna} />;
-  }
-
-  const word = 'VESTRIPPN'.split('');
-  const status = [
-    { t: 'LOADING SENNA LIVERY', at: 1.8 },
-    { t: 'CALIBRATING FOCUS SIGNAL', at: 3.2 },
-    { t: 'SYNCING LAP-LINE HANDOFF', at: 4.6 },
-    { t: `${cycle} // SENNA READY`, at: 6.0 },
-  ];
-  const phases = [
-    { label: 'Livery', value: 'Senna special' },
-    { label: 'Signal', value: 'Focus line' },
-    { label: 'Flow', value: 'Rapid handoff' },
+  const reduceMotion = useReducedMotion();
+  const reduced = Boolean(reduceMotion);
+  const sectors = [
+    ['Sector 1', 'Brake marker'],
+    ['Sector 2', 'Apex rhythm'],
+    ['Sector 3', 'Exit clean'],
   ];
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
-      style={{ backgroundColor: '#061329' }}
+      className="fixed inset-0 z-[200] overflow-hidden bg-[#020712] text-white"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
-      transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+      exit={{ opacity: 0, filter: reduced ? 'none' : 'blur(10px)' }}
+      transition={{ duration: reduced ? 0.18 : 0.72, ease: [0.76, 0, 0.24, 1] }}
     >
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage:
-            'repeating-linear-gradient(90deg, rgba(255,212,0,0.06) 0, rgba(255,212,0,0.06) 1px, transparent 1px, transparent 14px), radial-gradient(circle at 22% -12%, rgba(255,212,0,0.36), transparent 42%), radial-gradient(ellipse at 104% 2%, rgba(31,111,235,0.32), transparent 46%), radial-gradient(ellipse at 12% 110%, rgba(0,166,81,0.28), transparent 50%), linear-gradient(180deg, #0d1b2a 0%, #061329 82%)',
+          backgroundImage: [
+            'radial-gradient(circle at 50% 18%, rgba(255,212,0,0.28), transparent 34%)',
+            'radial-gradient(ellipse at 92% 88%, rgba(31,111,235,0.22), transparent 42%)',
+            'radial-gradient(ellipse at 8% 92%, rgba(0,166,81,0.20), transparent 42%)',
+            'linear-gradient(180deg, #061329 0%, #020712 82%)',
+          ].join(', '),
         }}
       />
-
-      <motion.div
-        className="absolute left-[-18%] top-[18%] h-16 w-[140%] -rotate-6"
-        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,212,0,0.92), transparent)' }}
-        initial={{ x: '-100%', opacity: 0 }}
-        animate={{ x: '12%', opacity: [0, 1, 0.92] }}
-        transition={{ delay: 0.25, duration: 0.95, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div
-        className="absolute left-[-18%] top-[30%] h-7 w-[140%] -rotate-6"
-        style={{ background: 'linear-gradient(90deg, transparent, rgba(0,166,81,0.88), transparent)' }}
-        initial={{ x: '100%', opacity: 0 }}
-        animate={{ x: '-12%', opacity: [0, 1, 0.86] }}
-        transition={{ delay: 0.45, duration: 0.95, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div
-        className="absolute left-[-18%] top-[37%] h-5 w-[140%] -rotate-6"
-        style={{ background: 'linear-gradient(90deg, transparent, rgba(31,111,235,0.90), transparent)' }}
-        initial={{ x: '-100%', opacity: 0 }}
-        animate={{ x: '8%', opacity: [0, 1, 0.9] }}
-        transition={{ delay: 0.6, duration: 0.95, ease: [0.76, 0, 0.24, 1] }}
-      />
-
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(255,212,0,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(31,111,235,0.8) 1px, transparent 1px)',
+            'linear-gradient(rgba(255,255,255,0.62) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.62) 1px, transparent 1px)',
           backgroundSize: '42px 42px',
-          maskImage: 'radial-gradient(ellipse at center, #000 32%, transparent 80%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 32%, transparent 80%)',
+          maskImage: 'radial-gradient(ellipse at center, #000 20%, transparent 78%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 20%, transparent 78%)',
         }}
       />
 
-      <div className="relative z-10 flex flex-col items-center">
+      <motion.div
+        className="absolute left-[-10%] top-[13%] h-[12vh] w-[120%] -rotate-6 bg-[#ffd400]"
+        initial={{ x: '-110%', opacity: 0 }}
+        animate={{ x: '0%', opacity: 0.94 }}
+        transition={{ delay: 0.18, duration: reduced ? 0.1 : 0.9, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute left-[-10%] top-[26%] h-[5vh] w-[120%] -rotate-6 bg-[#00a651]"
+        initial={{ x: '110%', opacity: 0 }}
+        animate={{ x: '0%', opacity: 0.9 }}
+        transition={{ delay: 0.38, duration: reduced ? 0.1 : 0.82, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute left-[-10%] top-[32%] h-[3vh] w-[120%] -rotate-6 bg-[#1f6feb]"
+        initial={{ x: '-110%', opacity: 0 }}
+        animate={{ x: '0%', opacity: 0.86 }}
+        transition={{ delay: 0.54, duration: reduced ? 0.1 : 0.76, ease: [0.76, 0, 0.24, 1] }}
+      />
+
+      <div className="relative z-10 grid h-full place-items-center px-5 py-6">
         <motion.div
-          className="relative w-16 h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center text-[34px] lg:text-[42px] font-black mb-8 shadow-[0_0_60px_rgba(255,212,0,0.52)]"
-          style={{ background: '#ffd400', color: '#061329' }}
-          initial={{ scale: 0, rotate: -120, opacity: 0 }}
-          animate={{ scale: 1, rotate: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 17, delay: 0.4 }}
+          className="relative flex h-[min(74vh,680px)] w-[min(92vw,940px)] items-center justify-center"
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.72, duration: reduced ? 0.15 : 0.76, ease: [0.16, 1, 0.3, 1] }}
         >
-          <motion.span
-            className="absolute -inset-[3px] rounded-[18px] -z-10"
-            style={{ background: 'linear-gradient(120deg,#ffd400,#00a651,#1f6feb)' }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-          />
-          V
-        </motion.div>
-
-        <div className="relative flex items-baseline tracking-tighter font-black text-[44px] sm:text-[64px] lg:text-[80px] leading-none">
-          {word.map((ch, i) => (
-            <motion.span
-              key={i}
-              className="text-white inline-block"
-              initial={{ y: 60, opacity: 0, rotateX: -90 }}
-              animate={{ y: 0, opacity: 1, rotateX: 0 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.9 + i * 0.09 }}
-            >
-              {ch}
-            </motion.span>
-          ))}
-          <motion.span
-            className="inline-block"
-            style={{ color: '#ffd400' }}
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.9 }}
-          >
-            S
-          </motion.span>
-          <motion.span
-            className="inline-block"
-            style={{ color: '#00a651' }}
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 2.05 }}
-          >
-            1
-          </motion.span>
-          <motion.span
-            className="pointer-events-none absolute inset-0"
-            style={{ background: 'linear-gradient(105deg, transparent 38%, rgba(255,212,0,0.48) 50%, transparent 62%)', mixBlendMode: 'screen' }}
-            initial={{ x: '-130%', opacity: 0 }}
-            animate={{ x: '130%', opacity: [0, 1, 1, 0] }}
-            transition={{ delay: 2.2, duration: 1.2, ease: 'easeInOut' }}
-          />
-        </div>
-
-        <motion.div
-          className="mt-7 flex flex-col items-center"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.3, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="h-[3px] w-52 sm:w-72" style={{ background: 'linear-gradient(90deg,#ffd400,#00a651,#1f6feb)' }} />
-          <div
-            className="mt-[4px] px-7 py-1.5 text-[15px] sm:text-[20px] font-black tracking-[0.28em]"
-            style={{ color: '#061329', background: '#ffd400' }}
-          >
-            SENNA
-          </div>
-          <div
-            className="mt-[4px] px-6 py-1 text-[10px] sm:text-[12px] font-black tracking-[0.24em]"
-            style={{ color: '#a7f3c7' }}
-          >
-            YELLOW GREEN BLUE
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="mt-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-400"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.7, duration: 0.5 }}
-        >
-          Precision focus livery
-        </motion.div>
-
-        <IntroPhaseRail phases={phases} accent="#ffd400" halo="rgba(255,212,0,0.70)" />
-
-        <div className="mt-8 h-[3px] w-56 sm:w-72 bg-white/10 rounded-full overflow-hidden shadow-[0_0_22px_rgba(255,212,0,0.42)]">
           <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg,#ffd400,#00a651,#1f6feb)' }}
-            initial={{ width: '0%' }}
-            animate={{ width: ['0%', '38%', '64%', '100%'] }}
-            transition={{ delay: 1.6, duration: 4.6, ease: 'easeInOut', times: [0, 0.35, 0.7, 1] }}
+            className="absolute h-[min(70vw,520px)] w-[min(70vw,520px)] rounded-full bg-[#ffd400] shadow-[0_0_120px_rgba(255,212,0,0.36)]"
+            initial={{ clipPath: 'inset(0 100% 0 0)' }}
+            animate={{ clipPath: 'inset(0 0% 0 0)' }}
+            transition={{ delay: 0.9, duration: reduced ? 0.1 : 0.84, ease: [0.76, 0, 0.24, 1] }}
           />
-        </div>
+          <motion.div
+            className="absolute h-[min(53vw,390px)] w-[min(68vw,520px)] rounded-[999px] bg-[#020712] shadow-[inset_0_0_42px_rgba(255,255,255,0.10)]"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 1.18, duration: reduced ? 0.1 : 0.68, ease: [0.76, 0, 0.24, 1] }}
+          />
+          <motion.div
+            className="absolute h-[min(16vw,105px)] w-[min(62vw,470px)] -rotate-3 rounded-full bg-gradient-to-r from-[#00a651] via-[#ffd400] to-[#1f6feb]"
+            initial={{ x: '-110%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 1.45, duration: reduced ? 0.1 : 0.72, ease: [0.16, 1, 0.3, 1] }}
+          />
+          <motion.div
+            className="absolute h-[min(13vw,82px)] w-[min(54vw,410px)] -rotate-3 rounded-full bg-black/88"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 1.68, duration: reduced ? 0.1 : 0.48, ease: [0.76, 0, 0.24, 1] }}
+          />
 
-        <div className="mt-5 h-4 relative w-full text-center">
-          {status.map((s, i) => {
-            const isLast = i === status.length - 1;
-            return (
-              <motion.span
-                key={i}
-                className="absolute inset-0 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-300"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isLast ? [0, 1, 1] : [0, 1, 1, 0] }}
-                transition={{
-                  delay: s.at,
-                  duration: isLast ? 1.0 : 1.3,
-                  times: isLast ? [0, 0.4, 1] : [0, 0.2, 0.75, 1],
-                }}
-              >
-                <span
-                  className="w-1.5 h-1.5 rounded-full animate-pulse"
-                  style={{ background: isLast ? '#ffd400' : '#1f6feb' }}
-                />
-                {s.t}
-              </motion.span>
-            );
-          })}
-        </div>
+          <motion.div
+            className="relative z-10 text-center"
+            initial={{ opacity: 0, y: 26 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.95, duration: 0.56, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="font-mono text-[10px] font-black uppercase tracking-[0.38em] text-[#a7f3c7]">Visor focus sequence</div>
+            <h1 className="mt-3 text-[clamp(56px,15vw,148px)] font-black uppercase leading-[0.82] tracking-[-0.08em] text-white">
+              Senna
+            </h1>
+            <div className="mt-4 text-[11px] font-black uppercase tracking-[0.32em] text-white/52">{`${cycle} // apex memory armed`}</div>
+          </motion.div>
+
+          <svg className="absolute bottom-[8%] h-[120px] w-[min(86vw,620px)]" viewBox="0 0 620 120" aria-hidden>
+            <motion.path
+              d="M20 78 C112 12 168 95 240 52 C304 14 354 68 410 58 C478 46 512 30 600 68"
+              fill="none"
+              stroke="#ffd400"
+              strokeWidth="4"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.9 }}
+              transition={{ delay: 2.2, duration: reduced ? 0.1 : 1.1, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <motion.path
+              d="M20 94 C124 48 168 104 262 74 C345 47 401 87 600 82"
+              fill="none"
+              stroke="#00a651"
+              strokeWidth="3"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.72 }}
+              transition={{ delay: 2.42, duration: reduced ? 0.1 : 0.9, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </svg>
+        </motion.div>
+
+        <motion.div
+          className="absolute bottom-6 left-5 right-5 grid gap-2 sm:left-10 sm:right-10 sm:grid-cols-3"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.62, duration: 0.5 }}
+        >
+          {sectors.map(([label, value]) => (
+            <div key={label} className="border border-white/10 bg-black/28 px-4 py-3 backdrop-blur-xl">
+              <div className="font-mono text-[8px] font-black uppercase tracking-[0.24em] text-white/36">{label}</div>
+              <div className="mt-1 text-[12px] font-black uppercase text-white">{value}</div>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </motion.div>
   );
 }
 
 function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
-  return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.verstappen} />;
+  const reduceMotion = useReducedMotion();
+  const reduced = Boolean(reduceMotion);
+  const telemetry = [
+    ['Delta', '-0.318'],
+    ['Mode', 'Attack'],
+    ['ERS', 'Full send'],
+  ];
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[200] overflow-hidden bg-[#030712] text-white"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, filter: reduced ? 'none' : 'blur(10px)' }}
+      transition={{ duration: reduced ? 0.18 : 0.72, ease: [0.76, 0, 0.24, 1] }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: [
+            'radial-gradient(circle at 28% 18%, rgba(255,107,0,0.36), transparent 34%)',
+            'radial-gradient(ellipse at 82% 86%, rgba(29,78,216,0.24), transparent 44%)',
+            'linear-gradient(145deg, #061a3a 0%, #030712 68%)',
+          ].join(', '),
+        }}
+      />
+      <motion.div
+        className="absolute left-[-18%] top-[-10%] h-[125%] w-[34%] rotate-12 bg-[#ff6b00] shadow-[0_0_110px_rgba(255,107,0,0.45)]"
+        initial={{ y: '-120%' }}
+        animate={{ y: '0%' }}
+        transition={{ delay: 0.08, duration: reduced ? 0.1 : 0.82, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute right-[-12%] top-[9%] h-[9vh] w-[70%] -rotate-12 bg-white/95"
+        initial={{ x: '120%' }}
+        animate={{ x: 0 }}
+        transition={{ delay: 0.28, duration: reduced ? 0.1 : 0.76, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute right-[-12%] top-[19%] h-[5vh] w-[70%] -rotate-12 bg-[#1d4ed8]"
+        initial={{ x: '-120%' }}
+        animate={{ x: 0 }}
+        transition={{ delay: 0.42, duration: reduced ? 0.1 : 0.7, ease: [0.76, 0, 0.24, 1] }}
+      />
+      <motion.div
+        className="absolute right-[-12%] top-[26%] h-[3vh] w-[70%] -rotate-12 bg-[#dc2626]"
+        initial={{ x: '120%' }}
+        animate={{ x: 0 }}
+        transition={{ delay: 0.54, duration: reduced ? 0.1 : 0.64, ease: [0.76, 0, 0.24, 1] }}
+      />
+
+      <div
+        className="absolute inset-0 opacity-[0.10]"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(90deg, rgba(255,255,255,0.55) 0, rgba(255,255,255,0.55) 1px, transparent 1px, transparent 24px)',
+        }}
+      />
+
+      <div className="relative z-10 grid h-full place-items-center px-5 py-6">
+        <motion.div
+          className="relative h-[min(82vh,760px)] w-[min(94vw,1100px)]"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.68, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 1100 760" aria-hidden>
+            <defs>
+              <linearGradient id="mvGauge" x1="0" x2="1">
+                <stop offset="0%" stopColor="#ff6b00" />
+                <stop offset="54%" stopColor="#ffffff" />
+                <stop offset="100%" stopColor="#1d4ed8" />
+              </linearGradient>
+            </defs>
+            <circle cx="550" cy="390" r="250" fill="rgba(3,7,18,0.50)" stroke="rgba(255,255,255,0.12)" strokeWidth="34" />
+            <motion.path
+              d="M314 472 A250 250 0 1 1 786 472"
+              fill="none"
+              stroke="url(#mvGauge)"
+              strokeWidth="22"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 0.94, duration: reduced ? 0.1 : 1.25, ease: [0.16, 1, 0.3, 1] }}
+            />
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((tick) => {
+              const angle = -142 + tick * 35.5;
+              return (
+                <motion.line
+                  key={tick}
+                  x1="550"
+                  y1="138"
+                  x2="550"
+                  y2="180"
+                  stroke={tick > 5 ? '#ff6b00' : 'rgba(255,255,255,0.68)'}
+                  strokeWidth={tick > 5 ? 8 : 5}
+                  strokeLinecap="round"
+                  transform={`rotate(${angle} 550 390)`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.18 + tick * 0.055, duration: 0.24 }}
+                />
+              );
+            })}
+            <motion.line
+              x1="550"
+              y1="390"
+              x2="550"
+              y2="186"
+              stroke="#ff6b00"
+              strokeWidth="12"
+              strokeLinecap="round"
+              initial={{ rotate: -118, opacity: 0 }}
+              animate={{ rotate: reduced ? 34 : [-118, 44, 30], opacity: 1 }}
+              transition={{ delay: 1.48, duration: reduced ? 0.1 : 1.22, ease: [0.76, 0, 0.24, 1] }}
+              style={{ transformOrigin: '550px 390px', filter: 'drop-shadow(0 0 18px rgba(255,107,0,0.72))' }}
+            />
+            <circle cx="550" cy="390" r="24" fill="#ff6b00" />
+          </svg>
+
+          <motion.div
+            className="absolute inset-0 flex flex-col items-center justify-center text-center"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.78, duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="font-mono text-[10px] font-black uppercase tracking-[0.38em] text-orange-200">Dutch attack sequence</div>
+            <h1 className="mt-3 text-[clamp(72px,18vw,186px)] font-black uppercase leading-[0.76] tracking-[-0.09em]">
+              MV1
+            </h1>
+            <div className="mt-3 text-[clamp(22px,5vw,52px)] font-black uppercase tracking-[-0.04em] text-[#ff6b00]">
+              Verstappen
+            </div>
+            <div className="mt-4 text-[10px] font-black uppercase tracking-[0.34em] text-white/52">{`${cycle} // beast mode released`}</div>
+          </motion.div>
+
+          <motion.div
+            className="absolute bottom-2 left-0 right-0 mx-auto grid max-w-3xl gap-2 sm:grid-cols-3"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 2.52, duration: 0.46 }}
+          >
+            {telemetry.map(([label, value], i) => (
+              <motion.div
+                key={label}
+                className="border border-orange-300/20 bg-black/34 px-4 py-3 text-center backdrop-blur-xl"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 2.62 + i * 0.09, duration: 0.32 }}
+              >
+                <div className="font-mono text-[8px] font-black uppercase tracking-[0.24em] text-white/38">{label}</div>
+                <div className="mt-1 text-[13px] font-black uppercase text-white">{value}</div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
 }
