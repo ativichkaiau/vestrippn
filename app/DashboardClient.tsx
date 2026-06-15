@@ -562,7 +562,6 @@ type RaceIntroTheme = {
   softText: string;
   halo: string;
   stripe: string;
-  trackPath: string;
   metrics: { label: string; value: string }[];
   phases: { label: string; value: string }[];
   status: (cycle: string) => string[];
@@ -583,7 +582,6 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     softText: '#b9fff4',
     halo: 'rgba(0,210,190,0.58)',
     stripe: 'linear-gradient(90deg, transparent, rgba(217,226,234,0.92), rgba(0,210,190,0.88), transparent)',
-    trackPath: 'M14 124 C74 30 164 34 178 105 C190 164 273 159 302 90 C334 12 460 30 492 104 C517 161 436 199 340 176 C238 151 189 207 112 188 C58 175 36 155 14 124Z',
     metrics: [
       { label: 'ERS', value: 'DEPLOY' },
       { label: 'DRS', value: 'READY' },
@@ -615,7 +613,6 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     softText: '#f3e3c6',
     halo: 'rgba(197,153,85,0.62)',
     stripe: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.92), rgba(197,153,85,0.88), rgba(213,23,45,0.74), transparent)',
-    trackPath: 'M28 94 C76 42 145 32 184 70 C222 108 184 164 242 184 C299 203 315 126 369 92 C421 59 482 84 495 130 C511 187 441 216 364 188 C303 166 267 221 183 205 C88 187 3 149 28 94Z',
     metrics: [
       { label: 'GARAGE', value: 'CLEAR' },
       { label: 'RADIO', value: 'CHECK' },
@@ -647,7 +644,6 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     softText: '#fff3b8',
     halo: 'rgba(255,212,0,0.60)',
     stripe: 'linear-gradient(90deg, transparent, rgba(255,212,0,0.95), rgba(0,166,81,0.84), rgba(31,111,235,0.80), transparent)',
-    trackPath: 'M18 160 C70 70 151 44 211 75 C266 104 222 166 279 190 C345 218 382 124 448 106 C500 92 533 142 494 184 C441 242 333 218 255 230 C145 246 70 224 18 160Z',
     metrics: [
       { label: 'APEX', value: 'TRACE' },
       { label: 'THROTTLE', value: 'CLEAN' },
@@ -679,7 +675,6 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     softText: '#fed7aa',
     halo: 'rgba(255,107,0,0.66)',
     stripe: 'linear-gradient(90deg, transparent, rgba(255,107,0,0.96), rgba(255,255,255,0.90), rgba(29,78,216,0.86), rgba(220,38,38,0.72), transparent)',
-    trackPath: 'M22 132 C50 68 112 40 170 58 C220 73 230 128 184 158 C132 192 162 234 240 224 C314 216 302 154 358 118 C426 74 506 108 500 170 C494 231 394 236 324 202 C270 176 234 144 170 172 C94 204 1 188 22 132Z',
     metrics: [
       { label: 'ATTACK', value: 'PUSH' },
       { label: 'DELTA', value: 'PURPLE' },
@@ -721,42 +716,6 @@ function RaceStartLights({ theme, reduceMotion }: { theme: RaceIntroTheme; reduc
         />
       ))}
     </div>
-  );
-}
-
-function RaceTrackTrace({ theme, reduceMotion }: { theme: RaceIntroTheme; reduceMotion: boolean }) {
-  return (
-    <svg className="absolute inset-0 h-full w-full opacity-70" viewBox="0 0 520 260" aria-hidden>
-      <motion.path
-        d={theme.trackPath}
-        fill="none"
-        stroke="rgba(255,255,255,0.16)"
-        strokeWidth="24"
-        strokeLinecap="round"
-      />
-      <motion.path
-        d={theme.trackPath}
-        fill="none"
-        stroke={theme.accent}
-        strokeWidth="3"
-        strokeLinecap="round"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={reduceMotion ? { pathLength: 1, opacity: 0.78 } : { pathLength: [0, 1], opacity: [0, 0.92, 0.72] }}
-        transition={{ delay: 0.9, duration: 2.6, ease: [0.16, 1, 0.3, 1] }}
-      />
-      <motion.path
-        d={theme.trackPath}
-        fill="none"
-        stroke={theme.secondary}
-        strokeDasharray="3 18"
-        strokeWidth="8"
-        strokeLinecap="round"
-        initial={{ pathOffset: 0 }}
-        animate={reduceMotion ? { pathOffset: 0 } : { pathOffset: [0, -1] }}
-        transition={{ delay: 1.4, duration: 3.8, ease: 'linear' }}
-        opacity="0.42"
-      />
-    </svg>
   );
 }
 
@@ -912,7 +871,6 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.86, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
           >
-            <RaceTrackTrace theme={theme} reduceMotion={reduced} />
             <div
               className="absolute inset-0"
               style={{
@@ -920,29 +878,43 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
                 opacity: 0.22,
               }}
             />
+            <motion.div
+              className="absolute left-[8%] right-[4%] top-[22%] h-px bg-white/18"
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              transition={{ delay: 1.0, duration: reduced ? 0.1 : 0.8, ease: [0.16, 1, 0.3, 1] }}
+              style={{ transformOrigin: '0% 50%' }}
+            />
+            <motion.div
+              className="absolute bottom-[24%] left-[4%] right-[8%] h-px"
+              style={{ background: theme.stripe }}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 0.8 }}
+              transition={{ delay: 1.2, duration: reduced ? 0.1 : 0.82, ease: [0.16, 1, 0.3, 1] }}
+            />
             <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 820 520" aria-hidden>
               <motion.path
-                d="M92 292 C206 206 335 179 505 209 C604 226 683 257 760 308"
+                d="M112 292 L226 224 L392 198 L568 232 L736 302"
                 fill="none"
                 stroke="rgba(255,255,255,0.18)"
-                strokeWidth="54"
+                strokeWidth="52"
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ delay: 1.02, duration: reduced ? 0.1 : 1.15, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: 1.02, duration: reduced ? 0.1 : 0.92, ease: [0.16, 1, 0.3, 1] }}
               />
               <motion.path
-                d="M112 280 C238 214 361 198 496 225 C588 244 660 272 748 300"
+                d="M124 280 L250 230 L396 214 L540 238 L740 292"
                 fill="none"
                 stroke={theme.secondary}
                 strokeWidth="12"
                 strokeLinecap="round"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 0.96 }}
-                transition={{ delay: 1.18, duration: reduced ? 0.1 : 1.05, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: 1.18, duration: reduced ? 0.1 : 0.82, ease: [0.16, 1, 0.3, 1] }}
               />
               <motion.path
-                d="M128 305 C268 258 380 253 486 270 C580 285 660 306 748 324"
+                d="M132 314 L278 278 L434 278 L594 302 L742 324"
                 fill="none"
                 stroke={theme.accent}
                 strokeWidth="7"
@@ -952,7 +924,7 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
                 transition={{ delay: 1.46, duration: reduced ? 0.1 : 0.86, ease: [0.16, 1, 0.3, 1] }}
               />
               <motion.path
-                d="M258 244 L400 180 L594 226 L652 276 L448 296 L220 294 Z"
+                d="M242 252 L398 184 L594 226 L666 278 L452 298 L210 294 Z"
                 fill="rgba(255,255,255,0.055)"
                 stroke="rgba(255,255,255,0.34)"
                 strokeWidth="2"
@@ -961,13 +933,23 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
                 transition={{ delay: 1.38, duration: reduced ? 0.1 : 0.58 }}
               />
               <motion.path
-                d="M360 186 L492 214 L420 250 Z"
+                d="M354 188 L494 214 L418 252 Z"
                 fill={theme.accent}
                 opacity="0.78"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 1.72, duration: reduced ? 0.1 : 0.44, ease: [0.76, 0, 0.24, 1] }}
                 style={{ transformOrigin: '360px 218px' }}
+              />
+              <motion.path
+                d="M254 252 L154 224 M594 226 L710 204 M404 184 L404 134 M450 298 L450 372"
+                fill="none"
+                stroke="rgba(255,255,255,0.18)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ delay: 1.95, duration: reduced ? 0.1 : 0.72, ease: [0.16, 1, 0.3, 1] }}
               />
               {[250, 604].map((cx, i) => (
                 <motion.g key={cx} initial={{ scale: 0.72, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.58 + i * 0.12, duration: 0.42 }}>
@@ -1393,30 +1375,34 @@ function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
           ].join(', '),
         }}
       />
-      <motion.div
-        className="absolute left-[-18%] top-[-10%] h-[125%] w-[34%] rotate-12 bg-[#ff6b00] shadow-[0_0_110px_rgba(255,107,0,0.45)]"
-        initial={{ y: '-120%' }}
-        animate={{ y: '0%' }}
-        transition={{ delay: 0.08, duration: reduced ? 0.1 : 0.82, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div
-        className="absolute right-[-12%] top-[9%] h-[9vh] w-[70%] -rotate-12 bg-white/95"
-        initial={{ x: '120%' }}
-        animate={{ x: 0 }}
-        transition={{ delay: 0.28, duration: reduced ? 0.1 : 0.76, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div
-        className="absolute right-[-12%] top-[19%] h-[5vh] w-[70%] -rotate-12 bg-[#1d4ed8]"
-        initial={{ x: '-120%' }}
-        animate={{ x: 0 }}
-        transition={{ delay: 0.42, duration: reduced ? 0.1 : 0.7, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div
-        className="absolute right-[-12%] top-[26%] h-[3vh] w-[70%] -rotate-12 bg-[#dc2626]"
-        initial={{ x: '120%' }}
-        animate={{ x: 0 }}
-        transition={{ delay: 0.54, duration: reduced ? 0.1 : 0.64, ease: [0.76, 0, 0.24, 1] }}
-      />
+      <div className="absolute left-[-18%] top-[-10%] h-[125%] w-[34%] rotate-12">
+        <motion.div
+          className="h-full w-full bg-[#ff6b00] shadow-[0_0_110px_rgba(255,107,0,0.45)]"
+          initial={{ y: '-120%' }}
+          animate={{ y: '0%' }}
+          transition={{ delay: 0.08, duration: reduced ? 0.1 : 0.82, ease: [0.76, 0, 0.24, 1] }}
+        />
+      </div>
+      <div className="absolute right-[-15%] top-[8%] w-[76%] -rotate-12">
+        <motion.div
+          className="h-[clamp(44px,9vh,76px)] bg-white/95"
+          initial={{ x: '120%' }}
+          animate={{ x: 0 }}
+          transition={{ delay: 0.28, duration: reduced ? 0.1 : 0.76, ease: [0.76, 0, 0.24, 1] }}
+        />
+        <motion.div
+          className="mt-2 h-[clamp(24px,5vh,44px)] bg-[#1d4ed8]"
+          initial={{ x: '-120%' }}
+          animate={{ x: 0 }}
+          transition={{ delay: 0.42, duration: reduced ? 0.1 : 0.7, ease: [0.76, 0, 0.24, 1] }}
+        />
+        <motion.div
+          className="mt-2 h-[clamp(16px,3vh,28px)] bg-[#dc2626]"
+          initial={{ x: '120%' }}
+          animate={{ x: 0 }}
+          transition={{ delay: 0.54, duration: reduced ? 0.1 : 0.64, ease: [0.76, 0, 0.24, 1] }}
+        />
+      </div>
 
       <div
         className="absolute inset-0 opacity-[0.10]"
@@ -1428,7 +1414,7 @@ function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
 
       <div className="relative z-10 grid h-full place-items-center px-5 py-6">
         <motion.div
-          className="relative h-[min(82vh,760px)] w-[min(94vw,1100px)]"
+          className="relative h-[min(74vh,680px)] w-[min(94vw,1080px)]"
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.68, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
@@ -1488,7 +1474,7 @@ function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
           </svg>
 
           <motion.div
-            className="absolute inset-0 flex flex-col items-center justify-center text-center"
+            className="absolute inset-x-0 top-[40%] z-10 flex -translate-y-1/2 flex-col items-center justify-center text-center"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.78, duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
@@ -1504,7 +1490,7 @@ function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
           </motion.div>
 
           <motion.div
-            className="absolute bottom-2 left-0 right-0 mx-auto grid max-w-3xl gap-2 sm:grid-cols-3"
+            className="absolute bottom-0 left-0 right-0 z-20 mx-auto grid max-w-3xl gap-2 sm:grid-cols-3"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 2.52, duration: 0.46 }}
