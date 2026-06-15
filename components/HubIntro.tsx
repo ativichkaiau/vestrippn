@@ -125,6 +125,7 @@ export default function HubIntro({
       style={{ backgroundColor: 'var(--hub-bg)' }}
       data-motion="hero"
       data-hub={hub ?? 'overview'}
+      data-no-typewriter
     >
       {/* atmosphere */}
       <div

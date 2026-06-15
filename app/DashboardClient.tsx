@@ -1031,6 +1031,7 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
   return (
     <motion.div
       className="fixed inset-0 z-[200] overflow-hidden bg-[#080316] text-white"
+      data-livery-intro="williams"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, filter: reduced ? 'none' : 'blur(10px)' }}
       transition={{ duration: reduced ? 0.18 : 0.72, ease: [0.76, 0, 0.24, 1] }}
@@ -1068,7 +1069,7 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
       />
 
       <motion.div
-        className="absolute bottom-[-8%] right-[-4%] hidden text-[min(28vw,260px)] font-black leading-none text-white/[0.045] sm:block"
+        className="absolute bottom-[3%] right-[2%] hidden text-[min(22vw,220px)] font-black leading-none text-white/[0.04] sm:block"
         initial={{ opacity: 0, x: 60 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.7, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -1077,28 +1078,28 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
       </motion.div>
 
       <motion.div
-        className="absolute left-6 top-6 flex items-center gap-3 sm:left-10 sm:top-9"
+        className="absolute left-5 right-5 top-5 flex min-w-0 items-center gap-3 sm:left-10 sm:right-auto sm:top-9"
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.62, duration: 0.48 }}
       >
-        <span className="h-3 w-3 rounded-full bg-[#c59955] shadow-[0_0_28px_rgba(197,153,85,0.75)]" />
-        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-white/55">Heritage garage</span>
+        <span className="h-3 w-3 shrink-0 rounded-full bg-[#c59955] shadow-[0_0_28px_rgba(197,153,85,0.75)]" />
+        <span className="min-w-0 truncate font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-white/55 sm:tracking-[0.28em]">Heritage garage</span>
       </motion.div>
 
-      <div className="relative z-10 grid h-full grid-rows-[1fr_auto] px-5 py-5 sm:px-10 sm:py-8 lg:grid-cols-[0.95fr_1.05fr] lg:grid-rows-1 lg:items-center">
+      <div className="relative z-10 grid h-full min-h-0 px-5 pb-14 pt-5 sm:px-10 sm:pb-16 sm:pt-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
         <motion.section
           className="flex min-h-0 flex-col justify-center pt-16 sm:pt-24 lg:pt-0"
-          initial={{ opacity: 0, x: -38 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.82, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="font-mono text-[10px] font-black uppercase tracking-[0.32em] text-[#c59955]">Pit board release</div>
-          <h1 className="mt-4 text-[clamp(50px,12vw,132px)] font-black uppercase leading-[0.78] tracking-[-0.06em]">
+          <div className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-[#c59955] sm:tracking-[0.32em]">Pit board release</div>
+          <h1 className="mt-4 max-w-[12ch] text-[clamp(42px,10vw,118px)] font-black uppercase leading-[0.86] tracking-[-0.045em]">
             Williams
             <span className="block text-white/72">FW18</span>
           </h1>
-          <div className="mt-6 flex w-[min(78vw,470px)] flex-col gap-2">
+          <div className="mt-6 flex w-full max-w-[440px] flex-col gap-2">
             {['#ffffff', '#c59955', '#d5172d'].map((color, i) => (
               <motion.span
                 key={color}
@@ -1110,18 +1111,18 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
               />
             ))}
           </div>
-          <p className="mt-6 max-w-lg text-sm font-semibold leading-7 text-white/58 sm:text-base">
+          <p className="mt-6 max-w-[34rem] text-sm font-semibold leading-6 text-white/58 sm:text-base sm:leading-7">
             Heritage livery armed like a garage door opening: quiet navy, white wing band, brass trim, red release line.
           </p>
         </motion.section>
 
         <motion.section
-          className="relative flex min-h-[260px] items-center justify-center lg:min-h-[520px]"
+          className="relative flex min-h-[220px] items-center justify-center sm:min-h-[300px] lg:min-h-[520px]"
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.02, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
         >
-          <svg className="h-[min(48vh,390px)] w-[min(88vw,620px)] overflow-visible" viewBox="0 0 620 360" aria-hidden>
+          <svg className="h-[min(42vh,370px)] w-[min(84vw,600px)] max-w-full overflow-visible" viewBox="0 0 620 360" aria-hidden>
             <motion.path
               d="M70 248 C146 176 208 156 296 166 C378 176 438 208 540 226"
               fill="none"
@@ -1172,17 +1173,17 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
             <motion.rect x="492" y="142" width="44" height="8" fill="#d5172d" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 2.02, duration: 0.32 }} />
           </svg>
 
-          <div className="absolute bottom-2 right-0 grid w-[min(88vw,360px)] gap-2 sm:bottom-8">
+          <div className="absolute bottom-0 right-0 grid w-[min(82vw,350px)] gap-2 sm:bottom-3 lg:bottom-10">
             {readouts.map(([label, value], i) => (
               <motion.div
                 key={label}
-                className="flex items-center justify-between border border-white/12 bg-black/28 px-4 py-3 backdrop-blur-xl"
+                className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border border-white/12 bg-black/28 px-3 py-2.5 backdrop-blur-xl sm:px-4 sm:py-3"
                 initial={{ opacity: 0, x: 28 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 2.08 + i * 0.12, duration: 0.38 }}
               >
-                <span className="font-mono text-[8px] font-black uppercase tracking-[0.24em] text-white/42">{label}</span>
-                <span className="truncate pl-4 text-[11px] font-black uppercase text-white">{value}</span>
+                <span className="font-mono text-[8px] font-black uppercase tracking-[0.18em] text-white/42 sm:tracking-[0.24em]">{label}</span>
+                <span className="min-w-0 text-right text-[10px] font-black uppercase leading-4 text-white sm:text-[11px]">{value}</span>
               </motion.div>
             ))}
           </div>
@@ -1190,7 +1191,7 @@ function WilliamsIntroOverlay({ cycle }: { cycle: string }) {
       </div>
 
       <motion.div
-        className="absolute bottom-5 left-5 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-white/42 sm:left-10"
+        className="absolute bottom-4 left-5 right-5 z-20 truncate font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/42 sm:left-10 sm:right-auto sm:text-[10px] sm:tracking-[0.28em]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.75, duration: 0.45 }}
