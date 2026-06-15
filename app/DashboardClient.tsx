@@ -1286,7 +1286,7 @@ function SennaIntroOverlay({ cycle }: { cycle: string }) {
           <motion.div
             className="absolute h-[min(15vw,96px)] w-[min(62vw,470px)] -rotate-3 rounded-full bg-gradient-to-r from-[#00a651] via-[#00a651] to-[#1f6feb]"
             initial={{ x: '-110%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+            animate={{ x: 0, opacity: 0.58 }}
             transition={{ delay: 1.45, duration: reduced ? 0.1 : 0.72, ease: [0.16, 1, 0.3, 1] }}
           />
           <motion.div
@@ -1327,7 +1327,7 @@ function SennaIntroOverlay({ cycle }: { cycle: string }) {
               strokeWidth="3"
               strokeLinecap="round"
               initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.72 }}
+              animate={{ pathLength: 1, opacity: 0.42 }}
               transition={{ delay: 2.42, duration: reduced ? 0.1 : 0.9, ease: [0.16, 1, 0.3, 1] }}
             />
           </svg>
@@ -1421,7 +1421,7 @@ function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.68, duration: reduced ? 0.15 : 0.72, ease: [0.16, 1, 0.3, 1] }}
         >
-          <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 1100 760" aria-hidden>
+          <svg className="absolute inset-0 h-full w-full overflow-visible opacity-60" viewBox="0 0 1100 760" aria-hidden>
             <defs>
               <linearGradient id="mvGauge" x1="0" x2="1">
                 <stop offset="0%" stopColor="#ff6b00" />
