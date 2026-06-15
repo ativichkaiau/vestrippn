@@ -51,8 +51,8 @@ descendants. Apply it to `<html>` (app-wide) **or** any wrapper element
 | --- | --- | --- |
 | Williams | `.w09-monza` | navy · white · brass-gold · classic red |
 | Esther Bunny | `.w09-esther` | pink · pastel · soft motion · cozy (larger radius, slower motion) |
-| Senna | `.w09-senna` | yellow · blue · green · analog motorsport |
-| Verstappen | `.w09-verstappen` | Dutch orange · deep navy · white/blue/red flash |
+| Senna | `.w09-senna` | helmet yellow · green/blue stripe · analog motorsport |
+| Verstappen | `.w09-verstappen` | Dutch orange · deep navy · red/white/blue flash |
 
 Because CSS variables inherit, a value declared on a closer element always wins,
 so wrapper-scoped liveries override the neutral root regardless of selector

@@ -635,7 +635,7 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     title: 'SENNA S1',
     chassis: 'VEStriPPN Focus',
     eyebrow: 'Qualifying Run',
-    mode: 'Yellow Green Blue',
+    mode: 'Helmet Yellow Green Blue',
     subtitle: 'Apex-first focus mode with rapid telemetry and clean handoff.',
     bg: '#061329',
     accent: '#ffd400',
@@ -643,7 +643,7 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     tertiary: '#1f6feb',
     softText: '#fff3b8',
     halo: 'rgba(255,212,0,0.60)',
-    stripe: 'linear-gradient(90deg, transparent, rgba(255,212,0,0.95), rgba(0,166,81,0.84), rgba(31,111,235,0.80), transparent)',
+    stripe: 'linear-gradient(90deg, transparent, rgba(255,212,0,0.96), rgba(0,166,81,0.76), rgba(31,111,235,0.82), transparent)',
     metrics: [
       { label: 'APEX', value: 'TRACE' },
       { label: 'THROTTLE', value: 'CLEAN' },
@@ -666,7 +666,7 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     title: 'VERSTAPPEN MV1',
     chassis: 'VEStriPPN Dutch Lion',
     eyebrow: 'Orange Attack Launch',
-    mode: 'Dutch Orange Navy White',
+    mode: 'Dutch Orange Red White Blue',
     subtitle: 'Aggressive push-lap energy with a precise command cockpit handoff.',
     bg: '#050b16',
     accent: '#ff6b00',
@@ -674,7 +674,7 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
     tertiary: '#1d4ed8',
     softText: '#fed7aa',
     halo: 'rgba(255,107,0,0.66)',
-    stripe: 'linear-gradient(90deg, transparent, rgba(255,107,0,0.96), rgba(255,255,255,0.90), rgba(29,78,216,0.86), rgba(220,38,38,0.72), transparent)',
+    stripe: 'linear-gradient(90deg, transparent, rgba(255,107,0,0.96), rgba(220,38,38,0.82), rgba(255,255,255,0.90), rgba(29,78,216,0.86), transparent)',
     metrics: [
       { label: 'ATTACK', value: 'PUSH' },
       { label: 'DELTA', value: 'PURPLE' },
@@ -1243,24 +1243,26 @@ function SennaIntroOverlay({ cycle }: { cycle: string }) {
         }}
       />
 
-      <motion.div
-        className="absolute left-[-10%] top-[13%] h-[12vh] w-[120%] -rotate-6 bg-[#ffd400]"
-        initial={{ x: '-110%', opacity: 0 }}
-        animate={{ x: '0%', opacity: 0.94 }}
-        transition={{ delay: 0.18, duration: reduced ? 0.1 : 0.9, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div
-        className="absolute left-[-10%] top-[26%] h-[5vh] w-[120%] -rotate-6 bg-[#00a651]"
-        initial={{ x: '110%', opacity: 0 }}
-        animate={{ x: '0%', opacity: 0.9 }}
-        transition={{ delay: 0.38, duration: reduced ? 0.1 : 0.82, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div
-        className="absolute left-[-10%] top-[32%] h-[3vh] w-[120%] -rotate-6 bg-[#1f6feb]"
-        initial={{ x: '-110%', opacity: 0 }}
-        animate={{ x: '0%', opacity: 0.86 }}
-        transition={{ delay: 0.54, duration: reduced ? 0.1 : 0.76, ease: [0.76, 0, 0.24, 1] }}
-      />
+      <div className="absolute left-[-10%] top-[13%] w-[120%] -rotate-6">
+        <motion.div
+          className="h-[clamp(58px,11vh,110px)] bg-[#ffd400]"
+          initial={{ x: '-110%', opacity: 0 }}
+          animate={{ x: '0%', opacity: 0.94 }}
+          transition={{ delay: 0.18, duration: reduced ? 0.1 : 0.9, ease: [0.76, 0, 0.24, 1] }}
+        />
+        <motion.div
+          className="mt-2 h-[clamp(12px,2.1vh,22px)] bg-[#00a651]"
+          initial={{ x: '110%', opacity: 0 }}
+          animate={{ x: '0%', opacity: 0.9 }}
+          transition={{ delay: 0.38, duration: reduced ? 0.1 : 0.82, ease: [0.76, 0, 0.24, 1] }}
+        />
+        <motion.div
+          className="mt-2 h-[clamp(9px,1.55vh,16px)] bg-[#1f6feb]"
+          initial={{ x: '-110%', opacity: 0 }}
+          animate={{ x: '0%', opacity: 0.86 }}
+          transition={{ delay: 0.54, duration: reduced ? 0.1 : 0.76, ease: [0.76, 0, 0.24, 1] }}
+        />
+      </div>
 
       <div className="relative z-10 grid h-full place-items-center px-5 py-6">
         <motion.div
@@ -1282,7 +1284,7 @@ function SennaIntroOverlay({ cycle }: { cycle: string }) {
             transition={{ delay: 1.18, duration: reduced ? 0.1 : 0.68, ease: [0.76, 0, 0.24, 1] }}
           />
           <motion.div
-            className="absolute h-[min(16vw,105px)] w-[min(62vw,470px)] -rotate-3 rounded-full bg-gradient-to-r from-[#00a651] via-[#ffd400] to-[#1f6feb]"
+            className="absolute h-[min(15vw,96px)] w-[min(62vw,470px)] -rotate-3 rounded-full bg-gradient-to-r from-[#00a651] via-[#00a651] to-[#1f6feb]"
             initial={{ x: '-110%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 1.45, duration: reduced ? 0.1 : 0.72, ease: [0.16, 1, 0.3, 1] }}
@@ -1385,19 +1387,19 @@ function VerstappenIntroOverlay({ cycle }: { cycle: string }) {
       </div>
       <div className="absolute right-[-15%] top-[8%] w-[76%] -rotate-12">
         <motion.div
-          className="h-[clamp(44px,9vh,76px)] bg-white/95"
+          className="h-[clamp(28px,5.6vh,50px)] bg-[#dc2626]"
           initial={{ x: '120%' }}
           animate={{ x: 0 }}
           transition={{ delay: 0.28, duration: reduced ? 0.1 : 0.76, ease: [0.76, 0, 0.24, 1] }}
         />
         <motion.div
-          className="mt-2 h-[clamp(24px,5vh,44px)] bg-[#1d4ed8]"
+          className="mt-2 h-[clamp(28px,5.6vh,50px)] bg-white/95"
           initial={{ x: '-120%' }}
           animate={{ x: 0 }}
           transition={{ delay: 0.42, duration: reduced ? 0.1 : 0.7, ease: [0.76, 0, 0.24, 1] }}
         />
         <motion.div
-          className="mt-2 h-[clamp(16px,3vh,28px)] bg-[#dc2626]"
+          className="mt-2 h-[clamp(28px,5.6vh,50px)] bg-[#1d4ed8]"
           initial={{ x: '120%' }}
           animate={{ x: 0 }}
           transition={{ delay: 0.54, duration: reduced ? 0.1 : 0.64, ease: [0.76, 0, 0.24, 1] }}

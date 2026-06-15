@@ -152,16 +152,16 @@ export default function ThemeToggle() {
               onClick={() => choose('senna')}
               emoji="🇧🇷"
               title="Senna"
-              sub="Yellow · Green · Blue"
-              swatches={['#FFD400', '#00A651', '#1F6FEB']}
+              sub="Helmet Yellow · Green · Blue"
+              swatches={['#061329', '#FFD400', '#00A651', '#1F6FEB']}
             />
             <LiveryRow
               active={livery === 'verstappen'}
               onClick={() => choose('verstappen')}
               emoji="🇳🇱"
               title="Verstappen"
-              sub="Dutch Orange · Navy"
-              swatches={['#FF6B00', '#061A3A', '#FFFFFF', '#1D4ED8', '#DC2626']}
+              sub="Orange · Red · White · Blue"
+              swatches={['#FF6B00', '#DC2626', '#FFFFFF', '#1D4ED8', '#061A3A']}
             />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Performance</div>
