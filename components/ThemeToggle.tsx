@@ -38,29 +38,23 @@ function LiveryRow({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left ${
+      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors text-left ${
         active ? 'bg-[#00A598]/10 dark:bg-[#00D2BE]/10' : 'hover:bg-black/5 dark:hover:bg-white/10'
       }`}
     >
-      <span className="text-[18px] leading-none">{emoji}</span>
-      <div className="flex-1 leading-tight">
+      <span className="shrink-0 text-[18px] leading-none">{emoji}</span>
+      <div className="min-w-0 flex-1 leading-tight">
         <div className="text-[12px] font-bold text-neutral-900 dark:text-white">{title}</div>
-        <div className="mt-0.5 flex min-w-0 items-center gap-2">
-          <div className="truncate text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{sub}</div>
-          {swatches.length > 0 && (
-            <div className="flex shrink-0 items-center gap-0.5" aria-hidden>
-              {swatches.map((swatch) => (
-                <span
-                  key={swatch}
-                  className="h-2 w-2 rounded-full border border-black/10 dark:border-white/20"
-                  style={{ backgroundColor: swatch }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <div className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{sub}</div>
       </div>
-      {active && <span className="text-[12px] text-[#00A598] dark:text-[#00D2BE] font-black">✓</span>}
+      {swatches.length > 0 && (
+        <div className="flex h-4 w-12 shrink-0 overflow-hidden rounded-[4px] border border-black/10 bg-white/40 p-px shadow-sm dark:border-white/20 dark:bg-black/25" aria-hidden>
+          {swatches.map((swatch) => (
+            <span key={swatch} className="h-full min-w-0 flex-1" style={{ backgroundColor: swatch }} />
+          ))}
+        </div>
+      )}
+      {active && <span className="shrink-0 text-[12px] font-black text-[#00A598] dark:text-[#00D2BE]">✓</span>}
     </button>
   );
 }
