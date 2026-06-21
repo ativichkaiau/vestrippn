@@ -35,8 +35,12 @@ interface AcademicsProps {
 const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
 const SECRET_EXAMPOD_SEQUENCE = 'williamspod';
 const SECRET_EXAMPOD_URL = 'https://williamspod.vercel.app';
+// Buddhist year 2569 is 2026. The exam hour is still TBA, so target the start
+// of the published date in Bangkok until an exact time is available.
+const HCVS_EXAM_TARGET = new Date('2026-08-04T00:00:00+07:00');
 const PINNED_CANVAS_SUBJECTS: Subject[] = [
   { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
+  { id: '27415', name: 'HCVS-2 - Human Cardiovascular System', progress: null },
 ];
 const COMPLETED_CANVAS_SUBJECT_IDS = new Set(['26702']);
 
@@ -272,9 +276,10 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
       { name: 'HEN-2', date: new Date('2026-06-09T09:00:00'), color: 'text-pink-500 dark:text-pink-400' },
       { name: 'HMS-2', date: new Date('2026-06-12T09:00:00'), color: 'text-neutral-400 dark:text-neutral-500' },
       { name: 'HNS-2', date: new Date('2026-06-16T09:00:00'), color: 'text-blue-500 dark:text-blue-400' },
+      { name: 'HCVS-2', date: HCVS_EXAM_TARGET, color: 'text-rose-500 dark:text-rose-400' },
     ];
 
-    const tick = setInterval(() => {
+    const updateTimers = () => {
       const newTimers: { [key: string]: string } = {};
       exams.forEach(exam => {
         const diff = exam.date.getTime() - Date.now();
@@ -286,8 +291,11 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
         } else { newTimers[exam.name] = "STATION_ARRIVAL"; }
       });
       setTimers(newTimers);
-    }, 1000);
-    return () => clearInterval(tick);
+    };
+
+    updateTimers();
+    const tick = window.setInterval(updateTimers, 1000);
+    return () => window.clearInterval(tick);
   }, []);
 
   if (!isMounted) return null;
@@ -353,12 +361,12 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               primaryLabel="Open Cases"
               secondaryHref="/archive"
               secondaryLabel="Study Vault ↗"
-              chips={['Exam Milestones', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
+              chips={['Exam Countdown', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
               panelTitle="Academic Ops"
-              panelSubtitle="HMS-2 + HNS-2 complete"
-              contextLabel="Exam block complete"
+              panelSubtitle="HNS-2 complete · Next: HCVS-2"
+              contextLabel="Study focus: HCVS-2"
               metrics={[
-                { label: 'Exams', value: '3' },
+                { label: 'Exams', value: '4' },
                 { label: 'Mode', value: 'Live' },
                 { label: 'Cases', value: 'Branching' },
               ]}
@@ -370,17 +378,16 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             />
 
             <MissionBlock
-              accent="blue"
-              title="HNS-2 · Nervous & Special Senses"
-              detail="Completed · 16 JUN // 09:00"
+              accent="rose"
+              title="HCVS-2 · Human Cardiovascular System"
+              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HCVS-2'] || '--D --H --M'}</span> · 04 AUG // TIME TBA</>}
               cta={{ label: 'View milestones', href: '#milestones' }}
-              completed
             />
 
             <CockpitIntelligencePanel
               hub="academics"
               contextItems={[
-                { label: 'Exam block', value: 'HNS-2 completed' },
+                { label: 'Current mission', value: 'HCVS-2 exam prep' },
                 { label: 'Completed modules', value: 'HMS-2 + HNS-2' },
                 { label: 'Canvas courses', value: `${canvasSubjects.length} tracked` },
                 { label: 'Anki due', value: `${liveAnki.due} cards` },
@@ -390,19 +397,20 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 px-2">
-                <span className="h-4 w-1.5 rounded-full bg-neutral-400"></span>
-                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Exam Milestones</h3>
+                <span className="h-4 w-1.5 animate-pulse rounded-full bg-rose-500"></span>
+                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Critical Milestones</h3>
               </div>
               <motion.section
                 id="milestones"
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8"
+                className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8"
                 initial="hidden" animate="visible"
                 variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
               >
                 {[
-                  { name: 'HEN-2', date: '09 JUN', color: 'text-pink-500 dark:text-pink-400', done: true },
-                  { name: 'HMS-2', date: '12 JUN', color: 'text-neutral-400 dark:text-neutral-500', done: true },
-                  { name: 'HNS-2', date: '16 JUN', color: 'text-neutral-400 dark:text-neutral-500', done: true }
+                  { name: 'HEN-2', date: '09 JUN', time: '09:00', color: 'text-pink-500 dark:text-pink-400', done: true },
+                  { name: 'HMS-2', date: '12 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
+                  { name: 'HNS-2', date: '16 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
+                  { name: 'HCVS-2', date: '04 AUG', time: 'TIME TBA', color: 'text-rose-500 dark:text-rose-400' }
                 ].map(exam => (
                   <motion.div
                     key={exam.name}
@@ -413,7 +421,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                   >
                     <div className="flex justify-between items-start mb-6 relative z-10">
                       <span className={`font-black tracking-tight text-[20px] lg:text-[22px] transition-colors duration-700 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : exam.color}`}>{exam.name}</span>
-                      <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{`${exam.date} // 09:00`}</span>
+                      <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{`${exam.date} // ${exam.time}`}</span>
                     </div>
                     <div className={`text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter transition-colors duration-700 relative z-10 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
                       {exam.done ? 'COMPLETED' : (timers[exam.name] || "--D --H --M")}

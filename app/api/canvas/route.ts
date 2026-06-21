@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 
 interface TrackedCourse { id: string; targetName: string }
 
-// Defaults baked in; CANVAS_COURSES env overrides if set. Add courses there as
-// new modules open (e.g. semester rollover) — no redeploy of code required.
+// Defaults baked in; CANVAS_COURSES can add courses or override names by id.
 const DEFAULT_COURSES: TrackedCourse[] = [
   { id: '26141', targetName: 'HEN-2 (Endocrine)' },
   { id: '26393', targetName: 'HNS-2 (Nervous & Senses)' },
   { id: '26349', targetName: 'Team-Based Learning (TBL)' },
   { id: '26702', targetName: '330221 Musculoskeletal' },
+  { id: '27415', targetName: 'HCVS-2 (Human Cardiovascular System)' },
 ];
 
 function loadCourses(): TrackedCourse[] {
@@ -24,7 +24,11 @@ function loadCourses(): TrackedCourse[] {
       return id && name ? { id, targetName: name } : null;
     })
     .filter((c): c is TrackedCourse => c !== null);
-  return parsed.length ? parsed : DEFAULT_COURSES;
+  if (!parsed.length) return DEFAULT_COURSES;
+
+  const merged = new Map(DEFAULT_COURSES.map((course) => [course.id, course]));
+  parsed.forEach((course) => merged.set(course.id, course));
+  return Array.from(merged.values());
 }
 
 export async function GET() {
@@ -37,9 +41,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Config Missing' }, { status: 500 });
   }
 
-  // Tracked courses. Override per-deploy with CANVAS_COURSES env, formatted as
-  //   "26141:HEN-2 (Endocrine)|26393:HNS-2|26702:330221 Musculoskeletal"
-  // so adding next semester's modules is a Vercel env edit, not a code change.
+  // Extend or rename tracked courses per deploy with CANVAS_COURSES, formatted as
+  //   "26141:HEN-2 (Endocrine)|27415:HCVS-2"
   const targetCourses = loadCourses();
 
   try {

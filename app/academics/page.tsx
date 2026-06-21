@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import AcademicsClient from "./AcademicsClient";
 
-const TARGET_COURSES = ['26141', '26393', '26349', '26702'];
+const TARGET_COURSES = ['26141', '26393', '26349', '26702', '27415'];
 
 async function fetchCanvasTelemetry() {
   const token = process.env.CANVAS_TOKEN;

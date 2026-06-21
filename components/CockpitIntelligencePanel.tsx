@@ -38,12 +38,12 @@ const HUB_CONFIG: Record<IntelligenceHub, HubConfig> = {
   academics: {
     title: 'Study Copilot',
     subtitle: 'Academic command surface for exams, Canvas, Anki, and cases.',
-    prompt: 'Ask for post-exam consolidation, next-target setup, or a clinical case drill.',
+    prompt: 'Ask for an HCVS-2 study plan, exam-target review, or a clinical case drill.',
     caution: 'AI-assisted academic output. Verify against course material and trusted references before use.',
     actions: [
-      { label: 'Generate study plan', detail: 'Build around post-HNS-2 consolidation, Anki load, and clinical cases.', outcome: 'Study-plan response layout prepared.' },
-      { label: 'Review completed exams', detail: 'Close out HMS-2 and HNS-2 before setting the next target.', outcome: 'Completed-exam brief layout prepared.' },
-      { label: 'Create case drill', detail: 'Turn current system focus into clinical practice.', outcome: 'Clinical drill layout prepared.' },
+      { label: 'Generate study plan', detail: 'Build around HCVS-2, Anki load, Canvas scores, and clinical cases.', outcome: 'Study-plan response layout prepared.' },
+      { label: 'Review next exam target', detail: 'Focus the cockpit on HCVS-2 while keeping HMS-2 and HNS-2 complete.', outcome: 'Exam-target brief layout prepared.' },
+      { label: 'Create case drill', detail: 'Turn the cardiovascular system focus into clinical practice.', outcome: 'Clinical drill layout prepared.' },
     ],
   },
   research: {
