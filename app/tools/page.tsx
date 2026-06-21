@@ -249,16 +249,6 @@ type MscaGroupData = { label: string; icon: string; sheets: MscaSheet[] };
 
 const MSCA_GROUPS: MscaGroupData[] = [
   {
-    label: 'Get Set Go',
-    icon: '🚀',
-    sheets: [
-      { title: 'Sheet 01', url: 'https://docs.google.com/spreadsheets/d/1CvvGvq0FooBNW60Khy9aO8eJ81aOT52cNbppysnCHeg' },
-      { title: 'Sheet 02', url: 'https://docs.google.com/spreadsheets/d/1mwSeuYYJl9DDeBZIcWRH7QkT0EAo-4TeINIGTvkATiI/edit?gid=0#gid=0' },
-      { title: 'Sheet 03', url: 'https://docs.google.com/spreadsheets/d/10Cscw_PVeE4LtdxjE9q1d16uJ0eQqD3Yg5Wq8nzoTYw/edit?gid=0#gid=0' },
-      { title: 'Sheet 04', url: 'https://docs.google.com/spreadsheets/d/1SJUO_SYMcXbPzd4AAYCwaaIXORKeFC7y_DKB9JhXstI/edit?gid=0#gid=0' },
-    ],
-  },
-  {
     label: 'CMU-IMC',
     icon: '⚙️',
     sheets: [
