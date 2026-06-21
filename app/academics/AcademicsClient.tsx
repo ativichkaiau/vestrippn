@@ -353,10 +353,10 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               primaryLabel="Open Cases"
               secondaryHref="/archive"
               secondaryLabel="Study Vault ↗"
-              chips={['Exam Countdown', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
+              chips={['Exam Milestones', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
               panelTitle="Academic Ops"
-              panelSubtitle="HMS-2 finished · Next: HNS-2"
-              contextLabel="Study focus: HNS-2"
+              panelSubtitle="HMS-2 + HNS-2 complete"
+              contextLabel="Exam block complete"
               metrics={[
                 { label: 'Exams', value: '3' },
                 { label: 'Mode', value: 'Live' },
@@ -372,15 +372,16 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             <MissionBlock
               accent="blue"
               title="HNS-2 · Nervous & Special Senses"
-              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HNS-2'] || '--D --H --M'}</span> · 16 JUN // 09:00</>}
+              detail="Completed · 16 JUN // 09:00"
               cta={{ label: 'View milestones', href: '#milestones' }}
+              completed
             />
 
             <CockpitIntelligencePanel
               hub="academics"
               contextItems={[
-                { label: 'Current mission', value: 'HNS-2 exam prep' },
-                { label: 'Completed module', value: 'HMS-2 finished' },
+                { label: 'Exam block', value: 'HNS-2 completed' },
+                { label: 'Completed modules', value: 'HMS-2 + HNS-2' },
                 { label: 'Canvas courses', value: `${canvasSubjects.length} tracked` },
                 { label: 'Anki due', value: `${liveAnki.due} cards` },
               ]}
@@ -389,8 +390,8 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 px-2">
-                <span className="w-1.5 h-4 bg-blue-500 rounded-full animate-pulse"></span>
-                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Critical Milestones</h3>
+                <span className="h-4 w-1.5 rounded-full bg-neutral-400"></span>
+                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Exam Milestones</h3>
               </div>
               <motion.section
                 id="milestones"
@@ -401,7 +402,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 {[
                   { name: 'HEN-2', date: '09 JUN', color: 'text-pink-500 dark:text-pink-400', done: true },
                   { name: 'HMS-2', date: '12 JUN', color: 'text-neutral-400 dark:text-neutral-500', done: true },
-                  { name: 'HNS-2', date: '16 JUN', color: 'text-blue-500 dark:text-blue-400' }
+                  { name: 'HNS-2', date: '16 JUN', color: 'text-neutral-400 dark:text-neutral-500', done: true }
                 ].map(exam => (
                   <motion.div
                     key={exam.name}

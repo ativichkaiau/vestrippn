@@ -30,11 +30,13 @@ export default function MissionBlock({
   detail,
   accent = 'cyan',
   cta,
+  completed = false,
 }: {
   title: string;
   detail?: ReactNode;
   accent?: Accent;
   cta?: { label: string; href: string; external?: boolean };
+  completed?: boolean;
 }) {
   const a = ACCENTS[accent];
   const reduceMotion = useReducedMotion();
@@ -49,21 +51,29 @@ export default function MissionBlock({
       variants={motionOff ? undefined : fadeUp}
       initial={motionOff ? false : 'hidden'}
       animate={motionOff ? undefined : 'show'}
-      whileHover={motionOff ? undefined : hoverLift}
-      whileTap={motionOff ? undefined : pressTap}
-      className="relative flex flex-col gap-3 overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-4 pl-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-colors duration-700 dark:border-white/5 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5 sm:pl-6"
-      aria-label="Current mission"
+      whileHover={motionOff || completed ? undefined : hoverLift}
+      whileTap={motionOff || completed ? undefined : pressTap}
+      className={`relative flex flex-col gap-3 overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-4 pl-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-700 dark:border-white/5 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5 sm:pl-6 ${completed ? 'grayscale opacity-60' : ''}`}
+      aria-label={completed ? 'Completed mission' : 'Current mission'}
       data-motion="mission"
-      data-state="active"
+      data-state={completed ? 'completed' : 'active'}
     >
-      <motion.span variants={motionOff ? undefined : telemetryLine} className={`absolute inset-y-0 left-0 w-[4px] origin-top ${a.bar}`} />
-      {!motionOff && <span className="w09-mission-scan" aria-hidden />}
+      <motion.span variants={motionOff ? undefined : telemetryLine} className={`absolute inset-y-0 left-0 w-[4px] origin-top ${completed ? 'bg-neutral-400' : a.bar}`} />
+      {!motionOff && !completed && <span className="w09-mission-scan" aria-hidden />}
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <motion.span animate={statePulse(motionOff)} className={`h-1.5 w-1.5 animate-pulse rounded-full ${a.dot}`} />
-          <span className={`w09-state text-[9px] font-black uppercase tracking-[0.25em] ${a.text}`} data-state="active">Current Mission</span>
+          <motion.span
+            animate={completed ? undefined : statePulse(motionOff)}
+            className={`h-1.5 w-1.5 rounded-full ${completed ? 'bg-neutral-400' : `${a.dot} animate-pulse`}`}
+          />
+          <span
+            className={`w09-state text-[9px] font-black uppercase tracking-[0.25em] ${completed ? 'text-neutral-500 dark:text-neutral-400' : a.text}`}
+            data-state={completed ? 'completed' : 'active'}
+          >
+            {completed ? 'Completed Mission' : 'Current Mission'}
+          </span>
         </div>
-        <h2 className="mt-1.5 truncate text-[15px] font-black tracking-tight text-neutral-900 dark:text-white sm:text-[17px]">
+        <h2 className={`mt-1.5 truncate text-[15px] font-black tracking-tight sm:text-[17px] ${completed ? 'text-neutral-500 dark:text-neutral-400' : 'text-neutral-900 dark:text-white'}`}>
           {title}
         </h2>
         {detail && (
