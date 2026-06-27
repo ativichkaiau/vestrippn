@@ -2,13 +2,13 @@
 import { useEffect, useState } from "react";
 import { setLowPowerMode } from "./useLowPower";
 
-type Livery = 'normal' | 'monza' | 'senna' | 'verstappen';
+type Livery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
 type Mode = 'day' | 'night';
 
 function applyLivery(lv: Livery, md: Mode) {
   const el = document.documentElement;
-  el.classList.remove('monza', 'senna', 'verstappen', 'w09-monza', 'w09-senna', 'w09-verstappen');
-  if (lv === 'monza' || lv === 'senna' || lv === 'verstappen') {
+  el.classList.remove('monza', 'senna', 'verstappen', 'ferrari', 'w09-monza', 'w09-senna', 'w09-verstappen', 'w09-ferrari');
+  if (lv === 'monza' || lv === 'senna' || lv === 'verstappen' || lv === 'ferrari') {
     el.classList.add('dark', lv, `w09-${lv}`);
   } else {
     if (md === 'night') el.classList.add('dark');
@@ -17,7 +17,7 @@ function applyLivery(lv: Livery, md: Mode) {
 }
 
 function isLivery(value: string | null): value is Livery {
-  return value === 'normal' || value === 'monza' || value === 'senna' || value === 'verstappen';
+  return value === 'normal' || value === 'monza' || value === 'senna' || value === 'verstappen' || value === 'ferrari';
 }
 
 function LiveryRow({
@@ -108,8 +108,8 @@ export default function ThemeToggle() {
     return <div className="w10-livery-skeleton h-[38px] w-[38px] rounded-full bg-black/5 animate-pulse dark:bg-white/5 sm:w-[104px]" />;
   }
 
-  const label = livery === 'monza' ? 'Williams' : livery === 'senna' ? 'Senna' : livery === 'verstappen' ? 'Verstappen' : mode === 'night' ? 'Night' : 'Day';
-  const icon = livery === 'monza' ? '🏁' : livery === 'senna' ? '🇧🇷' : livery === 'verstappen' ? '🇳🇱' : mode === 'night' ? '🌙' : '☀️';
+  const label = livery === 'monza' ? 'Williams' : livery === 'senna' ? 'Senna' : livery === 'verstappen' ? 'Verstappen' : livery === 'ferrari' ? 'Ferrari' : mode === 'night' ? 'Night' : 'Day';
+  const icon = livery === 'monza' ? '🏁' : livery === 'senna' ? '🇧🇷' : livery === 'verstappen' ? '🇳🇱' : livery === 'ferrari' ? '🐎' : mode === 'night' ? '🌙' : '☀️';
 
   return (
     <div className="relative">
@@ -157,6 +157,14 @@ export default function ThemeToggle() {
               title="Verstappen"
               sub="Orange · Red · White · Blue"
               swatches={['#FF6B00', '#DC2626', '#FFFFFF', '#1D4ED8', '#061A3A']}
+            />
+            <LiveryRow
+              active={livery === 'ferrari'}
+              onClick={() => choose('ferrari')}
+              emoji="🐎"
+              title="Ferrari"
+              sub="Rosso · Giallo · Nero"
+              swatches={['#EF1A2D', '#FFDD00', '#0B0304', '#FFFFFF']}
             />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Performance</div>

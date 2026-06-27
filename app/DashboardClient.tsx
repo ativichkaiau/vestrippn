@@ -20,7 +20,7 @@ import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import BrandMark from '../components/BrandMark';
 import Link from 'next/link';
 
-type SiteLivery = 'normal' | 'monza' | 'senna' | 'verstappen';
+type SiteLivery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
 type DashboardTask = { id: string; title: string; completed: boolean; category: string };
 type DashboardResearch = { title?: string; screening?: number; fullText?: number; extraction?: number };
 type DashboardFitness = { workoutDays?: string; lastWorkout?: string; streak?: number };
@@ -53,7 +53,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
       // Pick livery before showing intro so special variants can swap in.
       try {
         const stored = localStorage.getItem('vest_livery');
-        setLivery(stored === 'monza' || stored === 'senna' || stored === 'verstappen' ? stored : 'normal');
+        setLivery(stored === 'monza' || stored === 'senna' || stored === 'verstappen' || stored === 'ferrari' ? stored : 'normal');
       } catch {}
 
       // Boot sequence plays on every page load.
@@ -99,7 +99,9 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
               ? <SennaIntroOverlay cycle={cycle} />
               : livery === 'verstappen'
                 ? <VerstappenIntroOverlay cycle={cycle} />
-                : <IntroOverlay cycle={cycle} />
+                : livery === 'ferrari'
+                  ? <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.ferrari} />
+                  : <IntroOverlay cycle={cycle} />
         )}
       </AnimatePresence>
 
@@ -547,7 +549,7 @@ function IntroPhaseRail({
 }
 
 type RaceIntroTheme = {
-  id: 'w10' | 'williams' | 'senna' | 'verstappen';
+  id: 'w10' | 'williams' | 'senna' | 'verstappen' | 'ferrari';
   title: string;
   chassis: string;
   eyebrow: string;
@@ -688,6 +690,37 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
       'DUTCH STRIPE AND PUSH MAP LOADED',
       'OVERTAKE MODE READY FOR LAP ONE',
       `${cycle} // VERSTAPPEN ATTACK LAP`,
+    ],
+  },
+  ferrari: {
+    id: 'ferrari',
+    title: 'FERRARI SF',
+    chassis: 'VEStriPPN Scuderia',
+    eyebrow: 'Maranello Launch',
+    mode: 'Rosso Corsa Giallo Nero',
+    subtitle: 'Scuderia red-mist launch with a precise command cockpit handoff.',
+    bg: '#0b0304',
+    accent: '#ef1a2d',
+    secondary: '#ffdd00',
+    tertiary: '#ffffff',
+    softText: '#ffd9dc',
+    halo: 'rgba(239,26,45,0.64)',
+    stripe: 'linear-gradient(90deg, transparent, rgba(239,26,45,0.96), rgba(255,221,0,0.88), rgba(255,255,255,0.9), transparent)',
+    metrics: [
+      { label: 'ROSSO', value: 'ARMED' },
+      { label: 'SHIELD', value: 'LOCKED' },
+      { label: 'TIFOSI', value: 'ROAR' },
+    ],
+    phases: [
+      { label: 'Cavallino', value: 'Lit' },
+      { label: 'Slipstream', value: 'Loaded' },
+      { label: 'Maranello', value: 'Cleared' },
+    ],
+    status: (cycle) => [
+      'PRANCING HORSE LIT',
+      'ROSSO STRIPE AND YELLOW SHIELD ARMED',
+      'SLIPSTREAM MAP READY FOR LAP ONE',
+      `${cycle} // FERRARI HOT LAP`,
     ],
   },
 };

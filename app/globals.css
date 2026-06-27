@@ -983,6 +983,101 @@ html.verstappen .custom-scrollbar { scrollbar-color: rgba(255, 107, 0, 0.50) tra
 html.verstappen .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(29, 78, 216, 0.70); }
 
 /* ════════════════════════════════════════════════════════════════════════
+   FERRARI LIVERY — Scuderia rosso corsa + Modena giallo + nero
+   Activated by `html.ferrari`. Rosso-dominant with bright yellow shield
+   accents over a deep carbon-red base. Original treatment (no marque assets).
+   ════════════════════════════════════════════════════════════════════════ */
+
+html.ferrari {
+  /* Rosso corsa (primary) */
+  --fer-r-50:#fff1f1; --fer-r-100:#ffdfe0; --fer-r-200:#ffc4c7; --fer-r-300:#ff9499; --fer-r-400:#fb5560;
+  --fer-r-500:#ef1a2d; --fer-r-600:#d40d22; --fer-r-700:#b00a1c; --fer-r-800:#8f0c1b; --fer-r-900:#76101c; --fer-r-950:#41040b;
+  /* Modena giallo (secondary) */
+  --fer-y-50:#fffde6; --fer-y-100:#fff9bf; --fer-y-200:#fff280; --fer-y-300:#ffe940; --fer-y-400:#ffdd00;
+  --fer-y-500:#e8c400; --fer-y-600:#bd9c00; --fer-y-700:#947700; --fer-y-800:#7a6108; --fer-y-900:#68520d; --fer-y-950:#3d2e02;
+
+  /* Warm reds keep the rosso; amber/yellow + greens carry the giallo flash. */
+  --color-red-50:var(--fer-r-50); --color-red-100:var(--fer-r-100); --color-red-200:var(--fer-r-200); --color-red-300:var(--fer-r-300); --color-red-400:var(--fer-r-400); --color-red-500:var(--fer-r-500); --color-red-600:var(--fer-r-600); --color-red-700:var(--fer-r-700); --color-red-800:var(--fer-r-800); --color-red-900:var(--fer-r-900); --color-red-950:var(--fer-r-950);
+  --color-orange-50:var(--fer-r-50); --color-orange-100:var(--fer-r-100); --color-orange-200:var(--fer-r-200); --color-orange-300:var(--fer-r-300); --color-orange-400:var(--fer-r-400); --color-orange-500:var(--fer-r-500); --color-orange-600:var(--fer-r-600); --color-orange-700:var(--fer-r-700); --color-orange-800:var(--fer-r-800); --color-orange-900:var(--fer-r-900); --color-orange-950:var(--fer-r-950);
+  --color-rose-50:var(--fer-r-50); --color-rose-100:var(--fer-r-100); --color-rose-200:var(--fer-r-200); --color-rose-300:var(--fer-r-300); --color-rose-400:var(--fer-r-400); --color-rose-500:var(--fer-r-500); --color-rose-600:var(--fer-r-600); --color-rose-700:var(--fer-r-700); --color-rose-800:var(--fer-r-800); --color-rose-900:var(--fer-r-900); --color-rose-950:var(--fer-r-950);
+  --color-pink-50:var(--fer-r-50); --color-pink-100:var(--fer-r-100); --color-pink-200:var(--fer-r-200); --color-pink-300:var(--fer-r-300); --color-pink-400:var(--fer-r-400); --color-pink-500:var(--fer-r-500); --color-pink-600:var(--fer-r-600); --color-pink-700:var(--fer-r-700); --color-pink-800:var(--fer-r-800); --color-pink-900:var(--fer-r-900); --color-pink-950:var(--fer-r-950);
+  --color-amber-50:var(--fer-y-50); --color-amber-100:var(--fer-y-100); --color-amber-200:var(--fer-y-200); --color-amber-300:var(--fer-y-300); --color-amber-400:var(--fer-y-400); --color-amber-500:var(--fer-y-500); --color-amber-600:var(--fer-y-600); --color-amber-700:var(--fer-y-700); --color-amber-800:var(--fer-y-800); --color-amber-900:var(--fer-y-900); --color-amber-950:var(--fer-y-950);
+  --color-yellow-50:var(--fer-y-50); --color-yellow-100:var(--fer-y-100); --color-yellow-200:var(--fer-y-200); --color-yellow-300:var(--fer-y-300); --color-yellow-400:var(--fer-y-400); --color-yellow-500:var(--fer-y-500); --color-yellow-600:var(--fer-y-600); --color-yellow-700:var(--fer-y-700); --color-yellow-800:var(--fer-y-800); --color-yellow-900:var(--fer-y-900); --color-yellow-950:var(--fer-y-950);
+  --color-emerald-50:var(--fer-y-50); --color-emerald-100:var(--fer-y-100); --color-emerald-200:var(--fer-y-200); --color-emerald-300:var(--fer-y-300); --color-emerald-400:var(--fer-y-400); --color-emerald-500:var(--fer-y-500); --color-emerald-600:var(--fer-y-600); --color-emerald-700:var(--fer-y-700); --color-emerald-800:var(--fer-y-800); --color-emerald-900:var(--fer-y-900); --color-emerald-950:var(--fer-y-950);
+  --color-teal-50:var(--fer-y-50); --color-teal-100:var(--fer-y-100); --color-teal-200:var(--fer-y-200); --color-teal-300:var(--fer-y-300); --color-teal-400:var(--fer-y-400); --color-teal-500:var(--fer-y-500); --color-teal-600:var(--fer-y-600); --color-teal-700:var(--fer-y-700); --color-teal-800:var(--fer-y-800); --color-teal-900:var(--fer-y-900); --color-teal-950:var(--fer-y-950);
+  --color-cyan-50:var(--fer-r-50); --color-cyan-100:var(--fer-r-100); --color-cyan-200:var(--fer-r-200); --color-cyan-300:var(--fer-r-300); --color-cyan-400:var(--fer-r-400); --color-cyan-500:var(--fer-r-500); --color-cyan-600:var(--fer-r-600); --color-cyan-700:var(--fer-r-700); --color-cyan-800:var(--fer-r-800); --color-cyan-900:var(--fer-r-900); --color-cyan-950:var(--fer-r-950);
+  --color-sky-50:var(--fer-r-50); --color-sky-100:var(--fer-r-100); --color-sky-200:var(--fer-r-200); --color-sky-300:var(--fer-r-300); --color-sky-400:var(--fer-r-400); --color-sky-500:var(--fer-r-500); --color-sky-600:var(--fer-r-600); --color-sky-700:var(--fer-r-700); --color-sky-800:var(--fer-r-800); --color-sky-900:var(--fer-r-900); --color-sky-950:var(--fer-r-950);
+  --color-blue-50:var(--fer-r-50); --color-blue-100:var(--fer-r-100); --color-blue-200:var(--fer-r-200); --color-blue-300:var(--fer-r-300); --color-blue-400:var(--fer-r-400); --color-blue-500:var(--fer-r-500); --color-blue-600:var(--fer-r-600); --color-blue-700:var(--fer-r-700); --color-blue-800:var(--fer-r-800); --color-blue-900:var(--fer-r-900); --color-blue-950:var(--fer-r-950);
+  --color-indigo-50:var(--fer-r-50); --color-indigo-100:var(--fer-r-100); --color-indigo-200:var(--fer-r-200); --color-indigo-300:var(--fer-r-300); --color-indigo-400:var(--fer-r-400); --color-indigo-500:var(--fer-r-500); --color-indigo-600:var(--fer-r-600); --color-indigo-700:var(--fer-r-700); --color-indigo-800:var(--fer-r-800); --color-indigo-900:var(--fer-r-900); --color-indigo-950:var(--fer-r-950);
+  --color-purple-50:var(--fer-r-50); --color-purple-100:var(--fer-r-100); --color-purple-200:var(--fer-r-200); --color-purple-300:var(--fer-r-300); --color-purple-400:var(--fer-r-400); --color-purple-500:var(--fer-r-500); --color-purple-600:var(--fer-r-600); --color-purple-700:var(--fer-r-700); --color-purple-800:var(--fer-r-800); --color-purple-900:var(--fer-r-900); --color-purple-950:var(--fer-r-950);
+  --color-fuchsia-50:var(--fer-r-50); --color-fuchsia-100:var(--fer-r-100); --color-fuchsia-200:var(--fer-r-200); --color-fuchsia-300:var(--fer-r-300); --color-fuchsia-400:var(--fer-r-400); --color-fuchsia-500:var(--fer-r-500); --color-fuchsia-600:var(--fer-r-600); --color-fuchsia-700:var(--fer-r-700); --color-fuchsia-800:var(--fer-r-800); --color-fuchsia-900:var(--fer-r-900); --color-fuchsia-950:var(--fer-r-950);
+
+  --hub-accent: #ef1a2d;
+  --hub-accent-deep: #ffdd00;
+  --hub-accent-rgb: 239, 26, 45;
+  --hub-secondary-rgb: 255, 221, 0;
+  --hub-grad-rgb: 28, 4, 8;
+  --hub-bg: #160305;
+  --hub-text-soft: #ffd9dc;
+  --hub-text-soft-2: #ffe680;
+}
+
+html.ferrari body {
+  background-color: #0b0304;
+  background-image:
+    repeating-linear-gradient(180deg, rgba(239, 26, 45, 0.05) 0, rgba(239, 26, 45, 0.05) 1px, transparent 1px, transparent 8px),
+    linear-gradient(180deg, rgba(255, 221, 0, 0.10) 0, rgba(255, 221, 0, 0.10) 4.5%, transparent 4.5%, transparent 7%),
+    linear-gradient(180deg, transparent 7.4%, rgba(255, 221, 0, 0.5) 7.4%, rgba(255, 221, 0, 0.5) 7.7%, transparent 7.7%),
+    linear-gradient(180deg, transparent 8.2%, rgba(239, 26, 45, 0.5) 8.2%, rgba(239, 26, 45, 0.5) 8.6%, transparent 8.6%),
+    radial-gradient(circle at 20% -10%, rgba(239, 26, 45, 0.38), transparent 42%),
+    radial-gradient(ellipse at 92% 4%, rgba(255, 221, 0, 0.16), transparent 44%),
+    radial-gradient(ellipse at 50% 120%, rgba(150, 8, 22, 0.5), transparent 60%),
+    linear-gradient(180deg, #1a0406 0%, #08090a 76%);
+  background-attachment: fixed;
+}
+
+html.ferrari .dark\:bg-\[\#050505\],
+html.ferrari .dark\:bg-\[\#0A0A0A\],
+html.ferrari .dark\:bg-black\/40,
+html.ferrari .dark\:bg-black\/20 {
+  background-color: rgba(28, 5, 8, 0.62) !important;
+}
+
+html.ferrari .dark\:bg-white\/5 {
+  background-color: rgba(239, 26, 45, 0.07) !important;
+}
+html.ferrari .dark\:border-white\/5,
+html.ferrari .dark\:border-white\/10 {
+  border-color: rgba(255, 221, 0, 0.22) !important;
+}
+
+html.ferrari .text-\[\#00A598\],
+html.ferrari .text-\[\#00D2BE\] { color: #ef1a2d !important; }
+html.ferrari .bg-\[\#00A598\],
+html.ferrari .bg-\[\#00D2BE\] { background-color: #ef1a2d !important; }
+html.ferrari .border-\[\#00A598\],
+html.ferrari .border-\[\#00D2BE\] { border-color: #ef1a2d !important; }
+html.ferrari .from-\[\#00A598\],
+html.ferrari .from-\[\#00D2BE\] { --tw-gradient-from: #ef1a2d var(--tw-gradient-from-position) !important; }
+html.ferrari .to-\[\#00A598\],
+html.ferrari .to-\[\#00D2BE\] { --tw-gradient-to: #ffdd00 var(--tw-gradient-to-position) !important; }
+html.ferrari .fill-\[\#00A598\],
+html.ferrari .fill-\[\#00D2BE\] { fill: #ef1a2d !important; }
+
+html.ferrari .text-\[\#D97757\] { color: #ffdd00 !important; }
+html.ferrari .bg-\[\#D97757\] { background-color: #ffdd00 !important; }
+html.ferrari .border-\[\#D97757\] { border-color: #ffdd00 !important; }
+
+html.ferrari ::selection { background-color: rgba(239, 26, 45, 0.42); color: #ffffff; }
+html.ferrari .custom-scrollbar { scrollbar-color: rgba(239, 26, 45, 0.50) transparent; }
+html.ferrari .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 221, 0, 0.62); }
+
+html.ferrari .motion-route-shell {
+  --motion-accent-rgb: 239, 26, 45;
+  --motion-secondary-rgb: 255, 221, 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
    W09 THEME CONTRACT  —  see components/w09/THEME_CONTRACT.md
    Additive. W07 is unaffected (it does not consume --w09-* variables).
    Neutral defaults on :root (light) and .dark (dark). Liveries override via
@@ -1101,6 +1196,24 @@ html.verstappen .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-co
   --w09-shadow:         0 10px 38px rgba(0, 0, 0, 0.58);
 }
 
+/* ── Livery: FERRARI (rosso corsa · modena giallo · nero) ── */
+.w09-ferrari {
+  --w09-bg:             #0b0304;
+  --w09-surface:        rgba(239, 26, 45, 0.06);
+  --w09-surface-raised: rgba(239, 26, 45, 0.10);
+  --w09-border:         rgba(255, 221, 0, 0.28);
+  --w09-text:           #fbeef0;
+  --w09-text-muted:     #c79aa0;
+  --w09-accent-primary:   #ef1a2d;
+  --w09-accent-secondary: #ffdd00;
+  --w09-accent-tertiary:  #ffffff;
+  --w09-accent-contrast:  #14080a;
+  --w09-success:        #ffdd00;
+  --w09-danger:         #ef1a2d;
+  --w09-focus-ring:     #ef1a2d;
+  --w09-shadow:         0 10px 38px rgba(20, 2, 6, 0.62);
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    W10 REVOLUT — CLAY COCKPIT
    The existing W09 token contract remains available to feature modules, but
@@ -1176,6 +1289,17 @@ html.verstappen {
   --w10-clay-highlight: rgba(96, 165, 250, 0.055);
   --w10-clay-shadow: rgba(0, 2, 9, 0.62);
   --w10-clay-shadow-deep: rgba(0, 2, 9, 0.82);
+}
+
+html.ferrari {
+  --w10-canvas: #160305;
+  --w10-clay: #240609;
+  --w10-clay-raised: #350a0e;
+  --w10-clay-inset: #150304;
+  --w10-clay-edge: rgba(255, 221, 0, 0.22);
+  --w10-clay-highlight: rgba(255, 255, 255, 0.05);
+  --w10-clay-shadow: rgba(8, 0, 2, 0.62);
+  --w10-clay-shadow-deep: rgba(8, 0, 2, 0.82);
 }
 
 /* Existing token-native modules inherit the W10 materials automatically. */

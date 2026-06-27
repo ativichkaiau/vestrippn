@@ -6,7 +6,7 @@ import CitationPopover from '../../../components/w09/CitationPopover';
 import QuestionCard from '../../../components/w09/QuestionCard';
 import CaseStepper from '../../../components/w09/CaseStepper';
 
-type Livery = 'neutral' | 'monza' | 'esther' | 'senna' | 'verstappen';
+type Livery = 'neutral' | 'monza' | 'esther' | 'senna' | 'verstappen' | 'ferrari';
 
 const LIVERIES: { id: Livery; label: string }[] = [
   { id: 'neutral', label: 'Neutral' },
@@ -14,6 +14,7 @@ const LIVERIES: { id: Livery; label: string }[] = [
   { id: 'esther', label: 'Esther Bunny' },
   { id: 'senna', label: 'Senna' },
   { id: 'verstappen', label: 'Verstappen' },
+  { id: 'ferrari', label: 'Ferrari' },
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
