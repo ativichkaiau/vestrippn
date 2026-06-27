@@ -1,24 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
 import HoverTypewriter from "../components/HoverTypewriter";
 import SiteMotion from "../components/SiteMotion";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: '--font-sans',
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({ 
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: '--font-mono',
   display: 'swap',
 });
 
+// Geometric sans for the "Revolut" wordmark lockup (approximates the brand font).
+const revolut = Poppins({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: '--font-revolut',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: "VEStriPPN 3.0 // W10 EQ Power",
+  title: "VEStriPPN 3.0 // W10 Revolut",
   description: "Personal telemetry, mission control, and Claude-ready command surfaces.",
   // 🚨 THE FIX: This injects the Google site verification tag into your <head>
   verification: {
@@ -47,7 +55,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body 
         className={`
-          ${inter.variable} ${jetbrainsMono.variable} font-sans 
+          ${inter.variable} ${jetbrainsMono.variable} ${revolut.variable} font-sans
           bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 
           antialiased h-screen flex flex-col overflow-hidden 
           transition-colors duration-700 

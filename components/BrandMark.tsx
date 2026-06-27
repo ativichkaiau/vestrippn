@@ -7,11 +7,11 @@ export default function BrandMark({ compact = false }: { compact?: boolean }) {
       className={`w10-brand-mark flex items-center gap-2 font-black tracking-tight transition-opacity hover:opacity-85 lg:gap-3 ${
         compact ? 'text-[17px] lg:text-[20px]' : 'text-[18px] lg:text-[22px]'
       }`}
-      aria-label="VEStriPPN 3.0, W10 EQ Power"
+      aria-label="VEStriPPN 3.0, W10 Revolut"
     >
       <span
-        className={`flex shrink-0 items-center justify-center rounded-xl ${
-          compact ? 'h-7 w-7 text-[14px]' : 'h-8 w-8 text-[16px]'
+        className={`font-revolut flex shrink-0 items-center justify-center rounded-xl ${
+          compact ? 'h-7 w-7 text-[15px]' : 'h-8 w-8 text-[17px]'
         }`}
       >
         V
@@ -25,8 +25,10 @@ export default function BrandMark({ compact = false }: { compact?: boolean }) {
           W10
         </span>
       </span>
-      <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-[color:var(--w10-clay-edge)] px-2.5 py-1 font-mono text-[8px] font-black uppercase tracking-[0.18em] text-neutral-500 shadow-[var(--w10-clay-shadow-pressed)] dark:text-neutral-400 xl:inline-flex">
-        <span style={{ color: 'var(--hub-accent)' }}>EQ Power</span>
+      <span className="hidden shrink-0 items-center rounded-full border border-[color:var(--w10-clay-edge)] px-3 py-1 shadow-[var(--w10-clay-shadow-pressed)] xl:inline-flex">
+        <span className="font-revolut text-[13px] font-bold leading-none text-neutral-900 dark:text-white">
+          Revolut
+        </span>
       </span>
     </Link>
   );

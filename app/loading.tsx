@@ -16,7 +16,7 @@ export default function Loading() {
             <span className="w09-boot-ring lp-keep" aria-hidden />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[color:var(--hub-accent)]">W10 EQ Power</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[color:var(--hub-accent)]">W10 <span className="font-revolut normal-case tracking-normal">Revolut</span></div>
             <div className="mt-1 truncate text-lg font-black tracking-tight">Clay Cockpit Handoff</div>
           </div>
         </div>

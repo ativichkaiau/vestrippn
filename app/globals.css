@@ -1102,7 +1102,7 @@ html.verstappen .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-co
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   W10 EQ POWER — CLAY COCKPIT
+   W10 REVOLUT — CLAY COCKPIT
    The existing W09 token contract remains available to feature modules, but
    its structural surfaces now resolve through this livery-aware clay layer.
    ════════════════════════════════════════════════════════════════════════ */
@@ -1305,12 +1305,25 @@ html.verstappen {
     0 0 0 3px rgba(var(--hub-accent-rgb), 0.14);
 }
 
+/* "Revolut" wordmark — geometric sans approximating the brand font. */
+.font-revolut {
+  font-family: var(--font-revolut), "Futura", "Avenir Next", "Century Gothic", system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* Brand logo tile — teal claymorphic pillow with the V glyph (fixed teal,
+   not livery-tinted, so the mark stays constant across liveries). */
 .w10-brand-mark > span:first-child {
   background:
-    linear-gradient(145deg, var(--w10-clay-raised), var(--w10-clay-inset)) !important;
-  border: 1px solid var(--w10-clay-edge);
-  box-shadow: var(--w10-clay-shadow-soft);
-  color: var(--w09-text) !important;
+    linear-gradient(145deg, #3fe9da 0%, #00bdae 52%, #00a094 120%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  box-shadow:
+    5px 6px 14px rgba(0, 66, 62, 0.45),
+    -4px -4px 11px rgba(150, 255, 248, 0.40),
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.70),
+    inset -2px -3px 6px rgba(0, 84, 78, 0.55) !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0, 60, 56, 0.45);
 }
 
 @media (prefers-reduced-motion: no-preference) {

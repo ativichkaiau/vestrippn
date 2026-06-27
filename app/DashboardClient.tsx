@@ -200,7 +200,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       className="h-1.5 w-1.5 rounded-full"
                       style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
                     />
-                    W10 EQ Power · Clay Cockpit
+                    W10 <span className="font-revolut font-semibold">Revolut</span> · Clay Cockpit
                   </div>
 
                   <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
@@ -568,7 +568,7 @@ type RaceIntroTheme = {
 const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
   w10: {
     id: 'w10',
-    title: 'W10 EQ POWER',
+    title: 'W10 REVOLUT',
     chassis: 'VEStriPPN 3.0',
     eyebrow: 'Grid Launch Sequence',
     mode: 'Carbon Silver Petronas',
@@ -850,7 +850,7 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.42, duration: reduced ? 0.15 : 0.56, ease: [0.16, 1, 0.3, 1] }}
             >
-              EQ Power
+              Revolut
             </motion.div>
             <motion.p
               className="mt-5 max-w-xl text-sm font-semibold leading-7 text-white/60 sm:text-base"
