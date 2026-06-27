@@ -1335,3 +1335,32 @@ html.verstappen {
     translate: 0 1px;
   }
 }
+
+/* ── W10 coverage extension ───────────────────────────────────────────────
+   The explicit .w10-clay-* classes + the bg-white/40–70 auto-net above cover
+   the structural surfaces, but the app still has ~100+ glass cards that use
+   `bg-black/5 dark:bg-white/5` (hub/content grids) or a bare `dark:bg-white/*`
+   with no light-white sibling. Those slipped through and stayed glassy. Give
+   them the SAME clay material (same tokens + raised shadow) so coverage is
+   complete and consistent. Anything already handled explicitly is excluded
+   via :not([class*="w10-clay-"]) and :not([data-w10-tone="dark"]); pills via
+   :not([class*="rounded-full"]). Token match (~=) avoids bg-black/5 matching
+   bg-black/50. */
+
+/* (a) light + dark: cards whose surface base is bg-black/5|10 paired with a
+   dark surface class — the canonical content-grid card. Mode-aware tokens
+   make it clay in both themes (mirrors the bg-white auto-net). */
+.w10-clay-shell main :where([class~="bg-black/5"], [class~="bg-black/10"]):where([class~="dark:bg-white/5"], [class~="dark:bg-white/10"]):not([class*="rounded-full"]):not([class*="w10-clay-"]):not([data-w10-tone="dark"]) {
+  background:
+    linear-gradient(145deg, var(--w10-clay-raised) 0%, var(--w10-clay) 58%, var(--w10-clay-inset) 118%) !important;
+  border-color: var(--w10-clay-edge) !important;
+  box-shadow: var(--w10-clay-shadow-raised) !important;
+}
+
+/* (b) dark mode only: bare glass-card signatures with no light-white base. */
+.dark .w10-clay-shell main :where([class~="dark:bg-white/5"], [class~="dark:bg-white/10"], [class~="dark:bg-white/15"]):not([class*="rounded-full"]):not([class*="w10-clay-"]):not([data-w10-tone="dark"]) {
+  background:
+    linear-gradient(145deg, var(--w10-clay-raised) 0%, var(--w10-clay) 58%, var(--w10-clay-inset) 118%) !important;
+  border-color: var(--w10-clay-edge) !important;
+  box-shadow: var(--w10-clay-shadow-raised) !important;
+}
