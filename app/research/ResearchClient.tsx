@@ -146,6 +146,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
     return s;
   });
   const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [openAbstracts, setOpenAbstracts] = useState<Set<string>>(new Set());
 
   /* ── Mount + load source availability ── */
@@ -236,6 +237,29 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
       console.error('[research] save failed', e);
     } finally {
       setSavingKey(null);
+    }
+  };
+
+  const removeFromVault = async (item: VaultItem) => {
+    if (removingId) return;
+    setRemovingId(item.id);
+    // Optimistic removal; restore on failure.
+    const snapshot = vault;
+    setVault((prev) => prev.filter((v) => v.id !== item.id));
+    try {
+      const res = await fetch(`/api/research/extract/${item.id}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 404) throw new Error(`delete ${res.status}`);
+      // Re-enable the Save button for this paper in any current results.
+      setSavedKeys((prev) => {
+        const next = new Set(prev);
+        keysFor({ doi: item.doi, pmid: item.pmid, title: item.title }).forEach((k) => next.delete(k));
+        return next;
+      });
+    } catch (e) {
+      console.error('[research] remove failed', e);
+      setVault(snapshot); // rollback
+    } finally {
+      setRemovingId(null);
     }
   };
 
@@ -628,6 +652,22 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                               </div>
                             )}
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFromVault(v)}
+                            disabled={removingId === v.id}
+                            aria-label={`Remove ${v.title} from vault`}
+                            title="Remove from vault"
+                            className="shrink-0 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--w09-border)] text-[color:var(--w09-text-muted)] transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-500 disabled:opacity-40 active:scale-95"
+                          >
+                            {removingId === v.id ? (
+                              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            ) : (
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            )}
+                          </button>
                         </div>
                       </li>
                     );
