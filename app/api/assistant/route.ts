@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { resolveUserId } from '@/lib/auth/owner';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-// Streamed Claude responses can outlive the default function window.
+// Streamed responses can outlive the default function window.
 export const maxDuration = 60;
 
 type IntelligenceHub =
   | 'dashboard' | 'academics' | 'research' | 'fitness'
   | 'tools' | 'archive' | 'identity' | 'ielts';
 
-// Stable shared core — first system block, cache breakpoint lives here so the
-// prefix stays byte-identical across every hub and request.
 const CORE_SYSTEM = `You are the Cockpit Intelligence assistant inside VEStriPPN, a private personal command center for a Thai medical student at CMU (Chiang Mai University). The app has hubs for academics (HMS-2 and HNS-2 completed, HCVS-2 active, Canvas, Anki, clinical cases), research (SRMA screening/extraction), fitness, tools, archive, identity/portfolio, and IELTS prep.
 
 Response rules:
@@ -41,8 +39,8 @@ interface AssistantRequest {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('❌ CRITICAL: Missing ANTHROPIC_API_KEY');
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('❌ CRITICAL: Missing OPENAI_API_KEY');
     return NextResponse.json({ error: 'Config Missing' }, { status: 500 });
   }
 
@@ -72,27 +70,27 @@ export async function POST(req: Request) {
     contextLines.length ? `Hub context:\n${contextLines.join('\n')}` : null,
   ].filter(Boolean).join('\n\n');
 
-  const client = new Anthropic();
+  const client = new OpenAI();
 
-  const stream = client.messages.stream({
-    model: 'claude-opus-4-1-20250805',
-    max_tokens: 8192,
-    thinking: { type: 'enabled', budget_tokens: 2048 },
-    system: [
-      { type: 'text', text: CORE_SYSTEM, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: persona },
+  const completion = await client.chat.completions.create({
+    model: 'gpt-4o',
+    stream: true,
+    temperature: 0.4,
+    max_tokens: 1024,
+    messages: [
+      { role: 'system', content: CORE_SYSTEM },
+      { role: 'system', content: persona },
+      { role: 'user', content: userMessage },
     ],
-    messages: [{ role: 'user', content: userMessage }],
   });
 
   const encoder = new TextEncoder();
   const readable = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for await (const event of stream) {
-          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-            controller.enqueue(encoder.encode(event.delta.text));
-          }
+        for await (const chunk of completion) {
+          const delta = chunk.choices[0]?.delta?.content;
+          if (delta) controller.enqueue(encoder.encode(delta));
         }
         controller.close();
       } catch (error) {
@@ -101,7 +99,7 @@ export async function POST(req: Request) {
       }
     },
     cancel() {
-      stream.abort();
+      completion.controller.abort();
     },
   });
 
