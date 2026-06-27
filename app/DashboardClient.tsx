@@ -17,6 +17,7 @@ import TopNavProfile from '../components/TopNavProfile';
 import { NavRail, MobileHubNav } from '../components/HubNav';
 import TickNumber from '../components/TickNumber';
 import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
+import BrandMark from '../components/BrandMark';
 import Link from 'next/link';
 
 type SiteLivery = 'normal' | 'monza' | 'senna' | 'verstappen';
@@ -139,13 +140,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
             </svg>
           </button>
 
-          <Link href="/" className="font-black text-[18px] lg:text-[20px] tracking-tighter flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-7 h-7 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[14px] transition-colors duration-700">V</div>
-            <div className="flex items-baseline">
-              <span>VESTRIPPN</span>
-              <span className="transition-colors duration-700" style={{ color: 'var(--hub-accent)' }}>3.0</span>
-            </div>
-          </Link>
+          <BrandMark compact />
         </div>
 
         <div className="flex gap-4 lg:gap-6 items-center">
@@ -172,8 +167,10 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-white/10 px-5 py-7 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-10 lg:px-12 lg:py-14"
+              className="w10-clay-hero relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-white/10 px-5 py-7 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-10 lg:px-12 lg:py-14"
               style={{ backgroundColor: 'var(--hub-bg)' }}
+              data-motion="hero"
+              data-no-typewriter
             >
               <div
                 className="absolute inset-0"
@@ -203,7 +200,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       className="h-1.5 w-1.5 rounded-full"
                       style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
                     />
-                    Personal Telemetry & Operating System
+                    W10 EQ Power · Clay Cockpit
                   </div>
 
                   <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
@@ -248,7 +245,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     className="absolute -inset-8 rounded-[36px] blur-3xl"
                     style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}
                   />
-                  <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.08] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+                  <div className="w10-clay-dark-panel relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.08] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl" data-w10-tone="dark">
                     <div className="mb-4 flex items-center justify-between">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">Live Command</p>
@@ -267,7 +264,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       {[
                         ['Domains', '8'],
-                        ['Version', 'W09'],
+                        ['Version', 'W10'],
                         ['Pending', `${pendingTaskCount}`],
                       ].map(([label, value]) => (
                         <div key={label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
@@ -335,7 +332,8 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
               initial={{ opacity: 0, y: 26 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden rounded-[32px] border border-black/5 bg-neutral-950 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.22)] dark:border-white/10 sm:p-7 lg:p-8"
+              className="w10-clay-dark-panel overflow-hidden rounded-[32px] border border-black/5 bg-neutral-950 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.22)] dark:border-white/10 sm:p-7 lg:p-8"
+              data-w10-tone="dark"
             >
               <div className="grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:items-center">
                 <div>
@@ -549,7 +547,7 @@ function IntroPhaseRail({
 }
 
 type RaceIntroTheme = {
-  id: 'w09' | 'williams' | 'senna' | 'verstappen';
+  id: 'w10' | 'williams' | 'senna' | 'verstappen';
   title: string;
   chassis: string;
   eyebrow: string;
@@ -568,9 +566,9 @@ type RaceIntroTheme = {
 };
 
 const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
-  w09: {
-    id: 'w09',
-    title: 'W09 EQ POWER+',
+  w10: {
+    id: 'w10',
+    title: 'W10 EQ POWER',
     chassis: 'VEStriPPN 3.0',
     eyebrow: 'Grid Launch Sequence',
     mode: 'Carbon Silver Petronas',
@@ -596,7 +594,7 @@ const RACE_INTROS: Record<RaceIntroTheme['id'], RaceIntroTheme> = {
       'FIVE LIGHTS HOLDING',
       'ERS DEPLOYMENT MAP LOADED',
       'TYRE WINDOW AND BRAKE BIAS LOCKED',
-      `${cycle} // LIGHTS OUT TO W09`,
+      `${cycle} // LIGHTS OUT TO W10`,
     ],
   },
   williams: {
@@ -752,7 +750,7 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
   const statuses = [
     ['01', 'Cockpit glass calibrated'],
     ['02', 'Mission queue synchronized'],
-    ['03', `${cycle} // W09 ready`],
+    ['03', `${cycle} // W10 ready`],
   ];
 
   return (
@@ -836,7 +834,7 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
           >
             <div className="font-mono text-[10px] font-black uppercase tracking-[0.32em] text-white/44">{theme.chassis}</div>
             <h1 className="mt-3 text-[clamp(58px,13vw,148px)] font-black uppercase leading-[0.76] tracking-[-0.08em] text-white">
-              W09
+              W10
             </h1>
             <motion.div
               className="mt-4 h-[3px] w-[min(82vw,560px)] origin-left"
@@ -852,7 +850,7 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.42, duration: reduced ? 0.15 : 0.56, ease: [0.16, 1, 0.3, 1] }}
             >
-              EQ Power+
+              EQ Power
             </motion.div>
             <motion.p
               className="mt-5 max-w-xl text-sm font-semibold leading-7 text-white/60 sm:text-base"
@@ -1010,7 +1008,7 @@ function RaceIntroOverlay({ cycle, theme }: { cycle: string; theme: RaceIntroThe
    INTRO OVERLAY — boot sequence (every page load, ~7s)
    ════════════════════════════════════════════════════════════ */
 function IntroOverlay({ cycle }: { cycle: string }) {
-  return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.w09} />;
+  return <RaceIntroOverlay cycle={cycle} theme={RACE_INTROS.w10} />;
 }
 
 /* ════════════════════════════════════════════════════════════

@@ -53,7 +53,7 @@ export default function MissionBlock({
       animate={motionOff ? undefined : 'show'}
       whileHover={motionOff || completed ? undefined : hoverLift}
       whileTap={motionOff || completed ? undefined : pressTap}
-      className={`relative flex flex-col gap-3 overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-4 pl-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-700 dark:border-white/5 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5 sm:pl-6 ${completed ? 'grayscale opacity-60' : ''}`}
+      className={`w10-clay-surface relative flex flex-col gap-3 overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-4 pl-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-700 dark:border-white/5 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5 sm:pl-6 ${completed ? 'grayscale opacity-60' : ''}`}
       aria-label={completed ? 'Completed mission' : 'Current mission'}
       data-motion="mission"
       data-state={completed ? 'completed' : 'active'}

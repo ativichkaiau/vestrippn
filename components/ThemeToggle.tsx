@@ -38,9 +38,10 @@ function LiveryRow({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors text-left ${
+      className={`w10-clay-tab w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors text-left ${
         active ? 'bg-[#00A598]/10 dark:bg-[#00D2BE]/10' : 'hover:bg-black/5 dark:hover:bg-white/10'
       }`}
+      data-state={active ? 'active' : undefined}
     >
       <span className="shrink-0 text-[18px] leading-none">{emoji}</span>
       <div className="min-w-0 flex-1 leading-tight">
@@ -104,7 +105,7 @@ export default function ThemeToggle() {
   };
 
   if (!ready) {
-    return <div className="w-[104px] h-[38px] rounded-full bg-black/5 dark:bg-white/5 animate-pulse" />;
+    return <div className="w10-livery-skeleton h-[38px] w-[38px] rounded-full bg-black/5 animate-pulse dark:bg-white/5 sm:w-[104px]" />;
   }
 
   const label = livery === 'monza' ? 'Williams' : livery === 'senna' ? 'Senna' : livery === 'verstappen' ? 'Verstappen' : mode === 'night' ? 'Night' : 'Day';
@@ -114,10 +115,10 @@ export default function ThemeToggle() {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 border border-transparent dark:border-white/5 active:scale-95 group shadow-sm"
+        className="w10-livery-trigger w10-clay-control flex h-[38px] w-[38px] items-center justify-center gap-2 rounded-full border border-transparent bg-black/5 p-0 shadow-sm transition-all duration-300 hover:bg-black/10 active:scale-95 dark:border-white/5 dark:bg-white/5 dark:hover:bg-white/10 sm:h-auto sm:w-auto sm:justify-start sm:px-3 sm:py-1.5"
         title="Select livery"
       >
-        <div className="flex flex-col items-start leading-none">
+        <div className="hidden flex-col items-start leading-none sm:flex">
           <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Livery</span>
           <span className="text-[11px] font-bold tracking-tight text-neutral-900 dark:text-white">{label}</span>
         </div>
@@ -127,7 +128,7 @@ export default function ThemeToggle() {
       {open && (
         <>
           <div className="fixed inset-0 z-[55]" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 mt-2 w-56 z-[60] p-2 rounded-2xl bg-white/95 dark:bg-[#0e0e10]/95 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-[0_20px_50px_rgb(0,0,0,0.18)] dark:shadow-[0_20px_50px_rgb(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+          <div className="w10-clay-surface absolute right-0 mt-2 w-56 z-[60] p-2 rounded-2xl bg-white/95 dark:bg-[#0e0e10]/95 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-[0_20px_50px_rgb(0,0,0,0.18)] dark:shadow-[0_20px_50px_rgb(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
             <div className="px-3 pt-1.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Normal Livery</div>
             <LiveryRow active={livery === 'normal' && mode === 'day'} onClick={() => choose('normal', 'day')} emoji="☀️" title="Day" sub="Pristine White" />
             <LiveryRow active={livery === 'normal' && mode === 'night'} onClick={() => choose('normal', 'night')} emoji="🌙" title="Night" sub="Deep Carbon" />

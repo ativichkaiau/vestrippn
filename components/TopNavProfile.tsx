@@ -4,14 +4,11 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link"; // Import Link for the legal route
 
-export default function TopNavProfile() {
-  const { data: session, status } = useSession();
-
-  // Helper: The "i" Info Icon component for consistent styling
-  const InfoAnchor = () => (
-    <Link 
-      href="/legal" 
-      className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 dark:text-neutral-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all duration-300 mr-1"
+function InfoAnchor() {
+  return (
+    <Link
+      href="/legal"
+      className="w10-legal-link w10-clay-control mr-1 hidden h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition-all duration-300 hover:bg-blue-50 hover:text-blue-500 dark:text-neutral-500 dark:hover:bg-blue-500/10 sm:flex"
       title="Legal & Privacy Console"
     >
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -19,13 +16,17 @@ export default function TopNavProfile() {
       </svg>
     </Link>
   );
+}
+
+export default function TopNavProfile() {
+  const { data: session, status } = useSession();
 
   // STATE 1: Glassmorphic Loading Skeleton
   if (status === "loading") {
     return (
       <div className="flex items-center">
         <InfoAnchor />
-        <div className="animate-pulse bg-black/5 dark:bg-white/5 h-[40px] w-[140px] rounded-full transition-colors duration-700"></div>
+        <div className="w10-auth-skeleton h-[38px] w-[38px] animate-pulse rounded-full bg-black/5 transition-colors duration-700 dark:bg-white/5 sm:h-[40px] sm:w-[140px]"></div>
       </div>
     );
   }
@@ -37,7 +38,7 @@ export default function TopNavProfile() {
         {/* The Legal Anchor */}
         <InfoAnchor />
 
-        <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 pl-4 pr-1 py-1 rounded-full border border-transparent dark:border-white/5 transition-colors duration-700">
+        <div className="w10-clay-control flex items-center gap-2 bg-black/5 dark:bg-white/5 pl-4 pr-1 py-1 rounded-full border border-transparent dark:border-white/5 transition-colors duration-700">
           
           {/* User Info */}
           <div className="flex flex-col text-right hidden sm:flex pr-1">
@@ -85,10 +86,11 @@ export default function TopNavProfile() {
       <InfoAnchor />
       <button 
         onClick={() => signIn()}
-        className="flex items-center gap-2 px-5 py-2 rounded-full border border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-500 hover:border-transparent dark:hover:bg-blue-600 transition-all duration-300 group shadow-sm active:scale-95"
+        className="w10-auth-trigger w10-clay-control group flex h-[38px] w-[38px] items-center justify-center gap-2 rounded-full border border-blue-500/30 bg-blue-50 p-0 shadow-sm transition-all duration-300 hover:border-transparent hover:bg-blue-500 active:scale-95 dark:bg-blue-500/10 dark:hover:bg-blue-600 sm:h-auto sm:w-auto sm:px-5 sm:py-2"
+        title="Sign in"
       >
         <div className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:bg-white animate-pulse transition-colors duration-300"></div>
-        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 group-hover:text-white uppercase tracking-widest transition-colors duration-300">
+        <span className="w10-auth-label hidden text-[10px] font-bold uppercase tracking-widest text-blue-600 transition-colors duration-300 group-hover:text-white dark:text-blue-400 sm:inline">
           Sign In
         </span>
       </button>

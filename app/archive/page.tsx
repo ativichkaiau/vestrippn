@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ThemeToggle from "../../components/ThemeToggle";
@@ -11,6 +10,7 @@ import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
 import TickNumber from '../../components/TickNumber';
 import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
+import BrandMark from '../../components/BrandMark';
 
 export default function ArchiveHub() {
   const [isMounted, setIsMounted] = useState(false);
@@ -46,10 +46,7 @@ export default function ArchiveHub() {
           <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className="hidden lg:flex items-center justify-center p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-neutral-500 dark:text-neutral-400 active:scale-95">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="14" y2="18"></line></svg>
           </button>
-          <Link href="/" className="font-black text-[20px] lg:text-[22px] tracking-tighter flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">V</div>
-            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="text-purple-500 dark:text-purple-400 transition-colors duration-700">3.0</span></div>
-          </Link>
+          <BrandMark />
         </div>
         <div className="flex gap-4 lg:gap-6 items-center">
           <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>

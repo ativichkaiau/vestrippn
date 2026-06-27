@@ -16,7 +16,7 @@ export default function SiteMotion({ children }: { children: ReactNode }) {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={pathname}
-        className="motion-route-shell"
+        className="motion-route-shell w10-clay-shell"
         variants={routeVariants(motionOff)}
         initial="initial"
         animate="animate"

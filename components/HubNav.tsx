@@ -58,7 +58,7 @@ export const HUB_THEME: Record<HubName, { bar: string; icon: string }> = {
 export function NavRail({ active, expanded, onToggle }: { active: HubName; expanded: boolean; onToggle: () => void }) {
   return (
     <aside
-      className={`hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
+      className={`w10-clay-rail hidden lg:flex flex-col justify-between py-6 bg-white/40 dark:bg-black/20 border-r border-black/5 dark:border-white/5 shrink-0 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
         expanded ? 'w-[248px] px-6' : 'w-[108px] px-4'
       }`}
       data-motion="nav-rail"
@@ -74,11 +74,11 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
                 data-state={isActive ? 'active' : undefined}
-                className={`w09-nav-link group relative flex rounded-2xl transition-all duration-300 ${
+                className={`w09-nav-link w10-clay-tab group relative flex rounded-2xl transition-all duration-300 ${
                   expanded ? 'flex-row items-center px-4 py-3' : 'flex-col items-center justify-center px-1 py-2.5'
                 } ${
                   isActive
-                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-black shadow-md'
+                    ? 'text-neutral-900 dark:text-white'
                     : 'hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
@@ -114,7 +114,7 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
       <button
         onClick={onToggle}
         title={expanded ? 'Collapse rail' : 'Expand rail'}
-        className={`w09-magnetic mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${
+        className={`w09-magnetic w10-clay-control mt-4 w-full rounded-3xl bg-white/60 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 shadow-sm transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 active:scale-95 group ${
           expanded ? 'p-5' : 'p-4 aspect-square'
         }`}
       >
@@ -137,7 +137,7 @@ export function MobileHubNav({ active }: { active: HubName }) {
   }, []);
 
   return (
-    <nav className="lg:hidden fixed bottom-6 inset-x-0 mx-auto h-[60px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center px-2 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-fit sm:max-w-[92vw] overflow-x-auto no-scrollbar transition-all duration-700">
+    <nav className="w10-clay-dock lg:hidden fixed bottom-6 inset-x-0 mx-auto h-[60px] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-full z-[100] flex items-center px-2 gap-1 shadow-[0_20px_40px_rgb(0,0,0,0.1)] dark:shadow-[0_20px_40px_rgb(0,0,0,0.5)] w-[95%] sm:w-fit sm:max-w-[92vw] overflow-x-auto no-scrollbar transition-all duration-700">
       {HUBS.map((item) => {
         const isActive = item.name === active;
         const theme = HUB_THEME[item.name];
@@ -148,9 +148,9 @@ export function MobileHubNav({ active }: { active: HubName }) {
             ref={isActive ? activeRef : undefined}
             aria-current={isActive ? 'page' : undefined}
             data-state={isActive ? 'active' : undefined}
-            className={`w09-nav-chip flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 transition-all duration-300 first:ml-auto last:mr-auto ${
+            className={`w09-nav-chip w10-clay-tab flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 transition-all duration-300 first:ml-auto last:mr-auto ${
               isActive
-                ? 'bg-neutral-900 text-white shadow-md dark:bg-white dark:text-black'
+                ? 'text-neutral-900 dark:text-white'
                 : 'text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/10'
             }`}
           >

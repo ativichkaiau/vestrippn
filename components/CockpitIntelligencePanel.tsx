@@ -215,7 +215,7 @@ export default function CockpitIntelligencePanel({
       variants={motionOff ? undefined : fadeUp}
       initial={motionOff ? false : 'hidden'}
       animate={motionOff ? undefined : 'show'}
-      className={`relative overflow-hidden rounded-[28px] border border-black/5 bg-white/70 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors duration-700 dark:border-white/5 dark:bg-white/[0.055] sm:p-5 lg:p-6 ${className}`}
+      className={`w10-clay-surface relative overflow-hidden rounded-[28px] border border-black/5 bg-white/70 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors duration-700 dark:border-white/5 dark:bg-white/[0.055] sm:p-5 lg:p-6 ${className}`}
       data-motion-card
       data-ai-command-surface
       data-no-typewriter
@@ -246,7 +246,7 @@ export default function CockpitIntelligencePanel({
           {context.length > 0 && (
             <motion.div variants={motionOff ? undefined : softScale} className="grid gap-2 sm:grid-cols-3">
               {context.slice(0, 3).map((item) => (
-                <div key={item.label} className="rounded-2xl border border-black/5 bg-black/[0.025] px-3 py-3 dark:border-white/5 dark:bg-white/[0.045]">
+                <div key={item.label} className="w10-clay-inset rounded-2xl border border-black/5 bg-black/[0.025] px-3 py-3 dark:border-white/5 dark:bg-white/[0.045]">
                   <div className="text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{item.label}</div>
                   <div className="mt-1 truncate text-[12px] font-black text-neutral-800 dark:text-neutral-100">{item.value}</div>
                 </div>
@@ -264,7 +264,7 @@ export default function CockpitIntelligencePanel({
                   whileHover={motionOff ? undefined : hoverLift}
                   whileTap={motionOff ? undefined : pressTap}
                   onClick={() => void previewAction(action)}
-                  className="group rounded-2xl border border-black/5 bg-white/65 px-4 py-3 text-left shadow-sm transition-colors hover:border-black/10 hover:bg-white dark:border-white/5 dark:bg-white/[0.045] dark:hover:border-white/10 dark:hover:bg-white/[0.075]"
+                  className="w10-clay-control group rounded-2xl border border-black/5 bg-white/65 px-4 py-3 text-left shadow-sm transition-colors hover:border-black/10 hover:bg-white dark:border-white/5 dark:bg-white/[0.045] dark:hover:border-white/10 dark:hover:bg-white/[0.075]"
                   data-motion-card
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -277,7 +277,7 @@ export default function CockpitIntelligencePanel({
             </div>
           </motion.div>
 
-          <motion.div variants={motionOff ? undefined : fadeUp} className="rounded-2xl border border-black/5 bg-black/[0.025] p-2 dark:border-white/5 dark:bg-black/20">
+          <motion.div variants={motionOff ? undefined : fadeUp} className="w10-clay-inset rounded-2xl border border-black/5 bg-black/[0.025] p-2 dark:border-white/5 dark:bg-black/20">
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 value={prompt}
@@ -297,7 +297,11 @@ export default function CockpitIntelligencePanel({
           </motion.div>
         </motion.div>
 
-        <motion.div variants={motionOff ? undefined : softScale} className="rounded-[24px] border border-black/5 bg-neutral-950 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.24)] dark:border-white/10 dark:bg-black/40">
+        <motion.div
+          variants={motionOff ? undefined : softScale}
+          className="w10-clay-dark-panel rounded-[24px] border border-black/5 bg-neutral-950 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.24)] dark:border-white/10 dark:bg-black/40"
+          data-w10-tone="dark"
+        >
           <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40">AI response card</div>
@@ -354,7 +358,7 @@ export default function CockpitIntelligencePanel({
             )}
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)]">
             <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Sources and verification</div>
             <p className="mt-1 text-xs font-medium leading-5 text-white/55">
               Generated live by Claude from the hub context shown. {config.caution}
@@ -393,7 +397,7 @@ export default function CockpitIntelligencePanel({
           <motion.div
             initial={motionOff ? false : { opacity: 0, y: 14, scale: 0.98 }}
             animate={motionOff ? undefined : { opacity: 1, y: 0, scale: 1 }}
-            className="w-full max-w-md rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_24px_70px_rgba(0,0,0,0.28)] dark:border-white/10 dark:bg-neutral-950"
+            className="w10-clay-surface w-full max-w-md rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_24px_70px_rgba(0,0,0,0.28)] dark:border-white/10 dark:bg-neutral-950"
           >
             <div className="text-[10px] font-black uppercase tracking-[0.24em] text-neutral-400 dark:text-neutral-500">Confirmation required</div>
             <h3 className="mt-2 text-xl font-black tracking-tight text-neutral-950 dark:text-white">Review before applying changes</h3>

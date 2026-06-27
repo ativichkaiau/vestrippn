@@ -121,7 +121,7 @@ export default function HubIntro({
       variants={motionOff ? undefined : softScale}
       initial={motionOff ? false : 'hidden'}
       animate={motionOff ? undefined : 'show'}
-      className="relative overflow-hidden rounded-[32px] border border-white/10 px-5 py-6 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8 lg:rounded-[40px] lg:px-10 lg:py-9"
+      className="w10-clay-hero relative overflow-hidden rounded-[32px] border border-white/10 px-5 py-6 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8 lg:rounded-[40px] lg:px-10 lg:py-9"
       style={{ backgroundColor: 'var(--hub-bg)' }}
       data-motion="hero"
       data-hub={hub ?? 'overview'}
@@ -239,7 +239,8 @@ export default function HubIntro({
             <motion.div
               whileHover={motionOff ? undefined : hoverLift}
               whileTap={motionOff ? undefined : pressTap}
-              className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.07] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+              className="w10-clay-dark-panel relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.07] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+              data-w10-tone="dark"
               data-motion-card
             >
               {/* ticking metrics */}
@@ -248,10 +249,10 @@ export default function HubIntro({
                   <motion.div
                     key={metric.label}
                     variants={motionOff ? undefined : softScale}
-                    className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3 text-center"
+                    className="w10-clay-inset rounded-2xl border border-white/10 bg-black/25 px-3 py-3 text-center"
                     data-motion-card
                   >
-                    <div className={`truncate text-[17px] font-black tabular-nums leading-tight ${acc ? acc.text : 'text-white'}`}>
+                    <div className={`truncate text-[10px] font-black tabular-nums leading-tight sm:text-[17px] ${acc ? acc.text : 'text-white'}`}>
                       <TickNumber value={metric.value} />
                     </div>
                     <div className="mt-1 truncate text-[8px] font-black uppercase tracking-widest text-slate-500">{metric.label}</div>
@@ -265,7 +266,7 @@ export default function HubIntro({
                   <motion.div
                     key={card.title}
                     variants={motionOff ? undefined : fadeUp}
-                    className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-3.5 py-3 text-left"
+                    className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-3.5 py-3 text-left shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)]"
                     data-motion-card
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-lg">{card.icon}</span>
