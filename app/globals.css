@@ -1100,3 +1100,156 @@ html.verstappen .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-co
   --w09-focus-ring:     #ff6b00;
   --w09-shadow:         0 10px 38px rgba(0, 0, 0, 0.58);
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   CLAYMORPHISM — site-wide replacement of the glass/HUD surface language.
+   Glass cards (translucent + backdrop-blur) become OPAQUE, puffy, pillowed
+   "clay" surfaces with soft double-shadow modelling (outer drop + inner
+   highlight/depth), large radii, and a soft tinted edge. Surfaces stay
+   livery-aware: they pick up each livery's --hub-accent-rgb for the glow and
+   per-livery opaque base tones below, so Williams/Senna/Verstappen identity
+   is preserved while the glass goes away.
+
+   Strategy mirrors the livery system: override the common card utility
+   signatures globally so no component markup has to change. Appended last so
+   it wins by source order over the earlier livery !important retints. Pills
+   (rounded-full chips/badges/dots) are excluded so only panels inflate.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* 1 ─ Clay tokens. Surface tones + edge + inner highlight are per-context;
+   the puffy shadow recipe is defined once and auto-adapts because it reads
+   --hub-accent-rgb and --clay-hi, which each livery overrides. */
+:root {
+  /* LIGHT — off-white clay raised over the #FAFAFA page */
+  --clay-surface:   #ffffff;
+  --clay-surface-2: #ffffff;
+  --clay-edge:      rgba(17, 17, 28, 0.06);
+  --clay-hi:        rgba(255, 255, 255, 0.95);
+  --clay-lo:        rgba(70, 70, 100, 0.10);
+  --clay-grad: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 42%, rgba(70, 70, 100, 0.05));
+  --clay-shadow:
+    0 14px 28px -12px rgba(70, 70, 100, 0.22),
+    0 4px 10px -6px rgba(var(--hub-accent-rgb), 0.12),
+    inset 0 2px 1px var(--clay-hi),
+    inset 0 -10px 18px -14px var(--clay-lo);
+}
+
+.dark {
+  /* NEUTRAL DARK — charcoal clay raised over the #050505 carbon page */
+  --clay-surface:   #161619;
+  --clay-surface-2: #1d1d21;
+  --clay-edge:      rgba(255, 255, 255, 0.07);
+  --clay-hi:        rgba(255, 255, 255, 0.10);
+  --clay-lo:        rgba(0, 0, 0, 0.55);
+  --clay-grad: linear-gradient(150deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, 0.12));
+  --clay-shadow:
+    0 16px 30px -14px rgba(0, 0, 0, 0.72),
+    0 4px 14px -8px rgba(var(--hub-accent-rgb), 0.30),
+    inset 0 1px 0 var(--clay-hi),
+    inset 0 -12px 22px -16px rgba(0, 0, 0, 0.5);
+}
+
+/* Per-livery opaque clay tones — lifted a step off each body bg so panels read
+   as raised, with a brighter top highlight + edge to model the pillow. Accent
+   glow comes for free via --hub-accent-rgb. */
+html.monza {
+  --clay-surface:   #2b1a64;
+  --clay-surface-2: #341e76;
+  --clay-edge:      rgba(197, 153, 85, 0.30);
+  --clay-hi:        rgba(255, 255, 255, 0.12);
+}
+html.senna {
+  --clay-surface:   #1b2f4d;
+  --clay-surface-2: #22395c;
+  --clay-edge:      rgba(255, 212, 0, 0.26);
+  --clay-hi:        rgba(255, 255, 255, 0.11);
+}
+html.verstappen {
+  --clay-surface:   #13243f;
+  --clay-surface-2: #1a2e4d;
+  --clay-edge:      rgba(255, 107, 0, 0.30);
+  --clay-hi:        rgba(255, 255, 255, 0.10);
+}
+/* Esther Bunny (cozy pastel, light) — clay suits it perfectly */
+.w09-esther {
+  --clay-surface:   #fffafc;
+  --clay-surface-2: #ffffff;
+  --clay-edge:      rgba(255, 143, 177, 0.28);
+  --clay-hi:        rgba(255, 255, 255, 0.95);
+  --clay-lo:        rgba(255, 143, 177, 0.16);
+  --clay-grad: linear-gradient(150deg, #ffffff, rgba(255, 255, 255, 0) 42%, rgba(255, 143, 177, 0.08));
+}
+
+/* 2 ─ Softer, pillowier corners across the radius scale (clay reads round).
+   Pills (rounded-full) and tiny radii are left alone. */
+.rounded-lg  { border-radius: 0.85rem; }
+.rounded-xl  { border-radius: 1.1rem; }
+.rounded-2xl { border-radius: 1.5rem; }
+.rounded-3xl { border-radius: 2rem; }
+:root { --w09-radius: 1.4rem; }
+
+/* 3 ─ DARK + livery card surfaces → opaque puffy clay.
+   :where() keeps the long signature list at zero specificity; the .dark
+   ancestor + :not() give just enough weight to win, and !important on the
+   paint props beats the earlier livery retints. */
+.dark :where(
+  [class~="dark:bg-white/5"],
+  [class~="dark:bg-white/10"],
+  [class~="dark:bg-white/15"],
+  [class~="dark:bg-black/20"],
+  [class~="dark:bg-black/25"],
+  [class~="dark:bg-black/40"],
+  [class~="dark:bg-black/60"],
+  [class~="dark:bg-[#050505]"],
+  [class~="dark:bg-[#0A0A0A]"],
+  [class~="dark:bg-[#0e0e10]"],
+  [class~="dark:bg-[#111]"],
+  [class~="dark:bg-[#111111]"]
+):not([class*="rounded-full"]) {
+  background-color: var(--clay-surface) !important;
+  background-image: var(--clay-grad);
+  border-color: var(--clay-edge) !important;
+  box-shadow: var(--clay-shadow);
+}
+
+/* 4 ─ LIGHT card surfaces → opaque puffy clay (incl. Esther wrapper, which
+   sets --clay-* on a descendant so var() resolves to its pink tones). */
+:root:not(.dark) :where(
+  [class~="bg-white/45"],
+  [class~="bg-white/55"],
+  [class~="bg-white/60"],
+  [class~="bg-white/70"],
+  [class~="bg-white/90"]
+):not([class*="rounded-full"]) {
+  background-color: var(--clay-surface) !important;
+  background-image: var(--clay-grad);
+  border-color: var(--clay-edge) !important;
+  box-shadow: var(--clay-shadow);
+}
+
+/* 4b ─ LIGHT cards that use bg-black/5/10 as their surface (the other common
+   light card base). Only convert when a dark surface class is ALSO present —
+   that co-presence is the reliable "this is a theme-switching panel" signal,
+   so dividers, inset tracks, and hover:bg-black/5 fills are left untouched. */
+:root:not(.dark) :where([class~="bg-black/5"], [class~="bg-black/10"]):where(
+  [class~="dark:bg-white/5"],
+  [class~="dark:bg-white/10"]
+):not([class*="rounded-full"]) {
+  background-color: var(--clay-surface) !important;
+  background-image: var(--clay-grad);
+  border-color: var(--clay-edge) !important;
+  box-shadow: var(--clay-shadow);
+}
+
+/* 5 ─ Hover lift: brighten every clay card to the raised tone on hover (the
+   motion system already nudges cards up). Keeps tactile feedback after the
+   !important base override replaces each card's original hover background. */
+.dark :where(
+  [class~="dark:bg-white/5"], [class~="dark:bg-white/10"], [class~="dark:bg-white/15"],
+  [class~="dark:bg-black/20"], [class~="dark:bg-black/25"], [class~="dark:bg-black/40"], [class~="dark:bg-black/60"],
+  [class~="dark:bg-[#050505]"], [class~="dark:bg-[#0A0A0A]"], [class~="dark:bg-[#0e0e10]"], [class~="dark:bg-[#111]"], [class~="dark:bg-[#111111]"]
+):hover:not([class*="rounded-full"]),
+:root:not(.dark) :where([class~="bg-white/45"], [class~="bg-white/55"], [class~="bg-white/60"], [class~="bg-white/70"], [class~="bg-white/90"]):hover:not([class*="rounded-full"]),
+:root:not(.dark) :where([class~="bg-black/5"], [class~="bg-black/10"]):where([class~="dark:bg-white/5"], [class~="dark:bg-white/10"]):hover:not([class*="rounded-full"]) {
+  background-color: var(--clay-surface-2) !important;
+}
