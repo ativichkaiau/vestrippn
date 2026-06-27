@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { resolveUserId } from '@/lib/auth/owner';
 import { prisma } from '@/lib/prisma';
+import { buildHubContext } from '@/lib/assistant/context';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,7 +29,7 @@ const CORE_SYSTEM = `You are the Cockpit Intelligence assistant inside VEStriPPN
 Response rules:
 - Be concise and high-signal: a short brief the user can act on, not an essay.
 - Plain text only — no markdown headers or tables. Use short paragraphs and "-" bullets.
-- Ground every answer in the hub context provided; if context is missing, say what you'd need rather than inventing data.
+- The "Live data" block, when present, is real and current — pulled live from the user's own Canvas, Anki, tasks, and archive. Treat its numbers as authoritative and reference them specifically. If the data you'd need isn't there, say what you'd need rather than inventing it.
 - Medical, research, and language output must be safe to verify: flag anything the user should double-check against course material or primary sources.
 - You cannot modify app data (planner, archive, Anki). Phrase actions as recommendations.`;
 
@@ -94,6 +95,15 @@ export async function POST(req: Request) {
     );
   }
 
+  // Real, server-fetched data for this hub (Canvas, Anki, tasks, archive, …).
+  // This is the authoritative source; never trust the client-passed context for
+  // facts. Failures degrade to an empty list, never an error.
+  const liveContext = await buildHubContext(userId, body.hub);
+  const liveLines = liveContext
+    .filter((c) => c?.label && c?.value)
+    .map((c) => `- ${c.label}: ${c.value}`);
+
+  // Client-passed context — shallow UI labels, kept as supplementary hints.
   const contextLines = (body.context || [])
     .filter((c) => c?.label && c?.value)
     .map((c) => `- ${c.label}: ${c.value}`);
@@ -101,6 +111,7 @@ export async function POST(req: Request) {
   const userMessage = [
     body.title ? `Action: ${body.title}` : null,
     `Request: ${instruction}`,
+    liveLines.length ? `Live data (authoritative — pulled from the app):\n${liveLines.join('\n')}` : null,
     contextLines.length ? `Hub context:\n${contextLines.join('\n')}` : null,
   ].filter(Boolean).join('\n\n');
 
