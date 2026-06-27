@@ -14,6 +14,11 @@ export const maxDuration = 60;
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 5 * 60 * 60 * 1000; // 5 hours
 
+// Model is configurable via env (OPENAI_MODEL) so you can switch to a cheaper
+// or newer model in Vercel without a code change. Defaults to gpt-4o-mini,
+// the low-cost option, to preserve credits.
+const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
+
 type IntelligenceHub =
   | 'dashboard' | 'academics' | 'research' | 'fitness'
   | 'tools' | 'archive' | 'identity' | 'ielts';
@@ -107,7 +112,7 @@ export async function POST(req: Request) {
   let completion;
   try {
     completion = await client.chat.completions.create({
-      model: 'gpt-4o',
+      model: OPENAI_MODEL,
       stream: true,
       temperature: 0.4,
       max_tokens: 1024,
