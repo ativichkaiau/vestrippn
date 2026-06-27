@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { resolveUserId } from '@/lib/auth/owner';
+import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 // Streamed responses can outlive the default function window.
 export const maxDuration = 60;
+
+// Sliding-window rate limit: at most RATE_LIMIT requests per RATE_WINDOW_MS,
+// per user. Backed by the AssistantUsage table so it holds across serverless
+// invocations.
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 type IntelligenceHub =
   | 'dashboard' | 'academics' | 'research' | 'fitness'
@@ -59,6 +66,34 @@ export async function POST(req: Request) {
   if (!persona || !instruction) {
     return NextResponse.json({ error: 'hub and instruction are required' }, { status: 400 });
   }
+
+  // Rate limit: count this user's requests inside the sliding window.
+  const windowStart = new Date(Date.now() - RATE_WINDOW_MS);
+  const recent = await prisma.assistantUsage.findMany({
+    where: { userId, createdAt: { gte: windowStart } },
+    orderBy: { createdAt: 'asc' },
+    select: { createdAt: true },
+  });
+
+  if (recent.length >= RATE_LIMIT) {
+    // A slot frees up RATE_WINDOW_MS after the oldest request in the window.
+    const resetAt = new Date(recent[0].createdAt.getTime() + RATE_WINDOW_MS);
+    const retryAfter = Math.max(1, Math.ceil((resetAt.getTime() - Date.now()) / 1000));
+    return NextResponse.json(
+      {
+        error: 'Rate limit reached',
+        detail: `Limit is ${RATE_LIMIT} requests per 5 hours. Try again after ${resetAt.toLocaleString()}.`,
+        resetAt: resetAt.toISOString(),
+      },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
+  // Record this request, and opportunistically prune rows outside the window.
+  await prisma.assistantUsage.create({ data: { userId } });
+  prisma.assistantUsage
+    .deleteMany({ where: { userId, createdAt: { lt: windowStart } } })
+    .catch(() => { /* best-effort cleanup; never block the response */ });
 
   const contextLines = (body.context || [])
     .filter((c) => c?.label && c?.value)

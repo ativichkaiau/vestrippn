@@ -72,6 +72,7 @@ model User {
   chatThreads    ChatThread[]
   chatMessages   ChatMessage[]
   caseProgress   CaseProgress[]
+  assistantUsage AssistantUsage[]
 }
 
 // ==========================================
@@ -335,6 +336,17 @@ model UserUsage {
 
   @@unique([userId, month])
   @@index([userId])
+}
+
+// One row per Cockpit Intelligence (assistant) request. Used for a sliding
+// rate-limit window — count rows newer than (now - window) per user.
+model AssistantUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 // ==========================================

@@ -136,6 +136,7 @@ export default function CockpitIntelligencePanel({
   const [selectedAction, setSelectedAction] = useState<SuggestedAction | null>(null);
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
+  const [errorDetail, setErrorDetail] = useState('');
   const [confirmIntent, setConfirmIntent] = useState<ConfirmIntent>(null);
   const abortRef = useRef<AbortController | null>(null);
   const reduceMotion = useReducedMotion();
@@ -156,6 +157,7 @@ export default function CockpitIntelligencePanel({
     const controller = new AbortController();
     abortRef.current = controller;
     setResponse('');
+    setErrorDetail('');
     setStatus('thinking');
 
     try {
@@ -170,6 +172,13 @@ export default function CockpitIntelligencePanel({
         }),
         signal: controller.signal,
       });
+
+      if (res.status === 429) {
+        const info = await res.json().catch(() => null);
+        setErrorDetail(info?.detail || 'Rate limit reached. Try again later.');
+        setStatus('error');
+        return;
+      }
       if (!res.ok || !res.body) throw new Error(`assistant_${res.status}`);
 
       const reader = res.body.getReader();
@@ -306,7 +315,9 @@ export default function CockpitIntelligencePanel({
             <div>
               <div className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40">AI response card</div>
               <h3 className="mt-1 text-lg font-black tracking-tight">{statusCopy.label}</h3>
-              <p className="mt-1 text-sm font-medium leading-6 text-white/55">{statusCopy.detail}</p>
+              <p className="mt-1 text-sm font-medium leading-6 text-white/55">
+                {status === 'error' && errorDetail ? errorDetail : statusCopy.detail}
+              </p>
             </div>
           </div>
 
