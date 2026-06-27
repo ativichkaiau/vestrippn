@@ -89,12 +89,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Record this request, and opportunistically prune rows outside the window.
-  await prisma.assistantUsage.create({ data: { userId } });
-  prisma.assistantUsage
-    .deleteMany({ where: { userId, createdAt: { lt: windowStart } } })
-    .catch(() => { /* best-effort cleanup; never block the response */ });
-
   const contextLines = (body.context || [])
     .filter((c) => c?.label && c?.value)
     .map((c) => `- ${c.label}: ${c.value}`);
@@ -107,17 +101,33 @@ export async function POST(req: Request) {
 
   const client = new OpenAI();
 
-  const completion = await client.chat.completions.create({
-    model: 'gpt-4o',
-    stream: true,
-    temperature: 0.4,
-    max_tokens: 1024,
-    messages: [
-      { role: 'system', content: CORE_SYSTEM },
-      { role: 'system', content: persona },
-      { role: 'user', content: userMessage },
-    ],
-  });
+  // Open the OpenAI stream first. If this throws (bad key, OpenAI error,
+  // network failure) the request never reached generation, so we return an
+  // error WITHOUT recording it against the rate limit.
+  let completion;
+  try {
+    completion = await client.chat.completions.create({
+      model: 'gpt-4o',
+      stream: true,
+      temperature: 0.4,
+      max_tokens: 1024,
+      messages: [
+        { role: 'system', content: CORE_SYSTEM },
+        { role: 'system', content: persona },
+        { role: 'user', content: userMessage },
+      ],
+    });
+  } catch (error) {
+    console.error('❌ ASSISTANT OPENAI ERROR:', error);
+    return NextResponse.json({ error: 'Assistant unavailable' }, { status: 502 });
+  }
+
+  // The call was accepted and will generate output — now it counts. Prune rows
+  // that have aged out of the window while we're here.
+  await prisma.assistantUsage.create({ data: { userId } });
+  prisma.assistantUsage
+    .deleteMany({ where: { userId, createdAt: { lt: windowStart } } })
+    .catch(() => { /* best-effort cleanup; never block the response */ });
 
   const encoder = new TextEncoder();
   const readable = new ReadableStream<Uint8Array>({
