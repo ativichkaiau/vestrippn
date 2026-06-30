@@ -1266,6 +1266,10 @@ html.ferrari .motion-route-shell {
     14px 14px 30px var(--w10-clay-shadow),
     inset 1px 1px 0 var(--w10-clay-edge),
     inset -1px -1px 0 rgba(0, 0, 0, 0.28);
+  --w10-clay-shadow-pressed:
+    inset 4px 4px 11px var(--w10-clay-shadow-deep),
+    inset -3px -3px 8px rgba(0, 0, 0, 0.24),
+    0 1px 0 var(--w10-clay-edge);
 }
 
 html.monza {
@@ -1516,4 +1520,3 @@ html.ferrari {
   border-color: var(--w10-clay-edge) !important;
   box-shadow: var(--w10-clay-shadow-raised) !important;
 }
-
