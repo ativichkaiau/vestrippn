@@ -1033,41 +1033,57 @@ export default function FocusMode() {
                     <button
                       key={t.id}
                       onClick={() => launch(t)}
-                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-left transition-all hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.08]"
+                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.015] p-3 text-left shadow-[0_10px_26px_-14px_rgba(0,0,0,0.7)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[color:rgba(var(--hub-accent-rgb),0.5)] hover:from-white/[0.1] hover:shadow-[0_18px_40px_-16px_rgba(var(--hub-accent-rgb),0.42)]"
                     >
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-x-0 -top-10 h-28 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                        style={{ background: 'radial-gradient(60% 100% at 50% 0%, rgba(var(--hub-accent-rgb),0.20), transparent 70%)' }}
+                      />
                       {t.street && (
-                        <span className="absolute right-2 top-2 rounded-md bg-white/10 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-neutral-300">
+                        <span className="absolute right-2 top-2 z-10 rounded-md bg-black/40 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-neutral-200 backdrop-blur-sm">
                           Street
                         </span>
                       )}
-                      <svg viewBox="0 0 220 140" className="h-20 w-full">
-                        <path
-                          d={t.path}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={4}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="text-white/20 transition-colors group-hover:text-white/40"
-                        />
-                        <path
-                          d={t.path}
-                          fill="none"
-                          stroke="var(--hub-accent)"
-                          strokeWidth={4}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeDasharray="14 320"
-                          opacity={0.9}
-                        />
-                      </svg>
-                      <div className="mt-2 flex items-center gap-2">
+
+                      <div className="relative">
+                        <svg viewBox="0 0 220 140" className="h-[78px] w-full overflow-visible">
+                          <path
+                            d={t.path}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-white/[0.16] transition-colors duration-300 group-hover:text-white/30"
+                          />
+                          <path
+                            d={t.path}
+                            fill="none"
+                            stroke="var(--hub-accent)"
+                            strokeWidth={2.4}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="opacity-50 transition-opacity duration-300 group-hover:opacity-100"
+                            style={{ filter: 'drop-shadow(0 0 5px rgba(var(--hub-accent-rgb),0.75))' }}
+                          />
+                        </svg>
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute left-1/2 top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 scale-50 place-items-center rounded-full pl-0.5 text-[13px] opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
+                          style={{ background: 'var(--hub-accent)', color: '#06131a', boxShadow: '0 0 22px rgba(var(--hub-accent-rgb),0.6)' }}
+                        >
+                          ▶
+                        </span>
+                      </div>
+
+                      <div className="mt-1.5 flex items-center gap-2">
                         <span className="text-[15px] leading-none">{t.flag}</span>
                         <span className="truncate text-[13px] font-black tracking-tight">{t.country}</span>
                       </div>
                       <div className="truncate text-[10px] font-medium text-neutral-400">{t.name}</div>
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="font-mono text-[12px] font-black" style={{ color: 'var(--hub-text-soft-2)' }}>
+                      <div className="mt-2 flex items-baseline justify-between">
+                        <span className="font-mono text-[14px] font-black tabular-nums" style={{ color: 'var(--hub-text-soft-2)' }}>
                           {fmtLap(t.pole)}
                         </span>
                         <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">{t.poleSitter}</span>
