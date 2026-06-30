@@ -1256,6 +1256,16 @@ html.ferrari .motion-route-shell {
   --w10-clay-shadow: rgba(0, 0, 0, 0.48);
   --w10-clay-shadow-deep: rgba(0, 0, 0, 0.68);
   --w10-hero-shadow: rgba(0, 0, 0, 0.72);
+  /* Drop the diffuse white top-left highlight on dark surfaces — it reads as a
+     white light-leak/glow on the near-black cards. Keep only the crisp inset
+     edge + dark depth. (Light mode keeps the full neumorphic highlight.) */
+  --w10-clay-shadow-soft:
+    7px 7px 16px var(--w10-clay-shadow),
+    inset 1px 1px 0 var(--w10-clay-edge);
+  --w10-clay-shadow-raised:
+    14px 14px 30px var(--w10-clay-shadow),
+    inset 1px 1px 0 var(--w10-clay-edge),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.28);
 }
 
 html.monza {
@@ -1403,7 +1413,12 @@ html.ferrari {
   background:
     linear-gradient(145deg, color-mix(in srgb, var(--hub-accent) 16%, var(--w10-clay-inset)), var(--w10-clay-inset)) !important;
   border-color: rgba(var(--hub-accent-rgb), 0.22);
-  box-shadow: var(--w10-clay-shadow-pressed) !important;
+  /* Soft, natural raised shadow for the selected item (the old pressed
+     double-inset read as harsh/artificial on a light pill). */
+  box-shadow:
+    0 5px 14px -5px var(--w10-clay-shadow),
+    0 2px 5px -3px var(--w10-clay-shadow),
+    inset 0 1px 0 var(--w10-clay-highlight) !important;
   color: var(--w09-text) !important;
 }
 
@@ -1501,3 +1516,4 @@ html.ferrari {
   border-color: var(--w10-clay-edge) !important;
   box-shadow: var(--w10-clay-shadow-raised) !important;
 }
+

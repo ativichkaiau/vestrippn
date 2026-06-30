@@ -308,7 +308,7 @@ export default function CockpitIntelligencePanel({
 
         <motion.div
           variants={motionOff ? undefined : softScale}
-          className="w10-clay-dark-panel rounded-[24px] border border-black/5 bg-neutral-950 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.24)] dark:border-white/10 dark:bg-black/40"
+          className="dark w10-clay-dark-panel rounded-[24px] border border-black/5 bg-neutral-950 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.24)] dark:border-white/10 dark:bg-black/40"
           data-w10-tone="dark"
         >
           <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">

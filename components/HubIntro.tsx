@@ -121,7 +121,7 @@ export default function HubIntro({
       variants={motionOff ? undefined : softScale}
       initial={motionOff ? false : 'hidden'}
       animate={motionOff ? undefined : 'show'}
-      className="w10-clay-hero relative overflow-hidden rounded-[32px] border border-white/10 px-5 py-6 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8 lg:rounded-[40px] lg:px-10 lg:py-9"
+      className="dark w10-clay-hero relative overflow-hidden rounded-[32px] border border-white/10 px-5 py-6 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8 lg:rounded-[40px] lg:px-10 lg:py-9"
       style={{ backgroundColor: 'var(--hub-bg)' }}
       data-motion="hero"
       data-hub={hub ?? 'overview'}
@@ -239,7 +239,7 @@ export default function HubIntro({
             <motion.div
               whileHover={motionOff ? undefined : hoverLift}
               whileTap={motionOff ? undefined : pressTap}
-              className="w10-clay-dark-panel relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.07] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+              className="dark w10-clay-dark-panel relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.07] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
               data-w10-tone="dark"
               data-motion-card
             >
