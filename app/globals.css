@@ -1374,10 +1374,12 @@ html.ferrari {
 
 .w10-clay-hero {
   border-color: rgba(var(--hub-accent-rgb), 0.24) !important;
+  /* No diffuse white highlight glow — it read as a white light-leak on the
+     dark cockpit hero (most visible in Day mode). Keep a soft drop + subtle
+     top sheen + bottom depth. */
   box-shadow:
     18px 20px 46px var(--w10-hero-shadow),
-    -8px -8px 26px var(--w10-clay-highlight),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
     inset 0 -2px 0 rgba(0, 0, 0, 0.34) !important;
 }
 
