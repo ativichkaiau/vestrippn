@@ -165,6 +165,10 @@ function drawBarrier(
    up along the path (sampled from the track's own signed curvature), with kerbs,
    run-off / barriers, distant grandstands, scrolling tarmac, a leaning vanishing
    point, and a cockpit halo. */
+// Static sky/grass gradients are identical every frame — cache them (tied to
+// the ctx so a fresh canvas on reopen rebuilds them).
+let _skyGrad: { key: string; ctx: CanvasRenderingContext2D; sky: CanvasGradient; grass: CanvasGradient } | null = null;
+
 function drawOnboard(
   ctx: CanvasRenderingContext2D,
   W: number,
@@ -195,11 +199,18 @@ function drawOnboard(
     road2 = tod === 'night' ? '#16161d' : '#1c2228';
   }
 
-  // sky
-  const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-  sky.addColorStop(0, PAL.skyTop);
-  sky.addColorStop(1, PAL.skyHor);
-  ctx.fillStyle = sky;
+  // sky + grass (cached — static per size / time-of-day)
+  const gkey = `${Math.round(W)}|${Math.round(H)}|${tod}`;
+  if (!_skyGrad || _skyGrad.key !== gkey || _skyGrad.ctx !== ctx) {
+    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+    sky.addColorStop(0, PAL.skyTop);
+    sky.addColorStop(1, PAL.skyHor);
+    const grass = ctx.createLinearGradient(0, horizon, 0, H);
+    grass.addColorStop(0, PAL.grassTop);
+    grass.addColorStop(1, PAL.grassBot);
+    _skyGrad = { key: gkey, ctx, sky, grass };
+  }
+  ctx.fillStyle = _skyGrad.sky;
   ctx.fillRect(0, 0, W, horizon);
 
   // night stars
@@ -228,11 +239,8 @@ function drawOnboard(
     ctx.fillRect(0, 0, W, horizon);
   }
 
-  // grass / run-off
-  const grass = ctx.createLinearGradient(0, horizon, 0, H);
-  grass.addColorStop(0, PAL.grassTop);
-  grass.addColorStop(1, PAL.grassBot);
-  ctx.fillStyle = grass;
+  // grass / run-off (cached gradient from above)
+  ctx.fillStyle = _skyGrad.grass;
   ctx.fillRect(0, horizon, W, H - horizon);
 
   const segs = 60;
@@ -581,6 +589,7 @@ export default function FocusMode() {
   const startRef = useRef<number>(0);
   const pausedAtRef = useRef<number>(0);
   const lastHudRef = useRef<number>(0);
+  const lastDrawRef = useRef<number>(0);
   const finishedRef = useRef<boolean>(false);
   const finalRef = useRef<number>(0);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -810,12 +819,17 @@ export default function FocusMode() {
           drs: !wet && sp > 290,
         };
 
-        // ── draw the pseudo-3D onboard ──
-        const cv = canvasRef.current;
-        const ctx = cv?.getContext('2d');
-        if (cv && ctx) {
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          drawOnboard(ctx, cv.width / dpr, cv.height / dpr, (dist / prof.total) * prof.samples, prof, accentRef.current, sp, !!selected.street, tod, wet, now / 1000);
+        // ── draw the pseudo-3D onboard (throttled to ~30fps — by far the
+        //    heaviest per-frame work; the state machine + mini-map car stay at
+        //    full RAF so motion + timing remain smooth) ──
+        if (now - lastDrawRef.current >= 32) {
+          lastDrawRef.current = now;
+          const cv = canvasRef.current;
+          const ctx = cv?.getContext('2d');
+          if (cv && ctx) {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            drawOnboard(ctx, cv.width / dpr, cv.height / dpr, (dist / prof.total) * prof.samples, prof, accentRef.current, sp, !!selected.street, tod, wet, now / 1000);
+          }
         }
       }
 
@@ -1057,6 +1071,17 @@ export default function FocusMode() {
                             strokeLinejoin="round"
                             className="text-white/[0.16] transition-colors duration-300 group-hover:text-white/30"
                           />
+                          {/* soft halo (a wide translucent stroke — cheaper than a CSS drop-shadow filter x15) */}
+                          <path
+                            d={t.path}
+                            fill="none"
+                            stroke="var(--hub-accent)"
+                            strokeWidth={6}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="opacity-[0.13] transition-opacity duration-300 group-hover:opacity-25"
+                          />
+                          {/* crisp racing line */}
                           <path
                             d={t.path}
                             fill="none"
@@ -1064,8 +1089,7 @@ export default function FocusMode() {
                             strokeWidth={2.4}
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            className="opacity-50 transition-opacity duration-300 group-hover:opacity-100"
-                            style={{ filter: 'drop-shadow(0 0 5px rgba(var(--hub-accent-rgb),0.75))' }}
+                            className="opacity-70 transition-opacity duration-300 group-hover:opacity-100"
                           />
                         </svg>
                         <span
