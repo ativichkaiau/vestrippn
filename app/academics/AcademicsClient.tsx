@@ -45,8 +45,13 @@ const PINNED_CANVAS_SUBJECTS: Subject[] = [
 ];
 const COMPLETED_CANVAS_SUBJECT_IDS = new Set(['26702']);
 
+// HMS-2, HNS-2, HEN-2 are done — gray them out in Canvas Telemetry. Matched by
+// subject name or by course code (330320 / 330321 / 330327).
+const COMPLETED_CANVAS_MATCHER =
+  /hms-2|hns-2|hen-2|human musculoskeletal system-2|human nervous and special senses system-2|human endocrine system-2|33032[017]/i;
+
 function isCompletedCanvasSubject(subject: Subject) {
-  return COMPLETED_CANVAS_SUBJECT_IDS.has(subject.id) || /human musculoskeletal system-2|hms-2/i.test(subject.name);
+  return COMPLETED_CANVAS_SUBJECT_IDS.has(subject.id) || COMPLETED_CANVAS_MATCHER.test(subject.name);
 }
 
 export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
