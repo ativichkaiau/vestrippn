@@ -12,9 +12,98 @@ import TickNumber from '../../components/TickNumber';
 import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 import BrandMark from '../../components/BrandMark';
 
+// ── University summaries, grouped by year → module → subject. Each module
+//    points at its Drive folder (Year 3 folders are not published yet). ──
+type UniSubject = { code: string; name: string };
+type UniModule = { label: string; href?: string; subjects: UniSubject[] };
+type UniYear = { year: string; label: string; modules: UniModule[] };
+
+const UNI_SUMMARIES: UniYear[] = [
+  {
+    year: 'Y1', label: 'Year 1',
+    modules: [
+      { label: 'Term 1', href: 'https://drive.google.com/drive/folders/1P7CTRwWOGVGyM7n5nbFDbppoK5P72Pqx', subjects: [
+        { code: 'MBH', name: 'Molecular Basis of Human Body' },
+        { code: 'HGD', name: 'Human Genetics and Developmental Biology' },
+      ] },
+      { label: 'Term 2', href: 'https://drive.google.com/drive/folders/1soEWnZ6YpzaMIWIj6jEo4ZLXeK1buyoB', subjects: [
+        { code: 'MFN', name: 'Metabolism of Fuel Nutrients in Human' },
+        { code: 'ABM', name: 'Applied Biochemistry in Medicine' },
+        { code: 'BMR', name: 'Intro to Biomedical Research' },
+      ] },
+    ],
+  },
+  {
+    year: 'Y2', label: 'Year 2',
+    modules: [
+      { label: 'Module 1', href: 'https://drive.google.com/drive/folders/1LGag8DnkZLljngHvkhPcL6EmKoFHdkH-', subjects: [
+        { code: 'BHCB', name: 'Basic Histology and Cell Biology' },
+        { code: 'HIM', name: 'Human Immunology' },
+        { code: 'EHP', name: 'Essential Human Physiology' },
+        { code: 'HGA', name: 'Human Gross Anatomy' },
+      ] },
+      { label: 'Module 2', href: 'https://drive.google.com/drive/folders/1BmrfGiFtl43mOMoVNdmXcyjIa4MCbc3q', subjects: [
+        { code: 'HMS-1', name: 'Human Musculoskeletal System-1' },
+        { code: 'HCVS-1', name: 'Human Cardiovascular System-1' },
+        { code: 'HRS-1', name: 'Human Respiratory System-1' },
+      ] },
+      { label: 'Module 3', href: 'https://drive.google.com/drive/folders/1p-2WhF7NCklH9JlUuH0ple3eG2K6Ig2m', subjects: [
+        { code: 'HGB-1', name: 'Human Gastrointestinal and Biliary Tract System-1' },
+        { code: 'HRP-1', name: 'Human Reproductive System and Perinatal Period-1' },
+      ] },
+      { label: 'Module 4', href: 'https://drive.google.com/drive/folders/1I5mz0LQMIHMc8eV4v8Z4vCQ4wldTzIvb', subjects: [
+        { code: 'HRU-1', name: 'Human Renal and Urinary System-1' },
+        { code: 'HNS-1', name: 'Human Nervous and Special Senses System-1' },
+      ] },
+      { label: 'Module 5', href: 'https://drive.google.com/drive/folders/1SqowuBE7bu17JtPVmvriOL4ZpCp1Ak2J', subjects: [
+        { code: 'MHI', name: 'Microbiology of Human Infectious Diseases' },
+        { code: 'PHI', name: 'Parasitology of Human Infectious Diseases' },
+        { code: 'BAP', name: 'Basic Human Anatomical Pathology' },
+        { code: 'BCP', name: 'Basic Clinical Pharmacology' },
+        { code: 'HEN-1', name: 'Human Endocrine System-1' },
+      ] },
+    ],
+  },
+  {
+    year: 'Y3', label: 'Year 3',
+    modules: [
+      { label: 'Module 1', subjects: [
+        { code: 'HEN-2', name: 'Human Endocrine System-2' },
+        { code: 'HMS-2', name: 'Human Musculoskeletal System-2' },
+        { code: 'HNS-2', name: 'Human Nervous and Special Senses System-2' },
+      ] },
+      { label: 'Module 2', subjects: [
+        { code: 'HCVS-2', name: 'Human Cardiovascular System-2' },
+        { code: 'HRS-2', name: 'Human Respiratory System-2' },
+        { code: 'HGB-2', name: 'Human Gastrointestinal and Biliary Tract System-2' },
+      ] },
+      { label: 'Module 3', subjects: [
+        { code: 'HHL', name: 'Human Hematopoietic and Lymphoreticular System' },
+        { code: 'HSC', name: 'Human Skin and Connective Tissue' },
+      ] },
+      { label: 'Module 4', subjects: [
+        { code: 'HRP-2', name: 'Human Reproductive System and Perinatal Period-2' },
+        { code: 'HRU-2', name: 'Human Renal and Urinary System-2' },
+        { code: 'ACP', name: 'Applied Clinical Pharmacology' },
+      ] },
+      { label: 'Module 5', subjects: [
+        { code: 'BEH', name: 'Behavioral Science' },
+        { code: 'ERS-1', name: 'Essential Research Skill-1' },
+        { code: 'ICH', name: 'Intro to Community Health' },
+      ] },
+      { label: 'Module 6', subjects: [
+        { code: 'IFH', name: 'Intro to Family Health' },
+        { code: 'FCP-1', name: 'Fundamentals of Clinical Practice-1' },
+      ] },
+    ],
+  },
+];
+
 export default function ArchiveHub() {
   const [isMounted, setIsMounted] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [uniYear, setUniYear] = useState('Y1');
+  const activeYear = UNI_SUMMARIES.find((y) => y.year === uniYear) ?? UNI_SUMMARIES[0];
 
   useEffect(() => { 
     setIsMounted(true); 
@@ -71,8 +160,8 @@ export default function ArchiveHub() {
               title="Open the"
               titleAccent="knowledge vault"
               description="The Archive Hub collects medical foundations, olympiad intelligence, preparation vaults, and your deployed project architecture into one indexed launchpad."
-              primaryHref="#archive-directory"
-              primaryLabel="Browse Archive"
+              primaryHref="#uni-summaries"
+              primaryLabel="Browse Summaries"
               secondaryHref="https://linktr.ee/shankusu.studygram"
               secondaryLabel="Launch Linktree ↗"
               chips={['Medical Notes', 'Olympiad Vault', 'Project Apps', 'Drive Registry']}
@@ -106,6 +195,79 @@ export default function ArchiveHub() {
                 { label: 'Vault', value: 'Medical notes' },
               ]}
             />
+
+            {/* --- UNIVERSITY SUMMARIES — year → module → subject browser --- */}
+            <section
+              id="uni-summaries"
+              data-no-typewriter
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700"
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <span className="w-1.5 h-4 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_14px_rgba(6,182,212,0.45)]"></span>
+                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">University Summaries</h3>
+                  <span className="rounded-md bg-cyan-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-cyan-600 dark:text-cyan-400">By Module</span>
+                </div>
+                {/* year selector */}
+                <div className="flex gap-1 rounded-full bg-black/5 dark:bg-white/5 p-1 self-start sm:self-auto">
+                  {UNI_SUMMARIES.map((y) => (
+                    <button
+                      key={y.year}
+                      onClick={() => setUniYear(y.year)}
+                      className={`rounded-full px-4 py-1.5 text-[11px] font-black uppercase tracking-widest transition-all ${
+                        uniYear === y.year
+                          ? 'bg-cyan-500 text-white shadow-[0_4px_12px_rgba(6,182,212,0.4)]'
+                          : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {y.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <motion.div
+                key={uniYear}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5 xl:grid-cols-3"
+              >
+                {activeYear.modules.map((m) => (
+                  <div
+                    key={m.label}
+                    className="group flex flex-col rounded-[24px] border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/[0.04] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.035)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/30 hover:shadow-[0_16px_36px_rgba(6,182,212,0.14)]"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="text-[15px] font-black tracking-tight text-neutral-900 dark:text-white">{m.label}</h4>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{m.subjects.length} subj</span>
+                    </div>
+                    <div className="mb-4 flex-1 space-y-2">
+                      {m.subjects.map((s) => (
+                        <div key={s.code} className="flex items-start gap-2">
+                          <span className="mt-px shrink-0 rounded bg-cyan-500/10 px-1.5 py-0.5 font-mono text-[9px] font-black tracking-wide text-cyan-600 dark:text-cyan-400">{s.code}</span>
+                          <span className="text-[12px] font-medium leading-snug text-neutral-600 dark:text-neutral-300">{s.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {m.href ? (
+                      <a
+                        href={m.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-cyan-500 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-white transition-all hover:bg-cyan-600 active:scale-95"
+                      >
+                        Open summaries ↗
+                      </a>
+                    ) : (
+                      <span className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-black/5 bg-black/5 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-neutral-400 dark:border-white/5 dark:bg-white/5 dark:text-neutral-500">
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </motion.div>
+            </section>
 
             {/* --- MAIN HUD: F1 COCKPIT ARCHIVE (Neo-Glassmorphic) --- */}
             <div id="archive-directory" className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative transition-colors duration-700"> 
