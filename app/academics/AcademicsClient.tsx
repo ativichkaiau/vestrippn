@@ -622,11 +622,11 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               </div>
             </div>
 
-            {/* SECTOR 2.5: INTERACTIVE CODEX — SELF-BUILT STUDY ENGINES */}
+            {/* SECTOR 2.5: FLAGSHIP GRADE — SELF-BUILT STUDY ENGINES */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 px-2">
                 <span className="w-1.5 h-4 bg-purple-500 rounded-full animate-pulse"></span>
-                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Interactive Codex</h3>
+                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Flagship Grade</h3>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 uppercase tracking-widest">Self-Built</span>
               </div>
               <motion.div
@@ -699,6 +699,74 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                 ))}
               </motion.div>
             </div>
+
+            {/* SECTOR 2.6: WILLIAMS GRADE — special heritage hero block */}
+            <motion.section
+              data-no-typewriter
+              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+              className="relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-[#c59955]/25 p-6 text-white shadow-[0_30px_80px_rgba(6,3,21,0.5)] sm:p-8 lg:p-12"
+              style={{ background: 'linear-gradient(140deg, #1c0d54 0%, #10062f 55%, #0a0322 100%)' }}
+            >
+              {/* Williams livery motif — pinstripes + gold/red glow */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  backgroundImage: [
+                    'repeating-linear-gradient(180deg, rgba(255,255,255,0.045) 0, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 8px)',
+                    'radial-gradient(circle at 10% -20%, rgba(197,153,85,0.30), transparent 44%)',
+                    'radial-gradient(ellipse at 105% 120%, rgba(213,23,45,0.16), transparent 52%)',
+                  ].join(', '),
+                }}
+              />
+              {/* wing-band trim down the right edge */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute right-0 top-0 h-full w-2 sm:w-3"
+                style={{ background: 'linear-gradient(180deg, #ffffff 0 42%, #c59955 42% 60%, #d5172d 60% 74%, transparent 74%)' }}
+              />
+
+              <div className="relative">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="h-4 w-1.5 rounded-full" style={{ background: '#c59955' }} />
+                  <h3 className="text-[13px] font-bold uppercase tracking-widest" style={{ color: '#e8cd97' }}>Williams Grade</h3>
+                  <span className="rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ background: 'rgba(197,153,85,0.16)', color: '#e8cd97' }}>Heritage</span>
+                </div>
+                <h2 className="text-[28px] font-black leading-[0.95] tracking-tight sm:text-[34px] lg:text-[42px]">
+                  Williams <span style={{ color: '#c59955' }}>Grade</span>
+                </h2>
+                <p className="mt-3 max-w-2xl text-[13px] font-medium leading-relaxed text-white/65 sm:text-[14px]">
+                  The flagship heritage tier — Williams-grade companion apps, built to the highest spec.
+                </p>
+
+                <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {[
+                    { href: 'https://williamspod.vercel.app', icon: '🎙️', title: 'WilliamsPod', tag: 'Companion Pod', desc: 'Audio-first review and study companion.' },
+                    { href: 'https://vestrippn-williamshub.vercel.app', icon: '🏁', title: 'WilliamsHub', tag: 'Command Hub', desc: 'The Williams operations & study hub.' },
+                  ].map((w) => (
+                    <motion.a
+                      key={w.href}
+                      href={w.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                      whileTap={{ scale: 0.98 }}
+                      className="group/wg relative overflow-hidden rounded-[22px] border border-white/[0.12] bg-white/[0.06] p-5 backdrop-blur-sm transition-colors hover:border-[#c59955]/60 hover:bg-white/[0.1]"
+                    >
+                      <div className="flex items-start justify-between">
+                        <span className="grid h-12 w-12 place-items-center rounded-2xl text-2xl" style={{ background: 'rgba(197,153,85,0.14)' }}>{w.icon}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest transition-transform duration-300 group-hover/wg:translate-x-1" style={{ color: '#e8cd97' }}>Launch ↗</span>
+                      </div>
+                      <h4 className="mt-4 text-[19px] font-black tracking-tight text-white">{w.title}</h4>
+                      <div className="mt-0.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#c59955' }}>{w.tag}</div>
+                      <p className="mt-2 text-[12.5px] font-medium leading-relaxed text-white/55">{w.desc}</p>
+                    </motion.a>
+                  ))}
+                </div>
+              </div>
+            </motion.section>
 
             {/* 🚀 UPGRADE: SECTOR 3: ANKIWEB TELEMETRY (NOW EDITABLE) */}
             <motion.section
