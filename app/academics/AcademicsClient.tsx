@@ -743,7 +743,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
 
                 <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {[
-                    { href: 'https://williamspod.vercel.app', icon: '🎙️', title: 'WilliamsPod', tag: 'Companion Pod', desc: 'Audio-first review and study companion.' },
+                    { href: 'https://williamspod.vercel.app', icon: '📝', title: 'WilliamsPod', tag: 'Mock Exam Pod', desc: 'Sit timed mock exams under real exam conditions.' },
                     { href: 'https://vestrippn-williamshub.vercel.app', icon: '🏁', title: 'WilliamsHub', tag: 'Command Hub', desc: 'The Williams operations & study hub.' },
                   ].map((w) => (
                     <motion.a
