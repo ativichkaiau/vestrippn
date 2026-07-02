@@ -42,8 +42,8 @@ const HCVS_EXAM_TARGET = new Date('2026-08-04T00:00:00+07:00');
 const PINNED_CANVAS_SUBJECTS: Subject[] = [
   { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
   { id: '27415', name: 'HCVS-2 - Human Cardiovascular System', progress: null },
-  { id: '30964', name: 'HRS-2 - Human Respiratory System', progress: null },
-  { id: '31275', name: 'HGB-2 - Human Gastrointestinal and Biliary Tract System', progress: null },
+  { id: '30964', name: '330323- Lec.001', progress: null },
+  { id: '31275', name: '330324- Lec.001', progress: null },
 ];
 const COMPLETED_CANVAS_SUBJECT_IDS = new Set(['26702']);
 
