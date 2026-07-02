@@ -42,6 +42,8 @@ const HCVS_EXAM_TARGET = new Date('2026-08-04T00:00:00+07:00');
 const PINNED_CANVAS_SUBJECTS: Subject[] = [
   { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
   { id: '27415', name: 'HCVS-2 - Human Cardiovascular System', progress: null },
+  { id: '30964', name: 'HRS-2 - Human Respiratory System', progress: null },
+  { id: '31275', name: 'HGB-2 - Human Gastrointestinal and Biliary Tract System', progress: null },
 ];
 const COMPLETED_CANVAS_SUBJECT_IDS = new Set(['26702']);
 
@@ -946,6 +948,22 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                         <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🫀</span>
                      </div>
                      <div className="mb-2 min-h-[3.75rem] break-words pr-2 text-[15px] font-bold leading-5 text-neutral-900 transition-colors duration-700 dark:text-white lg:text-[16px]">HCVS-2: Human Cardiovascular System</div>
+                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
+                  </a>
+                  <a href="https://notebooklm.google.com/notebook/a5f04592-4125-46c0-b0f8-f23123a4f943" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                     <div className="flex justify-between items-center mb-4">
+                        <div className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest transition-colors duration-700">Respiratory Vault</div>
+                        <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🫁</span>
+                     </div>
+                     <div className="mb-2 min-h-[3.75rem] break-words pr-2 text-[15px] font-bold leading-5 text-neutral-900 transition-colors duration-700 dark:text-white lg:text-[16px]">HRS-2: Human Respiratory System</div>
+                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
+                  </a>
+                  <a href="https://notebooklm.google.com/notebook/7ddb6bb7-2974-4005-b9f3-9c6b2a2e0861" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                     <div className="flex justify-between items-center mb-4">
+                        <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest transition-colors duration-700">Gastrointestinal &amp; Biliary Vault</div>
+                        <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🧪</span>
+                     </div>
+                     <div className="mb-2 min-h-[3.75rem] break-words pr-2 text-[15px] font-bold leading-5 text-neutral-900 transition-colors duration-700 dark:text-white lg:text-[16px]">HGB-2: Human Gastrointestinal and Biliary Tract System</div>
                      <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
                   </a>
                </div>
