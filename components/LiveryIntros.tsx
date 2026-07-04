@@ -3,10 +3,13 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
 /* ════════════════════════════════════════════════════════════════════════
-   LIVERY INTROS — a distinct boot sequence per special livery, each built
-   around that livery's own identity (Williams wing-band, Senna helmet,
-   Verstappen orange attack, Ferrari shield). The normal build keeps the
-   W-trace SignatureIntro; these replace the recolored template.
+   LIVERY INTROS — W11 EQ Future generation. Each special livery boots with
+   its own cinematic mechanic (not a recolor):
+     · Williams    — wind-tunnel streamlines around an FW monogram
+     · Senna       — the Interlagos "Senna S" traced with a magic-lap pulse
+     · Verstappen  — RPM gauge revs to redline, shift lights ignite
+     · Ferrari     — five start lights… lights out and away we go
+   The normal build keeps the W-trace SignatureIntro.
    ════════════════════════════════════════════════════════════════════════ */
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -84,71 +87,87 @@ function NameReveal({ text, accent, secondary, glow, delay, reduce }: { text: st
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
           transition={{ delay: dly(reduce, delay + i * 0.05), duration: reduce ? 0.2 : 0.6, ease: EASE }}
         >
-          {ch === ' ' ? ' ' : ch}
+          {ch === ' ' ? ' ' : ch}
         </motion.span>
       ))}
     </div>
   );
 }
 
-/* ── WILLIAMS — heritage pit-wall release: navy, white wing-band, brass + red
-   pinstripes sweep across; a brass roundel settles; FW18 heritage. ── */
+/* ── WILLIAMS — wind tunnel: brass/white/red streamlines flow around the
+   monogram like air over a wing; the wing-band sweeps behind "FW". ── */
 export function WilliamsIntro({ cycle }: { cycle: string }) {
   const reduce = Boolean(useReducedMotion());
   const navy = '#0a0322', white = '#ffffff', brass = '#c59955', red = '#d5172d';
+  const flows = [
+    { d: 'M -40 240 C 200 240 320 150 500 150 S 800 240 1040 240', stroke: 'rgba(197,153,85,0.5)', w: 2, delay: 0.25 },
+    { d: 'M -40 300 C 200 300 300 210 500 210 S 800 300 1040 300', stroke: brass, w: 3, delay: 0.4 },
+    { d: 'M -40 360 C 200 360 320 450 500 450 S 800 360 1040 360', stroke: 'rgba(255,255,255,0.55)', w: 2.5, delay: 0.55 },
+    { d: 'M -40 420 C 200 420 320 510 500 510 S 800 420 1040 420', stroke: red, w: 2, delay: 0.7 },
+  ];
   return (
-    <Shell base={navy} glow="rgba(197,153,85,0.42)" reduce={reduce}>
-      {/* wing band + trim lines sweeping across */}
-      {[
-        { top: '30%', h: 26, bg: 'rgba(255,255,255,0.14)', delay: 0.2, dur: 1.2 },
-        { top: 'calc(30% + 30px)', h: 3, bg: brass, delay: 0.42, dur: 1.0 },
-        { top: 'calc(30% + 38px)', h: 3, bg: red, delay: 0.52, dur: 1.0 },
-      ].map((b, i) => (
-        <motion.div
-          key={i}
-          className="absolute left-0 right-0"
-          style={{ top: b.top, height: b.h, background: b.bg }}
-          initial={{ scaleX: 0, transformOrigin: '0% 50%', opacity: 0 }}
-          animate={{ scaleX: 1, opacity: 1 }}
-          transition={{ delay: dly(reduce, b.delay), duration: reduce ? 0.12 : b.dur, ease: SWOOSH }}
-        />
-      ))}
+    <Shell base={navy} glow="rgba(197,153,85,0.4)" reduce={reduce}>
+      {/* wind-tunnel streamlines */}
+      <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" fill="none">
+        {flows.map((f) => (
+          <motion.path
+            key={f.d}
+            d={f.d}
+            stroke={f.stroke}
+            strokeWidth={f.w}
+            strokeLinecap="round"
+            style={{ filter: 'drop-shadow(0 0 8px rgba(197,153,85,0.4))' }}
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ delay: dly(reduce, f.delay), duration: reduce ? 0.1 : 1.5, ease: EASE }}
+          />
+        ))}
+      </svg>
 
-      <Telemetry left="Pit wall // release" right={cycle.replace('_', ' ')} accent={brass} reduce={reduce} />
+      <Telemetry left="Grove // wind tunnel" right={cycle.replace('_', ' ')} accent={brass} reduce={reduce} />
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* brass roundel with mini wing-band */}
-        <motion.div
-          className="mb-7 grid h-[92px] w-[92px] place-items-center rounded-full"
-          style={{ background: navy, border: `2px solid ${brass}`, boxShadow: `0 0 36px rgba(197,153,85,0.4)` }}
-          initial={{ scale: 0.4, opacity: 0, rotate: reduce ? 0 : -40 }}
-          animate={{ scale: 1, opacity: 1, rotate: 0 }}
-          transition={{ delay: dly(reduce, 1.0), duration: reduce ? 0.2 : 0.7, ease: EASE }}
-        >
-          <div className="relative h-full w-full overflow-hidden rounded-full">
-            <div className="absolute left-0 right-0 top-1/2 h-3 -translate-y-1/2 bg-white/85" />
-            <div className="absolute left-0 right-0 top-[58%] h-[2px]" style={{ background: brass }} />
-            <div className="absolute left-0 right-0 top-[64%] h-[2px]" style={{ background: red }} />
-          </div>
-        </motion.div>
+        {/* FW monogram with the wing-band sweeping behind */}
+        <div className="relative mb-6 grid place-items-center px-10 py-4">
+          <motion.div
+            className="absolute inset-x-0 top-1/2 h-11 -translate-y-1/2 bg-white/90"
+            initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: dly(reduce, 0.9), duration: reduce ? 0.15 : 0.8, ease: SWOOSH }}
+          />
+          <motion.div
+            className="absolute inset-x-0 top-[calc(50%+26px)] h-[3px]"
+            style={{ background: brass }}
+            initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: dly(reduce, 1.05), duration: reduce ? 0.15 : 0.7, ease: SWOOSH }}
+          />
+          <motion.div
+            className="absolute inset-x-0 top-[calc(50%+33px)] h-[3px]"
+            style={{ background: red }}
+            initial={{ scaleX: 0, transformOrigin: '0% 50%' }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: dly(reduce, 1.15), duration: reduce ? 0.15 : 0.7, ease: SWOOSH }}
+          />
+          <motion.span
+            className="relative text-[clamp(64px,13vw,130px)] font-black leading-[0.85] tracking-[-0.03em]"
+            style={{ color: navy, WebkitTextStroke: `2px ${brass}`, textShadow: '0 0 40px rgba(197,153,85,0.45)' }}
+            initial={{ opacity: 0, y: 22, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ delay: dly(reduce, 1.0), duration: reduce ? 0.2 : 0.6, ease: EASE }}
+          >
+            FW
+          </motion.span>
+        </div>
 
+        <NameReveal text="Williams" accent={brass} secondary={white} glow="rgba(197,153,85,0.4)" delay={1.45} reduce={reduce} />
         <motion.div
-          className="mb-3 font-mono text-[10px] font-black uppercase tracking-[0.4em]"
-          style={{ color: brass }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.85 }}
-          transition={{ delay: dly(reduce, 1.2), duration: 0.5 }}
-        >
-          Heritage Livery
-        </motion.div>
-        <NameReveal text="Williams" accent={brass} secondary={white} glow="rgba(197,153,85,0.4)" delay={1.35} reduce={reduce} />
-        <motion.div
-          className="mt-4 font-mono text-[12px] font-black uppercase tracking-[0.5em] text-white/70"
+          className="mt-4 font-mono text-[11px] font-black uppercase tracking-[0.46em] text-white/70"
           initial={{ opacity: 0, letterSpacing: '0.9em' }}
-          animate={{ opacity: 1, letterSpacing: '0.5em' }}
+          animate={{ opacity: 1, letterSpacing: '0.46em' }}
           transition={{ delay: dly(reduce, 2.0), duration: reduce ? 0.2 : 0.7, ease: EASE }}
         >
-          FW18
+          Aero Spec · Heritage
         </motion.div>
       </div>
 
@@ -157,65 +176,98 @@ export function WilliamsIntro({ cycle }: { cycle: string }) {
   );
 }
 
-/* ── SENNA — qualifying helmet: the helmet bands assemble, an apex line
-   traces, a lap timer ticks. Yellow / green / blue. ── */
+/* ── SENNA — the Senna S: the Interlagos esses draw in as a wide track with
+   a yellow racing line, a magic-lap pulse travels it, apexes flash. ── */
 export function SennaIntro({ cycle }: { cycle: string }) {
   const reduce = Boolean(useReducedMotion());
   const yellow = '#ffd400', green = '#00a651', blue = '#1f6feb';
+  const S_PATH = 'M 40 225 C 40 170 80 165 95 135 C 110 108 82 92 100 62 C 114 38 152 40 160 18';
   return (
     <Shell base="#061329" glow="rgba(255,212,0,0.34)" reduce={reduce}>
-      {/* apex racing line traced behind */}
-      <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" fill="none">
-        <motion.path
-          d="M-40 470 C 250 470 250 150 520 150 S 820 470 1080 470"
-          stroke={yellow}
-          strokeWidth={2}
-          strokeLinecap="round"
-          style={{ filter: 'drop-shadow(0 0 10px rgba(255,212,0,0.6))', opacity: 0.5 }}
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ delay: dly(reduce, 0.3), duration: reduce ? 0.1 : 1.7, ease: EASE }}
-        />
-      </svg>
-
-      <Telemetry left="Qualifying // S1" right={cycle.replace('_', ' ')} accent={yellow} reduce={reduce} />
+      <Telemetry left="Interlagos // magic lap" right={cycle.replace('_', ' ')} accent={yellow} reduce={reduce} />
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* helmet */}
+        {/* the Senna S */}
         <motion.svg
-          viewBox="0 0 100 100"
-          className="mb-6 h-[110px] w-[110px]"
-          initial={{ scale: 0.5, opacity: 0, y: 14 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ delay: dly(reduce, 0.5), duration: reduce ? 0.2 : 0.7, ease: EASE }}
-          style={{ filter: 'drop-shadow(0 8px 26px rgba(255,212,0,0.4))' }}
+          viewBox="0 0 200 240"
+          className="mb-5 h-[150px] w-auto"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: dly(reduce, 0.3), duration: reduce ? 0.2 : 0.6, ease: EASE }}
+          style={{ filter: 'drop-shadow(0 0 26px rgba(255,212,0,0.35))' }}
         >
-          <defs>
-            <clipPath id="senna-helmet">
-              <path d="M50 16 C28 16 15 32 15 54 L15 66 C15 73 19 77 28 77 L42 77 L48 69 L74 69 C82 69 86 64 86 54 C86 30 71 16 50 16 Z" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#senna-helmet)">
-            <rect x="0" y="0" width="100" height="100" fill={yellow} />
-            <rect x="0" y="40" width="100" height="9" fill={green} />
-            <rect x="0" y="49" width="100" height="6" fill={blue} />
-            {/* visor */}
-            <path d="M40 44 L80 44 C84 44 86 47 86 52 C86 58 82 61 75 61 L46 61 Z" fill="#0a1424" opacity="0.92" />
-          </g>
-          <path d="M50 16 C28 16 15 32 15 54 L15 66 C15 73 19 77 28 77 L42 77 L48 69 L74 69 C82 69 86 64 86 54 C86 30 71 16 50 16 Z" fill="none" stroke="#0a1424" strokeWidth="2" />
+          {/* track ribbon */}
+          <motion.path
+            d={S_PATH}
+            stroke="rgba(255,255,255,0.12)"
+            strokeWidth={22}
+            strokeLinecap="round"
+            fill="none"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: dly(reduce, 0.35), duration: reduce ? 0.1 : 1.2, ease: EASE }}
+          />
+          {/* racing line */}
+          <motion.path
+            d={S_PATH}
+            stroke={yellow}
+            strokeWidth={4}
+            strokeLinecap="round"
+            fill="none"
+            style={{ filter: 'drop-shadow(0 0 8px rgba(255,212,0,0.7))' }}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: dly(reduce, 0.8), duration: reduce ? 0.1 : 1.3, ease: EASE }}
+          />
+          {/* apex markers */}
+          {[
+            { cx: 95, cy: 135, fill: green, delay: 1.5 },
+            { cx: 100, cy: 62, fill: blue, delay: 1.68 },
+          ].map((a) => (
+            <motion.circle
+              key={a.cx}
+              cx={a.cx} cy={a.cy} r={5}
+              fill={a.fill}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: dly(reduce, a.delay), duration: reduce ? 0.1 : 0.35, ease: EASE }}
+            />
+          ))}
+          {/* magic-lap pulse riding the esses */}
+          {!reduce && (
+            <motion.circle
+              r={6}
+              fill="#ffffff"
+              style={{ filter: 'drop-shadow(0 0 10px #fff7cc)' }}
+              initial={{ cx: 40, cy: 225, opacity: 0 }}
+              animate={{ cx: [40, 62, 95, 95, 112, 160], cy: [225, 168, 135, 88, 55, 18], opacity: [0, 1, 1, 1, 1, 0] }}
+              transition={{ delay: 0.85, duration: 1.35, times: [0, 0.22, 0.42, 0.62, 0.8, 1], ease: 'easeInOut' }}
+            />
+          )}
         </motion.svg>
 
-        <NameReveal text="Senna" accent={yellow} secondary="#fff7cc" glow="rgba(255,212,0,0.4)" delay={1.0} reduce={reduce} />
-
+        {/* sector readout */}
         <motion.div
-          className="mt-5 flex items-center gap-3 font-mono text-[11px] font-black uppercase tracking-[0.36em]"
+          className="mb-3 flex items-center gap-3 font-mono text-[10px] font-black uppercase tracking-[0.36em]"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: dly(reduce, 1.5), duration: 0.5, ease: EASE }}
+          transition={{ delay: dly(reduce, 1.6), duration: 0.5, ease: EASE }}
         >
-          <span style={{ color: green }}>Apex</span>
+          <span style={{ color: yellow }}>S1 purple</span>
           <span className="text-white/40">/</span>
-          <span style={{ color: blue }}>Flying lap</span>
+          <span style={{ color: green }}>S2 purple</span>
+          <span className="text-white/40">/</span>
+          <span style={{ color: blue }}>S3 purple</span>
+        </motion.div>
+
+        <NameReveal text="Senna" accent={yellow} secondary="#fff7cc" glow="rgba(255,212,0,0.4)" delay={1.85} reduce={reduce} />
+        <motion.div
+          className="mt-4 font-mono text-[11px] font-black uppercase tracking-[0.46em] text-white/70"
+          initial={{ opacity: 0, letterSpacing: '0.9em' }}
+          animate={{ opacity: 1, letterSpacing: '0.46em' }}
+          transition={{ delay: dly(reduce, 2.4), duration: reduce ? 0.2 : 0.6, ease: EASE }}
+        >
+          The Senna S · Flying Lap
         </motion.div>
       </div>
 
@@ -224,53 +276,87 @@ export function SennaIntro({ cycle }: { cycle: string }) {
   );
 }
 
-/* ── VERSTAPPEN — orange attack: diagonal speed chevrons slash in, a bold
-   race "1" punches up, the Dutch tricolor flashes. Fast + aggressive. ── */
+/* ── VERSTAPPEN — redline: the RPM arc revs to the limiter, shift lights
+   ignite across the top, the race "1" holds the middle of the gauge. ── */
 export function VerstappenIntro({ cycle }: { cycle: string }) {
   const reduce = Boolean(useReducedMotion());
-  const orange = '#ff6b00', red = '#dc2626', blue = '#1d4ed8';
+  const orange = '#ff6b00', blue = '#1d4ed8';
+  // gauge geometry: center (100,100), radius 70, sweep 180°→0°
+  const ticks = [180, 150, 120, 90, 60, 30, 0].map((deg) => {
+    const rad = (deg * Math.PI) / 180;
+    return {
+      x1: 100 + 62 * Math.cos(rad), y1: 100 - 62 * Math.sin(rad),
+      x2: 100 + 80 * Math.cos(rad), y2: 100 - 80 * Math.sin(rad),
+      key: deg,
+    };
+  });
+  const shiftLights = [orange, orange, '#ffffff', blue, blue];
   return (
     <Shell base="#050b16" glow="rgba(255,107,0,0.4)" reduce={reduce}>
-      {/* diagonal speed chevrons */}
-      {[0, 1, 2, 3].map((i) => (
-        <motion.div
-          key={i}
-          className="absolute -skew-x-[20deg]"
-          style={{ left: `${8 + i * 5}%`, top: 0, bottom: 0, width: '7px', background: i % 2 ? orange : 'rgba(255,107,0,0.35)' }}
-          initial={{ x: -120, opacity: 0 }}
-          animate={{ x: 0, opacity: i % 2 ? 0.9 : 0.5 }}
-          transition={{ delay: dly(reduce, 0.2 + i * 0.07), duration: reduce ? 0.12 : 0.5, ease: SWOOSH }}
-        />
-      ))}
-      {/* dutch tricolor slash */}
-      <motion.div
-        className="absolute right-[-10%] top-[16%] h-[14px] w-[60%] -rotate-[8deg]"
-        style={{ background: `linear-gradient(90deg, ${red} 0 33%, #fff 33% 66%, ${blue} 66% 100%)` }}
-        initial={{ x: '120%', opacity: 0 }}
-        animate={{ x: '0%', opacity: 0.92 }}
-        transition={{ delay: dly(reduce, 0.55), duration: reduce ? 0.12 : 0.7, ease: SWOOSH }}
-      />
-
-      <Telemetry left="Push lap // attack" right={cycle.replace('_', ' ')} accent={orange} reduce={reduce} />
+      <Telemetry left="Zandvoort // full send" right={cycle.replace('_', ' ')} accent={orange} reduce={reduce} />
 
       <div className="relative z-10 flex flex-col items-center">
-        <motion.div
-          className="mb-2 text-[clamp(120px,22vw,230px)] font-black leading-[0.8]"
-          style={{ color: orange, textShadow: '0 0 50px rgba(255,107,0,0.7)' }}
-          initial={{ opacity: 0, y: 40, scale: 0.7, filter: 'blur(12px)' }}
-          animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-          transition={{ delay: dly(reduce, 0.7), duration: reduce ? 0.2 : 0.6, ease: SWOOSH }}
+        {/* shift lights */}
+        <div className="mb-4 flex items-center gap-2.5">
+          {shiftLights.map((c, i) => (
+            <motion.span
+              key={i}
+              className="h-3.5 w-3.5 rounded-full"
+              initial={{ backgroundColor: 'rgba(255,255,255,0.08)', boxShadow: '0 0 0 rgba(0,0,0,0)' }}
+              animate={{ backgroundColor: c, boxShadow: `0 0 14px ${c}` }}
+              transition={{ delay: dly(reduce, 1.5 + i * 0.14), duration: reduce ? 0.1 : 0.18 }}
+            />
+          ))}
+        </div>
+
+        {/* RPM gauge revving to the limiter */}
+        <motion.svg
+          viewBox="0 0 200 120"
+          className="mb-5 h-[120px] w-auto overflow-visible"
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: dly(reduce, 0.3), duration: reduce ? 0.2 : 0.5, ease: EASE }}
+          style={{ filter: 'drop-shadow(0 0 26px rgba(255,107,0,0.4))' }}
         >
-          1
-        </motion.div>
-        <NameReveal text="Verstappen" accent={orange} secondary="#ffd9b8" glow="rgba(255,107,0,0.45)" delay={1.15} reduce={reduce} />
+          <path d="M 30 100 A 70 70 0 0 1 170 100" stroke="rgba(255,255,255,0.10)" strokeWidth={10} strokeLinecap="round" fill="none" />
+          {ticks.map((t) => (
+            <line key={t.key} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.22)" strokeWidth={2} />
+          ))}
+          <motion.path
+            d="M 30 100 A 70 70 0 0 1 170 100"
+            stroke={orange}
+            strokeWidth={10}
+            strokeLinecap="round"
+            fill="none"
+            style={{ filter: 'drop-shadow(0 0 10px rgba(255,107,0,0.8))' }}
+            initial={{ pathLength: 0 }}
+            animate={reduce ? { pathLength: 1 } : { pathLength: [0, 0.55, 0.42, 1] }}
+            transition={{ delay: dly(reduce, 0.45), duration: reduce ? 0.15 : 1.15, times: reduce ? undefined : [0, 0.45, 0.58, 1], ease: SWOOSH }}
+          />
+          {/* the race "1" holds the gauge */}
+          <motion.text
+            x="100" y="98"
+            textAnchor="middle"
+            fontSize="58"
+            fontWeight="900"
+            fill={orange}
+            style={{ textShadow: '0 0 40px rgba(255,107,0,0.7)' }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: dly(reduce, 1.15), duration: reduce ? 0.2 : 0.45, ease: SWOOSH }}
+          >
+            1
+          </motion.text>
+        </motion.svg>
+
+        <NameReveal text="Verstappen" accent={orange} secondary="#ffd9b8" glow="rgba(255,107,0,0.45)" delay={1.9} reduce={reduce} />
         <motion.div
           className="mt-4 font-mono text-[11px] font-black uppercase tracking-[0.42em] text-white/70"
           initial={{ opacity: 0, letterSpacing: '0.8em' }}
           animate={{ opacity: 1, letterSpacing: '0.42em' }}
-          transition={{ delay: dly(reduce, 1.7), duration: reduce ? 0.2 : 0.6, ease: EASE }}
+          transition={{ delay: dly(reduce, 2.45), duration: reduce ? 0.2 : 0.6, ease: EASE }}
         >
-          MV1 · Orange Attack
+          Redline · Flat Out
         </motion.div>
       </div>
 
@@ -279,60 +365,95 @@ export function VerstappenIntro({ cycle }: { cycle: string }) {
   );
 }
 
-/* ── FERRARI — Scuderia ignition: the Modena shield draws in, rosso glow
-   ignites, the wordmark resolves. Rosso / giallo / nero. ── */
+/* ── FERRARI — lights out: the five-light gantry ignites one by one, holds,
+   then drops to black — and the rosso wordmark launches. ── */
 export function FerrariIntro({ cycle }: { cycle: string }) {
   const reduce = Boolean(useReducedMotion());
   const rosso = '#ef1a2d', giallo = '#ffdd00';
+  const dark = '#2a090c';
+  const LIGHT_ON = 0.55; // first light
+  const STEP = 0.34;
+  const OUT_AT = LIGHT_ON + 4 * STEP + 0.7; // all-out moment ≈ 2.61s
   return (
     <Shell base="#0b0304" glow="rgba(239,26,45,0.4)" reduce={reduce}>
-      {/* rosso ignition pulse */}
-      <motion.div
-        className="pointer-events-none absolute left-1/2 top-[38%] h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(239,26,45,0.5), transparent 62%)' }}
-        initial={{ scale: 0.2, opacity: 0 }}
-        animate={reduce ? { scale: 1, opacity: 0.5 } : { scale: [0.2, 1.1, 1], opacity: [0, 0.8, 0.45] }}
-        transition={{ delay: dly(reduce, 0.5), duration: reduce ? 0.2 : 1.2, ease: EASE }}
-      />
+      {/* launch streaks at lights-out */}
+      {!reduce &&
+        [0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            className="pointer-events-none absolute h-[2px] w-full"
+            style={{
+              top: `${34 + i * 5}%`,
+              background: `linear-gradient(90deg, transparent, ${i === 1 ? giallo : rosso}, transparent)`,
+              boxShadow: `0 0 16px ${i === 1 ? 'rgba(255,221,0,0.5)' : 'rgba(239,26,45,0.5)'}`,
+            }}
+            initial={{ x: '-100%', opacity: 0 }}
+            animate={{ x: '100%', opacity: [0, 1, 0] }}
+            transition={{ delay: OUT_AT + 0.1 + i * 0.08, duration: 0.9, ease: SWOOSH }}
+          />
+        ))}
 
-      <Telemetry left="Scuderia // SF" right={cycle.replace('_', ' ')} accent={rosso} reduce={reduce} />
+      <Telemetry left="Maranello // race start" right={cycle.replace('_', ' ')} accent={rosso} reduce={reduce} />
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* Modena shield */}
-        <motion.svg
-          viewBox="0 0 100 110"
-          className="mb-6 h-[112px] w-auto"
-          initial={{ scale: 0.5, opacity: 0, y: 12 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ delay: dly(reduce, 0.7), duration: reduce ? 0.2 : 0.7, ease: EASE }}
-          style={{ filter: 'drop-shadow(0 8px 28px rgba(239,26,45,0.5))' }}
+        {/* start-light gantry */}
+        <motion.div
+          className="mb-7 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/60 px-5 py-3.5"
+          style={{ boxShadow: '0 14px 40px rgba(0,0,0,0.6)' }}
+          initial={{ opacity: 0, y: -18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: dly(reduce, 0.25), duration: reduce ? 0.2 : 0.55, ease: EASE }}
         >
-          <motion.path
-            d="M50 6 L88 6 C92 6 92 12 92 22 C92 60 70 92 50 104 C30 92 8 60 8 22 C8 12 8 6 12 6 Z"
-            fill={giallo}
-            stroke="#0b0304"
-            strokeWidth={3}
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ delay: dly(reduce, 0.7), duration: reduce ? 0.1 : 1.0, ease: EASE }}
-          />
-          {/* top stripe (tricolore nod) + SF */}
-          <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: dly(reduce, 1.4), duration: 0.4 }}>
-            <rect x="14" y="12" width="72" height="8" fill="#0b8a3a" />
-            <rect x="14" y="12" width="24" height="8" fill="#0b8a3a" />
-            <rect x="62" y="12" width="24" height="8" fill={rosso} />
-            <text x="50" y="74" textAnchor="middle" fontSize="40" fontWeight="900" fill="#0b0304" style={{ fontFamily: 'var(--font-revolut), system-ui, sans-serif' }}>SF</text>
-          </motion.g>
-        </motion.svg>
+          {[0, 1, 2, 3, 4].map((i) => {
+            const on = LIGHT_ON + i * STEP;
+            const dur = OUT_AT - on + 0.22;
+            return (
+              <motion.span
+                key={i}
+                className="h-6 w-6 rounded-full sm:h-7 sm:w-7"
+                initial={{ backgroundColor: dark, boxShadow: '0 0 0 rgba(0,0,0,0)' }}
+                animate={
+                  reduce
+                    ? { backgroundColor: dark }
+                    : {
+                        backgroundColor: [dark, rosso, rosso, dark],
+                        boxShadow: [
+                          '0 0 0 rgba(239,26,45,0)',
+                          '0 0 18px rgba(239,26,45,0.9)',
+                          '0 0 18px rgba(239,26,45,0.9)',
+                          '0 0 0 rgba(239,26,45,0)',
+                        ],
+                      }
+                }
+                transition={
+                  reduce
+                    ? { duration: 0.2 }
+                    : { delay: on, duration: dur, times: [0, Math.min(0.16 / dur, 0.3), (dur - 0.22) / dur, 1], ease: 'linear' }
+                }
+              />
+            );
+          })}
+        </motion.div>
 
-        <NameReveal text="Ferrari" accent={rosso} secondary={giallo} glow="rgba(239,26,45,0.45)" delay={1.1} reduce={reduce} />
+        {/* lights-out call */}
+        <motion.div
+          className="mb-3 font-mono text-[10px] font-black uppercase tracking-[0.5em]"
+          style={{ color: giallo }}
+          initial={{ opacity: 0 }}
+          animate={reduce ? { opacity: 0.9 } : { opacity: [0, 0, 1] }}
+          transition={reduce ? { delay: 0.3, duration: 0.2 } : { delay: OUT_AT, duration: 0.35 }}
+        >
+          Lights out
+        </motion.div>
+
+        <NameReveal text="Ferrari" accent={rosso} secondary={giallo} glow="rgba(239,26,45,0.45)" delay={reduce ? 0.4 : OUT_AT + 0.15} reduce={reduce} />
         <motion.div
           className="mt-4 font-mono text-[11px] font-black uppercase tracking-[0.46em] text-white/70"
           initial={{ opacity: 0, letterSpacing: '0.9em' }}
           animate={{ opacity: 1, letterSpacing: '0.46em' }}
-          transition={{ delay: dly(reduce, 1.7), duration: reduce ? 0.2 : 0.6, ease: EASE }}
+          transition={{ delay: reduce ? 0.5 : OUT_AT + 0.75, duration: reduce ? 0.2 : 0.6, ease: EASE }}
         >
-          Scuderia · Tifosi
+          Andiamo · Scuderia
         </motion.div>
       </div>
 
