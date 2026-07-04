@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 /* ════════════════════════════════════════════════════════════════════════
    SIGNATURE INTRO — the W traces in, expands to "W11", then the livery
    wordmark resolves beneath it. One theme-driven, futuristic boot sequence
-   reused across the normal (EQ Future) build and every special livery.
+   reused across the normal (Revolut) build and every special livery.
    ════════════════════════════════════════════════════════════════════════ */
 
 export type IntroLivery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
@@ -21,7 +21,7 @@ type IntroTheme = {
 };
 
 const THEMES: Record<IntroLivery, IntroTheme> = {
-  normal:     { accent: '#00d2be', secondary: '#e3e7ec', soft: '#d6f5f1', glow: 'rgba(0,210,190,0.55)',  base: '#07090c', name: 'EQ Future',  tagline: 'The Future of Mercedes' },
+  normal:     { accent: '#00d2be', secondary: '#e3e7ec', soft: '#d6f5f1', glow: 'rgba(0,210,190,0.55)',  base: '#07090c', name: 'Revolut',  tagline: 'The Future of Mercedes' },
   monza:      { accent: '#c59955', secondary: '#ffffff', soft: '#f3e3c6', glow: 'rgba(197,153,85,0.55)', base: '#070216', name: 'Williams',   tagline: 'Heritage Livery' },
   senna:      { accent: '#ffd400', secondary: '#00a651', soft: '#fff3b8', glow: 'rgba(255,212,0,0.52)',  base: '#061329', name: 'Senna',      tagline: 'Qualifying Focus' },
   verstappen: { accent: '#ff6b00', secondary: '#1d4ed8', soft: '#fed7aa', glow: 'rgba(255,107,0,0.55)',  base: '#050b16', name: 'Verstappen', tagline: 'Orange Attack' },

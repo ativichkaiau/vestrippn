@@ -684,7 +684,7 @@ p { text-wrap: pretty; }
 }
 
 /* ── Hub intro card palette — consumed by components/HubIntro.tsx.
-   W11 EQ FUTURE defaults: PETRONAS teal + liquid silver over obsidian carbon
+   W11 REVOLUT defaults: PETRONAS teal + liquid silver over obsidian carbon
    ("The Future of Mercedes"). Liveries still switch under html.monza etc. */
 :root {
   --hub-accent: #00d2be;
@@ -1215,7 +1215,7 @@ html.ferrari .motion-route-shell {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   W11 EQ FUTURE — SILVER ARROW COCKPIT ("The Future of Mercedes")
+   W11 REVOLUT — SILVER ARROW COCKPIT ("The Future of Mercedes")
    Succeeds the W10 Revolut clay cockpit: same clay structural system (class
    names kept for stability), rethemed to liquid silver by day and obsidian
    carbon + PETRONAS teal by night. The W09 token contract still resolves

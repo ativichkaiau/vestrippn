@@ -7,7 +7,7 @@ export default function BrandMark({ compact = false }: { compact?: boolean }) {
       className={`w10-brand-mark flex items-center gap-2 font-black tracking-tight transition-opacity hover:opacity-85 lg:gap-3 ${
         compact ? 'text-[17px] lg:text-[20px]' : 'text-[18px] lg:text-[22px]'
       }`}
-      aria-label="VEStriPPN 3.0, W11 EQ Future"
+      aria-label="VEStriPPN 3.0, W11 Revolut"
     >
       <span
         className={`font-revolut flex shrink-0 items-center justify-center rounded-xl ${
@@ -27,7 +27,7 @@ export default function BrandMark({ compact = false }: { compact?: boolean }) {
       </span>
       <span className="hidden shrink-0 items-center rounded-full border border-[color:var(--w10-clay-edge)] px-3 py-1 shadow-[var(--w10-clay-shadow-pressed)] xl:inline-flex">
         <span className="font-revolut text-[13px] font-bold leading-none text-neutral-900 dark:text-white">
-          EQ&nbsp;Future
+          Revolut
         </span>
       </span>
     </Link>
