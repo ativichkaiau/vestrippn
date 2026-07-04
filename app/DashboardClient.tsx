@@ -193,6 +193,31 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   WebkitMaskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
                 }}
               />
+              {/* W11 carbon weave */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage:
+                    'repeating-linear-gradient(180deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 9px)',
+                }}
+              />
+              {/* W11 right spec bar */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute right-0 top-0 h-full w-[3px]"
+                style={{
+                  background:
+                    'linear-gradient(180deg, rgba(var(--hub-accent-rgb), 0.85) 0 38%, rgba(var(--hub-secondary-rgb), 0.65) 38% 58%, transparent 78%)',
+                }}
+              />
+              {/* twin arrow hairlines */}
+              <span className="absolute left-8 top-0 h-[3px] w-28 rounded-b-full opacity-90 sm:left-12" style={{ backgroundColor: 'var(--hub-accent)' }} />
+              <span className="absolute left-8 top-[5px] h-[2px] w-16 rounded-b-full bg-white/45 sm:left-12" />
+              {/* cockpit corner brackets */}
+              <span className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 rounded-tl-lg border-l-2 border-t-2 border-white/15" />
+              <span className="pointer-events-none absolute right-3.5 top-3.5 h-5 w-5 rounded-tr-lg border-r-2 border-t-2 border-white/15" />
+              <span className="pointer-events-none absolute bottom-3.5 left-3.5 h-5 w-5 rounded-bl-lg border-b-2 border-l-2 border-white/15" />
+              <span className="pointer-events-none absolute bottom-3.5 right-3.5 h-5 w-5 rounded-br-lg border-b-2 border-r-2 border-white/15" />
 
               <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                 <div className="text-center lg:text-left">

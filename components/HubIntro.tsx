@@ -1,11 +1,13 @@
 'use client';
 
 /* ════════════════════════════════════════════════════════════════════════
-   W09 HUB HERO — cockpit-style intro used by all seven hubs.
-   Structure: system strip (hub badge · eyebrow · ops · signature · status)
-   → title zone (gradient headline, description, CTAs, chips)
+   W11 HUB HERO — the shared cockpit hero used by all seven hubs, in the
+   W11 EQ Future family language (same signature kit as the dashboard hero):
+   W11 deck pill · twin arrow hairlines · carbon weave · right spec bar ·
+   corner brackets. Structure: system strip (hub badge · eyebrow · ops ·
+   signature) → title zone (gradient headline, description, CTAs, chips)
    → telemetry stack (ticking metrics, capability rows, status footer).
-   Shared W09 shell, so hub pages only provide operational content.
+   Hub pages only provide operational content; each keeps its accent color.
    ════════════════════════════════════════════════════════════════════════ */
 
 import Link from 'next/link';
@@ -25,6 +27,17 @@ const HUB_ACCENT: Record<HubKey, { dot: string; grad: string; text: string; chip
   archive: { dot: 'bg-purple-400', grad: 'from-purple-400 to-fuchsia-400', text: 'text-purple-300', chipBg: 'bg-purple-400/15', icon: '▥' },
   identity: { dot: 'bg-teal-400', grad: 'from-teal-400 to-cyan-400', text: 'text-teal-300', chipBg: 'bg-teal-400/15', icon: '⚇' },
   ielts: { dot: 'bg-indigo-400', grad: 'from-indigo-400 to-purple-400', text: 'text-indigo-300', chipBg: 'bg-indigo-400/15', icon: '◎' },
+};
+
+/* Deck names for the W11 brand pill (shared with the dashboard hero). */
+const HUB_DECK: Record<HubKey, string> = {
+  academics: 'Academics Deck',
+  research: 'Research Deck',
+  fitness: 'Fitness Deck',
+  tools: 'Tools Deck',
+  archive: 'Archive Deck',
+  identity: 'Identity Deck',
+  ielts: 'IELTS Deck',
 };
 
 type HubIntroMetric = {
@@ -145,12 +158,35 @@ export default function HubIntro({
           WebkitMaskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
         }}
       />
-      {/* hub-colored hairline — the W09 color signature of the page */}
+      {/* W11 carbon weave */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(180deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 9px)',
+        }}
+      />
+      {/* W11 right spec bar — hub-accented edge trim */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 h-full w-[3px]"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(var(--hub-accent-rgb), 0.85) 0 38%, rgba(var(--hub-secondary-rgb), 0.65) 38% 58%, transparent 78%)',
+        }}
+      />
+      {/* twin arrow hairlines — the W11 signature of the page */}
       {acc && (
-        <motion.span
-          variants={motionOff ? undefined : telemetryLine}
-          className={`absolute left-8 top-0 h-[3px] w-28 origin-left rounded-b-full opacity-90 sm:left-12 ${acc.dot}`}
-        />
+        <>
+          <motion.span
+            variants={motionOff ? undefined : telemetryLine}
+            className={`absolute left-8 top-0 h-[3px] w-28 origin-left rounded-b-full opacity-90 sm:left-12 ${acc.dot}`}
+          />
+          <motion.span
+            variants={motionOff ? undefined : telemetryLine}
+            className="absolute left-8 top-[5px] h-[2px] w-16 origin-left rounded-b-full bg-white/45 sm:left-12"
+          />
+        </>
       )}
 
       {/* cockpit corner brackets */}
@@ -188,6 +224,18 @@ export default function HubIntro({
         <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           {/* title zone */}
           <motion.div variants={motionOff ? undefined : fadeUp} className="text-center lg:text-left">
+            {/* W11 deck pill — same brand element as the dashboard hero */}
+            <div
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] backdrop-blur-xl"
+              style={{ color: 'var(--hub-text-soft)' }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
+              />
+              W11 <span className="font-revolut font-semibold">EQ Future</span> · {hub ? HUB_DECK[hub] : 'Silver Arrow Deck'}
+            </div>
+
             <h1 className="mx-auto max-w-4xl text-[34px] font-black leading-[0.95] tracking-tighter sm:text-[52px] lg:mx-0 lg:text-[64px]">
               {title}{' '}
               {acc ? (
