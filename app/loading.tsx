@@ -16,6 +16,8 @@ const FACTS = [
   'The brain uses about 20% of the body’s total energy.',
   'The first modern randomized controlled trial was published in 1948.',
   'Mercedes’ W10 won 15 of 21 Grands Prix across the 2019 season.',
+  'Mercedes’ W11 took 13 wins and 15 poles in 2020 — the most dominant Silver Arrow ever.',
+  'The Silver Arrows got their name in 1934, when stripping white paint left bare aluminum.',
   'Reading one paper a day adds up to 365 papers in a year.',
   'Focus tends to run in ~90-minute ultradian cycles — work with them.',
 ];

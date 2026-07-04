@@ -3,9 +3,9 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
 /* ════════════════════════════════════════════════════════════════════════
-   SIGNATURE INTRO — the W traces in, expands to "W10", then the livery
+   SIGNATURE INTRO — the W traces in, expands to "W11", then the livery
    wordmark resolves beneath it. One theme-driven, futuristic boot sequence
-   reused across the normal (Revolut) build and every special livery.
+   reused across the normal (EQ Future) build and every special livery.
    ════════════════════════════════════════════════════════════════════════ */
 
 export type IntroLivery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
@@ -21,7 +21,7 @@ type IntroTheme = {
 };
 
 const THEMES: Record<IntroLivery, IntroTheme> = {
-  normal:     { accent: '#00d2be', secondary: '#6be6ff', soft: '#b9fff4', glow: 'rgba(0,210,190,0.55)',  base: '#04080b', name: 'Revolut',    tagline: 'Personal Operating System' },
+  normal:     { accent: '#00d2be', secondary: '#e3e7ec', soft: '#d6f5f1', glow: 'rgba(0,210,190,0.55)',  base: '#07090c', name: 'EQ Future',  tagline: 'The Future of Mercedes' },
   monza:      { accent: '#c59955', secondary: '#ffffff', soft: '#f3e3c6', glow: 'rgba(197,153,85,0.55)', base: '#070216', name: 'Williams',   tagline: 'Heritage Livery' },
   senna:      { accent: '#ffd400', secondary: '#00a651', soft: '#fff3b8', glow: 'rgba(255,212,0,0.52)',  base: '#061329', name: 'Senna',      tagline: 'Qualifying Focus' },
   verstappen: { accent: '#ff6b00', secondary: '#1d4ed8', soft: '#fed7aa', glow: 'rgba(255,107,0,0.55)',  base: '#050b16', name: 'Verstappen', tagline: 'Orange Attack' },
@@ -82,6 +82,20 @@ export default function SignatureIntro({ livery, cycle }: { livery: IntroLivery;
         animate={reduce ? { opacity: 0.12 } : { opacity: 0.16, backgroundPositionY: ['0px', '46px'] }}
         transition={reduce ? { duration: 0.3 } : { backgroundPositionY: { duration: 3.4, repeat: Infinity, ease: 'linear' }, opacity: { duration: 1 } }}
       />
+      {/* Silver-arrow streak — a light trail flashing across on ignition */}
+      {!reduce && (
+        <motion.div
+          className="pointer-events-none absolute left-0 top-[24%] h-[3px] w-full"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${t.secondary}e6 45%, ${t.accent}cc 55%, transparent)`,
+            boxShadow: `0 0 22px ${t.glow}`,
+          }}
+          initial={{ x: '-100%', opacity: 0 }}
+          animate={{ x: '100%', opacity: [0, 1, 1, 0] }}
+          transition={{ delay: d(0.2), duration: 1.3, ease: SWOOSH }}
+        />
+      )}
+
       {/* Scanline sweep on ignition */}
       {!reduce && (
         <motion.div
@@ -176,9 +190,9 @@ export default function SignatureIntro({ livery, cycle }: { livery: IntroLivery;
               )}
             </svg>
 
-            {/* "10" expands in beside the W */}
+            {/* "11" expands in beside the W */}
             <div className="flex">
-              {['1', '0'].map((n, i) => (
+              {['1', '1'].map((n, i) => (
                 <motion.span
                   key={n + i}
                   className="text-[clamp(64px,13.5vw,140px)] font-black leading-[0.8] tracking-[-0.04em]"
@@ -240,7 +254,7 @@ export default function SignatureIntro({ livery, cycle }: { livery: IntroLivery;
             transition={{ delay: d(0.6), duration: 0.5 }}
             style={{ color: t.accent }}
           >
-            W10 // {t.name}
+            W11 // {t.name}
           </motion.span>
           <motion.span
             initial={{ opacity: 0 }}

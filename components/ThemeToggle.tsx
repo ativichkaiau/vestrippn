@@ -130,8 +130,8 @@ export default function ThemeToggle() {
           <div className="fixed inset-0 z-[55]" onClick={() => setOpen(false)} />
           <div className="w10-clay-surface absolute right-0 mt-2 w-56 z-[60] p-2 rounded-2xl bg-white/95 dark:bg-[#0e0e10]/95 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-[0_20px_50px_rgb(0,0,0,0.18)] dark:shadow-[0_20px_50px_rgb(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
             <div className="px-3 pt-1.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Normal Livery</div>
-            <LiveryRow active={livery === 'normal' && mode === 'day'} onClick={() => choose('normal', 'day')} emoji="☀️" title="Day" sub="Pristine White" />
-            <LiveryRow active={livery === 'normal' && mode === 'night'} onClick={() => choose('normal', 'night')} emoji="🌙" title="Night" sub="Deep Carbon" />
+            <LiveryRow active={livery === 'normal' && mode === 'day'} onClick={() => choose('normal', 'day')} emoji="☀️" title="Day" sub="Liquid Silver" />
+            <LiveryRow active={livery === 'normal' && mode === 'night'} onClick={() => choose('normal', 'night')} emoji="🌙" title="Night" sub="Obsidian EQ" />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Special Liveries</div>
             <LiveryRow

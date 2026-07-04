@@ -26,7 +26,7 @@ const revolut = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "VEStriPPN 3.0 // W10 Revolut",
+  title: "VEStriPPN 3.0 // W11 EQ Future",
   description: "Personal telemetry, mission control, and Claude-ready command surfaces.",
   // 🚨 THE FIX: This injects the Google site verification tag into your <head>
   verification: {

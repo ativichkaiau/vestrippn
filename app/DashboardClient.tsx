@@ -204,7 +204,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       className="h-1.5 w-1.5 rounded-full"
                       style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
                     />
-                    W10 <span className="font-revolut font-semibold">Revolut</span> · Clay Cockpit
+                    W11 <span className="font-revolut font-semibold">EQ Future</span> · Silver Arrow Cockpit
                   </div>
 
                   <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
@@ -268,7 +268,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       {[
                         ['Domains', '8'],
-                        ['Version', 'W10'],
+                        ['Version', 'W11'],
                         ['Pending', `${pendingTaskCount}`],
                       ].map(([label, value]) => (
                         <div key={label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
