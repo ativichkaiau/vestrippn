@@ -1450,8 +1450,11 @@ html.ferrari {
   border-color: rgba(var(--hub-accent-rgb), 0.18) !important;
   background:
     linear-gradient(145deg, rgba(21, 28, 36, 0.97), rgba(3, 7, 12, 0.96)) !important;
+  /* Centered elevation — the old 14px/16px offset shadow read as a smeared
+     blotch when a dark panel (e.g. the ChatGPT response card) sits on a
+     light clay surface. */
   box-shadow:
-    14px 16px 34px var(--w10-hero-shadow),
+    0 18px 40px -12px var(--w10-hero-shadow),
     inset 1px 1px 0 rgba(255, 255, 255, 0.09),
     inset -2px -2px 0 rgba(0, 0, 0, 0.34) !important;
 }
