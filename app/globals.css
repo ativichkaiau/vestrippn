@@ -1224,17 +1224,20 @@ html.ferrari .motion-route-shell {
 :root {
   --w10-canvas: #e8ebef;
   --w10-clay: #edf0f3;
-  --w10-clay-raised: #f7f9fb;
-  --w10-clay-inset: #dce1e7;
-  --w10-clay-edge: rgba(255, 255, 255, 0.85);
-  --w10-clay-highlight: rgba(255, 255, 255, 0.90);
-  --w10-clay-shadow: rgba(96, 107, 121, 0.19);
-  --w10-clay-shadow-deep: rgba(96, 107, 121, 0.29);
-  /* W11 atmosphere — liquid-silver sheen with a faint EQ-teal breath */
+  --w10-clay-raised: #f5f7f9;
+  --w10-clay-inset: #dde2e8;
+  --w10-clay-edge: rgba(255, 255, 255, 0.75);
+  /* Highlight tuned for the silver canvas — 0.9 white bloomed into halos. */
+  --w10-clay-highlight: rgba(255, 255, 255, 0.68);
+  --w10-clay-shadow: rgba(88, 99, 112, 0.16);
+  --w10-clay-shadow-deep: rgba(88, 99, 112, 0.25);
+  /* W11 atmosphere — liquid-silver sheen with a faint EQ-teal breath.
+     Kept near-uniform in luminance so the neumorphic shadows stay true
+     (a wide gradient made highlights/shadows read wrong and band). */
   --w11-atmosphere:
-    radial-gradient(ellipse at 14% -10%, rgba(255, 255, 255, 0.85), transparent 46%),
-    radial-gradient(ellipse at 88% 112%, rgba(0, 210, 190, 0.08), transparent 52%),
-    linear-gradient(168deg, #f0f3f6 0%, #e8ebef 48%, #dee4ea 100%);
+    radial-gradient(ellipse at 14% -10%, rgba(255, 255, 255, 0.40), transparent 46%),
+    radial-gradient(ellipse at 88% 112%, rgba(0, 210, 190, 0.06), transparent 52%),
+    linear-gradient(168deg, #edf0f4 0%, #e8ebef 55%, #e5e9ee 100%);
   --w10-clay-shadow-soft:
     7px 7px 16px var(--w10-clay-shadow),
     -6px -6px 14px var(--w10-clay-highlight),
@@ -1259,9 +1262,9 @@ html.ferrari .motion-route-shell {
   --w10-clay-raised: #161d24;
   --w10-clay-inset: #05070a;
   --w10-clay-edge: rgba(199, 204, 212, 0.11);
-  --w10-clay-highlight: rgba(0, 210, 190, 0.04);
-  --w10-clay-shadow: rgba(0, 0, 0, 0.55);
-  --w10-clay-shadow-deep: rgba(0, 0, 0, 0.75);
+  --w10-clay-highlight: rgba(199, 204, 212, 0.06);
+  --w10-clay-shadow: rgba(0, 0, 0, 0.50);
+  --w10-clay-shadow-deep: rgba(0, 0, 0, 0.70);
   --w10-hero-shadow: rgba(0, 0, 0, 0.72);
   /* W11 atmosphere — obsidian carbon weave, silver-arrow line, EQ teal glow */
   --w11-atmosphere:
@@ -1401,7 +1404,7 @@ html.ferrari {
   box-shadow:
     0 10px 24px var(--w10-clay-shadow),
     inset 0 1px 0 var(--w10-clay-edge),
-    inset 0 -2px 0 rgba(var(--hub-accent-rgb), 0.24);
+    inset 0 -1px 0 rgba(var(--hub-accent-rgb), 0.16);
 }
 
 .w10-clay-surface,
