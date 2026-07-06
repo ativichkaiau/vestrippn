@@ -723,10 +723,9 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                   The flagship research tier — a Williams-grade engine and knowledge-graph backbone, purpose-built for this work. Replaces the retired review board.
                 </p>
 
-                <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="mt-8 grid grid-cols-1 gap-4">
                   {[
                     { href: 'https://williamslab.vercel.app', icon: '🔬', title: 'WilliamsLab', tag: 'Research Engine', desc: 'Literature intelligence, extraction, and SRMA workflow — the Williams-grade research engine.' },
-                    { href: 'https://williamslab.vercel.app', icon: '🧬', title: 'Knowledge Graph', tag: 'Brugada DAG', desc: 'The sodium-channel epigenetics knowledge-graph backbone for this work.' },
                   ].map((w) => (
                     <motion.a
                       key={w.title}
