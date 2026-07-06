@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { resolveOwnerByEmail } from '@/lib/auth/owner';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Resolve which dashboard account the telemetry belongs to.
- * 1. If ANKI_SYNC_EMAIL is set and matches a user (trimmed, case-insensitive), use it.
+ * 1. ANKI_SYNC_EMAIL → OWNER_EMAIL → the app's primary owner (resolveOwnerByEmail).
  * 2. Otherwise, for this single-operator app, fall back to the sole user.
+ *
+ * The email chain matters: once a 2nd account exists the single-operator
+ * fallback stops resolving, so without the primary-owner fallback the add-on's
+ * pushes 404 and sync silently dies.
  */
 async function resolveOwnerId(ownerEmail?: string | null): Promise<string | null> {
-  if (ownerEmail && ownerEmail.trim()) {
-    const matched = await prisma.user.findFirst({
-      where: { email: { equals: ownerEmail.trim(), mode: 'insensitive' } },
-      select: { id: true },
-    });
-    if (matched) return matched.id;
-  }
+  const byEmail = await resolveOwnerByEmail(ownerEmail);
+  if (byEmail) return byEmail;
 
   // Single-operator fallback: if there's exactly one account, it's the owner.
   const count = await prisma.user.count();
