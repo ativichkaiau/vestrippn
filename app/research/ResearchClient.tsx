@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ThemeToggle from "../../components/ThemeToggle"; 
 import ArcDate from '../../components/ArcDate';
-import CovidenceBoard from '../../components/CovidenceBoard';
 import TopNavProfile from '../../components/TopNavProfile';
 import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
@@ -59,6 +58,8 @@ interface VaultItem {
 }
 
 interface ResearchProps {
+  // Retained seam for the incoming Williams-grade research engine; the Review
+  // Matrix that consumed it was removed. Still fetched in page.tsx.
   cloudResearch?: any;
   cloudExtractions?: VaultItem[];
 }
@@ -679,30 +680,11 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               )}
             </motion.section>
 
-            {/* SECTOR 3: COVIDENCE WORKSPACE */}
-            <motion.section
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-h-[500px] overflow-x-auto custom-scrollbar no-scrollbar cursor-default"
-            >
-               <div className="flex items-center gap-2 mb-8 px-2">
-                  <span className="w-1.5 h-4 bg-emerald-500 rounded-full animate-pulse"></span>
-                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Review Matrix</h3>
-               </div>
-               <div className="min-w-[800px] lg:min-w-0">
-                 <CovidenceBoard 
-                   initialTitle={cloudResearch?.title}
-                   initialStats={cloudResearch ? { 
-                     screening: cloudResearch.screening, 
-                     fullText: cloudResearch.fullText, 
-                     extraction: cloudResearch.extraction 
-                   } : undefined}
-                 />
-               </div>
-            </motion.section>
+            {/* SECTOR 3: RESERVED — the Review Matrix (Covidence workspace) was
+                removed to make room for the incoming Williams-grade research
+                engine, purpose-built for this work. The cloudResearch pipeline
+                (page.tsx → prisma.researchProject: screening / fullText /
+                extraction) is intentionally kept as the seam for it. */}
 
             {/* 📋 SECTOR 4: CLINICAL SIMULATION GUIDE (BRUGADA SYNDROME) */}
             <motion.section
