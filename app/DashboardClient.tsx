@@ -10,7 +10,7 @@ import DomainHealth from '../components/DomainHealth';
 import QuickAccess from "../components/QuickAccess";
 import Reminders from '../components/Reminders';
 import AcademicsCard from '../components/AcademicsCard';
-import ResearchCard from '../components/ResearchCard';
+import ResearchDagCard from '../components/ResearchDagCard';
 import FitnessCard from '../components/FitnessCard';
 import IdentityAnchor from '../components/IdentityAnchor';
 import TopNavProfile from '../components/TopNavProfile';
@@ -428,18 +428,11 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   className="flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/55 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 p-5 lg:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-black/5 dark:border-white/5 cursor-default"
                 >
                   <div className="flex items-center gap-2.5 mb-5">
-                    <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-white/10 flex items-center justify-center text-neutral-700 dark:text-white text-sm transition-colors duration-700">🔬</div>
-                    <h2 className="font-bold text-[18px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">Research Ops</h2>
+                    <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-white/10 flex items-center justify-center text-neutral-700 dark:text-white text-sm transition-colors duration-700">🧬</div>
+                    <h2 className="font-bold text-[18px] tracking-tight text-neutral-900 dark:text-white transition-colors duration-700">Research DAG</h2>
                   </div>
                   <div className="flex-1 flex flex-col text-neutral-700 dark:text-neutral-200 transition-colors duration-700">
-                    <ResearchCard
-                       initialTitle={cloudResearch?.title}
-                       initialStats={cloudResearch ? {
-                         screening: cloudResearch.screening ?? 0,
-                         fullText: cloudResearch.fullText ?? 0,
-                         extraction: cloudResearch.extraction ?? 0
-                       } : undefined}
-                    />
+                    <ResearchDagCard />
                   </div>
                 </motion.div>
               </div>
