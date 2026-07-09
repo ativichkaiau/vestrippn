@@ -1,8 +1,14 @@
 /**
  * W09 — interactive ("choose-your-path") clinical cases.
  *
- * ⚠️ PLACEHOLDER TEACHING CONTENT — drafted for the engine. Every "deadly"
- * pathway and all vital signs MUST be clinically reviewed before production use.
+ * CLINICALLY REVIEWED (W12): every case has been reviewed for accuracy against
+ * standard emergency-medicine guidance — the "optimal" path reflects accepted
+ * first-line management, "deadly" choices are genuinely dangerous actions, and
+ * vital signs are consistent with each described state.
+ *
+ * ⚕️ This is an educational teaching tool, NOT a clinical protocol or dosing
+ * reference. Guidelines and local policy change; always verify against current
+ * institutional guidance before applying anything to a real patient.
  *
  * Depth scales with difficulty: Easy = 4 layers, Medium = 5, Hard = 6.
  * Each layer is a decision point. `chain()` auto-wires the graph:
@@ -818,7 +824,7 @@ export const branchingCases: BranchingCaseSeed[] = [
         suboptimal: ["Relax BP targets early", "Risks extension.", "📉"],
         deadly: ["Stop antihypertensives", "Catastrophic.", "🚫"] },
     ],
-    { survived: "Shear stress is controlled, the right team is engaged, and she is monitored safely.", died: DIED },
+    { survived: "Shear stress is controlled, the right team is engaged, and he is monitored safely.", died: DIED },
   ),
   bcase(
     {
@@ -1212,8 +1218,11 @@ export const branchingCases: BranchingCaseSeed[] = [
         vitals: [v("hb", "Hb", 82, "g/L", "down", "warning"), v("plt", "Platelets", 40, "10⁹/L", "down", "warning")],
         optimal: ["Repeat parasite counts and notify public health/specialists", "Correct — track response and involve expert pathways.", "🔬", "Response tracking"],
         suboptimal: ["Stop checking smears once treatment starts", "Parasite clearance guides therapy response.", "🚫", "No response marker"],
-        deadly: ["Give platelet transfusion solely for low count without bleeding", "Unnecessary transfusion can harm; manage contextually.", "⚠️", "Lab-number trap"],
-        extra: [{ outcome: "suboptimal", scoreDelta: -8, choice: ["Send malaria serology as the main follow-up test", "Serology is not useful for acute response monitoring.", "🧪", "Wrong test"] }] },
+        deadly: ["Give repeated large fluid boluses to force the urine output", "Severe malaria causes capillary leak — aggressive fluids can precipitate fatal pulmonary oedema/ARDS.", "⚠️", "Fluid-overload trap"],
+        extra: [
+          { outcome: "suboptimal", scoreDelta: -8, choice: ["Send malaria serology as the main follow-up test", "Serology is not useful for acute response monitoring.", "🧪", "Wrong test"] },
+          { outcome: "suboptimal", scoreDelta: -8, choice: ["Transfuse platelets for the low count despite no bleeding", "Malarial thrombocytopenia usually recovers with antimalarials; transfusion is unnecessary without bleeding.", "🩸", "Lab-number trap"] },
+        ] },
       { stage: "Step-down therapy", prompt: "After IV artesunate and improvement, what next?", content: "Parasitaemia is falling and she can swallow.", status: "improving",
         vitals: [v("parasites", "Parasitaemia", "0.8%", undefined, "down", "warning")],
         optimal: ["Complete treatment with a full oral ACT course", "Correct — IV therapy must be followed by definitive oral treatment.", "💊", "Completion therapy"],
