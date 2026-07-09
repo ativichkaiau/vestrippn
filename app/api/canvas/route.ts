@@ -35,10 +35,11 @@ export async function GET() {
   const CANVAS_URL = process.env.CANVAS_BASE_URL;
   const TOKEN = process.env.CANVAS_TOKEN;
 
-  // SAFETY 1: Check credentials before even trying
+  // SAFETY 1: Unconfigured is not an error — return an empty-but-valid payload
+  // so the UI shows "no data" (0%) rather than SERVER_OFFLINE. Configure with
+  // CANVAS_TOKEN + CANVAS_BASE_URL (see .env.example).
   if (!CANVAS_URL || !TOKEN) {
-    console.error("❌ CRITICAL: Missing Canvas Environment Variables");
-    return NextResponse.json({ error: 'Config Missing' }, { status: 500 });
+    return NextResponse.json({ subjects: [], metrics: { quizzes: 0, assignments: 0 }, configured: false });
   }
 
   // Extend or rename tracked courses per deploy with CANVAS_COURSES, formatted as
