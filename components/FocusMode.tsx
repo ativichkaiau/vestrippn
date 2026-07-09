@@ -213,6 +213,35 @@ function drawOnboard(
   ctx.fillStyle = _skyGrad.sky;
   ctx.fillRect(0, 0, W, horizon);
 
+  // day sun — soft disc high in the sky
+  if (tod === 'day' && !wet) {
+    const sunX = W * 0.8, sunY = horizon * 0.3;
+    const sunG = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, W * 0.16);
+    sunG.addColorStop(0, 'rgba(255,251,238,0.95)');
+    sunG.addColorStop(0.35, 'rgba(255,246,222,0.4)');
+    sunG.addColorStop(1, 'rgba(255,246,222,0)');
+    ctx.fillStyle = sunG;
+    ctx.fillRect(0, 0, W, horizon);
+  }
+  // drifting clouds (day / dusk) — a few seeded puff clusters that drift slowly
+  if (tod !== 'night') {
+    ctx.fillStyle = tod === 'dusk' ? 'rgba(255,228,205,1)' : 'rgba(255,255,255,1)';
+    for (let k = 0; k < 5; k++) {
+      const s = (k * 374761393 + 668265263) >>> 0;
+      const cxc = (((s % 1000) / 1000 + clock * 0.004 * (0.5 + (s % 40) / 80)) % 1.25 - 0.12) * W;
+      const cyc = horizon * (0.16 + ((s >> 7) % 100) / 320);
+      const cw = W * (0.07 + ((s >> 3) % 60) / 520);
+      ctx.globalAlpha = tod === 'dusk' ? 0.22 : 0.16;
+      for (let p = 0; p < 4; p++) {
+        const pr = cw * (0.32 + (p % 2) * 0.16);
+        ctx.beginPath();
+        ctx.ellipse(cxc + (p - 1.5) * cw * 0.42, cyc + ((p * 53) % 8 - 4) * cw * 0.02, pr, pr * 0.56, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
   // night stars
   if (tod === 'night' && !wet) {
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
@@ -479,27 +508,60 @@ function drawOnboard(
     ctx.fillRect(0, horizon - 8, W, H * 0.18);
   }
 
-  // ── cockpit halo (sells the onboard view) ──
+  // ── F1 HALO — the onboard T-cam signature: titanium hoop + central pillar ──
   const cxm = W / 2;
-  ctx.fillStyle = 'rgba(10,10,12,0.92)';
-  // centre strut
-  ctx.fillRect(cxm - W * 0.012, horizon - 6, W * 0.024, H - horizon);
-  // top arc
+  const hoopTopY = H * 0.05;
+  const hoopSideY = H * 0.19;
+  const hoopW = W * 0.034;
+  const carbon = tod === 'night' ? '#0a0b0e' : '#111319';
+
+  // central front pillar — wide at the chassis, tapering up to the hoop
+  ctx.fillStyle = carbon;
   ctx.beginPath();
-  ctx.lineWidth = W * 0.03;
-  ctx.strokeStyle = 'rgba(10,10,12,0.92)';
-  ctx.moveTo(W * 0.12, H * 0.2);
-  ctx.quadraticCurveTo(cxm, H * 0.06, W * 0.88, H * 0.2);
+  ctx.moveTo(cxm - W * 0.028, H);
+  ctx.lineTo(cxm - W * 0.010, hoopTopY + hoopW * 0.5);
+  ctx.lineTo(cxm + W * 0.010, hoopTopY + hoopW * 0.5);
+  ctx.lineTo(cxm + W * 0.028, H);
+  ctx.closePath();
+  ctx.fill();
+  // pillar edge shading (light catches the left, shadow on the right → cylindrical)
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = 'rgba(168,178,192,0.55)';
+  ctx.beginPath();
+  ctx.moveTo(cxm - W * 0.028 + 1.5, H);
+  ctx.lineTo(cxm - W * 0.010 + 1, hoopTopY + hoopW * 0.5);
   ctx.stroke();
-  // thin accent rim on the halo arc
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
   ctx.beginPath();
-  ctx.lineWidth = 2;
+  ctx.moveTo(cxm + W * 0.028 - 1.5, H);
+  ctx.lineTo(cxm + W * 0.010 - 1, hoopTopY + hoopW * 0.5);
+  ctx.stroke();
+
+  // hoop — thick metallic band arcing across the top of the view
+  ctx.lineCap = 'round';
+  ctx.lineWidth = hoopW;
+  ctx.strokeStyle = carbon;
+  ctx.beginPath();
+  ctx.moveTo(W * 0.08, hoopSideY);
+  ctx.quadraticCurveTo(cxm, hoopTopY, W * 0.92, hoopSideY);
+  ctx.stroke();
+  // top highlight — daylight glancing off the titanium
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = 'rgba(168,178,192,0.5)';
+  ctx.beginPath();
+  ctx.moveTo(W * 0.08, hoopSideY - hoopW * 0.34);
+  ctx.quadraticCurveTo(cxm, hoopTopY - hoopW * 0.34, W * 0.92, hoopSideY - hoopW * 0.34);
+  ctx.stroke();
+  // livery accent line under the hoop
+  ctx.lineWidth = 1.6;
   ctx.strokeStyle = accent;
-  ctx.globalAlpha = 0.5;
-  ctx.moveTo(W * 0.12, H * 0.2 + W * 0.016);
-  ctx.quadraticCurveTo(cxm, H * 0.06 + W * 0.016, W * 0.88, H * 0.2);
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.moveTo(W * 0.08, hoopSideY + hoopW * 0.42);
+  ctx.quadraticCurveTo(cxm, hoopTopY + hoopW * 0.42, W * 0.92, hoopSideY + hoopW * 0.42);
   ctx.stroke();
   ctx.globalAlpha = 1;
+  ctx.lineCap = 'butt';
 
   // bottom vignette
   const vig = ctx.createLinearGradient(0, H * 0.78, 0, H);
@@ -948,7 +1010,7 @@ export default function FocusMode() {
       </button>
 
       {open && mounted && createPortal(
-        <div className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
+        <div data-no-typewriter className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
           <style>{`@keyframes fmFade{0%{opacity:0;transform:translate(-50%,6px) scale(0.96)}15%{opacity:1;transform:translate(-50%,0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px) scale(1)}}@keyframes fmPop{0%{opacity:0;transform:scale(0.7)}30%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
           {/* carbon + accent atmosphere */}
           <div
@@ -1040,7 +1102,7 @@ export default function FocusMode() {
               </div>
 
               {/* track grid */}
-              <div className="custom-scrollbar grid flex-1 grid-cols-2 gap-3 overflow-y-auto px-5 pb-8 sm:grid-cols-3 sm:px-8 lg:grid-cols-4 xl:grid-cols-5">
+              <div className="custom-scrollbar grid flex-1 auto-rows-max grid-cols-2 gap-3 overflow-y-auto px-5 pb-8 sm:grid-cols-3 sm:px-8 lg:grid-cols-4 xl:grid-cols-5">
                 {TRACKS.map((t) => {
                   const pbVal = loadPB(t.id);
                   return (
