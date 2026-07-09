@@ -3,6 +3,17 @@
 
 export const TARGET_COURSES = ['26141', '26393', '26349', '26702', '27415'];
 
+// Friendly display names per tracked course id. Shared so the dashboard card,
+// the Academics hub, and the assistant all label courses identically (falls
+// back to the Canvas course_code when an id isn't listed).
+export const COURSE_NAMES: Record<string, string> = {
+  '26141': 'HEN-2 (Endocrine)',
+  '26393': 'HNS-2 (Nervous & Senses)',
+  '26349': 'TBL (Team-Based Learning)',
+  '26702': 'HMS-2 (Musculoskeletal)',
+  '27415': 'HCVS-2 (Cardiovascular)',
+};
+
 export interface CanvasSubject {
   id: string;
   name: string;
@@ -87,7 +98,7 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
           progress = rawScore != null ? Math.round(Number(rawScore)) : null;
         }
 
-        return { id, name: c.course_code || c.name, progress };
+        return { id, name: COURSE_NAMES[id] || c.course_code || c.name, progress };
       })
     );
 

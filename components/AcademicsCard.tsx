@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface Subject { id: string; name: string; progress: number; }
+interface Subject { id: string; name: string; progress: number | null; }
 interface AcademicsData {
   subjects: Subject[];
   metrics: { quizzes: number; assignments: number; };
@@ -46,8 +46,11 @@ export default function AcademicsCard() {
     fetchCanvasData();
   }, []);
 
-  const overallProgress = data.subjects?.length > 0 
-    ? Math.round(data.subjects.reduce((sum, sub) => sum + sub.progress, 0) / data.subjects.length)
+  // Average over graded subjects only (null = no data yet), so ungraded
+  // courses don't drag the ring down — same treatment as the Academics hub.
+  const graded = data.subjects.filter((s) => s.progress !== null);
+  const overallProgress = graded.length > 0
+    ? Math.round(graded.reduce((sum, sub) => sum + (sub.progress ?? 0), 0) / graded.length)
     : 0;
 
   // Clean, day/night compatible skeleton loader
@@ -117,13 +120,13 @@ export default function AcademicsCard() {
                   {sub.name}
                 </span>
                 <span className="text-[12px] font-black text-blue-600 dark:text-blue-400 transition-colors duration-700">
-                  {sub.progress}%
+                  {sub.progress !== null ? `${sub.progress}%` : '--%'}
                 </span>
               </div>
               <div className="h-1.5 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden transition-colors duration-700">
-                <div 
+                <div
                   className="h-full bg-blue-600 dark:bg-blue-400 transition-all duration-1000 ease-out rounded-full"
-                  style={{ width: `${sub.progress}%` }}
+                  style={{ width: `${sub.progress ?? 0}%` }}
                 ></div>
               </div>
             </div>
