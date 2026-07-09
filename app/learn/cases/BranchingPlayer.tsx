@@ -255,7 +255,6 @@ export default function BranchingPlayer({
                         <span className="rounded-md bg-[var(--w09-surface-raised)] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--w09-text-muted)]">{key}</span>
                       </div>
                       <div className="text-sm font-semibold text-[color:var(--w09-text)]">{ch.label}</div>
-                      {ch.detail && <div className="mt-1 text-xs text-[color:var(--w09-text-muted)]">{ch.detail}</div>}
                     </button>
                   );
                 })}

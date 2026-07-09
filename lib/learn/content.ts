@@ -312,7 +312,6 @@ export function nodeView(id: string, node: BranchingNode): NodeView {
       id: c.id,
       label: c.label,
       icon: c.icon,
-      detail: c.detail,
     })),
     end: node.end,
   };
