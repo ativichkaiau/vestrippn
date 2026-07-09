@@ -73,15 +73,26 @@ function hasBlockSize(element: HTMLElement) {
   return rect.width >= BLOCK_MIN_WIDTH && rect.height >= BLOCK_MIN_HEIGHT;
 }
 
+// Opt-IN: a block participates only if it is (or is inside) an explicitly
+// marked typewriter target. This replaces the old auto-detect heuristic that
+// emptied text in *any* rounded/bordered block — a recurring footgun that
+// silently blanked heroes and cards. Mark a single block with `data-typewriter`,
+// or a wrapper with `data-typewriter-scope` to cover its rounded info-blocks.
+function isOptedIn(element: HTMLElement) {
+  return element.matches('[data-typewriter]') || Boolean(element.closest('[data-typewriter-scope]'));
+}
+
 function looksLikeInformationBlock(element: HTMLElement) {
   if (element.closest(CHROME_SELECTOR)) return false;
   if (element.matches(CONTROL_SELECTOR)) return false;
+  if (!isOptedIn(element)) return false;
   if (element.dataset.typewriterState) return hasBlockSize(element);
 
   const classes = classText(element);
-  if (!classes.includes('rounded-')) return false;
   if (classes.includes('pointer-events-none') || classes.includes('blur-')) return false;
-  if (!/(^|\s)(bg-|dark:bg-|border|shadow-|backdrop-blur|ring-)/.test(classes)) return false;
+  // Direct `data-typewriter` targets need no class signature; scoped blocks
+  // still look like rounded info cards.
+  if (!element.matches('[data-typewriter]') && !classes.includes('rounded-')) return false;
   if (!hasReadableText(element)) return false;
 
   return hasBlockSize(element);
@@ -249,7 +260,11 @@ export default function HoverTypewriter() {
     };
 
     const preparePendingBlocks = (root: ParentNode = document) => {
-      const candidates = Array.from(root.querySelectorAll<HTMLElement>('.motion-route-shell [class*="rounded-"]'))
+      const candidates = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          '.motion-route-shell [data-typewriter], .motion-route-shell [data-typewriter-scope] [class*="rounded-"]',
+        ),
+      )
         .filter(looksLikeInformationBlock)
         .sort((a, b) => elementDepth(b) - elementDepth(a));
       const claimedNodes = new WeakSet<Text>();
