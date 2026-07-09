@@ -13,6 +13,7 @@ import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel'
 import FocusMode from '../../components/FocusMode';
 import BrandMark from '../../components/BrandMark';
 import { syncAnkiData } from '@/app/actions';
+import { HCVS_EXAM_TARGET, HGB_EXAM_TARGET, HRS_EXAM_TARGET } from '@/lib/exams';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
@@ -36,10 +37,7 @@ interface AcademicsProps {
 const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
 const SECRET_EXAMPOD_SEQUENCE = 'williamspod';
 const SECRET_EXAMPOD_URL = 'https://williamspod.vercel.app';
-// Exam targets — 08:00 Bangkok time on the published date (Buddhist year 2569 = 2026).
-const HCVS_EXAM_TARGET = new Date('2026-08-04T08:00:00+07:00');
-const HGB_EXAM_TARGET = new Date('2026-08-07T08:00:00+07:00');
-const HRS_EXAM_TARGET = new Date('2026-08-11T08:00:00+07:00');
+// Exam targets live in lib/exams (shared with the notification reminders).
 const PINNED_CANVAS_SUBJECTS: Subject[] = [
   { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
   { id: '27415', name: 'HCVS-2 - Human Cardiovascular System', progress: null },
