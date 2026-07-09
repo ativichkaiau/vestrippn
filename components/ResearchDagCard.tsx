@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
+import BrugadaDag from './BrugadaDag';
 
 /* ════════════════════════════════════════════════════════════════════════
    RESEARCH DAG — dashboard surface for the WilliamsLab research knowledge
@@ -29,10 +30,13 @@ const LAYERS: { k: string; label: string; n: number; color: string }[] = [
 const NODE_COUNT = LAYERS.reduce((sum, l) => sum + l.n, 0);
 
 export default function ResearchDagCard() {
+  const [graphOpen, setGraphOpen] = useState(false);
+
   return (
     // data-no-typewriter: this is a static data surface — keep the axis chips
     // and labels from being emptied by the hover-typewriter effect.
     <div className="flex-1 flex flex-col" data-no-typewriter>
+      {graphOpen && <BrugadaDag onClose={() => setGraphOpen(false)} />}
       {/* project identity */}
       <div
         className="text-[9px] font-black uppercase tracking-[0.24em] mb-1.5"
@@ -95,17 +99,20 @@ export default function ResearchDagCard() {
       </div>
 
       {/* footer */}
-      <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
-        <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
-          {NODE_COUNT} nodes · 7 layers · acyclic
-        </span>
+      <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-3">
         <Link
           href="/research"
-          className="text-[10px] font-black uppercase tracking-widest hover:translate-x-0.5 transition-transform"
-          style={{ color: 'var(--hub-accent)' }}
+          className="text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
         >
-          Open Research Hub →
+          {NODE_COUNT} nodes · 7 layers
         </Link>
+        <button
+          onClick={() => setGraphOpen(true)}
+          className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest transition-transform hover:-translate-y-0.5 active:scale-95"
+          style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.14)', color: 'var(--hub-accent)' }}
+        >
+          Explore graph →
+        </button>
       </div>
     </div>
   );
