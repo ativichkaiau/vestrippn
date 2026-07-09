@@ -36,9 +36,10 @@ interface AcademicsProps {
 const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
 const SECRET_EXAMPOD_SEQUENCE = 'williamspod';
 const SECRET_EXAMPOD_URL = 'https://williamspod.vercel.app';
-// Buddhist year 2569 is 2026. The exam hour is still TBA, so target the start
-// of the published date in Bangkok until an exact time is available.
-const HCVS_EXAM_TARGET = new Date('2026-08-04T00:00:00+07:00');
+// Exam targets — 08:00 Bangkok time on the published date (Buddhist year 2569 = 2026).
+const HCVS_EXAM_TARGET = new Date('2026-08-04T08:00:00+07:00');
+const HGB_EXAM_TARGET = new Date('2026-08-07T08:00:00+07:00');
+const HRS_EXAM_TARGET = new Date('2026-08-11T08:00:00+07:00');
 const PINNED_CANVAS_SUBJECTS: Subject[] = [
   { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
   { id: '27415', name: 'HCVS-2 - Human Cardiovascular System', progress: null },
@@ -285,6 +286,8 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
       { name: 'HMS-2', date: new Date('2026-06-12T09:00:00'), color: 'text-neutral-400 dark:text-neutral-500' },
       { name: 'HNS-2', date: new Date('2026-06-16T09:00:00'), color: 'text-blue-500 dark:text-blue-400' },
       { name: 'HCVS-2', date: HCVS_EXAM_TARGET, color: 'text-rose-500 dark:text-rose-400' },
+      { name: 'HGB-2', date: HGB_EXAM_TARGET, color: 'text-emerald-500 dark:text-emerald-400' },
+      { name: 'HRS-2', date: HRS_EXAM_TARGET, color: 'text-cyan-500 dark:text-cyan-400' },
     ];
 
     const updateTimers = () => {
@@ -368,7 +371,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
               panelSubtitle="HNS-2 complete · Next: HCVS-2"
               contextLabel="Study focus: HCVS-2"
               metrics={[
-                { label: 'Exams', value: '4' },
+                { label: 'Exams', value: '6' },
                 { label: 'Mode', value: 'Live' },
                 { label: 'Cases', value: 'Branching' },
               ]}
@@ -382,7 +385,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
             <MissionBlock
               accent="rose"
               title="HCVS-2 · Human Cardiovascular System"
-              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HCVS-2'] || '--D --H --M'}</span> · 04 AUG // TIME TBA</>}
+              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HCVS-2'] || '--D --H --M'}</span> · 04 AUG // 08:00</>}
               cta={{ label: 'View milestones', href: '#milestones' }}
             />
 
@@ -412,7 +415,9 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                   { name: 'HEN-2', date: '09 JUN', time: '09:00', color: 'text-pink-500 dark:text-pink-400', done: true },
                   { name: 'HMS-2', date: '12 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
                   { name: 'HNS-2', date: '16 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
-                  { name: 'HCVS-2', date: '04 AUG', time: 'TIME TBA', color: 'text-rose-500 dark:text-rose-400' }
+                  { name: 'HCVS-2', date: '04 AUG', time: '08:00', color: 'text-rose-500 dark:text-rose-400' },
+                  { name: 'HGB-2', date: '07 AUG', time: '08:00', color: 'text-emerald-500 dark:text-emerald-400' },
+                  { name: 'HRS-2', date: '11 AUG', time: '08:00', color: 'text-cyan-500 dark:text-cyan-400' },
                 ].map(exam => (
                   <motion.div
                     key={exam.name}
