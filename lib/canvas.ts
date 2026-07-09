@@ -1,17 +1,26 @@
 // Shared Canvas telemetry fetch. Used by the Academics page (server component)
 // and the Cockpit Intelligence assistant so both report the same live scores.
 
-export const TARGET_COURSES = ['26141', '26393', '26349', '26702', '27415'];
+// All tracked Canvas course ids (dashboard card + Academics hub read the same
+// list, so both show the same courses — full parity).
+export const TARGET_COURSES = ['26141', '26393', '26349', '26702', '27415', '30964', '31275'];
 
-// Friendly display names per tracked course id. Shared so the dashboard card,
-// the Academics hub, and the assistant all label courses identically (falls
-// back to the Canvas course_code when an id isn't listed).
-export const COURSE_NAMES: Record<string, string> = {
-  '26141': 'HEN-2 (Endocrine)',
-  '26393': 'HNS-2 (Nervous & Senses)',
-  '26349': 'TBL (Team-Based Learning)',
-  '26702': 'HMS-2 (Musculoskeletal)',
-  '27415': 'HCVS-2 (Cardiovascular)',
+// Display names are the COURSE NUMBER. Where we know the number, hardcode it;
+// otherwise Canvas's own course_code (which is the "3303xx" number) is used.
+const COURSE_NUMBER: Record<string, string> = {
+  '26702': '330321', // HMS-2
+  '30964': '330323', // HRS-2
+  '31275': '330324', // HGB-2
+};
+
+// Label to show when Canvas doesn't return a target course at all (so the
+// course still appears, with no score). Numbers where known, else the code.
+const COURSE_FALLBACK: Record<string, string> = {
+  '26141': 'HEN-2',
+  '26393': 'HNS-2',
+  '26349': 'TBL',
+  '27415': 'HCVS-2',
+  ...COURSE_NUMBER,
 };
 
 export interface CanvasSubject {
@@ -98,9 +107,17 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
           progress = rawScore != null ? Math.round(Number(rawScore)) : null;
         }
 
-        return { id, name: COURSE_NAMES[id] || c.course_code || c.name, progress };
+        // Prefer the known course number, else Canvas's course_code (the number).
+        return { id, name: COURSE_NUMBER[id] || c.course_code || c.name, progress };
       })
     );
+
+    // Ensure every tracked course appears even if Canvas didn't return it, so
+    // the dashboard and Academics hub always show the same set (full parity).
+    const returned = new Set(subjects.map((s) => s.id));
+    for (const id of TARGET_COURSES) {
+      if (!returned.has(id)) subjects.push({ id, name: COURSE_FALLBACK[id] || id, progress: null });
+    }
 
     return {
       subjects,

@@ -38,12 +38,8 @@ const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
 const SECRET_EXAMPOD_SEQUENCE = 'williamspod';
 const SECRET_EXAMPOD_URL = 'https://williamspod.vercel.app';
 // Exam targets live in lib/exams (shared with the notification reminders).
-const PINNED_CANVAS_SUBJECTS: Subject[] = [
-  { id: '26702', name: '330321 - Human Musculoskeletal System-2', progress: null },
-  { id: '27415', name: 'HCVS-2 - Human Cardiovascular System', progress: null },
-  { id: '30964', name: '330323- Lec.001', progress: null },
-  { id: '31275', name: '330324- Lec.001', progress: null },
-];
+// Tracked Canvas courses + their number labels live in lib/canvas — the
+// dashboard card and this hub read the same set, so grades/names always match.
 const COMPLETED_CANVAS_SUBJECT_IDS = new Set(['26702']);
 
 // HMS-2, HNS-2, HEN-2 are done — gray them out in Canvas Telemetry. Matched by
@@ -61,10 +57,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
   const secretExamPodBuffer = useRef('');
 
   const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
-  const canvasSubjects = [
-    ...canvasData.subjects,
-    ...PINNED_CANVAS_SUBJECTS.filter((pinned) => !canvasData.subjects.some((subject) => subject.id === pinned.id)),
-  ];
+  const canvasSubjects = canvasData.subjects;
   
   // 🚀 UPGRADE: Local State for Interactive Anki
   const [liveAnki, setLiveAnki] = useState(ankiData || DEFAULT_ANKI);
