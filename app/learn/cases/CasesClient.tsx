@@ -16,14 +16,12 @@ export default function CasesClient() {
   const [opening, setOpening] = useState(false);
   const [specialty, setSpecialty] = useState<string>('all');
   const playerRef = useRef<HTMLElement>(null);
-  const [isMounted, setIsMounted] = useState(false);
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
     let introTimer: number | null = null;
     const frame = window.requestAnimationFrame(() => {
-      setIsMounted(true);
       const h = new Date().getHours();
       setCycle(h < 6 || h >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
       setShowIntro(true);
@@ -86,8 +84,6 @@ export default function CasesClient() {
       body: JSON.stringify({ stepIndex: i }),
     }).catch(() => {});
   };
-
-  if (!isMounted) return null;
 
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">

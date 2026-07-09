@@ -58,7 +58,6 @@ function isCompletedCanvasSubject(subject: Subject) {
 }
 
 export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
-  const [isMounted, setIsMounted] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
   const secretExamPodBuffer = useRef('');
@@ -128,10 +127,6 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
     })();
   }, []);
 
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => setIsMounted(true));
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
 
   useEffect(() => {
     const secret = new URLSearchParams(window.location.search).get('secret')?.toLowerCase();
@@ -308,8 +303,6 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
     const tick = window.setInterval(updateTimers, 1000);
     return () => window.clearInterval(tick);
   }, []);
-
-  if (!isMounted) return null;
 
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">

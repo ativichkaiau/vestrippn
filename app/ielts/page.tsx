@@ -60,8 +60,6 @@ export default function IELTSHub() {
     setIsEditingModules(false);
   };
 
-  if (!isMounted) return null;
-
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-purple-500/30">
       

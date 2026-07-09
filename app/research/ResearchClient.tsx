@@ -122,7 +122,6 @@ const QUICK_LINKS: { id: QuickLinkId; icon: string; label: string }[] = [
 ];
 
 export default function ResearchClient({ cloudResearch, cloudExtractions = [] }: ResearchProps) {
-  const [isMounted, setIsMounted] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   /* ── Multi-source search state ── */
@@ -150,9 +149,8 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [openAbstracts, setOpenAbstracts] = useState<Set<string>>(new Set());
 
-  /* ── Mount + load source availability ── */
+  /* ── Load source availability ── */
   useEffect(() => {
-    setIsMounted(true);
     (async () => {
       try {
         const r = await fetch('/api/research/sources');
@@ -263,8 +261,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
       setRemovingId(null);
     }
   };
-
-  if (!isMounted) return null;
 
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">

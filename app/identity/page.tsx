@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import ThemeToggle from "../../components/ThemeToggle";
 import ArcDate from '../../components/ArcDate';
@@ -15,14 +15,7 @@ import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel'
 import BrandMark from '../../components/BrandMark';
 
 export default function IdentityHub() {
-  const [isMounted, setIsMounted] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-
-  useEffect(() => { 
-    setIsMounted(true); 
-  }, []);
-
-  if (!isMounted) return null;
 
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-cyan-500/30">
