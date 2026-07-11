@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useEffect } from 'react';
 import { UPCOMING_EXAMS, daysUntil, countdownLabel, REMINDER_BUCKETS } from '@/lib/exams';
+import { subscribeToPush } from '@/lib/push-client';
 
 interface Notification {
   id: string;
@@ -65,15 +66,16 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       setRemindersOn(true);
       fireExamMilestones();
+      void subscribeToPush(); // re-ensure this device's push subscription is on file
     }
   }, []);
 
   const toggleReminders = useCallback(async () => {
     if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'granted') { setRemindersOn(true); fireExamMilestones(); return; }
+    if (Notification.permission === 'granted') { setRemindersOn(true); fireExamMilestones(); void subscribeToPush(); return; }
     if (Notification.permission === 'denied') return;
     const perm = await Notification.requestPermission();
-    if (perm === 'granted') { setRemindersOn(true); fireExamMilestones(); }
+    if (perm === 'granted') { setRemindersOn(true); fireExamMilestones(); void subscribeToPush({ confirm: true }); }
   }, []);
 
   // Pull the live Gmail + Canvas feed from /api/notifications. We do NOT also

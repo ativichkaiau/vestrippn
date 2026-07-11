@@ -74,6 +74,7 @@ model User {
   chatMessages   ChatMessage[]
   caseProgress   CaseProgress[]
   assistantUsage AssistantUsage[]
+  pushSubscriptions PushSubscription[]
 }
 
 // ==========================================
@@ -184,6 +185,22 @@ model Notification {
   time    String // e.g., "10 mins ago" or "10:45 AM"
 
   createdAt DateTime @default(now())
+}
+
+// Web Push subscriptions (one per browser/device). `notified` de-dupes fired
+// exam T-minus buckets, e.g. { "HCVS-2:7": true }, so a milestone isn't repeated.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  notified  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model AnkiTelemetry {

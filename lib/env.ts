@@ -32,6 +32,11 @@ export const env = {
   ncbiApiKey: str(process.env.NCBI_API_KEY),
   elsevierApiKey: str(process.env.ELSEVIER_API_KEY),
   ankiSyncSecret: str(process.env.ANKI_SYNC_SECRET),
+  // Web push (VAPID) + cron auth.
+  vapidPublic: str(process.env.VAPID_PUBLIC_KEY),
+  vapidPrivate: str(process.env.VAPID_PRIVATE_KEY),
+  vapidSubject: str(process.env.VAPID_SUBJECT) ?? 'mailto:admin@vestrippn.app',
+  cronSecret: str(process.env.CRON_SECRET),
 } as const;
 
 // Capability flags — gate features on these instead of reading env directly, so
@@ -46,6 +51,7 @@ export const flags = {
   notion: Boolean(env.notionApiKey && env.notionDatabaseId),
   pubmed: Boolean(env.ncbiApiKey),
   anki: Boolean(env.ankiSyncSecret),
+  push: Boolean(env.vapidPublic && env.vapidPrivate),
 } as const;
 
 export function envReport() {
