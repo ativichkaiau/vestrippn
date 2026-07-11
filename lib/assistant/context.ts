@@ -18,11 +18,19 @@ async function canvasItems(): Promise<ContextItem[]> {
     const scores = data.subjects
       .map((s) => `${s.name} ${s.progress != null ? `${s.progress}%` : 'n/a'}`)
       .join(', ');
-    return [
+    const items: ContextItem[] = [
       { label: 'Canvas scores', value: scores },
       { label: 'Quiz average', value: `${data.metrics.quizzes}%` },
       { label: 'Assignment completion', value: `${data.metrics.assignments}%` },
     ];
+    if (data.upcoming?.length) {
+      const deadlines = data.upcoming
+        .slice(0, 5)
+        .map((u) => `${u.courseName}: ${u.name} (due ${new Date(u.dueAt).toISOString().slice(0, 10)})`)
+        .join('; ');
+      items.push({ label: 'Upcoming Canvas deadlines', value: deadlines });
+    }
+    return items;
   } catch {
     return [];
   }

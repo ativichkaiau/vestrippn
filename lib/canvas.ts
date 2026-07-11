@@ -29,12 +29,22 @@ export interface CanvasSubject {
   progress: number | null;
 }
 
+export interface UpcomingAssignment {
+  id: string;
+  courseId: string;
+  courseName: string;
+  name: string;
+  dueAt: string; // ISO 8601
+  url?: string;
+}
+
 export interface CanvasTelemetry {
   subjects: CanvasSubject[];
   metrics: { quizzes: number; assignments: number };
+  upcoming: UpcomingAssignment[];
 }
 
-const EMPTY: CanvasTelemetry = { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
+const EMPTY: CanvasTelemetry = { subjects: [], metrics: { quizzes: 0, assignments: 0 }, upcoming: [] };
 
 export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
   const token = process.env.CANVAS_TOKEN;
@@ -61,6 +71,10 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
     // Global accumulators for the two summary metrics
     let quizEarned = 0, quizTotal = 0;
     let assEarned = 0, assTotal = 0;
+
+    // Upcoming deadlines collected from the same assignment fetch (no extra calls).
+    const now = Date.now();
+    const upcoming: UpcomingAssignment[] = [];
 
     // 2. For each course, derive the real grade from graded submissions.
     //    This bypasses hidden course totals (computed_current_score = null).
@@ -89,6 +103,18 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
 
               if (isQuiz) { quizEarned += sub.score; quizTotal += a.points_possible; }
               else { assEarned += sub.score; assTotal += a.points_possible; }
+            }
+
+            // Upcoming: due in the future and not yet submitted.
+            if (a?.due_at && !sub?.submitted_at && new Date(a.due_at).getTime() > now) {
+              upcoming.push({
+                id: a.id?.toString() ?? `${id}-${a.due_at}`,
+                courseId: id,
+                courseName: COURSE_NUMBER[id] || c.course_code || c.name || id,
+                name: a.name || 'Untitled assignment',
+                dueAt: a.due_at,
+                url: a.html_url,
+              });
             }
           });
         } catch {
@@ -119,12 +145,15 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
       if (!returned.has(id)) subjects.push({ id, name: COURSE_FALLBACK[id] || id, progress: null });
     }
 
+    upcoming.sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+
     return {
       subjects,
       metrics: {
         quizzes: quizTotal > 0 ? Math.round((quizEarned / quizTotal) * 100) : 0,
         assignments: assTotal > 0 ? Math.round((assEarned / assTotal) * 100) : 0,
       },
+      upcoming: upcoming.slice(0, 6),
     };
   } catch (error) {
     console.error('[CANVAS] Telemetry sync failed:', error);

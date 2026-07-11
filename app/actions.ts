@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveUserId } from "@/lib/auth/owner";
+import { recordAnkiHistory } from "@/lib/anki";
 import { revalidatePath } from "next/cache";
 
 // ==========================================
@@ -198,6 +199,9 @@ export async function syncAnkiData(due: number, newCards: number, reviewedToday:
       streak,
     },
   });
+
+  // Record today's snapshot for the trend charts (best-effort).
+  await recordAnkiHistory(session.user.id, { due, newCards, reviewedToday, streak });
 
   revalidatePath("/academics");
 }

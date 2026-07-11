@@ -61,6 +61,7 @@ model User {
   researchProject ResearchProject? // Sector Delta Link
   notifications   Notification[] // Sector Zeta Link
   ankiTelemetry   AnkiTelemetry?
+  ankiHistory     AnkiHistory[]
 
   // ==========================================
   // W08 SECTOR DAS: DOCUMENT/ASSESSMENT STORE
@@ -198,6 +199,24 @@ model AnkiTelemetry {
   reviewedToday Int      @default(0)
   streak        Int      @default(0)
   lastSync      DateTime @default(now())
+}
+
+// One row per user per day — the latest snapshot for that day. Powers the
+// Anki trend charts (reviews per day, streak over time). Upserted on the
+// user's local (Asia/Bangkok) day whenever telemetry syncs.
+model AnkiHistory {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day           String // "YYYY-MM-DD" in Asia/Bangkok
+  dueCards      Int      @default(0)
+  newCards      Int      @default(0)
+  reviewedToday Int      @default(0)
+  streak        Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, day])
+  @@index([userId, day])
 }
 
 // ==========================================

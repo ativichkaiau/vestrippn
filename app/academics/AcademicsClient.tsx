@@ -12,11 +12,14 @@ import HubIntro from '../../components/HubIntro';
 import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
 import FocusMode from '../../components/FocusMode';
 import BrandMark from '../../components/BrandMark';
+import AnkiTrend from '../../components/AnkiTrend';
 import { syncAnkiData } from '@/app/actions';
 import { HCVS_EXAM_TARGET, HGB_EXAM_TARGET, HRS_EXAM_TARGET } from '@/lib/exams';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
+interface UpcomingAssignment { id: string; courseId: string; courseName: string; name: string; dueAt: string; url?: string; }
+interface AnkiHistoryPoint { day: string; reviewedToday: number; streak: number; dueCards: number; }
 
 interface AcademicsProps {
   initialCanvasData?: {
@@ -25,6 +28,7 @@ interface AcademicsProps {
       quizzes?: number;
       assignments?: number;
     };
+    upcoming?: UpcomingAssignment[];
   };
   ankiData?: {
     due: number;
@@ -32,6 +36,7 @@ interface AcademicsProps {
     reviewedToday: number;
     streak: number;
   };
+  ankiHistory?: AnkiHistoryPoint[];
 }
 
 const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
@@ -51,7 +56,7 @@ function isCompletedCanvasSubject(subject: Subject) {
   return COMPLETED_CANVAS_SUBJECT_IDS.has(subject.id) || COMPLETED_CANVAS_MATCHER.test(subject.name);
 }
 
-export default function AcademicsClient({ initialCanvasData, ankiData }: AcademicsProps) {
+export default function AcademicsClient({ initialCanvasData, ankiData, ankiHistory = [] }: AcademicsProps) {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
   const secretExamPodBuffer = useRef('');
@@ -485,6 +490,39 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                     <div className="text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter text-amber-500 dark:text-amber-400 transition-colors duration-700">{canvasData.metrics?.assignments || 0}%</div>
                   </div>
                 </div>
+
+                {canvasData.upcoming && canvasData.upcoming.length > 0 && (
+                  <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
+                    <div className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-3">Upcoming Deadlines</div>
+                    <ul className="space-y-2">
+                      {canvasData.upcoming.slice(0, 5).map((a) => {
+                        const due = new Date(a.dueAt);
+                        const days = Math.ceil((due.getTime() - Date.now()) / 86400000);
+                        const color = days <= 2 ? 'text-rose-500 dark:text-rose-400' : days <= 5 ? 'text-amber-500 dark:text-amber-400' : 'text-neutral-500 dark:text-neutral-400';
+                        const rel = days <= 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days}d`;
+                        const row = (
+                          <div className="flex items-center justify-between gap-3 rounded-2xl bg-black/5 dark:bg-white/5 px-4 py-3 border border-transparent dark:border-white/5 transition-colors duration-300">
+                            <div className="min-w-0">
+                              <div className="text-[13px] font-bold text-neutral-800 dark:text-neutral-100 truncate">{a.name}</div>
+                              <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{a.courseName}</div>
+                            </div>
+                            <div className={`shrink-0 text-right ${color}`}>
+                              <div className="text-[13px] font-black">{rel}</div>
+                              <div className="text-[10px] font-bold tabular-nums">{due.getDate()}/{due.getMonth() + 1}</div>
+                            </div>
+                          </div>
+                        );
+                        return (
+                          <li key={a.id}>
+                            {a.url ? (
+                              <a href={a.url} target="_blank" rel="noopener noreferrer" className="block transition-opacity hover:opacity-80">{row}</a>
+                            ) : row}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
               </motion.div>
 
               {/* Clinical & Storage Hub */}
@@ -891,6 +929,10 @@ export default function AcademicsClient({ initialCanvasData, ankiData }: Academi
                    </div>
                  </div>
 
+               </div>
+
+               <div className="mt-6 pt-6 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
+                 <AnkiTrend history={ankiHistory} />
                </div>
             </motion.section>
 

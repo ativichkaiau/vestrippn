@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { resolveOwnerByEmail } from '@/lib/auth/owner';
+import { recordAnkiHistory } from '@/lib/anki';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,6 +74,9 @@ export async function POST(req: Request) {
     update: { dueCards: due, newCards, reviewedToday, streak, lastSync: new Date() },
     create: { userId: ownerId, dueCards: due, newCards, reviewedToday, streak },
   });
+
+  // Record today's snapshot for the trend charts (best-effort).
+  await recordAnkiHistory(ownerId, { due, newCards, reviewedToday, streak });
 
   return NextResponse.json({ ok: true, synced: { due, new: newCards, reviewedToday, streak } });
 }
