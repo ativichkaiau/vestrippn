@@ -230,8 +230,8 @@ function drawOnboard(
     for (let k = 0; k < 5; k++) {
       const s = (k * 374761393 + 668265263) >>> 0;
       const cxc = (((s % 1000) / 1000 + clock * 0.004 * (0.5 + (s % 40) / 80)) % 1.25 - 0.12) * W;
-      const cyc = horizon * (0.16 + ((s >> 7) % 100) / 320);
-      const cw = W * (0.07 + ((s >> 3) % 60) / 520);
+      const cyc = horizon * (0.16 + ((s >>> 7) % 100) / 320);
+      const cw = W * (0.07 + ((s >>> 3) % 60) / 520);
       ctx.globalAlpha = tod === 'dusk' ? 0.22 : 0.16;
       for (let p = 0; p < 4; p++) {
         const pr = cw * (0.32 + (p % 2) * 0.16);
@@ -249,8 +249,8 @@ function drawOnboard(
     for (let k = 0; k < 70; k++) {
       const s = (k * 2654435761) >>> 0;
       const sx = (s % 1000) / 1000 * W;
-      const sy = ((s >> 10) % 1000) / 1000 * horizon * 0.85;
-      ctx.globalAlpha = 0.3 + ((s >> 5) % 100) / 200;
+      const sy = ((s >>> 10) % 1000) / 1000 * horizon * 0.85;
+      ctx.globalAlpha = 0.3 + ((s >>> 5) % 100) / 200;
       ctx.fillRect(sx, sy, 1.5, 1.5);
     }
     ctx.globalAlpha = 1;
