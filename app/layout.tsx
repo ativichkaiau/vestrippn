@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
 import HoverTypewriter from "../components/HoverTypewriter";
 import CommandPalette from "../components/CommandPalette";
+import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
 import SiteMotion from "../components/SiteMotion";
 
 const inter = Inter({
@@ -71,6 +72,7 @@ export default function RootLayout({
         <AuthProvider>
           <HoverTypewriter />
           <CommandPalette />
+          <ServiceWorkerRegister />
           <SiteMotion>{children}</SiteMotion>
         </AuthProvider>
       </body>
