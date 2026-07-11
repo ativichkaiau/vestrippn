@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { appendFocusSession } from '@/lib/study-log';
 
 type Track = {
   id: string;
@@ -653,6 +654,7 @@ export default function FocusMode() {
   const lastHudRef = useRef<number>(0);
   const lastDrawRef = useRef<number>(0);
   const finishedRef = useRef<boolean>(false);
+  const loggedRef = useRef<boolean>(false); // analytics: session logged once per run
   const finalRef = useRef<number>(0);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -693,6 +695,7 @@ export default function FocusMode() {
     pausedAtRef.current = 0;
     lastHudRef.current = 0;
     finishedRef.current = false;
+    loggedRef.current = false;
     finalRef.current = 0;
     profileRef.current = null;
     // auto time-of-day from the circuit unless the user picked one
@@ -734,6 +737,22 @@ export default function FocusMode() {
     finishedRef.current = true;
     setPhase('complete');
   }, []);
+
+  // Log the completed qualifying session to the analytics history (once per run).
+  // Keyed on phase so it captures the final state values, not finish()'s refs.
+  useEffect(() => {
+    if (phase !== 'complete' || !selected || loggedRef.current) return;
+    loggedRef.current = true;
+    appendFocusSession({
+      ts: Date.now(),
+      circuit: selected.id,
+      mode: targetType,
+      target: targetType === 'open' ? 0 : targetValue,
+      durationSec: Math.round(elapsed),
+      laps: lapNo,
+      bestLap: bestLap ?? null,
+    });
+  }, [phase, selected, targetType, targetValue, elapsed, lapNo, bestLap]);
 
   const close = useCallback(() => {
     setOpen(false);

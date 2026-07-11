@@ -23,6 +23,7 @@ import Clock from './Clock';
 export type HubName =
   | 'Dashboard'
   | 'Academics'
+  | 'Analytics'
   | 'Research'
   | 'Fitness'
   | 'Archive'
@@ -33,6 +34,7 @@ export type HubName =
 export const HUBS: { name: HubName; icon: string; href: string }[] = [
   { name: 'Dashboard', icon: '◉', href: '/' },
   { name: 'Academics', icon: '▲', href: '/academics' },
+  { name: 'Analytics', icon: '◔', href: '/analytics' },
   { name: 'Research', icon: '◆', href: '/research' },
   { name: 'Fitness', icon: '◈', href: '/fitness' },
   { name: 'Archive', icon: '▥', href: '/archive' },
@@ -47,6 +49,7 @@ export const HUBS: { name: HubName; icon: string; href: string }[] = [
 export const HUB_THEME: Record<HubName, { bar: string; icon: string }> = {
   Dashboard: { bar: 'bg-sky-400', icon: 'text-sky-400' },
   Academics: { bar: 'bg-blue-400', icon: 'text-blue-400' },
+  Analytics: { bar: 'bg-emerald-400', icon: 'text-emerald-400' },
   Research: { bar: 'bg-cyan-400', icon: 'text-cyan-400' },
   Fitness: { bar: 'bg-rose-400', icon: 'text-rose-400' },
   Archive: { bar: 'bg-purple-400', icon: 'text-purple-400' },
