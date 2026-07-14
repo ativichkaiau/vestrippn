@@ -1,10 +1,18 @@
 /* VEStriPPN service worker — offline caching + web push.
    Bump CACHE to invalidate old caches on deploy. */
-const CACHE = 'vestrippn-v1';
+const CACHE = 'vestrippn-v2';
 const OFFLINE_URL = '/';
 
+// Do NOT skipWaiting automatically — a silent swap can break a live session
+// (stale chunks against a new HTML shell). The page detects the waiting worker,
+// shows a "new version available" toast, and posts SKIP_WAITING when the user
+// opts in (see components/ServiceWorkerRegister).
 self.addEventListener('install', () => {
-  self.skipWaiting();
+  // stay parked in "waiting" until the page asks us to take over
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

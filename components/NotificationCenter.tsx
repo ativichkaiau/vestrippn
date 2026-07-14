@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { UPCOMING_EXAMS, daysUntil, countdownLabel, REMINDER_BUCKETS } from '@/lib/exams';
 import { subscribeToPush } from '@/lib/push-client';
+import { toast } from '@/lib/toast-bus';
 
 interface Notification {
   id: string;
@@ -73,9 +74,17 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
   const toggleReminders = useCallback(async () => {
     if (typeof Notification === 'undefined') return;
     if (Notification.permission === 'granted') { setRemindersOn(true); fireExamMilestones(); void subscribeToPush(); return; }
-    if (Notification.permission === 'denied') return;
+    if (Notification.permission === 'denied') {
+      toast({ title: 'Notifications are blocked', message: 'Allow them in your browser settings to get exam reminders.', variant: 'warn', icon: '🔕' });
+      return;
+    }
     const perm = await Notification.requestPermission();
-    if (perm === 'granted') { setRemindersOn(true); fireExamMilestones(); void subscribeToPush({ confirm: true }); }
+    if (perm === 'granted') {
+      setRemindersOn(true);
+      fireExamMilestones();
+      void subscribeToPush({ confirm: true });
+      toast({ title: 'Exam reminders on', message: "You'll get a nudge at 14 · 7 · 3 · 1 days out.", variant: 'success', icon: '🔔' });
+    }
   }, []);
 
   // Pull the live Gmail + Canvas feed from /api/notifications. We do NOT also

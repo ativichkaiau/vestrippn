@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { appendFocusSession } from '@/lib/study-log';
+import { toast } from '@/lib/toast-bus';
 
 type Track = {
   id: string;
@@ -833,10 +834,18 @@ export default function FocusMode() {
       }
       // personal best (persisted across sessions)
       if (pbRef.current == null || t < pbRef.current) {
+        const improved = pbRef.current != null;
         pbRef.current = t;
         savePB(selected.id, t);
         setPb(t);
         setNewPb(true);
+        toast({
+          id: 'focus-pb',
+          title: improved ? `Personal best · ${selected.name}` : `First lap logged · ${selected.name}`,
+          message: `${selected.flag} ${fmtLap(t)}`,
+          variant: 'success',
+          icon: '🏁',
+        });
       }
       const secs = curSecRef.current.map((s) => s ?? { t: 0, c: 'yellow' as TimingColor });
       setLastLap({ t, c, secs });

@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { HUBS } from './HubNav';
+import { vtNavigate } from '@/lib/view-transition';
 
 type Command = {
   id: string;
@@ -82,7 +83,7 @@ export default function CommandPalette() {
       if (!cmd) return;
       close();
       if (cmd.url) window.open(cmd.url, '_blank', 'noopener,noreferrer');
-      else if (cmd.href) router.push(cmd.href);
+      else if (cmd.href) vtNavigate(cmd.href, (h) => router.push(h));
     },
     [close, router],
   );

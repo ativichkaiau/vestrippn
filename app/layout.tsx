@@ -5,6 +5,9 @@ import AuthProvider from "../components/AuthProvider";
 import HoverTypewriter from "../components/HoverTypewriter";
 import CommandPalette from "../components/CommandPalette";
 import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
+import Toaster from "../components/Toaster";
+import PwaHud from "../components/PwaHud";
+import ViewTransitions from "../components/ViewTransitions";
 import SiteMotion from "../components/SiteMotion";
 
 const inter = Inter({
@@ -73,6 +76,9 @@ export default function RootLayout({
           <HoverTypewriter />
           <CommandPalette />
           <ServiceWorkerRegister />
+          <Toaster />
+          <PwaHud />
+          <ViewTransitions />
           <SiteMotion>{children}</SiteMotion>
         </AuthProvider>
       </body>

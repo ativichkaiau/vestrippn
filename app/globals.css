@@ -1588,3 +1588,44 @@ html.ferrari {
   border-color: var(--w10-clay-edge) !important;
   box-shadow: var(--w10-clay-shadow-raised) !important;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   CROSS-HUB VIEW TRANSITIONS (native View Transitions API)
+   The brand mark + nav rail hold steady and the hub hero morphs while page
+   content crossfades between hubs. Driven by components/ViewTransitions.tsx;
+   SiteMotion stands down its JS route animation while this is active. Named
+   elements are singletons per page (required — a duplicate name aborts the
+   whole transition). Gated off for reduced-motion + low-power.
+   ════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.low-power) .w10-brand-mark {
+    view-transition-name: vt-brandmark;
+  }
+  :root:not(.low-power) [data-motion="nav-rail"] {
+    view-transition-name: vt-navrail;
+  }
+  :root:not(.low-power) .w10-clay-hero {
+    view-transition-name: vt-hero;
+  }
+}
+
+::view-transition-group(vt-hero),
+::view-transition-group(vt-brandmark),
+::view-transition-group(vt-navrail) {
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

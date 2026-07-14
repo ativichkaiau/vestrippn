@@ -1,16 +1,21 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { routeTransition, routeVariants, w09Ease } from './motionPresets';
 import { useLowPower } from './useLowPower';
+import { vtActive } from '@/lib/view-transition';
 
 export default function SiteMotion({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const lowPower = useLowPower();
-  const motionOff = Boolean(reduceMotion || lowPower);
+  // When the browser drives the route change natively (View Transitions API),
+  // stand down this JS route animation so the two don't double up.
+  const [nativeVt, setNativeVt] = useState(false);
+  useEffect(() => setNativeVt(vtActive()), []);
+  const motionOff = Boolean(reduceMotion || lowPower || nativeVt);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
