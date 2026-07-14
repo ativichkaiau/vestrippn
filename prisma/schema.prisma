@@ -382,6 +382,12 @@ model AssistantUsage {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
+  // Cost/usage telemetry, filled in after the OpenAI stream completes.
+  model            String?
+  promptTokens     Int?
+  completionTokens Int?
+  costUsd          Float?
+
   @@index([userId, createdAt])
 }
 

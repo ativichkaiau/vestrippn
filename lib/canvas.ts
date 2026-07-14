@@ -56,9 +56,12 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
 
   try {
     // 1. Pull the target courses (for names + a fallback total score)
+    // Cache Canvas responses for 5 min: this runs on every Academics render AND
+    // every assistant message (via buildHubContext), so no-store would re-crawl
+    // Canvas (1 + N calls) each time and risk rate limits.
     const res = await fetch(`${base}/api/v1/courses?per_page=100&include[]=total_scores`, {
       headers,
-      cache: 'no-store',
+      next: { revalidate: 300 },
     });
 
     if (!res.ok) throw new Error(`Canvas_Uplink_Error: ${res.status}`);
@@ -86,7 +89,7 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
         try {
           const aRes = await fetch(
             `${base}/api/v1/courses/${id}/assignments?include[]=submission&per_page=100`,
-            { headers, cache: 'no-store' }
+            { headers, next: { revalidate: 300 } }
           );
           const assignments = aRes.ok ? await aRes.json() : [];
 

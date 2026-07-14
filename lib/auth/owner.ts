@@ -1,6 +1,22 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * STRICT auth: the signed-in user's id, or null. Unlike resolveUserId, this
+ * has NO owner fallback — anonymous callers get null. Use it on endpoints that
+ * read private data or cost money (assistant, research writes/deletes) so they
+ * cannot be driven by an unauthenticated request.
+ */
+export async function requireUserId(): Promise<string | null> {
+  try {
+    const session = await auth();
+    return session?.user?.id ?? null;
+  } catch (err) {
+    console.error("requireUserId failed:", err);
+    return null;
+  }
+}
+
 // Single-operator app: the owner id never changes, so memoize it after the
 // first successful resolution to avoid a user.count()+findFirst on every
 // request (and the log noise when the DB is briefly unreachable). Only a

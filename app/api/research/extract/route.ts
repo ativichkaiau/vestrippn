@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { forUser } from "@/lib/repositories/scoped";
 import type { SearchResult } from "@/lib/research/types";
 
@@ -25,7 +25,7 @@ const MAX_ABSTRACT = 50_000;
  * already-saved paper returns the existing row.
  */
 export async function POST(req: Request) {
-  const userId = await resolveUserId();
+  const userId = await requireUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await req.json().catch(() => null)) as Partial<SearchResult> | null;

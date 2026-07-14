@@ -1,13 +1,26 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { resolveUserId } from '@/lib/auth/owner';
+import { requireUserId } from '@/lib/auth/owner';
 import { prisma } from '@/lib/prisma';
 import { buildHubContext } from '@/lib/assistant/context';
+import { captureError } from '@/lib/log';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 // Streamed responses can outlive the default function window.
 export const maxDuration = 60;
+
+// Approximate OpenAI prices (USD per 1M tokens). Only models we're confident
+// about get a cost estimate; others store token counts with costUsd left null.
+const PRICE_PER_1M: Record<string, { in: number; out: number }> = {
+  'gpt-4o-mini': { in: 0.15, out: 0.60 },
+  'gpt-4o': { in: 2.50, out: 10.00 },
+};
+function estimateCostUsd(model: string, promptTokens: number, completionTokens: number): number | null {
+  const p = PRICE_PER_1M[model];
+  if (!p) return null;
+  return (promptTokens * p.in + completionTokens * p.out) / 1_000_000;
+}
 
 // Sliding-window rate limit: at most RATE_LIMIT requests per RATE_WINDOW_MS,
 // per user. Backed by the AssistantUsage table so it holds across serverless
@@ -57,7 +70,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Config Missing' }, { status: 500 });
   }
 
-  const userId = await resolveUserId();
+  const userId = await requireUserId();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   let body: AssistantRequest;
@@ -125,6 +138,7 @@ export async function POST(req: Request) {
     completion = await client.chat.completions.create({
       model: OPENAI_MODEL,
       stream: true,
+      stream_options: { include_usage: true },
       temperature: 0.4,
       max_tokens: 1024,
       messages: [
@@ -134,13 +148,13 @@ export async function POST(req: Request) {
       ],
     });
   } catch (error) {
-    console.error('❌ ASSISTANT OPENAI ERROR:', error);
+    captureError('assistant.openai', error, { userId, hub: body.hub });
     return NextResponse.json({ error: 'Assistant unavailable' }, { status: 502 });
   }
 
   // The call was accepted and will generate output — now it counts. Prune rows
   // that have aged out of the window while we're here.
-  await prisma.assistantUsage.create({ data: { userId } });
+  const usageRow = await prisma.assistantUsage.create({ data: { userId, model: OPENAI_MODEL } });
   prisma.assistantUsage
     .deleteMany({ where: { userId, createdAt: { lt: windowStart } } })
     .catch(() => { /* best-effort cleanup; never block the response */ });
@@ -148,15 +162,34 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const readable = new ReadableStream<Uint8Array>({
     async start(controller) {
+      let usage: { prompt_tokens?: number; completion_tokens?: number } | null = null;
       try {
         for await (const chunk of completion) {
+          // With include_usage the final chunk carries usage and no choices.
+          if (chunk.usage) usage = chunk.usage;
           const delta = chunk.choices[0]?.delta?.content;
           if (delta) controller.enqueue(encoder.encode(delta));
         }
         controller.close();
       } catch (error) {
-        console.error('❌ ASSISTANT STREAM ERROR:', error);
+        captureError('assistant.stream', error, { userId, hub: body.hub });
         controller.error(error);
+      }
+
+      // Record token counts + estimated cost (best-effort; never blocks output).
+      if (usage) {
+        const promptTokens = usage.prompt_tokens ?? 0;
+        const completionTokens = usage.completion_tokens ?? 0;
+        prisma.assistantUsage
+          .update({
+            where: { id: usageRow.id },
+            data: {
+              promptTokens,
+              completionTokens,
+              costUsd: estimateCostUsd(OPENAI_MODEL, promptTokens, completionTokens),
+            },
+          })
+          .catch((e) => captureError('assistant.usage_write', e, { userId }));
       }
     },
     cancel() {
