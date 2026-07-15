@@ -19,10 +19,12 @@ import {
   type GradeSnap,
 } from '@/lib/study-log';
 import type { CanvasTelemetry } from '@/lib/canvas';
+import type { AnkiHistoryPoint } from '@/lib/anki';
 
 type Props = {
   canvas: CanvasTelemetry;
   anki?: { due: number; new: number; reviewedToday: number; streak: number };
+  ankiHistory?: AnkiHistoryPoint[];
 };
 
 // ── formatting ──
@@ -99,7 +101,7 @@ function Stat({ label, value, sub, accent }: { label: string; value: string; sub
   );
 }
 
-export default function AnalyticsClient({ canvas, anki }: Props) {
+export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Props) {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [pbs, setPbs] = useState<CircuitPB[]>([]);
@@ -157,8 +159,15 @@ export default function AnalyticsClient({ canvas, anki }: Props) {
 
   const gradeTrend = gradeLog.map((g) => g.avg).filter((v): v is number => v != null);
   const gradeDelta = gradeTrend.length >= 2 ? gradeTrend[gradeTrend.length - 1] - gradeTrend[0] : null;
-  const streakTrend = streakLog.map((s) => s.streak);
   const dayPeak = Math.max(1, ...focus.days.map((d) => d.count));
+
+  // Real per-day Anki history from the server (oldest → newest). Falls back to
+  // the device-local snapshot log only when the server has no history yet.
+  const usingServerHistory = ankiHistory.length >= 2;
+  const streakTrend = usingServerHistory ? ankiHistory.map((d) => d.streak) : streakLog.map((s) => s.streak);
+  const reviewsDays = ankiHistory.slice(-14);
+  const reviewsPeak = Math.max(1, ...reviewsDays.map((d) => d.reviewedToday));
+  const totalReviews = ankiHistory.reduce((a, d) => a + d.reviewedToday, 0);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#FAFAFA] font-sans text-neutral-900 transition-colors duration-700 dark:bg-[#050505] dark:text-neutral-100">
@@ -327,7 +336,13 @@ export default function AnalyticsClient({ canvas, anki }: Props) {
               </Panel>
 
               {/* REVIEW STREAK */}
-              <Panel id="review-streak" accent="bg-orange-500" eyebrow="Anki · Spaced repetition" title="Review streak" note="Snapshotted each visit — the line grows over time.">
+              <Panel
+                id="review-streak"
+                accent="bg-orange-500"
+                eyebrow="Anki · Spaced repetition"
+                title="Review streak"
+                note={usingServerHistory ? 'Per-day reviews + streak, straight from Anki sync history.' : 'Snapshotted each visit — the line grows over time.'}
+              >
                 {!anki ? (
                   <div className="rounded-2xl border border-dashed border-black/10 py-10 text-center text-[13px] font-medium italic text-neutral-400 dark:border-white/10 dark:text-neutral-500">
                     No Anki telemetry — connect the sync add-on to track your streak.
@@ -345,9 +360,31 @@ export default function AnalyticsClient({ canvas, anki }: Props) {
                         <Stat label="New" value={String(anki.new)} />
                       </div>
                     </div>
-                    <div className="mt-4 rounded-2xl border border-black/5 bg-white/50 p-3 dark:border-white/5 dark:bg-white/5">
-                      <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Streak · recorded days</div>
-                      {mounted && <Sparkline values={streakTrend} color="#f97316" />}
+
+                    {/* Reviews per day — real Anki sync history */}
+                    {reviewsDays.length >= 2 && (
+                      <div className="mt-4 rounded-2xl border border-black/5 bg-white/50 p-3 dark:border-white/5 dark:bg-white/5">
+                        <div className="mb-2 flex items-baseline justify-between">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Reviews · last {reviewsDays.length} days</div>
+                          <div className="text-[11px] font-black tabular-nums text-neutral-500 dark:text-neutral-400">{totalReviews} total</div>
+                        </div>
+                        <div className="flex h-14 items-end gap-1">
+                          {reviewsDays.map((d) => (
+                            <div key={d.day} title={`${d.day.slice(5)}: ${d.reviewedToday} reviews`} className="group flex flex-1 flex-col items-center justify-end">
+                              <div className="w-full rounded-t bg-orange-500/70 transition-all group-hover:bg-orange-500" style={{ height: `${(d.reviewedToday / reviewsPeak) * 100}%`, minHeight: d.reviewedToday ? 4 : 0 }} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Streak over time */}
+                    <div className="mt-3 rounded-2xl border border-black/5 bg-white/50 p-3 dark:border-white/5 dark:bg-white/5">
+                      <div className="mb-1 flex items-baseline justify-between">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Streak · {usingServerHistory ? `${ankiHistory.length} days` : 'recorded days'}</div>
+                        {!usingServerHistory && <div className="text-[9px] font-semibold italic text-neutral-400 dark:text-neutral-600">device snapshots</div>}
+                      </div>
+                      {usingServerHistory ? <Sparkline values={streakTrend} color="#f97316" /> : mounted && <Sparkline values={streakTrend} color="#f97316" />}
                     </div>
                   </>
                 )}
@@ -355,7 +392,7 @@ export default function AnalyticsClient({ canvas, anki }: Props) {
             </div>
 
             <p className="px-2 pb-2 text-center text-[11px] font-medium text-neutral-400 dark:text-neutral-600">
-              Grades &amp; streak read live from Canvas + Anki. Lap PBs, focus history and day-over-day trends are stored on this device.
+              Grades, streak &amp; review history read live from Canvas + Anki. Lap PBs and focus history are stored on this device.
             </p>
           </div>
         </main>
