@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { fetchCanvasTelemetry } from "@/lib/canvas";
 import { getAnkiHistory, type AnkiHistoryPoint } from "@/lib/anki";
 import AcademicsClient from "./AcademicsClient";
@@ -11,7 +11,7 @@ export default async function AcademicsPage() {
   const liveCanvasData = await fetchCanvasTelemetry();
 
   // 2. Fetch Anki telemetry + daily history for the owner
-  const userId = await resolveUserId();
+  const userId = await requireUserId();
   let formattedAnkiData = undefined;
   let ankiHistory: AnkiHistoryPoint[] = [];
 

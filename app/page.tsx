@@ -1,4 +1,4 @@
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import DashboardClient from "./DashboardClient";
 
@@ -18,10 +18,10 @@ async function safe<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
 }
 
 export default async function Home() {
-  // 1. Resolve the W05 Operator. Prefers the session, falls back to the sole
-  //    owner — same skip-sign-in pattern used by the Learn/DAS endpoints.
-  //    resolveUserId() catches its own errors and returns null on failure.
-  const userId = await resolveUserId();
+  // 1. Resolve the W05 Operator from a real session only (no owner fallback) —
+  //    so private telemetry is never server-rendered for an anonymous visitor.
+  //    Middleware redirects sessionless users to sign-in before they get here.
+  const userId = await requireUserId();
 
   let todaysCommand = null;
   let activeTasks: Awaited<ReturnType<typeof prisma.task.findMany>> = [];
