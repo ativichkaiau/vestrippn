@@ -12,6 +12,10 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { HUBS } from './HubNav';
 import { vtNavigate } from '@/lib/view-transition';
+import { toast } from '@/lib/toast-bus';
+import { cycleLivery, toggleMode, isLowPower, LIVERY_LABEL } from '@/lib/theme';
+import { setLowPowerMode } from './useLowPower';
+import { enableReminders } from '@/lib/reminders';
 
 type Command = {
   id: string;
@@ -21,12 +25,12 @@ type Command = {
   keywords?: string;
   href?: string; // internal route (router.push)
   url?: string; // external (new tab)
+  run?: () => void | Promise<void>; // in-app action (no navigation)
 };
 
 const COMMANDS: Command[] = [
   ...HUBS.map((h) => ({ id: `hub:${h.name}`, label: h.name, hint: 'Hub', icon: h.icon, href: h.href })),
   { id: 'cases', label: 'Clinical Cases', hint: 'Academics · interactive', icon: '🩺', href: '/learn/cases', keywords: 'case study branching' },
-  { id: 'focus', label: 'Focus Mode', hint: 'Academics · qualifying study lock', icon: '🏁', href: '/academics', keywords: 'qualifying pomodoro timer lap' },
   { id: 'milestones', label: 'Exam Milestones', hint: 'Academics · countdowns', icon: '⏱', href: '/academics#milestones', keywords: 'exam countdown hcvs hgb hrs' },
   { id: 'literature', label: 'Literature Search', hint: 'Research', icon: '🔎', href: '/research#literature-search', keywords: 'pubmed papers srma' },
   { id: 'summaries', label: 'University Summaries', hint: 'Archive', icon: '📚', href: '/archive#uni-summaries', keywords: 'notes modules years' },
@@ -67,14 +71,100 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
+  // In-app actions (no navigation) — each ends in a toast for feedback.
+  const actions = useMemo<Command[]>(
+    () => [
+      {
+        id: 'act:focus',
+        label: 'Start Focus Mode',
+        hint: 'Action · qualifying lock',
+        icon: '🏁',
+        keywords: 'focus qualifying lap timer pomodoro study lock start',
+        run: () => {
+          if (window.location.pathname === '/academics') {
+            window.dispatchEvent(new Event('vest:focus-open'));
+          } else {
+            try {
+              sessionStorage.setItem('vest_focus_open', '1');
+            } catch {
+              /* ignore */
+            }
+            vtNavigate('/academics', (h) => router.push(h));
+          }
+        },
+      },
+      {
+        id: 'act:livery',
+        label: 'Cycle livery',
+        hint: 'Action · theme',
+        icon: '🎨',
+        keywords: 'livery theme skin color williams senna verstappen ferrari normal',
+        run: () => {
+          const lv = cycleLivery();
+          toast({ id: 'theme', title: `Livery · ${LIVERY_LABEL[lv]}`, variant: 'success', icon: '🎨' });
+        },
+      },
+      {
+        id: 'act:mode',
+        label: 'Toggle day / night',
+        hint: 'Action · theme',
+        icon: '🌓',
+        keywords: 'dark light mode day night theme obsidian silver',
+        run: () => {
+          const m = toggleMode();
+          toast({
+            id: 'theme',
+            title: m === 'night' ? 'Night mode' : 'Day mode',
+            message: m === 'night' ? 'Obsidian EQ' : 'Liquid Silver',
+            variant: 'success',
+            icon: m === 'night' ? '🌙' : '☀️',
+          });
+        },
+      },
+      {
+        id: 'act:lowpower',
+        label: 'Toggle low-power mode',
+        hint: 'Action · performance',
+        icon: '🔋',
+        keywords: 'low power battery performance animations reduce motion save',
+        run: () => {
+          const on = !isLowPower();
+          setLowPowerMode(on);
+          toast({
+            id: 'lowpower',
+            title: on ? 'Low-power on' : 'Low-power off',
+            message: on ? 'Animations paused to save battery.' : 'Full motion restored.',
+            variant: 'success',
+            icon: '🔋',
+          });
+        },
+      },
+      {
+        id: 'act:reminders',
+        label: 'Enable exam reminders',
+        hint: 'Action · notifications',
+        icon: '🔔',
+        keywords: 'reminders notifications exam push alerts enable notify',
+        run: async () => {
+          const r = await enableReminders();
+          if (r === 'granted') toast({ title: 'Exam reminders on', message: "You'll get a nudge at 14 · 7 · 3 · 1 days out.", variant: 'success', icon: '🔔' });
+          else if (r === 'denied') toast({ title: 'Notifications are blocked', message: 'Allow them in your browser settings.', variant: 'warn', icon: '🔕' });
+          else if (r === 'unsupported') toast({ title: 'Not supported', message: "This browser can't show notifications.", variant: 'warn' });
+        },
+      },
+    ],
+    [router],
+  );
+
   const results = useMemo(() => {
-    if (!query.trim()) return COMMANDS;
-    return COMMANDS
+    const all = [...COMMANDS, ...actions];
+    if (!query.trim()) return all;
+    return all
       .map((c) => ({ c, s: score(query.trim(), `${c.label} ${c.hint} ${c.keywords ?? ''}`) }))
       .filter((r): r is { c: Command; s: number } => r.s !== null)
       .sort((a, b) => b.s - a.s)
       .map((r) => r.c);
-  }, [query]);
+  }, [query, actions]);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -83,6 +173,7 @@ export default function CommandPalette() {
       if (!cmd) return;
       close();
       if (cmd.url) window.open(cmd.url, '_blank', 'noopener,noreferrer');
+      else if (cmd.run) void cmd.run();
       else if (cmd.href) vtNavigate(cmd.href, (h) => router.push(h));
     },
     [close, router],

@@ -678,6 +678,22 @@ export default function FocusMode() {
 
   useEffect(() => setMounted(true), []);
 
+  // Open on request — the ⌘K command palette fires `vest:focus-open` (same page)
+  // or sets a sessionStorage flag before navigating here (cross-page).
+  useEffect(() => {
+    const openFocus = () => setOpen(true);
+    try {
+      if (sessionStorage.getItem('vest_focus_open') === '1') {
+        sessionStorage.removeItem('vest_focus_open');
+        setOpen(true);
+      }
+    } catch {
+      /* ignore */
+    }
+    window.addEventListener('vest:focus-open', openFocus);
+    return () => window.removeEventListener('vest:focus-open', openFocus);
+  }, []);
+
   // Lock the page while the overlay is open
   useEffect(() => {
     if (!open) return;

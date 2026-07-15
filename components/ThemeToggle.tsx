@@ -1,24 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { setLowPowerMode } from "./useLowPower";
-
-type Livery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
-type Mode = 'day' | 'night';
-
-function applyLivery(lv: Livery, md: Mode) {
-  const el = document.documentElement;
-  el.classList.remove('monza', 'senna', 'verstappen', 'ferrari', 'w09-monza', 'w09-senna', 'w09-verstappen', 'w09-ferrari');
-  if (lv === 'monza' || lv === 'senna' || lv === 'verstappen' || lv === 'ferrari') {
-    el.classList.add('dark', lv, `w09-${lv}`);
-  } else {
-    if (md === 'night') el.classList.add('dark');
-    else el.classList.remove('dark');
-  }
-}
-
-function isLivery(value: string | null): value is Livery {
-  return value === 'normal' || value === 'monza' || value === 'senna' || value === 'verstappen' || value === 'ferrari';
-}
+import { applyLivery, getLivery, getMode, type Livery, type Mode } from "@/lib/theme";
 
 function LiveryRow({
   active,
@@ -69,13 +52,8 @@ export default function ThemeToggle() {
 
   // Initialise from storage, falling back to time-of-day for Normal livery
   useEffect(() => {
-    const storedLivery = localStorage.getItem('vest_livery') as Livery | null;
-    const storedMode = localStorage.getItem('vest_mode') as Mode | null;
-    const hour = new Date().getHours();
-    const autoMode: Mode = hour < 6 || hour >= 18 ? 'night' : 'day';
-
-    const lv: Livery = isLivery(storedLivery) ? storedLivery : 'normal';
-    const md: Mode = storedMode === 'day' || storedMode === 'night' ? storedMode : autoMode;
+    const lv = getLivery();
+    const md = getMode();
 
     applyLivery(lv, md);
     const handle = window.setTimeout(() => {
@@ -86,6 +64,21 @@ export default function ThemeToggle() {
     }, 0);
 
     return () => window.clearTimeout(handle);
+  }, []);
+
+  // Re-sync when the theme/low-power is changed elsewhere (e.g. the ⌘K palette).
+  useEffect(() => {
+    const sync = () => {
+      setLivery(getLivery());
+      setMode(getMode());
+      setLowPower(document.documentElement.classList.contains('low-power'));
+    };
+    window.addEventListener('vest:theme-change', sync);
+    window.addEventListener('vest-lowpower', sync);
+    return () => {
+      window.removeEventListener('vest:theme-change', sync);
+      window.removeEventListener('vest-lowpower', sync);
+    };
   }, []);
 
   const toggleLowPower = () => {
