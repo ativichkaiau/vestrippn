@@ -719,6 +719,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                     { href: 'https://vestrippn-biochem-pathway.vercel.app', icon: '🧬', title: 'Biochem Pathway Engine', desc: 'Interactive metabolic map — trace glycolysis, TCA, and enzyme cascades node by node.', tag: 'Metabolic Map', accent: 'amber' },
                     { href: 'https://vestrippn-neuro-pathway.vercel.app', icon: '🧠', title: 'Neuro Pathway', desc: 'Interactive nervous-system pathway engine — map neuroanatomy, lesions, reflexes, and signal flow.', tag: 'Neuro Map', accent: 'purple' },
                     { href: 'https://vestrippn-physiohub.vercel.app', icon: '🫀', title: 'PhysioHub', desc: 'Body-systems physiology hub — explore organ-system mechanics, homeostatic loops, and integrated regulation.', tag: 'Systems Atlas', accent: 'amber' },
+                    { href: 'https://vestrippn-immunopath.vercel.app', icon: '🛡️', title: 'Immunopath', desc: 'Interactive immunology pathway — map immune cascades, cell lineages, and hypersensitivity mechanisms node by node.', tag: 'Immune Map', accent: 'purple' },
                   ].map((app) => {
                     const A = app.accent === 'purple'
                       ? { tile: 'rgba(168,85,247,0.16)', text: '#d8b4fe', border: 'rgba(168,85,247,0.6)', glow: '0 24px 56px rgba(168,85,247,0.26)' }
