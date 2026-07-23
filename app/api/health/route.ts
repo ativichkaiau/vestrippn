@@ -31,11 +31,30 @@ export async function GET() {
     }
   }
 
+  // Validate the Canvas token, not just its presence — an EXPIRED token reads
+  // as configured but silently returns no grades. null = token not set.
+  let canvasTokenValid: boolean | null = null;
+  if (flags.canvas) {
+    canvasTokenValid = false;
+    try {
+      const base = process.env.CANVAS_BASE_URL || 'https://mango-cmu.instructure.com';
+      const r = await fetch(`${base}/api/v1/users/self`, {
+        headers: { Authorization: `Bearer ${process.env.CANVAS_TOKEN}` },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000),
+      });
+      canvasTokenValid = r.ok;
+    } catch {
+      /* leave false (network error / timeout) */
+    }
+  }
+
   const { missingCritical } = envReport();
   const checks = {
     database,
     authSecret: flags.authSecret,
     canvas: flags.canvas,
+    canvasTokenValid,
     openai: flags.openai,
     ankiSync: flags.anki,
     ankiOwnerResolved,

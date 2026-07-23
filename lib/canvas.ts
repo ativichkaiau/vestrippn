@@ -46,22 +46,31 @@ export interface CanvasTelemetry {
 
 const EMPTY: CanvasTelemetry = { subjects: [], metrics: { quizzes: 0, assignments: 0 }, upcoming: [] };
 
+// Cache only SUCCESSFUL results (module-scoped, warm-instance). This runs on
+// every Academics render AND every assistant message (via buildHubContext), so
+// without a cache we'd re-crawl Canvas (1 + N calls) each time and risk rate
+// limits. Caching only successes (not the empty catch state) means a bad/expired
+// token or transient Canvas error is retried on the next call and recovers the
+// instant the token is fixed — never a stale-empty screen for 5 minutes.
+const CACHE_TTL_MS = 5 * 60 * 1000;
+let telemetryCache: { at: number; data: CanvasTelemetry } | null = null;
+
 export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
   const token = process.env.CANVAS_TOKEN;
   const base = process.env.CANVAS_BASE_URL || 'https://mango-cmu.instructure.com';
 
   if (!token) return EMPTY;
+  if (telemetryCache && Date.now() - telemetryCache.at < CACHE_TTL_MS) {
+    return telemetryCache.data;
+  }
 
   const headers = { Authorization: `Bearer ${token}` };
 
   try {
     // 1. Pull the target courses (for names + a fallback total score)
-    // Cache Canvas responses for 5 min: this runs on every Academics render AND
-    // every assistant message (via buildHubContext), so no-store would re-crawl
-    // Canvas (1 + N calls) each time and risk rate limits.
     const res = await fetch(`${base}/api/v1/courses?per_page=100&include[]=total_scores`, {
       headers,
-      next: { revalidate: 300 },
+      cache: 'no-store',
     });
 
     if (!res.ok) throw new Error(`Canvas_Uplink_Error: ${res.status}`);
@@ -89,7 +98,7 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
         try {
           const aRes = await fetch(
             `${base}/api/v1/courses/${id}/assignments?include[]=submission&per_page=100`,
-            { headers, next: { revalidate: 300 } }
+            { headers, cache: 'no-store' }
           );
           const assignments = aRes.ok ? await aRes.json() : [];
 
@@ -150,7 +159,7 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
 
     upcoming.sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
 
-    return {
+    const data: CanvasTelemetry = {
       subjects,
       metrics: {
         quizzes: quizTotal > 0 ? Math.round((quizEarned / quizTotal) * 100) : 0,
@@ -158,6 +167,10 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
       },
       upcoming: upcoming.slice(0, 6),
     };
+    // Cache only a real result (never the empty catch state), so an expired
+    // token recovers on the next call instead of sticking for the TTL.
+    if (data.subjects.length > 0) telemetryCache = { at: Date.now(), data };
+    return data;
   } catch (error) {
     console.error('[CANVAS] Telemetry sync failed:', error);
     return EMPTY;
