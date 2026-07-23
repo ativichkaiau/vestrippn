@@ -1,7 +1,13 @@
 'use client';
 import { useEffect, useState } from "react";
 import { setLowPowerMode } from "./useLowPower";
-import { applyLivery, getLivery, getMode, type Livery, type Mode } from "@/lib/theme";
+import { applyLivery, getLivery, getMode, LIVERY_LABEL, type Livery, type Mode } from "@/lib/theme";
+
+// Trigger-button glyph per livery (the picker rows carry their own emoji).
+const LIVERY_ICON: Record<Livery, string> = {
+  normal: '☀️', monza: '🏁', senna: '🇧🇷', verstappen: '🇳🇱', ferrari: '🐎',
+  forceindia: '🧡', mclaren: '🏎️', benetton: '🌈', jps: '🖤', alpine: '🇫🇷',
+};
 
 function LiveryRow({
   active,
@@ -101,8 +107,8 @@ export default function ThemeToggle() {
     return <div className="w10-livery-skeleton h-[38px] w-[38px] rounded-full bg-black/5 animate-pulse dark:bg-white/5 sm:w-[104px]" />;
   }
 
-  const label = livery === 'monza' ? 'Williams' : livery === 'senna' ? 'Senna' : livery === 'verstappen' ? 'Verstappen' : livery === 'ferrari' ? 'Ferrari' : mode === 'night' ? 'Night' : 'Day';
-  const icon = livery === 'monza' ? '🏁' : livery === 'senna' ? '🇧🇷' : livery === 'verstappen' ? '🇳🇱' : livery === 'ferrari' ? '🐎' : mode === 'night' ? '🌙' : '☀️';
+  const label = livery === 'normal' ? (mode === 'night' ? 'Night' : 'Day') : LIVERY_LABEL[livery];
+  const icon = livery === 'normal' ? (mode === 'night' ? '🌙' : '☀️') : LIVERY_ICON[livery];
 
   return (
     <div className="relative">
@@ -156,8 +162,48 @@ export default function ThemeToggle() {
               onClick={() => choose('ferrari')}
               emoji="🐎"
               title="Ferrari"
-              sub="Rosso · Giallo · Nero"
-              swatches={['#EF1A2D', '#FFDD00', '#0B0304', '#FFFFFF']}
+              sub="F1-75 · Deep Rosso · Verde"
+              swatches={['#A80814', '#080304', '#009640', '#FFDD00']}
+            />
+            <LiveryRow
+              active={livery === 'forceindia'}
+              onClick={() => choose('forceindia')}
+              emoji="🧡"
+              title="Force India"
+              sub="Saffron · Green · Silver"
+              swatches={['#FF6D0A', '#00A94F', '#C9CED6', '#101216']}
+            />
+            <LiveryRow
+              active={livery === 'mclaren'}
+              onClick={() => choose('mclaren')}
+              emoji="🏎️"
+              title="McLaren Marlboro"
+              sub="Race Red · White · Gold"
+              swatches={['#E4002B', '#FFFFFF', '#B98A2A', '#160C0D']}
+            />
+            <LiveryRow
+              active={livery === 'benetton'}
+              onClick={() => choose('benetton')}
+              emoji="🌈"
+              title="Benetton"
+              sub="Green · Blue · Yellow · Red"
+              swatches={['#00A651', '#0072CE', '#F5B800', '#E02328']}
+            />
+            <LiveryRow
+              active={livery === 'jps'}
+              onClick={() => choose('jps')}
+              emoji="🖤"
+              title="JPS Lotus"
+              sub="Black · Gold"
+              swatches={['#080703', '#D4AF37', '#A37D20', '#F0E2B0']}
+            />
+            <LiveryRow
+              active={livery === 'alpine'}
+              onClick={() => choose('alpine')}
+              emoji="🇫🇷"
+              title="Alpine"
+              sub="BWT Blue · Pink"
+              swatches={['#0090D4', '#EC0080', '#FFFFFF', '#061524']}
             />
             <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
             <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Performance</div>

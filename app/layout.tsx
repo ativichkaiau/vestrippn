@@ -69,7 +69,7 @@ export default function RootLayout({
       >
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var lv=localStorage.getItem('vest_livery');var md=localStorage.getItem('vest_mode');var h=new Date().getHours();if(md!=='day'&&md!=='night'){md=(h<6||h>=18)?'night':'day';}var el=document.documentElement;el.classList.add('w10-eq-power');if(lv==='monza'||lv==='senna'||lv==='verstappen'||lv==='ferrari'){el.classList.add('dark',lv,'w09-'+lv);}else{if(md==='night'){el.classList.add('dark');}else{el.classList.remove('dark');}}if(localStorage.getItem('vest_lowpower')==='1'){el.classList.add('low-power');}}catch(e){}})();`,
+            __html: `(function(){try{var lv=localStorage.getItem('vest_livery');var md=localStorage.getItem('vest_mode');var h=new Date().getHours();if(md!=='day'&&md!=='night'){md=(h<6||h>=18)?'night':'day';}var el=document.documentElement;el.classList.add('w10-eq-power');if(['monza','senna','verstappen','ferrari','forceindia','mclaren','benetton','jps','alpine'].indexOf(lv)>=0){el.classList.add('dark',lv,'w09-'+lv);}else{if(md==='night'){el.classList.add('dark');}else{el.classList.remove('dark');}}if(localStorage.getItem('vest_lowpower')==='1'){el.classList.add('low-power');}}catch(e){}})();`,
           }}
         />
         <AuthProvider>

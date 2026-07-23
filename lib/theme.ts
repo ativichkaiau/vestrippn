@@ -5,23 +5,41 @@
 // fire a `vest:theme-change` event that ThemeToggle listens for to re-sync its
 // popover. Low-power lives in useLowPower (its own `vest-lowpower` channel).
 
-export type Livery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
+export type Livery =
+  | 'normal'
+  | 'monza'
+  | 'senna'
+  | 'verstappen'
+  | 'ferrari'
+  | 'forceindia'
+  | 'mclaren'
+  | 'benetton'
+  | 'jps'
+  | 'alpine';
 export type Mode = 'day' | 'night';
 
-export const LIVERY_CYCLE: Livery[] = ['normal', 'monza', 'senna', 'verstappen', 'ferrari'];
+// Every special (dark-only) livery, in picker/cycle order.
+export const SPECIAL_LIVERIES: Livery[] = ['monza', 'senna', 'verstappen', 'ferrari', 'forceindia', 'mclaren', 'benetton', 'jps', 'alpine'];
+
+export const LIVERY_CYCLE: Livery[] = ['normal', ...SPECIAL_LIVERIES];
 export const LIVERY_LABEL: Record<Livery, string> = {
   normal: 'Normal',
   monza: 'Williams',
   senna: 'Senna',
   verstappen: 'Verstappen',
   ferrari: 'Ferrari',
+  forceindia: 'Force India',
+  mclaren: 'McLaren',
+  benetton: 'Benetton',
+  jps: 'JPS Lotus',
+  alpine: 'Alpine',
 };
 
 // Apply livery + mode classes to <html> (mirrors the boot script in layout.tsx).
 export function applyLivery(lv: Livery, md: Mode): void {
   const el = document.documentElement;
-  el.classList.remove('monza', 'senna', 'verstappen', 'ferrari', 'w09-monza', 'w09-senna', 'w09-verstappen', 'w09-ferrari');
-  if (lv === 'monza' || lv === 'senna' || lv === 'verstappen' || lv === 'ferrari') {
+  el.classList.remove(...SPECIAL_LIVERIES, ...SPECIAL_LIVERIES.map((l) => `w09-${l}`));
+  if (lv !== 'normal') {
     el.classList.add('dark', lv, `w09-${lv}`);
   } else if (md === 'night') {
     el.classList.add('dark');
@@ -33,7 +51,7 @@ export function applyLivery(lv: Livery, md: Mode): void {
 export function getLivery(): Livery {
   try {
     const v = localStorage.getItem('vest_livery');
-    if (v === 'normal' || v === 'monza' || v === 'senna' || v === 'verstappen' || v === 'ferrari') return v;
+    if (v && (LIVERY_CYCLE as string[]).includes(v)) return v as Livery;
   } catch {
     /* ignore */
   }
