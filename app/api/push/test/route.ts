@@ -17,7 +17,7 @@ export async function POST() {
     const r = await sendPush(
       { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
       {
-        title: 'VEStriPPN reminders on',
+        title: 'VESTRIPPN reminders on',
         body: "You'll get a push when each exam crosses 14 · 7 · 3 · 1 days out.",
         url: '/academics#milestones',
         tag: 'push-test',

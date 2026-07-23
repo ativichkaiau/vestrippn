@@ -59,8 +59,8 @@ export default function LegalConsole() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="14" y2="18"></line></svg>
           </button>
           <Link href="/" className="font-black text-[20px] lg:text-[22px] tracking-tighter flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">V</div>
-            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="text-cyan-500 dark:text-cyan-400 transition-colors duration-700">3.0</span></div>
+            <div className="w-8 h-8 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center text-[16px] transition-colors duration-700">3</div>
+            <div className="flex items-baseline"><span>VESTRIPPN</span><span className="ml-1.5 font-mono text-[9px] font-black uppercase tracking-[0.14em] text-cyan-500 dark:text-cyan-400 transition-colors duration-700">W12</span></div>
           </Link>
         </div>
         <div className="flex gap-4 lg:gap-6 items-center">
@@ -102,7 +102,7 @@ export default function LegalConsole() {
                 Privacy, Terms &amp; Disclaimers
               </h1>
               <p className="mt-4 max-w-2xl text-sm sm:text-[15px] font-medium leading-7 text-neutral-600 dark:text-neutral-400">
-                VESTRIPPN 3.0 is a personal, cloud-integrated operating platform for medical study, research, fitness, and workflow automation. This page explains what data it processes, how it is handled, and the terms for using it.
+                VESTRIPPN is a personal, cloud-integrated operating platform for medical study, research, fitness, and workflow automation. This page explains what data it processes, how it is handled, and the terms for using it.
               </p>
               <div className="mt-5 text-[11px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Last updated · {UPDATED}</div>
             </div>
@@ -118,7 +118,7 @@ export default function LegalConsole() {
 
             <div className="mt-8 space-y-5">
               <Section id="overview" title="Overview">
-                <P>VESTRIPPN 3.0 (&ldquo;the platform&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;) is operated as a personal project by its sole operator. It is built for the operator&rsquo;s own academic and operational use and may be shared with a limited audience. By accessing the platform you agree to the practices and terms below.</P>
+                <P>VESTRIPPN (&ldquo;the platform&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;) is operated as a personal project by its sole operator. It is built for the operator&rsquo;s own academic and operational use and may be shared with a limited audience. By accessing the platform you agree to the practices and terms below.</P>
                 <P>If you do not agree with any part of this document, please discontinue use. We may update this page from time to time; the &ldquo;Last updated&rdquo; date above reflects the current version.</P>
               </Section>
 

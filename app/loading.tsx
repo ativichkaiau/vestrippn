@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
-/* Futuristic route-transition loader: a spinning V disc, a livery-aware HUD
+/* Futuristic route-transition loader: the spinning "3" mark, a livery-aware HUD
    ring, and a rotating fun fact. Shown by Next while a hub route streams. */
 
 const FACTS = [
@@ -15,9 +16,9 @@ const FACTS = [
   'Systematic reviews sit at the very top of the evidence pyramid.',
   'The brain uses about 20% of the body’s total energy.',
   'The first modern randomized controlled trial was published in 1948.',
-  'Mercedes’ W10 won 15 of 21 Grands Prix across the 2019 season.',
-  'Mercedes’ W11 took 13 wins and 15 poles in 2020 — the most dominant Silver Arrow ever.',
-  'The Silver Arrows got their name in 1934, when stripping white paint left bare aluminum.',
+  'The fastest F1 pit stop on record is 1.8 seconds — all four tyres changed.',
+  'Retrieval practice — testing yourself — beats re-reading for long-term recall.',
+  'Interleaving topics while you study outperforms blocking one subject at a time.',
   'Reading one paper a day adds up to 365 papers in a year.',
   'Focus tends to run in ~90-minute ultradian cycles — work with them.',
 ];
@@ -83,18 +84,16 @@ export default function Loading() {
             style={{ background: 'rgb(var(--hub-accent-rgb))', boxShadow: '0 0 12px rgba(var(--hub-accent-rgb),0.9)' }}
           />
         </div>
-        {/* V coin */}
+        {/* spinning "3" logo */}
         <div
-          className="lp-keep font-revolut grid h-[84px] w-[84px] place-items-center rounded-[26px] text-[40px] font-bold text-white"
+          className="lp-keep grid h-[92px] w-[92px] place-items-center"
           style={{
-            background: 'linear-gradient(145deg, color-mix(in srgb, rgb(var(--hub-accent-rgb)) 78%, #fff 22%), color-mix(in srgb, rgb(var(--hub-accent-rgb)) 70%, #000 30%))',
-            boxShadow: '0 12px 30px -8px rgba(var(--hub-accent-rgb),0.5), inset 0 2px 2px rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.35)',
-            textShadow: '0 2px 4px rgba(0,0,0,0.4)',
             transformStyle: 'preserve-3d',
             animation: 'vestVCoin 2.2s cubic-bezier(0.65,0,0.35,1) infinite',
+            filter: 'drop-shadow(0 12px 26px rgba(var(--hub-accent-rgb),0.45))',
           }}
         >
-          V
+          <Image src="/vestrippn-logo.png" alt="VESTRIPPN" width={92} height={92} priority className="h-[92px] w-[92px] object-contain" />
         </div>
       </div>
 

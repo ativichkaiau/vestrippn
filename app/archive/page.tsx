@@ -300,7 +300,7 @@ export default function ArchiveHub() {
                 <div className="flex gap-8 lg:gap-12 text-right justify-end order-3">
                   <div>
                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Mode</div>
-                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none uppercase tracking-tighter transition-colors duration-700">V3.0</div>
+                    <div className="text-[28px] lg:text-[36px] text-neutral-900 dark:text-white font-black leading-none uppercase tracking-tighter transition-colors duration-700">W12</div>
                   </div>
                   <div>
                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mb-1 uppercase tracking-widest transition-colors duration-700">Battery</div>

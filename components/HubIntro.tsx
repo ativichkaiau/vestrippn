@@ -2,7 +2,7 @@
 
 /* ════════════════════════════════════════════════════════════════════════
    W11 HUB HERO — the shared cockpit hero used by all seven hubs, in the
-   W11 Revolut family language (same signature kit as the dashboard hero):
+   W12 family language (same signature kit as the dashboard hero):
    W11 deck pill · twin arrow hairlines · carbon weave · right spec bar ·
    corner brackets. Structure: system strip (hub badge · eyebrow · ops ·
    signature) → title zone (gradient headline, description, CTAs, chips)
@@ -233,7 +233,7 @@ export default function HubIntro({
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
               />
-              W11 <span className="font-revolut font-semibold">Revolut</span> · {hub ? HUB_DECK[hub] : 'Silver Arrow Deck'}
+              W12 · {hub ? HUB_DECK[hub] : 'Command Deck'}
             </div>
 
             <h1 className="mx-auto max-w-4xl text-[34px] font-black leading-[0.95] tracking-tighter sm:text-[52px] lg:mx-0 lg:text-[64px]">

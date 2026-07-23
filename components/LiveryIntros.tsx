@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
 /* ════════════════════════════════════════════════════════════════════════
-   LIVERY INTROS — W11 Revolut generation. Each special livery boots with
+   LIVERY INTROS — W12 generation. Each special livery boots with
    its own cinematic mechanic (not a recolor):
      · Williams    — wind-tunnel streamlines around an FW monogram
      · Senna       — the Interlagos "Senna S" traced with a magic-lap pulse

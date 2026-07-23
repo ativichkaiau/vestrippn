@@ -3,9 +3,9 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
 /* ════════════════════════════════════════════════════════════════════════
-   SIGNATURE INTRO — the W traces in, expands to "W11", then the livery
+   SIGNATURE INTRO — the "3" mark traces in, then the livery
    wordmark resolves beneath it. One theme-driven, futuristic boot sequence
-   reused across the normal (Revolut) build and every special livery.
+   reused across the normal build and every special livery.
    ════════════════════════════════════════════════════════════════════════ */
 
 export type IntroLivery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
@@ -21,14 +21,15 @@ type IntroTheme = {
 };
 
 const THEMES: Record<IntroLivery, IntroTheme> = {
-  normal:     { accent: '#00d2be', secondary: '#e3e7ec', soft: '#d6f5f1', glow: 'rgba(0,210,190,0.55)',  base: '#07090c', name: 'Revolut',  tagline: 'The Future of Mercedes' },
+  normal:     { accent: '#00d2be', secondary: '#e3e7ec', soft: '#d6f5f1', glow: 'rgba(0,210,190,0.55)',  base: '#07090c', name: 'VESTRIPPN', tagline: 'The Next Generation' },
   monza:      { accent: '#c59955', secondary: '#ffffff', soft: '#f3e3c6', glow: 'rgba(197,153,85,0.55)', base: '#070216', name: 'Williams',   tagline: 'Heritage Livery' },
   senna:      { accent: '#ffd400', secondary: '#00a651', soft: '#fff3b8', glow: 'rgba(255,212,0,0.52)',  base: '#061329', name: 'Senna',      tagline: 'Qualifying Focus' },
   verstappen: { accent: '#ff6b00', secondary: '#1d4ed8', soft: '#fed7aa', glow: 'rgba(255,107,0,0.55)',  base: '#050b16', name: 'Verstappen', tagline: 'Orange Attack' },
   ferrari:    { accent: '#ef1a2d', secondary: '#ffdd00', soft: '#ffd9dc', glow: 'rgba(239,26,45,0.55)',  base: '#0b0304', name: 'Ferrari',    tagline: 'Scuderia' },
 };
 
-const W_PATH = 'M6 8 L31 72 L60 30 L89 72 L114 8';
+// The isometric "3" brand mark, traced via pathLength (viewBox ~120x80).
+const W_PATH = 'M42 24 C42 12 52 9 60 9 C74 9 80 17 80 26 C80 36 72 41 62 41 C74 41 82 47 82 58 C82 70 73 75 61 75 C49 75 42 70 40 60';
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 const SWOOSH: [number, number, number, number] = [0.76, 0, 0.24, 1];
 
@@ -132,7 +133,7 @@ export default function SignatureIntro({ livery, cycle }: { livery: IntroLivery;
         animate={{ opacity: 0.7, y: 0 }}
         transition={{ delay: d(0.45), duration: 0.5, ease: EASE }}
       >
-        <span>VEStriPPN // boot</span>
+        <span>VESTRIPPN // boot</span>
         <span className="hidden sm:inline" style={{ color: `${t.accent}` }}>{cycle.replace('_', ' ')}</span>
         <span>sys.online</span>
       </motion.div>
@@ -177,34 +178,9 @@ export default function SignatureIntro({ livery, cycle }: { livery: IntroLivery;
                 animate={{ pathLength: 1 }}
                 transition={{ delay: TRACE_AT, duration: TRACE_DUR, ease: EASE }}
               />
-              {/* traveling spark */}
-              {!reduce && (
-                <motion.circle
-                  r={4}
-                  fill="#ffffff"
-                  style={{ filter: `drop-shadow(0 0 8px ${t.soft})` }}
-                  initial={{ cx: 6, cy: 8, opacity: 0 }}
-                  animate={{ cx: [6, 31, 60, 89, 114], cy: [8, 72, 30, 72, 8], opacity: [0, 1, 1, 1, 0] }}
-                  transition={{ delay: TRACE_AT, duration: TRACE_DUR, times: [0, 0.25, 0.5, 0.75, 1], ease: 'linear' }}
-                />
-              )}
+              {/* (spark removed — the traced "3" mark stands on its own) */}
             </svg>
 
-            {/* "11" expands in beside the W */}
-            <div className="flex">
-              {['1', '1'].map((n, i) => (
-                <motion.span
-                  key={n + i}
-                  className="text-[clamp(64px,13.5vw,140px)] font-black leading-[0.8] tracking-[-0.04em]"
-                  style={{ color: '#fff', textShadow: `0 0 32px ${t.glow}` }}
-                  initial={{ opacity: 0, y: 26, filter: 'blur(10px)', scale: 0.7 }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
-                  transition={{ delay: d(TEN_AT + i * 0.12), duration: reduce ? 0.2 : 0.6, ease: EASE }}
-                >
-                  {n}
-                </motion.span>
-              ))}
-            </div>
           </div>
 
           {/* underline sweep */}
@@ -254,7 +230,7 @@ export default function SignatureIntro({ livery, cycle }: { livery: IntroLivery;
             transition={{ delay: d(0.6), duration: 0.5 }}
             style={{ color: t.accent }}
           >
-            W11 // {t.name}
+            W12 // {t.name}
           </motion.span>
           <motion.span
             initial={{ opacity: 0 }}

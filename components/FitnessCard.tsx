@@ -91,7 +91,7 @@ export default function FitnessCard({
     const nextDateStr = nextDay.toISOString().split('T')[0].replace(/-/g, '');
 
     const title = encodeURIComponent(`🏋️ Workout: ${lastWorkout}`);
-    const details = encodeURIComponent(`Logged via VEStriPPN Dashboard.\nEarned Streak: ${streak + 1} Days 🔥`);
+    const details = encodeURIComponent(`Logged via VESTRIPPN Dashboard.\nEarned Streak: ${streak + 1} Days 🔥`);
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr}/${nextDateStr}&details=${details}`;
     
     window.open(url, '_blank', 'noopener,noreferrer');

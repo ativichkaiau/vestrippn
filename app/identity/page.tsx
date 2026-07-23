@@ -151,7 +151,7 @@ export default function IdentityHub() {
                       Former Academic President and Research Club President of MedCMU, with international Olympiad experience across Astronomy, Astrophysics, Earth Science, and Linguistics.
                     </p>
                     <p>
-                      Builder of the <span className="font-bold text-cyan-600 dark:text-cyan-400">VEStriPPN 3.0 W10 <span className="font-revolut bg-clip-text text-transparent whitespace-nowrap" style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}>Revolut</span></span> ecosystem — a cloud-integrated operational platform designed for research telemetry, academic management, workflow automation, and AI-assisted medical infrastructure, <span className="font-bold text-[#D97757]">powered by Claude</span>.
+                      Builder of the <span className="font-bold text-cyan-600 dark:text-cyan-400"><span className="font-revolut bg-clip-text text-transparent whitespace-nowrap" style={{ backgroundImage: 'linear-gradient(120deg, #00d2be 0%, #036b62 100%)' }}>VESTRIPPN W12</span></span> ecosystem — a cloud-integrated operational platform designed for research telemetry, academic management, workflow automation, and AI-assisted medical infrastructure, <span className="font-bold text-[#D97757]">powered by Claude</span>.
                     </p>
                   </div>
 

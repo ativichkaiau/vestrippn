@@ -26,7 +26,7 @@ type HubConfig = {
 
 const HUB_CONFIG: Record<IntelligenceHub, HubConfig> = {
   dashboard: {
-    title: 'VEStriPPN Assistant',
+    title: 'VESTRIPPN Assistant',
     subtitle: 'Command surface for mission, planner, and hub context.',
     prompt: 'Ask about today, pending tasks, or the next module to open.',
     caution: 'AI-assisted output will require review before changing planner, mission, or archive data.',

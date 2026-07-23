@@ -229,7 +229,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       className="h-1.5 w-1.5 rounded-full"
                       style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
                     />
-                    W11 <span className="font-revolut font-semibold">Revolut</span> · Silver Arrow Cockpit
+                    W12 · Command Cockpit
                   </div>
 
                   <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
@@ -238,7 +238,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       className="bg-clip-text text-transparent"
                       style={{ backgroundImage: 'linear-gradient(120deg, var(--hub-accent) 0%, var(--hub-accent-deep) 100%)' }}
                     >
-                      VESTRIPPN 3.0
+                      VESTRIPPN
                     </span>
                   </h1>
 
