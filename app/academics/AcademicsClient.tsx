@@ -357,8 +357,8 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
               secondaryLabel="Study Vault ↗"
               chips={['Exam Countdown', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
               panelTitle="Academic Ops"
-              panelSubtitle="HNS-2 complete · Next: HCVS-2"
-              contextLabel="Study focus: HCVS-2"
+              panelSubtitle="Block exams cleared · HCVS-2 · HGB-2 · HRS-2"
+              contextLabel="Study focus: consolidation"
               metrics={[
                 { label: 'Exams', value: '6' },
                 { label: 'Mode', value: 'Live' },
@@ -372,17 +372,17 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
             />
 
             <MissionBlock
-              accent="rose"
-              title="HCVS-2 · Human Cardiovascular System"
-              detail={<>T-minus <span className="font-black tabular-nums text-neutral-900 dark:text-white">{timers['HCVS-2'] || '--D --H --M'}</span> · 04 AUG // 08:00</>}
+              accent="emerald"
+              title="Block 2 exams cleared ✓"
+              detail={<>HCVS-2 · HGB-2 · HRS-2 all complete — <span className="font-black text-neutral-900 dark:text-white">milestones cleared</span>.</>}
               cta={{ label: 'View milestones', href: '#milestones' }}
             />
 
             <CockpitIntelligencePanel
               hub="academics"
               contextItems={[
-                { label: 'Current mission', value: 'HCVS-2 exam prep' },
-                { label: 'Completed modules', value: 'HMS-2 + HNS-2' },
+                { label: 'Current mission', value: 'Post-exam consolidation' },
+                { label: 'Completed modules', value: 'HMS-2 · HNS-2 · HCVS-2 · HGB-2 · HRS-2' },
                 { label: 'Canvas courses', value: `${canvasSubjects.length} tracked` },
                 { label: 'Anki due', value: `${liveAnki.due} cards` },
               ]}
@@ -404,9 +404,9 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                   { name: 'HEN-2', date: '09 JUN', time: '09:00', color: 'text-pink-500 dark:text-pink-400', done: true },
                   { name: 'HMS-2', date: '12 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
                   { name: 'HNS-2', date: '16 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
-                  { name: 'HCVS-2', date: '04 AUG', time: '08:00', color: 'text-rose-500 dark:text-rose-400' },
-                  { name: 'HGB-2', date: '07 AUG', time: '08:00', color: 'text-emerald-500 dark:text-emerald-400' },
-                  { name: 'HRS-2', date: '11 AUG', time: '08:00', color: 'text-cyan-500 dark:text-cyan-400' },
+                  { name: 'HCVS-2', date: '04 AUG', time: '08:00', color: 'text-rose-500 dark:text-rose-400', done: true },
+                  { name: 'HGB-2', date: '07 AUG', time: '08:00', color: 'text-emerald-500 dark:text-emerald-400', done: true },
+                  { name: 'HRS-2', date: '11 AUG', time: '08:00', color: 'text-cyan-500 dark:text-cyan-400', done: true },
                 ].map(exam => (
                   <motion.div
                     key={exam.name}
