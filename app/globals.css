@@ -1930,15 +1930,10 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
 }
 
 /* ████████████████████████████████████████████████████████████████████████
-   W85 — MARK 85 MINIMAL
-   Succeeds the W11/W12 clay cockpit. Mk85 read as restraint, not spectacle:
-   flat matte surfaces, hairline edges, tight radii, one accent used sparingly,
-   and no ambient theatre (no neumorphic bloom, atmosphere weave, or blur).
-
-   Implemented at the TOKEN layer on purpose — the clay engine above is entirely
-   token-driven, so neutralising its tokens flattens every page at once instead
-   of rewriting ~375 lines of !important rules or 17 page files. Liveries keep
-   driving --hub-accent, so the F1 skins still theme; they just stop shouting.
+   W85 — FINAL EDITION
+   Matte surfaces and precise corners, with livery stripes and technical
+   details across the shell. Legacy clay tokens keep existing pages consistent;
+   the decoration layer below uses the selected livery without ambient blur.
    ████████████████████████████████████████████████████████████████████████ */
 
 :root {
@@ -1947,6 +1942,7 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   --w85-line-strong: rgba(16, 18, 21, 0.16);
   --w85-canvas: #f7f7f8;
   --w85-surface: #ffffff;
+  --w85-grid: rgba(16, 18, 21, 0.045);
   --w85-radius: 12px;
   --w85-radius-sm: 8px;
 
@@ -1974,6 +1970,7 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   --w85-line-strong: rgba(255, 255, 255, 0.15);
   --w85-canvas: #08090a;
   --w85-surface: #101113;
+  --w85-grid: rgba(255, 255, 255, 0.045);
 
   --w10-canvas: var(--w85-canvas);
   --w10-clay: var(--w85-surface);
@@ -1989,7 +1986,7 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   --w10-hero-shadow: transparent;
 }
 
-/* Matte page ground — no weave, no glow, no fixed parallax. */
+/* Matte page ground; the scrollable main carries the technical grid. */
 .w10-clay-shell > :where([class*="h-screen"]) {
   background-color: var(--w85-canvas) !important;
   background-image: none !important;
@@ -2018,7 +2015,7 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   -webkit-backdrop-filter: none !important;
 }
 
-/* Header + rail: hairline separators only. */
+/* Header + rail materials. Their livery trim is painted below. */
 .w10-clay-shell > :where([class*="h-screen"]) > header,
 .w10-clay-rail {
   background: var(--w85-surface) !important;
@@ -2048,7 +2045,7 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   border-radius: var(--w85-radius) !important;
 }
 
-/* The hub hero: one flat panel, hairline edge, no accent bloom. */
+/* The hub hero: a dark, readable ground beneath the shared livery artwork. */
 .w10-clay-hero {
   background: var(--w85-surface) !important;
   background-image: none !important;
@@ -2089,3 +2086,141 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
    overridden where the accent is too dark to read. */
 :root { --hub-accent-on-dark: var(--hub-accent); }
 html.ferrari { --hub-accent-on-dark: #ef4a56; } /* 5.3:1 on the hero ground */
+
+/* W85 livery details stay static, including in reduced-motion / low-power
+   mode. Backgrounds and aria-hidden artwork never intercept interactions. */
+.w10-clay-shell main {
+  background-image:
+    linear-gradient(118deg, transparent 62%, rgba(var(--hub-accent-rgb), 0.055) 62% 69%, transparent 69% 71%, rgba(var(--hub-secondary-rgb), 0.055) 71% 73%, transparent 73%),
+    radial-gradient(circle, rgba(var(--hub-accent-rgb), 0.2) 0.7px, transparent 0.9px),
+    linear-gradient(var(--w85-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--w85-grid) 1px, transparent 1px);
+  background-size: 720px 560px, 48px 48px, 48px 48px, 48px 48px;
+  background-position: right top, 24px 24px, 0 0, 0 0;
+  background-repeat: no-repeat, repeat, repeat, repeat;
+}
+
+.w10-clay-shell > :where([class*="h-screen"]) > header {
+  position: relative;
+}
+
+.w10-clay-shell > :where([class*="h-screen"]) > header::after,
+.w85-livery-cap {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 4px;
+  pointer-events: none;
+  background: linear-gradient(110deg,
+    var(--hub-accent) 0% 28%,
+    var(--w85-surface) 28% 29%,
+    rgb(var(--hub-secondary-rgb)) 29% 35%,
+    var(--w85-surface) 35% 36%,
+    var(--hub-accent) 36% 38%,
+    var(--w85-line) 38% 100%);
+}
+
+.w10-clay-rail {
+  position: relative;
+}
+
+.w10-clay-rail::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  right: 0;
+  bottom: 28px;
+  width: 4px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--hub-accent) 0% 20%, transparent 20% 21%, rgb(var(--hub-secondary-rgb)) 21% 28%, transparent 28% 100%),
+    repeating-linear-gradient(-35deg, var(--w85-line-strong) 0 3px, transparent 3px 8px);
+}
+
+.w10-clay-dock {
+  border-top-color: rgba(var(--hub-accent-rgb), 0.55) !important;
+}
+
+.w85-panel-accent {
+  position: relative;
+}
+
+.w85-panel-accent::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20px;
+  width: 76px;
+  height: 3px;
+  pointer-events: none;
+  background: linear-gradient(110deg,
+    var(--hub-accent) 0% 58%, transparent 58% 65%,
+    rgb(var(--hub-secondary-rgb)) 65% 84%, transparent 84% 91%,
+    var(--hub-accent) 91%);
+}
+
+.w85-livery-decoration {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  user-select: none;
+  background:
+    linear-gradient(90deg, transparent 55%, rgba(var(--hub-accent-rgb), 0.065)),
+    radial-gradient(circle, rgba(255, 255, 255, 0.09) 0.7px, transparent 0.9px) right bottom / 24px 24px;
+}
+
+.w85-livery-cap {
+  inset: 0 0 auto;
+  height: 5px;
+}
+
+.w85-livery-art {
+  position: absolute;
+  top: 0;
+  right: -60px;
+  width: min(58%, 560px);
+  height: 100%;
+  opacity: 0.65;
+}
+
+.w85-livery-primary { fill: rgba(var(--hub-accent-rgb), 0.22); }
+.w85-livery-secondary { fill: rgba(var(--hub-secondary-rgb), 0.32); }
+.w85-livery-silver { fill: rgba(255, 255, 255, 0.14); }
+.w85-livery-outline { stroke: rgba(var(--hub-accent-rgb), 0.28); stroke-width: 1; }
+.w85-livery-number {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 230px;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -18px;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1;
+}
+
+.w85-livery-corner {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  width: 22px;
+  height: 22px;
+  border-left: 2px solid rgba(var(--hub-accent-rgb), 0.6);
+  border-bottom: 2px solid rgba(var(--hub-accent-rgb), 0.6);
+}
+
+.w85-livery-ticks {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  width: 112px;
+  height: 7px;
+  background: repeating-linear-gradient(110deg, rgba(var(--hub-accent-rgb), 0.55) 0 2px, transparent 2px 8px);
+}
+
+@media (max-width: 639px) {
+  .w10-clay-shell main { background-size: 440px 420px, 48px 48px, 48px 48px, 48px 48px; }
+  .w85-livery-art { top: 0; right: -110px; width: 360px; height: 420px; opacity: 0.4; }
+  .w85-livery-corner { left: 9px; bottom: 9px; width: 14px; height: 14px; }
+  .w85-livery-ticks { right: 12px; bottom: 11px; width: 72px; height: 5px; }
+}

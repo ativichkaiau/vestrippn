@@ -19,6 +19,7 @@ import TickNumber from '../components/TickNumber';
 import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import BrandMark from '../components/BrandMark';
 import SignatureIntro from '../components/SignatureIntro';
+import LiveryDecoration from '../components/LiveryDecoration';
 import Link from 'next/link';
 
 type DashboardTask = { id: string; title: string; completed: boolean; category: string };
@@ -104,7 +105,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
         <div className="absolute top-[28%] left-[38%] w-[42%] h-[42%] bg-gradient-to-br from-amber-300/20 to-cyan-300/25 dark:from-amber-500/10 dark:to-cyan-500/10 rounded-full blur-[130px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000 animate-float-slow"></div>
       </div>
 
-      {/* --- MINIMALIST HEADER --- */}
+      {/* --- LIVERY HEADER --- */}
       <header className="h-[64px] lg:h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="flex items-center gap-4 lg:gap-8">
           
@@ -152,14 +153,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
               data-motion="hero"
               data-no-typewriter
             >
-              {/* W85 — one accent hairline, matching the hub heroes. The W11
-                  stack (radial atmosphere, 52px grid, carbon weave, spec bar,
-                  twin arrows, corner brackets) is retired. */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute left-0 top-0 h-px w-20"
-                style={{ backgroundColor: 'var(--hub-accent)' }}
-              />
+              <LiveryDecoration />
 
               <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                 <div className="text-center lg:text-left">
@@ -279,7 +273,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     transition={{ delay: 0.16 + i * 0.04, type: 'spring', stiffness: 260, damping: 24 }}
                     whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
                   >
-                    <Link href={module.href} className="group block h-full overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-5 shadow-[0_8px_28px_rgba(0,0,0,0.035)] backdrop-blur-xl backdrop-saturate-150 transition-colors hover:bg-white/90 dark:border-white/5 dark:bg-white/5 dark:hover:bg-white/10">
+                    <Link href={module.href} className="w85-panel-accent group block h-full overflow-hidden rounded-[24px] border border-black/5 bg-white/60 p-5 shadow-[0_8px_28px_rgba(0,0,0,0.035)] backdrop-blur-xl backdrop-saturate-150 transition-colors hover:bg-white/90 dark:border-white/5 dark:bg-white/5 dark:hover:bg-white/10">
                       <div className="flex items-start justify-between gap-4">
                         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-2xl shadow-inner transition-transform duration-300 group-hover:scale-110 dark:bg-white/10">{module.icon}</span>
                         <span className="rounded-full border border-black/5 bg-white/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:border-white/10 dark:bg-white/5 dark:text-neutral-500">{module.stat}</span>

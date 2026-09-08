@@ -49,7 +49,7 @@ export default function SignInClient({ callbackUrl }: { callbackUrl: string }) {
 
   return (
     <main className="flex h-full flex-col items-center overflow-y-auto bg-[var(--w09-bg)] px-5 py-10 text-[color:var(--w09-text)]">
-      <div className="my-auto w-full max-w-md shrink-0 rounded-[32px] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-2xl backdrop-blur-xl">
+      <div className="w85-panel-accent my-auto w-full max-w-md shrink-0 rounded-[32px] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-2xl backdrop-blur-xl">
         <div className="mb-7">
           <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#00A598]">
             VESTRIPPN W85 · Auth

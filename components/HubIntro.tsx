@@ -3,9 +3,8 @@
 /* ════════════════════════════════════════════════════════════════════════
    W85 HUB HERO — the shared hero used by all seven hubs.
 
-   The W11 ornament stack (twin arrow hairlines, carbon weave, right spec bar,
-   corner brackets, radial atmosphere) is retired: a single accent hairline is
-   the only decoration, and the content carries the page.
+   Livery stripes, an outlined edition number, and technical edge details
+   frame the content. Shared artwork follows the selected F1 color palette.
 
    Structure: system strip (hub badge · eyebrow · ops · signature) → title
    zone (headline, description, CTAs, chips) → telemetry stack (ticking
@@ -18,8 +17,9 @@ import { motion, useReducedMotion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import HubSignature, { type HubKey } from './HubSignature';
 import TickNumber from './TickNumber';
-import { fadeUp, hoverLift, pressTap, slidePanel, softScale, staggerContainer, telemetryLine } from './motionPresets';
+import { fadeUp, hoverLift, pressTap, slidePanel, softScale, staggerContainer } from './motionPresets';
 import { useLowPower } from './useLowPower';
+import LiveryDecoration from './LiveryDecoration';
 
 /* W09 per-hub accents (Tailwind classes so liveries can remap them) */
 const HUB_ACCENT: Record<HubKey, { dot: string; text: string; chipBg: string; icon: string }> = {
@@ -142,16 +142,7 @@ export default function HubIntro({
       data-hub={hub ?? 'overview'}
       data-no-typewriter
     >
-      {/* W85 — a single accent hairline is the only ornament. The W11 stack
-          (radial atmosphere, grid, carbon weave, spec bar, corner brackets)
-          is retired: minimal means the content carries the page. */}
-      {acc && (
-        <motion.span
-          aria-hidden
-          variants={motionOff ? undefined : telemetryLine}
-          className={`pointer-events-none absolute left-0 top-0 h-px w-20 origin-left ${acc.dot}`}
-        />
-      )}
+      <LiveryDecoration />
 
       <motion.div variants={motionOff ? undefined : staggerContainer(0.08, 0.08)} className="relative z-10">
         {/* ── SYSTEM STRIP ── */}
