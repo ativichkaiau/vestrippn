@@ -2,13 +2,10 @@
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 
 type Mode = "signin" | "register";
 
-export default function SignInClient() {
-  const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || "/";
+export default function SignInClient({ callbackUrl }: { callbackUrl: string }) {
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,8 +48,8 @@ export default function SignInClient() {
   };
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center px-5 py-10">
-      <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-xl">
+    <main className="flex h-full flex-col items-center overflow-y-auto bg-[var(--w09-bg)] px-5 py-10 text-[color:var(--w09-text)]">
+      <div className="my-auto w-full max-w-md shrink-0 rounded-[32px] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-2xl backdrop-blur-xl">
         <div className="mb-7">
           <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#00A598]">
             VESTRIPPN Auth
@@ -60,7 +57,7 @@ export default function SignInClient() {
           <h1 className="mt-3 text-3xl font-black tracking-tight">
             {mode === "signin" ? "Sign in" : "Create local account"}
           </h1>
-          <p className="mt-2 text-sm text-white/55">
+          <p className="mt-2 text-sm text-[color:var(--w09-text-muted)]">
             Google stays online. LINE and local email/password are now available.
           </p>
         </div>
@@ -69,41 +66,41 @@ export default function SignInClient() {
           <button
             type="button"
             onClick={() => signIn("google", { callbackUrl })}
-            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black transition hover:bg-white/15"
+            className="rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm font-black transition hover:bg-[var(--w09-bg)]"
           >
             Google
           </button>
           <button
             type="button"
             onClick={() => signIn("line", { callbackUrl })}
-            className="rounded-2xl border border-[#06C755]/30 bg-[#06C755]/20 px-4 py-3 text-sm font-black text-[#8cffb0] transition hover:bg-[#06C755]/30"
+            className="rounded-2xl border border-[#06C755]/30 bg-[#06C755]/20 px-4 py-3 text-sm font-black text-[#066b2e] transition hover:bg-[#06C755]/30 dark:text-[#8cffb0]"
           >
             LINE
           </button>
         </div>
 
-        <div className="my-6 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">
-          <span className="h-px flex-1 bg-white/10" />
+        <div className="my-6 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[color:var(--w09-text-muted)]">
+          <span className="h-px flex-1 bg-[var(--w09-border)]" />
           Local
-          <span className="h-px flex-1 bg-white/10" />
+          <span className="h-px flex-1 bg-[var(--w09-border)]" />
         </div>
 
         <form onSubmit={submit} className="space-y-3">
           {mode === "register" && (
             <label className="block">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-white/45">
+              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
                 Name
               </span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm outline-none transition focus:border-[#00A598]"
+                className="w-full rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm outline-none transition placeholder:text-[color:var(--w09-text-muted)] focus:border-[#00A598]"
                 placeholder="Operator"
               />
             </label>
           )}
           <label className="block">
-            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-white/45">
+            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
               Email
             </span>
             <input
@@ -111,12 +108,12 @@ export default function SignInClient() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm outline-none transition focus:border-[#00A598]"
+              className="w-full rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm outline-none transition placeholder:text-[color:var(--w09-text-muted)] focus:border-[#00A598]"
               placeholder="you@example.com"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-white/45">
+            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
               Password
             </span>
             <input
@@ -125,13 +122,13 @@ export default function SignInClient() {
               onChange={(e) => setPassword(e.target.value)}
               minLength={8}
               required
-              className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm outline-none transition focus:border-[#00A598]"
+              className="w-full rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm outline-none transition placeholder:text-[color:var(--w09-text-muted)] focus:border-[#00A598]"
               placeholder="8+ characters"
             />
           </label>
 
           {error && (
-            <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200">
+            <div role="alert" className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-200">
               {error}
             </div>
           )}
@@ -151,7 +148,7 @@ export default function SignInClient() {
             setError("");
             setMode(mode === "signin" ? "register" : "signin");
           }}
-          className="mt-5 w-full text-center text-xs font-bold text-white/50 transition hover:text-white"
+          className="mt-5 w-full text-center text-xs font-bold text-[color:var(--w09-text-muted)] transition hover:text-[color:var(--w09-text)]"
         >
           {mode === "signin" ? "Need a local account?" : "Already have a local account?"}
         </button>
@@ -159,4 +156,3 @@ export default function SignInClient() {
     </main>
   );
 }
-

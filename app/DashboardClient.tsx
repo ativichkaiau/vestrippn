@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "../components/ThemeToggle"; 
 import TodaysCommand from "../components/TodaysCommand";
@@ -19,10 +19,8 @@ import TickNumber from '../components/TickNumber';
 import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import BrandMark from '../components/BrandMark';
 import SignatureIntro from '../components/SignatureIntro';
-import { WilliamsIntro, SennaIntro, VerstappenIntro, FerrariIntro } from '../components/LiveryIntros';
 import Link from 'next/link';
 
-type SiteLivery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
 type DashboardTask = { id: string; title: string; completed: boolean; category: string };
 type DashboardResearch = { title?: string; screening?: number; fullText?: number; extraction?: number };
 type DashboardFitness = { workoutDays?: string; lastWorkout?: string; streak?: number };
@@ -43,7 +41,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
   const [cycle, setCycle] = useState('DAY_CYCLE');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
-  const [livery, setLivery] = useState<SiteLivery>('normal');
+  const finishIntro = useCallback(() => setShowIntro(false), []);
   const pendingTaskCount = Array.isArray(cloudTasks) ? cloudTasks.filter((task) => !task.completed).length : 0;
 
   useEffect(() => {
@@ -52,13 +50,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
       const currentHour = new Date().getHours();
       setCycle(currentHour < 6 || currentHour >= 18 ? 'NIGHT_CYCLE' : 'DAY_CYCLE');
 
-      // Pick livery before showing intro so special variants can swap in.
-      try {
-        const stored = localStorage.getItem('vest_livery');
-        setLivery(stored === 'monza' || stored === 'senna' || stored === 'verstappen' || stored === 'ferrari' ? stored : 'normal');
-      } catch {}
-
-      // Boot sequence plays on every page load.
+      // The shared boot follows the livery already applied by the root layout.
       setShowIntro(true);
     }, 0);
 
@@ -66,12 +58,6 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
       window.clearTimeout(mountTimer);
     };
   }, []);
-
-  useEffect(() => {
-    if (!showIntro) return undefined;
-    const hideIntroTimer = window.setTimeout(() => setShowIntro(false), 7000);
-    return () => window.clearTimeout(hideIntroTimer);
-  }, [showIntro]);
 
   if (!isMounted) return <LoadingScreen />;
 
@@ -94,17 +80,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
 
       <AnimatePresence>
-        {showIntro && (
-          livery === 'monza'
-            ? <WilliamsIntro cycle={cycle} />
-            : livery === 'senna'
-              ? <SennaIntro cycle={cycle} />
-              : livery === 'verstappen'
-                ? <VerstappenIntro cycle={cycle} />
-                : livery === 'ferrari'
-                  ? <FerrariIntro cycle={cycle} />
-                  : <SignatureIntro livery="normal" cycle={cycle} />
-        )}
+        {showIntro && <SignatureIntro cycle={cycle} onComplete={finishIntro} />}
       </AnimatePresence>
 
       {/* --- CUSTOM ANIMATION STYLES --- */}
@@ -529,4 +505,3 @@ function LoadingScreen() {
     </div>
   );
 }
-

@@ -1,255 +1,139 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useLowPower } from './useLowPower';
 
-/* ════════════════════════════════════════════════════════════════════════
-   SIGNATURE INTRO — the "3" mark traces in, then the livery
-   wordmark resolves beneath it. One theme-driven, futuristic boot sequence
-   reused across the normal build and every special livery.
-   ════════════════════════════════════════════════════════════════════════ */
+const EASE = [0.16, 1, 0.3, 1] as const;
+const INTRO_DURATION_MS = 3800;
+const WORKSPACES = [
+  { title: 'Study', detail: 'Cases & exams' },
+  { title: 'Research', detail: 'Papers & evidence' },
+  { title: 'Plan', detail: 'Tasks & priorities' },
+];
 
-export type IntroLivery = 'normal' | 'monza' | 'senna' | 'verstappen' | 'ferrari';
+export default function SignatureIntro({
+  cycle,
+  onComplete,
+}: {
+  cycle: string;
+  onComplete: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const reduceMotion = useReducedMotion();
+  const lowPower = useLowPower();
+  const motionOff = Boolean(reduceMotion || lowPower);
+  const duration = motionOff ? 300 : INTRO_DURATION_MS;
 
-type IntroTheme = {
-  accent: string;
-  secondary: string;
-  soft: string;
-  glow: string;
-  base: string;
-  name: string;
-  tagline: string;
-};
+  useEffect(() => {
+    // A native modal keeps keyboard focus in the intro until the handoff.
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+    const timer = window.setTimeout(onComplete, duration);
+    return () => window.clearTimeout(timer);
+  }, [duration, onComplete]);
 
-const THEMES: Record<IntroLivery, IntroTheme> = {
-  normal:     { accent: '#00d2be', secondary: '#e3e7ec', soft: '#d6f5f1', glow: 'rgba(0,210,190,0.55)',  base: '#07090c', name: 'VESTRIPPN', tagline: 'The Next Generation' },
-  monza:      { accent: '#c59955', secondary: '#ffffff', soft: '#f3e3c6', glow: 'rgba(197,153,85,0.55)', base: '#070216', name: 'Williams',   tagline: 'Heritage Livery' },
-  senna:      { accent: '#ffd400', secondary: '#00a651', soft: '#fff3b8', glow: 'rgba(255,212,0,0.52)',  base: '#061329', name: 'Senna',      tagline: 'Qualifying Focus' },
-  verstappen: { accent: '#ff6b00', secondary: '#1d4ed8', soft: '#fed7aa', glow: 'rgba(255,107,0,0.55)',  base: '#050b16', name: 'Verstappen', tagline: 'Orange Attack' },
-  ferrari:    { accent: '#ef1a2d', secondary: '#ffdd00', soft: '#ffd9dc', glow: 'rgba(239,26,45,0.55)',  base: '#0b0304', name: 'Ferrari',    tagline: 'Scuderia' },
-};
-
-// The isometric "3" brand mark, traced via pathLength (viewBox ~120x80).
-const W_PATH = 'M42 24 C42 12 52 9 60 9 C74 9 80 17 80 26 C80 36 72 41 62 41 C74 41 82 47 82 58 C82 70 73 75 61 75 C49 75 42 70 40 60';
-const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
-const SWOOSH: [number, number, number, number] = [0.76, 0, 0.24, 1];
-
-export default function SignatureIntro({ livery, cycle }: { livery: IntroLivery; cycle: string }) {
-  const reduce = Boolean(useReducedMotion());
-  const t = THEMES[livery] ?? THEMES.normal;
-  const chars = [...t.name];
-
-  // Timeline anchors (seconds)
-  const TRACE_AT = 0.3;
-  const TRACE_DUR = reduce ? 0.01 : 1.4;
-  const IGNITE_AT = TRACE_AT + TRACE_DUR + 0.05;
-  const TEN_AT = IGNITE_AT + 0.18;
-  const NAME_AT = TEN_AT + 0.78;
-  const TAG_AT = NAME_AT + 0.5;
-
-  const d = (s: number) => (reduce ? Math.min(s * 0.18, 0.4) : s);
+  const reveal = (delay: number) => ({
+    initial: motionOff ? false as const : { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: motionOff ? 0 : delay, duration: motionOff ? 0 : 0.5, ease: EASE },
+  });
 
   return (
-    <motion.div
-      className="fixed left-0 top-0 z-[200] h-[100dvh] w-screen overflow-hidden text-white"
-      style={{ background: t.base }}
+    <motion.dialog
+      ref={dialogRef}
+      aria-labelledby="boot-title"
+      aria-describedby="boot-description"
+      onCancel={(event) => {
+        event.preventDefault();
+        onComplete();
+      }}
+      className="fixed inset-0 m-0 flex h-[100dvh] max-h-none w-screen max-w-none flex-col overflow-y-auto border-0 px-5 py-5 text-[color:var(--w09-text)] sm:px-10 sm:py-7"
+      style={{ background: 'var(--w85-canvas, var(--w09-bg))' }}
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, filter: reduce ? 'none' : 'blur(12px)', scale: reduce ? 1 : 1.04 }}
-      transition={{ duration: reduce ? 0.2 : 0.72, ease: SWOOSH }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: motionOff ? 0 : 0.35, ease: EASE }}
     >
-      {/* ── Atmosphere: radial bloom + deep vignette ── */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: [
-            `radial-gradient(circle at 50% 38%, ${t.glow}, transparent 42%)`,
-            `radial-gradient(ellipse at 50% 120%, ${t.accent}1f, transparent 55%)`,
-            `linear-gradient(180deg, ${t.base} 0%, #020406 60%, #000 100%)`,
-          ].join(', '),
-        }}
-      />
-      {/* Perspective grid floor */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] origin-bottom"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.42) 1px, transparent 1px)',
-          backgroundSize: '46px 46px',
-          transform: 'perspective(420px) rotateX(64deg)',
-          maskImage: 'linear-gradient(180deg, transparent 0%, #000 70%)',
-          WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 70%)',
-          opacity: 0.16,
-        }}
-        initial={{ opacity: 0, backgroundPositionY: '0px' }}
-        animate={reduce ? { opacity: 0.12 } : { opacity: 0.16, backgroundPositionY: ['0px', '46px'] }}
-        transition={reduce ? { duration: 0.3 } : { backgroundPositionY: { duration: 3.4, repeat: Infinity, ease: 'linear' }, opacity: { duration: 1 } }}
-      />
-      {/* Silver-arrow streak — a light trail flashing across on ignition */}
-      {!reduce && (
-        <motion.div
-          className="pointer-events-none absolute left-0 top-[24%] h-[3px] w-full"
-          style={{
-            background: `linear-gradient(90deg, transparent, ${t.secondary}e6 45%, ${t.accent}cc 55%, transparent)`,
-            boxShadow: `0 0 22px ${t.glow}`,
-          }}
-          initial={{ x: '-100%', opacity: 0 }}
-          animate={{ x: '100%', opacity: [0, 1, 1, 0] }}
-          transition={{ delay: d(0.2), duration: 1.3, ease: SWOOSH }}
-        />
-      )}
+      <div className="flex shrink-0 items-center justify-between gap-4">
+        <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[color:var(--w09-text-muted)] sm:text-[10px]">
+          Your personal workspace
+        </span>
+        <button
+          type="button"
+          onClick={onComplete}
+          className="shrink-0 rounded-full border border-[color:var(--w09-border)] px-3 py-2 text-[11px] font-semibold transition-colors hover:bg-[var(--w09-surface-raised)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--w09-focus-ring)]"
+        >
+          Enter workspace <span aria-hidden>↗</span>
+        </button>
+      </div>
 
-      {/* Scanline sweep on ignition */}
-      {!reduce && (
+      <div className="relative my-auto w-full max-w-xl shrink-0 self-center py-8 text-center sm:py-10">
         <motion.div
-          className="pointer-events-none absolute inset-x-0 h-[34vh]"
-          style={{ background: `linear-gradient(180deg, transparent, ${t.accent}22 60%, ${t.soft}55 92%, transparent)` }}
-          initial={{ top: '-40vh', opacity: 0 }}
-          animate={{ top: ['-40vh', '120vh'], opacity: [0, 0.9, 0] }}
-          transition={{ delay: IGNITE_AT - 0.1, duration: 1.1, ease: SWOOSH }}
-        />
-      )}
-
-      {/* ── HUD frame corners ── */}
-      {([
-        'left-5 top-5 border-l-2 border-t-2',
-        'right-5 top-5 border-r-2 border-t-2',
-        'left-5 bottom-5 border-l-2 border-b-2',
-        'right-5 bottom-5 border-r-2 border-b-2',
-      ]).map((c, i) => (
-        <motion.div
-          key={c}
-          className={`absolute h-9 w-9 ${c}`}
-          style={{ borderColor: `${t.accent}66` }}
-          initial={{ opacity: 0, scale: 0.4 }}
+          className="relative mx-auto mb-7 grid h-24 w-24 place-items-center sm:mb-9"
+          initial={motionOff ? false : { opacity: 0, scale: 0.86 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: d(0.15 + i * 0.06), duration: 0.5, ease: EASE }}
-        />
-      ))}
+          transition={{ duration: motionOff ? 0 : 0.65, ease: EASE }}
+        >
+          <svg className="pointer-events-none absolute -inset-2 h-28 w-28" viewBox="0 0 112 112" fill="none" aria-hidden>
+            <rect x="1" y="1" width="110" height="110" rx="32" stroke="var(--w09-border)" />
+            <motion.rect
+              x="1" y="1" width="110" height="110" rx="32"
+              stroke="var(--hub-accent)"
+              strokeWidth="1.5"
+              initial={motionOff ? false : { pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: motionOff ? 0 : 0.15, duration: motionOff ? 0 : 1.2, ease: EASE }}
+            />
+          </svg>
+          <Image src="/vestrippn-logo.png" width={80} height={80} alt="" loading="eager" />
+        </motion.div>
 
-      {/* ── Top telemetry line ── */}
-      <motion.div
-        className="absolute left-6 right-6 top-8 flex items-center justify-between font-mono text-[9px] font-black uppercase tracking-[0.34em]"
-        style={{ color: `${t.soft}` }}
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 0.7, y: 0 }}
-        transition={{ delay: d(0.45), duration: 0.5, ease: EASE }}
-      >
-        <span>VESTRIPPN // boot</span>
-        <span className="hidden sm:inline" style={{ color: `${t.accent}` }}>{cycle.replace('_', ' ')}</span>
-        <span>sys.online</span>
-      </motion.div>
+        <motion.h1
+          id="boot-title"
+          className="text-[clamp(1.6rem,5vw,3.25rem)] font-semibold leading-tight tracking-[0.16em]"
+          {...reveal(0.2)}
+        >
+          VESTRIPPN
+        </motion.h1>
+        <motion.p
+          id="boot-description"
+          className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[color:var(--w09-text-muted)] sm:text-base"
+          {...reveal(0.45)}
+        >
+          Clinical learning. Research. Everyday progress.
+        </motion.p>
 
-      {/* ── Center stage ── */}
-      <div className="relative z-10 grid h-full place-items-center px-6">
-        <div className="flex flex-col items-center">
-          {/* W10 lockup */}
-          <div className="flex items-center gap-[0.06em]" style={{ filter: `drop-shadow(0 0 30px ${t.glow})` }}>
-            <svg
-              viewBox="0 0 120 80"
-              className="h-[clamp(70px,15vw,150px)] w-auto overflow-visible"
-              fill="none"
-              aria-hidden
-            >
-              <defs>
-                <linearGradient id={`wgrad-${livery}`} x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor={t.secondary} />
-                  <stop offset="100%" stopColor={t.accent} />
-                </linearGradient>
-              </defs>
-              {/* soft glow underlay */}
-              <motion.path
-                d={W_PATH}
-                stroke={t.accent}
-                strokeWidth={11}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ filter: 'blur(7px)', opacity: 0.6 }}
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: TRACE_AT, duration: TRACE_DUR, ease: EASE }}
-              />
-              {/* crisp stroke */}
-              <motion.path
-                d={W_PATH}
-                stroke={`url(#wgrad-${livery})`}
-                strokeWidth={7}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: TRACE_AT, duration: TRACE_DUR, ease: EASE }}
-              />
-              {/* (spark removed — the traced "3" mark stands on its own) */}
-            </svg>
-
-          </div>
-
-          {/* underline sweep */}
-          <motion.div
-            className="mt-5 h-[2px] w-[min(74vw,520px)] origin-center rounded-full"
-            style={{ background: `linear-gradient(90deg, transparent, ${t.accent}, ${t.secondary}, transparent)`, boxShadow: `0 0 22px ${t.glow}` }}
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{ scaleX: 1, opacity: 1 }}
-            transition={{ delay: d(TEN_AT + 0.32), duration: reduce ? 0.2 : 0.7, ease: SWOOSH }}
-          />
-
-          {/* livery wordmark resolves */}
-          <div className="mt-6 flex overflow-hidden font-revolut text-[clamp(34px,8vw,82px)] font-bold leading-none">
-            {chars.map((ch, i) => (
-              <motion.span
-                key={ch + i}
-                className="bg-clip-text text-transparent"
-                style={{ backgroundImage: `linear-gradient(120deg, ${t.secondary} 0%, ${t.accent} 100%)`, filter: `drop-shadow(0 4px 26px ${t.glow})` }}
-                initial={{ opacity: 0, y: '0.7em', rotateX: reduce ? 0 : -75 }}
-                animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                transition={{ delay: d(NAME_AT + i * 0.045), duration: reduce ? 0.2 : 0.62, ease: EASE }}
-              >
-                {ch}
-              </motion.span>
-            ))}
-          </div>
-
-          {/* tagline */}
-          <motion.div
-            className="mt-5 font-mono text-[10px] font-black uppercase tracking-[0.42em]"
-            style={{ color: `${t.soft}` }}
-            initial={{ opacity: 0, letterSpacing: '0.7em' }}
-            animate={{ opacity: 0.78, letterSpacing: '0.42em' }}
-            transition={{ delay: d(TAG_AT), duration: reduce ? 0.2 : 0.7, ease: EASE }}
-          >
-            {t.tagline}
-          </motion.div>
+        <div className="mt-8 grid grid-cols-3 gap-2 border-y border-[color:var(--w09-border)] py-5 sm:mt-10 sm:gap-5 sm:py-6">
+          {WORKSPACES.map((workspace, index) => (
+            <motion.div key={workspace.title} className="min-w-0" {...reveal(0.7 + index * 0.18)}>
+              <span className="font-mono text-[10px] tabular-nums" style={{ color: 'var(--hub-accent)' }}>
+                0{index + 1}
+              </span>
+              <h2 className="mt-2 text-sm font-semibold">{workspace.title}</h2>
+              <p className="mt-1 text-[10px] leading-4 text-[color:var(--w09-text-muted)] sm:text-xs">
+                {workspace.detail}
+              </p>
+            </motion.div>
+          ))}
         </div>
       </div>
 
-      {/* ── Bottom loader + status ── */}
-      <div className="absolute inset-x-6 bottom-8">
-        <div className="mb-2 flex items-center justify-between font-mono text-[9px] font-black uppercase tracking-[0.3em] text-white/45">
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
-            transition={{ delay: d(0.6), duration: 0.5 }}
-            style={{ color: t.accent }}
-          >
-            W12 // {t.name}
-          </motion.span>
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.8, 0.3, 0.8] }}
-            transition={{ delay: d(0.6), duration: 2.4, repeat: Infinity }}
-          >
-            ▸ cockpit handoff
-          </motion.span>
+      <div className="w-full max-w-xl shrink-0 self-center">
+        <div className="mb-3 flex items-center justify-between gap-4 font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--w09-text-muted)]">
+          <span>{cycle.replaceAll('_', ' ')}</span>
+          <span>Opening dashboard</span>
         </div>
-        <div className="h-[2px] w-full overflow-hidden rounded-full bg-white/10">
+        <div className="h-px overflow-hidden bg-[var(--w09-border)]" aria-hidden>
           <motion.div
-            className="h-full rounded-full"
-            style={{ background: `linear-gradient(90deg, ${t.accent}, ${t.secondary})`, boxShadow: `0 0 14px ${t.glow}` }}
-            initial={{ width: '0%' }}
-            animate={{ width: '100%' }}
-            transition={{ delay: d(0.55), duration: reduce ? 0.3 : 4.6, ease: [0.4, 0, 0.2, 1] }}
+            className="h-full origin-left"
+            style={{ background: 'var(--hub-accent)' }}
+            initial={motionOff ? false : { scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: motionOff ? 0 : duration / 1000, ease: 'linear' }}
           />
         </div>
       </div>
-    </motion.div>
+    </motion.dialog>
   );
 }
