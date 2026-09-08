@@ -3,14 +3,16 @@
 
 // All tracked Canvas course ids (dashboard card + Academics hub read the same
 // list, so both show the same courses — full parity).
-export const TARGET_COURSES = ['26141', '26393', '26349', '26702', '27415', '30964', '31275'];
+export const TARGET_COURSES = ['26141', '26393', '26349', '26702', '27415', '30964', '31275', '26896', '31469'];
 
-// Display names are the COURSE NUMBER. Where we know the number, hardcode it;
-// otherwise Canvas's own course_code (which is the "3303xx" number) is used.
-const COURSE_NUMBER: Record<string, string> = {
+// Keep established course-number labels and the supplied HHL / HSC short names.
+// Other courses use Canvas's own course_code (the "3303xx" number).
+const COURSE_LABEL: Record<string, string> = {
   '26702': '330321', // HMS-2
   '30964': '330323', // HRS-2
   '31275': '330324', // HGB-2
+  '26896': 'HHL', // Human Hematopoietic and Lymphoreticular System
+  '31469': 'HSC', // Human Skin System and Connective Tissues
 };
 
 // Label to show when Canvas doesn't return a target course at all (so the
@@ -20,7 +22,7 @@ const COURSE_FALLBACK: Record<string, string> = {
   '26393': 'HNS-2',
   '26349': 'TBL',
   '27415': 'HCVS-2',
-  ...COURSE_NUMBER,
+  ...COURSE_LABEL,
 };
 
 export interface CanvasSubject {
@@ -122,7 +124,7 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
               upcoming.push({
                 id: a.id?.toString() ?? `${id}-${a.due_at}`,
                 courseId: id,
-                courseName: COURSE_NUMBER[id] || c.course_code || c.name || id,
+                courseName: COURSE_LABEL[id] || c.course_code || c.name || id,
                 name: a.name || 'Untitled assignment',
                 dueAt: a.due_at,
                 url: a.html_url,
@@ -145,8 +147,8 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
           progress = rawScore != null ? Math.round(Number(rawScore)) : null;
         }
 
-        // Prefer the known course number, else Canvas's course_code (the number).
-        return { id, name: COURSE_NUMBER[id] || c.course_code || c.name, progress };
+        // Use a stable label when known, else Canvas's course_code (the number).
+        return { id, name: COURSE_LABEL[id] || c.course_code || c.name, progress };
       })
     );
 

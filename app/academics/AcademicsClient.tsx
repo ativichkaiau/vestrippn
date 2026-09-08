@@ -967,6 +967,22 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                      <div className="mb-2 min-h-[3.75rem] break-words pr-2 text-[15px] font-bold leading-5 text-neutral-900 transition-colors duration-700 dark:text-white lg:text-[16px]">HGB-2: Human Gastrointestinal and Biliary Tract System</div>
                      <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Status: Verified</div>
                   </a>
+                  <a href="https://notebook.google.com/notebook/8b681d85-6736-4173-a182-aae231b2f04d" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                     <div className="flex justify-between items-center mb-4">
+                        <div className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-widest transition-colors duration-700">Hematopoietic &amp; Lymphoreticular Vault</div>
+                        <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🩸</span>
+                     </div>
+                     <div className="mb-2 min-h-[3.75rem] break-words pr-2 text-[15px] font-bold leading-5 text-neutral-900 transition-colors duration-700 dark:text-white lg:text-[16px]">HHL: Human Hematopoietic and Lymphoreticular System</div>
+                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Open NotebookLM ↗</div>
+                  </a>
+                  <a href="https://notebook.google.com/notebook/a11841cb-1131-419b-b8fa-3d0fb8118485" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
+                     <div className="flex justify-between items-center mb-4">
+                        <div className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest transition-colors duration-700">Skin &amp; Connective Tissues Vault</div>
+                        <span className="text-2xl group-hover/nb:scale-110 group-hover/nb:rotate-6 transition-transform">🧴</span>
+                     </div>
+                     <div className="mb-2 min-h-[3.75rem] break-words pr-2 text-[15px] font-bold leading-5 text-neutral-900 transition-colors duration-700 dark:text-white lg:text-[16px]">HSC: Human Skin System and Connective Tissues</div>
+                     <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700">Open NotebookLM ↗</div>
+                  </a>
                </div>
             </motion.section>
 
