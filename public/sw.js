@@ -1,6 +1,6 @@
 /* VEStriPPN service worker — offline caching + web push.
    Bump CACHE to invalidate old caches on deploy. */
-const CACHE = 'vestrippn-w85-hhl-hsc';
+const CACHE = 'vestrippn-w85-final-motion';
 const OFFLINE_URL = '/';
 
 // Do NOT skipWaiting automatically — a silent swap can break a live session

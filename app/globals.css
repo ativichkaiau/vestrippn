@@ -177,6 +177,16 @@ h1, h2, h3, .font-orbitron {
   position: relative;
   transform-origin: 50% 42%;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Standalone learning, chat, ingest and auth pages need a bounded scroll pane
+   just like the hub layouts. Content always uses the browser's native scroll. */
+.motion-route-shell > main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 html.monza .motion-route-shell {
@@ -2087,8 +2097,8 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
 :root { --hub-accent-on-dark: var(--hub-accent); }
 html.ferrari { --hub-accent-on-dark: #ef4a56; } /* 5.3:1 on the hero ground */
 
-/* W85 livery details stay static, including in reduced-motion / low-power
-   mode. Backgrounds and aria-hidden artwork never intercept interactions. */
+/* W85 livery artwork never intercepts interactions. The final-edition motion
+   layer below animates these details only when motion is enabled. */
 .w10-clay-shell main {
   background-image:
     linear-gradient(118deg, transparent 62%, rgba(var(--hub-accent-rgb), 0.055) 62% 69%, transparent 69% 71%, rgba(var(--hub-secondary-rgb), 0.055) 71% 73%, transparent 73%),
@@ -2224,3 +2234,79 @@ html.ferrari { --hub-accent-on-dark: #ef4a56; } /* 5.3:1 on the hero ground */
   .w85-livery-corner { left: 9px; bottom: 9px; width: 14px; height: 14px; }
   .w85-livery-ticks { right: 12px; bottom: 11px; width: 72px; height: 5px; }
 }
+
+/* W85 FINAL EDITION — scroll reveals live in usePageMotion. Only decoration
+   loops at rest; text, form controls and layout stay still. */
+.motion-route-shell > .w85-motion-chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 110;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.w85-final-scan {
+  position: absolute;
+  top: 0;
+  left: -35%;
+  width: 35%;
+  height: 3px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--hub-accent), rgba(255, 255, 255, 0.8), transparent);
+}
+
+.w85-scroll-track {
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  opacity: 0;
+  background: var(--w85-line);
+}
+
+[data-w85-active][data-w85-scrollable] .w85-scroll-track { opacity: 1; }
+.w85-scroll-fill {
+  display: block;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: linear-gradient(90deg, rgb(var(--hub-secondary-rgb)), var(--hub-accent));
+}
+
+@keyframes w85FinalScan {
+  0%, 12% { transform: translateX(0); opacity: 0; }
+  20% { opacity: 0.7; }
+  68% { opacity: 0.7; }
+  82%, 100% { transform: translateX(390%); opacity: 0; }
+}
+
+@keyframes w85LiveryDrift {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@keyframes w85TelemetryTicks {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes w85MarkSheen {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w85-final-scan { animation: w85FinalScan 9s ease-in-out infinite paused; }
+  .w85-livery-art { animation: w85LiveryDrift 12s ease-in-out infinite paused; }
+  .w85-livery-ticks { animation: w85TelemetryTicks 5s ease-in-out infinite paused; }
+  .w10-brand-mark img { animation: w85MarkSheen 6s ease-in-out infinite paused; }
+
+  [data-w85-active] > .w85-motion-chrome .w85-final-scan,
+  [data-w85-active] [data-w85-in-view] :is(.w85-livery-art, .w85-livery-ticks),
+  [data-w85-active] .w10-brand-mark[data-w85-in-view] img { animation-play-state: running; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .w85-motion-chrome { display: none; }
+}
+html.low-power .w85-motion-chrome { display: none; }
