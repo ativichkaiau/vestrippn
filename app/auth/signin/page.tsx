@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SignInClient from "./SignInClient";
 
-export const metadata: Metadata = { title: "Sign in · VESTRIPPN" };
+export const metadata: Metadata = { title: "Sign in · VESTRIPPN W85" };
 
 export default async function SignInPage({
   searchParams,

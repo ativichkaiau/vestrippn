@@ -97,6 +97,12 @@ export default function SignatureIntro({
           VESTRIPPN
         </motion.h1>
         <motion.p
+          className="mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-[color:var(--w09-text-muted)]"
+          {...reveal(0.35)}
+        >
+          W85 · Final edition
+        </motion.p>
+        <motion.p
           id="boot-description"
           className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[color:var(--w09-text-muted)] sm:text-base"
           {...reveal(0.45)}

@@ -1,10 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 
-/* Futuristic route-transition loader: the spinning "3" mark, a livery-aware HUD
-   ring, and a rotating fun fact. Shown by Next while a hub route streams. */
+/* ════════════════════════════════════════════════════════════════════════
+   W85 ROUTE LOADER — shown by Next while a hub route streams.
+
+   Same language as the W85 boot (components/SignatureIntro.tsx): matte
+   ground, one accent hairline, restrained type. The W12 loader's spinning
+   "3" coin, conic HUD ring, orbiting dot, perspective grid floor and glow
+   pulse are retired. The fun fact stays — it is the one part that was
+   content rather than chrome.
+   ════════════════════════════════════════════════════════════════════════ */
 
 const FACTS = [
   'The human brain can process an entire image in as little as 13 milliseconds.',
@@ -28,94 +34,38 @@ export default function Loading() {
 
   return (
     <div
-      className="fixed left-0 top-0 z-[300] flex h-[100dvh] w-screen flex-col items-center justify-center overflow-hidden text-white"
-      style={{ background: 'var(--hub-bg)' }}
+      className="fixed left-0 top-0 z-[300] flex h-[100dvh] w-screen flex-col items-center justify-center overflow-hidden px-8"
+      style={{ background: 'var(--w85-canvas)' }}
     >
       <style>{`
-        @keyframes vestVCoin { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
-        @keyframes vestOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes vestRing  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes vestGlow  { 0%,100% { opacity: 0.45; } 50% { opacity: 1; } }
-        @keyframes vestSweep { 0% { transform: translateX(-110%); } 100% { transform: translateX(360%); } }
-        @keyframes vestGrid  { from { background-position: 0 0; } to { background-position: 0 44px; } }
-        @keyframes vestRise  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes w85Sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+        @media (prefers-reduced-motion: reduce) {
+          .w85-sweep { animation: none !important; transform: none !important; width: 100% !important; opacity: 0.5; }
+        }
       `}</style>
 
-      {/* atmosphere */}
       <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 50% 42%, rgba(var(--hub-accent-rgb),0.18), transparent 46%), linear-gradient(180deg, var(--hub-bg), #020406 70%, #000)',
-        }}
-      />
-      <div
-        className="lp-keep pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.42) 1px, transparent 1px)',
-          backgroundSize: '44px 44px',
-          transform: 'perspective(420px) rotateX(64deg)',
-          maskImage: 'linear-gradient(180deg, transparent, #000 75%)',
-          WebkitMaskImage: 'linear-gradient(180deg, transparent, #000 75%)',
-          opacity: 0.14,
-          animation: 'vestGrid 3.2s linear infinite',
-        }}
-      />
-
-      {/* spinning V + HUD ring */}
-      <div className="relative grid h-[150px] w-[150px] place-items-center" style={{ perspective: '600px' }}>
-        {/* outer rotating ring */}
-        <div
-          className="lp-keep absolute inset-0 rounded-full"
-          style={{
-            background: 'conic-gradient(from 0deg, transparent 0deg, rgba(var(--hub-accent-rgb),0.85) 60deg, transparent 140deg, transparent 360deg)',
-            mask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))',
-            WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))',
-            animation: 'vestRing 1.4s linear infinite',
-          }}
-        />
-        {/* inner thin static ring */}
-        <div className="absolute inset-[14px] rounded-full border" style={{ borderColor: 'rgba(var(--hub-accent-rgb),0.18)' }} />
-        {/* orbiting dot */}
-        <div className="lp-keep absolute inset-0" style={{ animation: 'vestOrbit 2.8s linear infinite' }}>
-          <span
-            className="absolute left-1/2 top-0 h-2 w-2 -translate-x-1/2 rounded-full"
-            style={{ background: 'rgb(var(--hub-accent-rgb))', boxShadow: '0 0 12px rgba(var(--hub-accent-rgb),0.9)' }}
-          />
-        </div>
-        {/* spinning "3" logo */}
-        <div
-          className="lp-keep grid h-[92px] w-[92px] place-items-center"
-          style={{
-            transformStyle: 'preserve-3d',
-            animation: 'vestVCoin 2.2s cubic-bezier(0.65,0,0.35,1) infinite',
-            filter: 'drop-shadow(0 12px 26px rgba(var(--hub-accent-rgb),0.45))',
-          }}
-        >
-          <Image src="/vestrippn-logo.png" alt="VESTRIPPN" width={92} height={92} priority className="h-[92px] w-[92px] object-contain" />
-        </div>
-      </div>
-
-      {/* label */}
-      <div
-        className="mt-9 font-mono text-[10px] font-black uppercase tracking-[0.42em]"
-        style={{ color: 'rgb(var(--hub-accent-rgb))', animation: 'vestGlow 1.8s ease-in-out infinite' }}
+        className="text-[clamp(18px,3.2vw,26px)] font-semibold tracking-[0.28em] text-neutral-900 dark:text-white"
       >
-        Spooling cockpit
+        VESTRIPPN
       </div>
 
-      {/* fun fact */}
-      <div className="mt-7 max-w-[440px] px-8 text-center" style={{ animation: 'vestRise 0.6s ease-out both', animationDelay: '0.15s' }}>
-        <div className="mb-2 font-mono text-[9px] font-black uppercase tracking-[0.34em] text-white/40">Fun fact</div>
-        <p className="text-[14px] font-medium leading-relaxed text-white/80">{fact}</p>
+      <div className="mt-3 font-mono text-[9px] font-medium uppercase tracking-[0.42em] text-neutral-400 dark:text-neutral-500">
+        W85
       </div>
 
-      {/* indeterminate loader bar */}
-      <div className="absolute inset-x-0 bottom-0 h-[2px] overflow-hidden bg-white/10">
+      <div className="mt-10 max-w-[440px] text-center">
+        <div className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.3em] text-neutral-400 dark:text-neutral-600">
+          Fun fact
+        </div>
+        <p className="text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">{fact}</p>
+      </div>
+
+      {/* the one moving part: a thin indeterminate accent sweep */}
+      <div className="absolute inset-x-0 top-0 h-px overflow-hidden bg-black/5 dark:bg-white/10">
         <div
-          className="lp-keep h-full w-1/3 rounded-full"
-          style={{ background: 'linear-gradient(90deg, transparent, rgb(var(--hub-accent-rgb)), transparent)', animation: 'vestSweep 1.1s ease-in-out infinite' }}
+          className="lp-keep w85-sweep h-full w-1/4"
+          style={{ background: 'var(--hub-accent)', animation: 'w85Sweep 1.2s ease-in-out infinite' }}
         />
       </div>
     </div>

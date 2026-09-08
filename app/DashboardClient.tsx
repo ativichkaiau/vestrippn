@@ -147,53 +147,19 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="dark w10-clay-hero relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-white/10 px-5 py-7 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-10 lg:px-12 lg:py-14"
+              className="dark w10-clay-hero relative overflow-hidden rounded-[12px] border border-white/10 px-5 py-7 text-white sm:px-8 sm:py-10 lg:px-12 lg:py-14"
               style={{ backgroundColor: 'var(--hub-bg)' }}
               data-motion="hero"
               data-no-typewriter
             >
-              <div
-                className="absolute inset-0"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle at 18% 18%, rgba(var(--hub-accent-rgb), 0.32), transparent 32%), radial-gradient(circle at 82% 20%, rgba(var(--hub-secondary-rgb), 0.28), transparent 28%), linear-gradient(180deg, rgba(var(--hub-grad-rgb), 0.25), rgba(0, 0, 0, 0.62))',
-                }}
-              />
-              <div
-                className="absolute inset-0 opacity-[0.14]"
-                style={{
-                  backgroundImage:
-                    'linear-gradient(rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)',
-                  backgroundSize: '52px 52px',
-                  maskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
-                  WebkitMaskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
-                }}
-              />
-              {/* W11 carbon weave */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  backgroundImage:
-                    'repeating-linear-gradient(180deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 9px)',
-                }}
-              />
-              {/* W11 right spec bar */}
-              <div
+              {/* W85 — one accent hairline, matching the hub heroes. The W11
+                  stack (radial atmosphere, 52px grid, carbon weave, spec bar,
+                  twin arrows, corner brackets) is retired. */}
+              <span
                 aria-hidden
-                className="pointer-events-none absolute right-0 top-0 h-full w-[3px]"
-                style={{
-                  background:
-                    'linear-gradient(180deg, rgba(var(--hub-accent-rgb), 0.85) 0 38%, rgba(var(--hub-secondary-rgb), 0.65) 38% 58%, transparent 78%)',
-                }}
+                className="pointer-events-none absolute left-0 top-0 h-px w-20"
+                style={{ backgroundColor: 'var(--hub-accent)' }}
               />
-              {/* twin arrow hairlines */}
-              <span className="absolute left-8 top-0 h-[3px] w-28 rounded-b-full opacity-90 sm:left-12" style={{ backgroundColor: 'var(--hub-accent)' }} />
-              <span className="absolute left-8 top-[5px] h-[2px] w-16 rounded-b-full bg-white/45 sm:left-12" />
-              {/* cockpit corner brackets */}
-              <span className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 rounded-tl-lg border-l-2 border-t-2 border-white/15" />
-              <span className="pointer-events-none absolute right-3.5 top-3.5 h-5 w-5 rounded-tr-lg border-r-2 border-t-2 border-white/15" />
-              <span className="pointer-events-none absolute bottom-3.5 left-3.5 h-5 w-5 rounded-bl-lg border-b-2 border-l-2 border-white/15" />
-              <span className="pointer-events-none absolute bottom-3.5 right-3.5 h-5 w-5 rounded-br-lg border-b-2 border-r-2 border-white/15" />
 
               <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                 <div className="text-center lg:text-left">
@@ -203,19 +169,17 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   >
                     <span
                       className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
+                      style={{ backgroundColor: 'var(--hub-accent)' }}
                     />
-                    W12 · Command Cockpit
+                    W85 · Command Cockpit
                   </div>
 
                   <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
                     Meet the cockpit behind{' '}
-                    <span
-                      className="bg-clip-text text-transparent"
-                      style={{ backgroundImage: 'linear-gradient(120deg, var(--hub-accent) 0%, var(--hub-accent-deep) 100%)' }}
-                    >
-                      VESTRIPPN
-                    </span>
+                    {/* W85 — solid accent, not a two-stop gradient: gradient
+                        text is decoration, and its dark stop failed contrast
+                        on some liveries. See --hub-accent-on-dark. */}
+                    <span style={{ color: 'var(--hub-accent-on-dark)' }}>VESTRIPPN</span>
                   </h1>
 
                   <p className="mx-auto mt-5 max-w-2xl text-sm font-medium leading-7 text-slate-300 sm:text-base lg:mx-0">
@@ -269,7 +233,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       {[
                         ['Domains', '8'],
-                        ['Version', 'W11'],
+                        ['Version', 'W85'],
                         ['Pending', `${pendingTaskCount}`],
                       ].map(([label, value]) => (
                         <div key={label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
@@ -482,10 +446,6 @@ function LoadingScreen() {
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-700">
       <div className="relative flex flex-col items-center gap-6">
-        <div
-          className="absolute -inset-10 rounded-full blur-3xl opacity-40 dark:opacity-50"
-          style={{ background: 'radial-gradient(circle, rgba(var(--hub-accent-rgb),0.38), rgba(var(--hub-secondary-rgb),0.20) 45%, transparent 72%)' }}
-        />
         <motion.div
           className="relative w-14 h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center text-[26px] font-black"
           animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
