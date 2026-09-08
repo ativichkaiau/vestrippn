@@ -1056,14 +1056,8 @@ export default function FocusMode() {
       {open && mounted && createPortal(
         <div data-no-typewriter className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
           <style>{`@keyframes fmFade{0%{opacity:0;transform:translate(-50%,6px) scale(0.96)}15%{opacity:1;transform:translate(-50%,0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px) scale(1)}}@keyframes fmPop{0%{opacity:0;transform:scale(0.7)}30%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
-          {/* carbon + accent atmosphere */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 4px), radial-gradient(circle at 20% -10%, rgba(var(--hub-accent-rgb), 0.18), transparent 45%), radial-gradient(ellipse at 100% 110%, rgba(var(--hub-accent-rgb), 0.12), transparent 55%)',
-            }}
-          />
+          {/* W85 — the carbon weave + twin accent bloom is retired; focus mode
+              is a flat ground so the timer is the only thing on screen. */}
 
           {/* ════════ SETUP ════════ */}
           {phase === 'setup' && (

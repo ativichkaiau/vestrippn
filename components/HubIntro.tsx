@@ -1,12 +1,15 @@
 'use client';
 
 /* ════════════════════════════════════════════════════════════════════════
-   W11 HUB HERO — the shared cockpit hero used by all seven hubs, in the
-   W12 family language (same signature kit as the dashboard hero):
-   W11 deck pill · twin arrow hairlines · carbon weave · right spec bar ·
-   corner brackets. Structure: system strip (hub badge · eyebrow · ops ·
-   signature) → title zone (gradient headline, description, CTAs, chips)
-   → telemetry stack (ticking metrics, capability rows, status footer).
+   W85 HUB HERO — the shared hero used by all seven hubs.
+
+   The W11 ornament stack (twin arrow hairlines, carbon weave, right spec bar,
+   corner brackets, radial atmosphere) is retired: a single accent hairline is
+   the only decoration, and the content carries the page.
+
+   Structure: system strip (hub badge · eyebrow · ops · signature) → title
+   zone (headline, description, CTAs, chips) → telemetry stack (ticking
+   metrics, capability rows, status footer).
    Hub pages only provide operational content; each keeps its accent color.
    ════════════════════════════════════════════════════════════════════════ */
 
@@ -19,17 +22,17 @@ import { fadeUp, hoverLift, pressTap, slidePanel, softScale, staggerContainer, t
 import { useLowPower } from './useLowPower';
 
 /* W09 per-hub accents (Tailwind classes so liveries can remap them) */
-const HUB_ACCENT: Record<HubKey, { dot: string; grad: string; text: string; chipBg: string; icon: string }> = {
-  academics: { dot: 'bg-blue-400', grad: 'from-blue-400 to-cyan-400', text: 'text-blue-300', chipBg: 'bg-blue-400/15', icon: '▲' },
-  research: { dot: 'bg-cyan-400', grad: 'from-cyan-400 to-teal-400', text: 'text-cyan-300', chipBg: 'bg-cyan-400/15', icon: '◆' },
-  fitness: { dot: 'bg-rose-400', grad: 'from-rose-400 to-orange-300', text: 'text-rose-300', chipBg: 'bg-rose-400/15', icon: '◈' },
-  tools: { dot: 'bg-amber-400', grad: 'from-amber-400 to-yellow-300', text: 'text-amber-300', chipBg: 'bg-amber-400/15', icon: '⚙' },
-  archive: { dot: 'bg-purple-400', grad: 'from-purple-400 to-fuchsia-400', text: 'text-purple-300', chipBg: 'bg-purple-400/15', icon: '▥' },
-  identity: { dot: 'bg-teal-400', grad: 'from-teal-400 to-cyan-400', text: 'text-teal-300', chipBg: 'bg-teal-400/15', icon: '⚇' },
-  ielts: { dot: 'bg-indigo-400', grad: 'from-indigo-400 to-purple-400', text: 'text-indigo-300', chipBg: 'bg-indigo-400/15', icon: '◎' },
+const HUB_ACCENT: Record<HubKey, { dot: string; text: string; chipBg: string; icon: string }> = {
+  academics: { dot: 'bg-blue-400', text: 'text-blue-300', chipBg: 'bg-blue-400/15', icon: '▲' },
+  research: { dot: 'bg-cyan-400', text: 'text-cyan-300', chipBg: 'bg-cyan-400/15', icon: '◆' },
+  fitness: { dot: 'bg-rose-400', text: 'text-rose-300', chipBg: 'bg-rose-400/15', icon: '◈' },
+  tools: { dot: 'bg-amber-400', text: 'text-amber-300', chipBg: 'bg-amber-400/15', icon: '⚙' },
+  archive: { dot: 'bg-purple-400', text: 'text-purple-300', chipBg: 'bg-purple-400/15', icon: '▥' },
+  identity: { dot: 'bg-teal-400', text: 'text-teal-300', chipBg: 'bg-teal-400/15', icon: '⚇' },
+  ielts: { dot: 'bg-indigo-400', text: 'text-indigo-300', chipBg: 'bg-indigo-400/15', icon: '◎' },
 };
 
-/* Deck names for the W11 brand pill (shared with the dashboard hero). */
+/* Deck names for the W85 brand pill (shared with the dashboard hero). */
 const HUB_DECK: Record<HubKey, string> = {
   academics: 'Academics Deck',
   research: 'Research Deck',
@@ -85,12 +88,11 @@ function IntroAction({
   const className =
     variant === 'primary'
       ? 'w09-magnetic w09-launch-button inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[12px] font-black uppercase tracking-widest text-slate-950 transition-transform hover:-translate-y-0.5 active:scale-95'
-      : 'w09-magnetic inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-[12px] font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-95';
+      : 'w09-magnetic inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-[12px] font-black uppercase tracking-widest text-white transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-95';
 
-  const style =
-    variant === 'primary'
-      ? { boxShadow: '0 18px 36px rgba(var(--hub-accent-rgb), 0.22)' }
-      : undefined;
+  /* W85 — the primary action's accent bloom is retired; the white fill
+     already carries enough emphasis on the dark hero. */
+  const style = undefined;
 
   if (isExternalHref(href)) {
     return (
@@ -134,66 +136,22 @@ export default function HubIntro({
       variants={motionOff ? undefined : softScale}
       initial={motionOff ? false : 'hidden'}
       animate={motionOff ? undefined : 'show'}
-      className="dark w10-clay-hero relative overflow-hidden rounded-[32px] border border-white/10 px-5 py-6 text-white shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8 lg:rounded-[40px] lg:px-10 lg:py-9"
+      className="dark w10-clay-hero relative overflow-hidden rounded-[12px] border border-white/10 px-6 py-9 text-white sm:px-10 sm:py-11 lg:px-12 lg:py-14"
       style={{ backgroundColor: 'var(--hub-bg)' }}
       data-motion="hero"
       data-hub={hub ?? 'overview'}
       data-no-typewriter
     >
-      {/* atmosphere */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 18% 18%, rgba(var(--hub-accent-rgb), 0.32), transparent 32%), radial-gradient(circle at 82% 20%, rgba(var(--hub-secondary-rgb), 0.28), transparent 28%), linear-gradient(180deg, rgba(var(--hub-grad-rgb), 0.25), rgba(0, 0, 0, 0.62))',
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-[0.14]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)',
-          backgroundSize: '52px 52px',
-          maskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at top, #000 20%, transparent 72%)',
-        }}
-      />
-      {/* W11 carbon weave */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(180deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 9px)',
-        }}
-      />
-      {/* W11 right spec bar — hub-accented edge trim */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-0 top-0 h-full w-[3px]"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(var(--hub-accent-rgb), 0.85) 0 38%, rgba(var(--hub-secondary-rgb), 0.65) 38% 58%, transparent 78%)',
-        }}
-      />
-      {/* twin arrow hairlines — the W11 signature of the page */}
+      {/* W85 — a single accent hairline is the only ornament. The W11 stack
+          (radial atmosphere, grid, carbon weave, spec bar, corner brackets)
+          is retired: minimal means the content carries the page. */}
       {acc && (
-        <>
-          <motion.span
-            variants={motionOff ? undefined : telemetryLine}
-            className={`absolute left-8 top-0 h-[3px] w-28 origin-left rounded-b-full opacity-90 sm:left-12 ${acc.dot}`}
-          />
-          <motion.span
-            variants={motionOff ? undefined : telemetryLine}
-            className="absolute left-8 top-[5px] h-[2px] w-16 origin-left rounded-b-full bg-white/45 sm:left-12"
-          />
-        </>
+        <motion.span
+          aria-hidden
+          variants={motionOff ? undefined : telemetryLine}
+          className={`pointer-events-none absolute left-0 top-0 h-px w-20 origin-left ${acc.dot}`}
+        />
       )}
-
-      {/* cockpit corner brackets */}
-      <span className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 rounded-tl-lg border-l-2 border-t-2 border-white/15" />
-      <span className="pointer-events-none absolute right-3.5 top-3.5 h-5 w-5 rounded-tr-lg border-r-2 border-t-2 border-white/15" />
-      <span className="pointer-events-none absolute bottom-3.5 left-3.5 h-5 w-5 rounded-bl-lg border-b-2 border-l-2 border-white/15" />
-      <span className="pointer-events-none absolute bottom-3.5 right-3.5 h-5 w-5 rounded-br-lg border-b-2 border-r-2 border-white/15" />
 
       <motion.div variants={motionOff ? undefined : staggerContainer(0.08, 0.08)} className="relative z-10">
         {/* ── SYSTEM STRIP ── */}
@@ -224,29 +182,28 @@ export default function HubIntro({
         <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           {/* title zone */}
           <motion.div variants={motionOff ? undefined : fadeUp} className="text-center lg:text-left">
-            {/* W11 deck pill — same brand element as the dashboard hero */}
+            {/* W85 deck pill — same brand element as the dashboard hero */}
             <div
-              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] backdrop-blur-xl"
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em]"
               style={{ color: 'var(--hub-text-soft)' }}
             >
               <span
                 className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: 'var(--hub-accent)', boxShadow: '0 0 14px rgba(var(--hub-accent-rgb), 0.8)' }}
+                style={{ backgroundColor: 'var(--hub-accent)' }}
               />
-              W12 · {hub ? HUB_DECK[hub] : 'Command Deck'}
+              W85 · {hub ? HUB_DECK[hub] : 'Command Deck'}
             </div>
 
             <h1 className="mx-auto max-w-4xl text-[34px] font-black leading-[0.95] tracking-tighter sm:text-[52px] lg:mx-0 lg:text-[64px]">
               {title}{' '}
+              {/* W85 — solid accent rather than clipped gradient text. Per-hub
+                  heroes use their 300-level accent; the generic hero uses
+                  --hub-accent-on-dark (livery accent, lightened only where it
+                  is too dark to read on the hero ground). */}
               {acc ? (
-                <span className={`bg-gradient-to-r bg-clip-text text-transparent ${acc.grad}`}>{titleAccent}</span>
+                <span className={acc.text}>{titleAccent}</span>
               ) : (
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: 'linear-gradient(120deg, var(--hub-accent) 0%, var(--hub-accent-deep) 100%)' }}
-                >
-                  {titleAccent}
-                </span>
+                <span style={{ color: 'var(--hub-accent-on-dark)' }}>{titleAccent}</span>
               )}
             </h1>
 

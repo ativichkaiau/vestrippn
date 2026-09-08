@@ -684,26 +684,16 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              className="relative overflow-hidden rounded-[32px] lg:rounded-[44px] border border-[#c59955]/25 p-6 text-white shadow-[0_30px_80px_rgba(6,3,21,0.5)] sm:p-8 lg:p-12"
-              style={{ background: 'linear-gradient(140deg, #1c0d54 0%, #10062f 55%, #0a0322 100%)' }}
+              className="relative overflow-hidden rounded-[12px] border border-[#c59955]/25 p-6 text-white sm:p-8 lg:p-12"
+              style={{ background: '#120733' }}
             >
-              {/* Williams livery motif — pinstripes + gold/red glow */}
-              <div
+              {/* W85 — flat ground, one gold hairline. The Williams pinstripes,
+                  gold/red glows and wing-band trim are retired; the heritage
+                  tier reads through its gold accent instead. */}
+              <span
                 aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  backgroundImage: [
-                    'repeating-linear-gradient(180deg, rgba(255,255,255,0.045) 0, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 8px)',
-                    'radial-gradient(circle at 10% -20%, rgba(197,153,85,0.30), transparent 44%)',
-                    'radial-gradient(ellipse at 105% 120%, rgba(213,23,45,0.16), transparent 52%)',
-                  ].join(', '),
-                }}
-              />
-              {/* wing-band trim down the right edge */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute right-0 top-0 h-full w-2 sm:w-3"
-                style={{ background: 'linear-gradient(180deg, #ffffff 0 42%, #c59955 42% 60%, #d5172d 60% 74%, transparent 74%)' }}
+                className="pointer-events-none absolute left-0 top-0 h-px w-20"
+                style={{ background: '#c59955' }}
               />
 
               <div className="relative">

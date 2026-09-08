@@ -1928,3 +1928,164 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   --w09-text:#f0f9ff; --w09-text-muted:#a9cfe6; --w09-accent-primary:#0090d4; --w09-accent-secondary:#ec0080; --w09-accent-tertiary:#ff66b4;
   --w09-accent-contrast:#061524; --w09-success:#0090d4; --w09-danger:#ec0080; --w09-focus-ring:#0090d4; --w09-shadow:0 10px 38px rgba(0, 0, 0, 0.58);
 }
+
+/* ████████████████████████████████████████████████████████████████████████
+   W85 — MARK 85 MINIMAL
+   Succeeds the W11/W12 clay cockpit. Mk85 read as restraint, not spectacle:
+   flat matte surfaces, hairline edges, tight radii, one accent used sparingly,
+   and no ambient theatre (no neumorphic bloom, atmosphere weave, or blur).
+
+   Implemented at the TOKEN layer on purpose — the clay engine above is entirely
+   token-driven, so neutralising its tokens flattens every page at once instead
+   of rewriting ~375 lines of !important rules or 17 page files. Liveries keep
+   driving --hub-accent, so the F1 skins still theme; they just stop shouting.
+   ████████████████████████████████████████████████████████████████████████ */
+
+:root {
+  /* hairlines + matte surfaces (light) */
+  --w85-line: rgba(16, 18, 21, 0.10);
+  --w85-line-strong: rgba(16, 18, 21, 0.16);
+  --w85-canvas: #f7f7f8;
+  --w85-surface: #ffffff;
+  --w85-radius: 12px;
+  --w85-radius-sm: 8px;
+
+  /* ── flatten the clay engine ── */
+  --w10-canvas: var(--w85-canvas);
+  --w10-clay: var(--w85-surface);
+  --w10-clay-raised: var(--w85-surface);
+  --w10-clay-inset: var(--w85-surface);
+  --w10-clay-edge: var(--w85-line);
+  --w10-clay-highlight: transparent;
+  --w10-clay-shadow: transparent;
+  --w10-clay-shadow-deep: transparent;
+  --w10-clay-shadow-soft: none;
+  --w10-clay-shadow-raised: none;
+  --w10-clay-shadow-pressed: none;
+  --w10-hero-shadow: transparent;
+  --w10-radius-panel: var(--w85-radius);
+  --w10-radius-control: var(--w85-radius-sm);
+  /* !important so per-livery atmospheres (html.monza etc.) also fall silent */
+  --w11-atmosphere: none !important;
+}
+
+.dark {
+  --w85-line: rgba(255, 255, 255, 0.09);
+  --w85-line-strong: rgba(255, 255, 255, 0.15);
+  --w85-canvas: #08090a;
+  --w85-surface: #101113;
+
+  --w10-canvas: var(--w85-canvas);
+  --w10-clay: var(--w85-surface);
+  --w10-clay-raised: var(--w85-surface);
+  --w10-clay-inset: var(--w85-surface);
+  --w10-clay-edge: var(--w85-line);
+  --w10-clay-highlight: transparent;
+  --w10-clay-shadow: transparent;
+  --w10-clay-shadow-deep: transparent;
+  --w10-clay-shadow-soft: none;
+  --w10-clay-shadow-raised: none;
+  --w10-clay-shadow-pressed: none;
+  --w10-hero-shadow: transparent;
+}
+
+/* Matte page ground — no weave, no glow, no fixed parallax. */
+.w10-clay-shell > :where([class*="h-screen"]) {
+  background-color: var(--w85-canvas) !important;
+  background-image: none !important;
+}
+
+/* Every clay surface becomes a flat card with a hairline. */
+.w10-clay-surface,
+.w10-clay-control,
+.w10-clay-inset,
+.w10-clay-rail,
+.w10-clay-dock,
+.w10-clay-tab,
+.w10-clay-shell main :where(
+  [class*="bg-white/40"][class*="rounded-"],
+  [class*="bg-white/45"][class*="rounded-"],
+  [class*="bg-white/55"][class*="rounded-"],
+  [class*="bg-white/60"][class*="rounded-"],
+  [class*="bg-white/65"][class*="rounded-"],
+  [class*="bg-white/70"][class*="rounded-"]
+) {
+  background: var(--w85-surface) !important;
+  background-image: none !important;
+  border-color: var(--w85-line) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Header + rail: hairline separators only. */
+.w10-clay-shell > :where([class*="h-screen"]) > header,
+.w10-clay-rail {
+  background: var(--w85-surface) !important;
+  background-image: none !important;
+  border-color: var(--w85-line) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Kill blur + heavy ambient shadow everywhere inside the shell. */
+.w10-clay-shell [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.w10-clay-shell main [class*="shadow-["] {
+  box-shadow: none !important;
+}
+
+/* Pillow radii → tight, precise corners (leave rounded-full pills alone). */
+.w10-clay-shell :where(
+  [class*="rounded-[18px]"], [class*="rounded-[20px]"], [class*="rounded-[22px]"],
+  [class*="rounded-[24px]"], [class*="rounded-[26px]"], [class*="rounded-[28px]"],
+  [class*="rounded-[32px]"], [class*="rounded-[36px]"], [class*="rounded-[40px]"],
+  [class*="rounded-[44px]"]
+) {
+  border-radius: var(--w85-radius) !important;
+}
+
+/* The hub hero: one flat panel, hairline edge, no accent bloom. */
+.w10-clay-hero {
+  background: var(--w85-surface) !important;
+  background-image: none !important;
+  border-color: var(--w85-line) !important;
+  box-shadow: none !important;
+}
+.dark .w10-clay-hero,
+.w10-clay-hero.dark {
+  background: #0d0e10 !important;
+}
+
+/* Ambient decoration retired: the big blurred colour blobs behind each hub.
+   Guarded with :not([class*="backdrop-blur"]) — Tailwind's backdrop utilities
+   share the "blur-*" substring, and matching those would hide real chrome
+   (the header and mobile dock both use backdrop-blur). */
+.w10-clay-shell [class*="blur-["]:not([class*="backdrop-blur"]),
+.w10-clay-shell [class*="blur-3xl"]:not([class*="backdrop-blur"]),
+.w10-clay-shell [class*="blur-2xl"]:not([class*="backdrop-blur"]) {
+  display: none !important;
+}
+
+/* Quieter typography: dial back the shouty tracking/weight of the cockpit era. */
+.w10-clay-shell main :where(h1, h2, h3) {
+  letter-spacing: -0.02em;
+}
+.w10-clay-shell [class*="tracking-[0.3em]"],
+.w10-clay-shell [class*="tracking-[0.42em]"],
+.w10-clay-shell [class*="tracking-[0.34em]"] {
+  letter-spacing: 0.16em !important;
+}
+
+/* ── Accent legibility on the dark hero ──
+   The hero ground is flat #0d0e10, and the hero headline paints its accent
+   word in --hub-accent. Most liveries clear WCAG comfortably there (mint 10.1:1,
+   Senna yellow 13.5:1, JPS gold 9.2:1), but Ferrari's deep red #a80814 lands at
+   2.5:1 — failing even the 3:1 large-text floor. So text on the dark hero reads
+   --hub-accent-on-dark, which defaults to the livery accent and is only
+   overridden where the accent is too dark to read. */
+:root { --hub-accent-on-dark: var(--hub-accent); }
+html.ferrari { --hub-accent-on-dark: #ef4a56; } /* 5.3:1 on the hero ground */

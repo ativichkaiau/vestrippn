@@ -317,17 +317,7 @@ function CasesIntro({ cycle }: { cycle: string }) {
         transition={{ duration: 6, ease: 'easeInOut', delay: 0.6 }}
       />
 
-      {/* Telemetry grid */}
-      <div
-        className="absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-          backgroundSize: '46px 46px',
-          maskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 78%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 78%)',
-        }}
-      />
+      {/* W85 — the telemetry grid is retired; the ground stays flat. */}
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Icon */}
