@@ -1952,7 +1952,7 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   --w85-line-strong: rgba(16, 18, 21, 0.16);
   --w85-canvas: #f7f7f8;
   --w85-surface: #ffffff;
-  --w85-grid: rgba(16, 18, 21, 0.045);
+  --w85-grid: rgba(16, 18, 21, 0.075);
   --w85-radius: 12px;
   --w85-radius-sm: 8px;
 
@@ -1980,7 +1980,7 @@ html.alpine .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color:
   --w85-line-strong: rgba(255, 255, 255, 0.15);
   --w85-canvas: #08090a;
   --w85-surface: #101113;
-  --w85-grid: rgba(255, 255, 255, 0.045);
+  --w85-grid: rgba(255, 255, 255, 0.075);
 
   --w10-canvas: var(--w85-canvas);
   --w10-clay: var(--w85-surface);
@@ -2282,7 +2282,7 @@ html.ferrari { --hub-accent-on-dark: #ef4a56; } /* 5.3:1 on the hero ground */
 
 @keyframes w85LiveryDrift {
   0%, 100% { translate: 0 0; }
-  50% { translate: 0 -8px; }
+  50% { translate: 12px -24px; }
 }
 
 @keyframes w85TelemetryTicks {
@@ -2296,10 +2296,10 @@ html.ferrari { --hub-accent-on-dark: #ef4a56; } /* 5.3:1 on the hero ground */
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w85-final-scan { animation: w85FinalScan 9s ease-in-out infinite paused; }
-  .w85-livery-art { animation: w85LiveryDrift 12s ease-in-out infinite paused; }
+  .w85-final-scan { animation: w85FinalScan 4.5s ease-in-out infinite paused; }
+  .w85-livery-art { animation: w85LiveryDrift 7s ease-in-out infinite paused; }
   .w85-livery-ticks { animation: w85TelemetryTicks 5s ease-in-out infinite paused; }
-  .w10-brand-mark img { animation: w85MarkSheen 6s ease-in-out infinite paused; }
+  .w10-brand-mark img { animation: w85MarkSheen 3.4s ease-in-out infinite paused, w85IconFloat 4.8s ease-in-out infinite paused; }
 
   [data-w85-active] > .w85-motion-chrome .w85-final-scan,
   [data-w85-active] [data-w85-in-view] :is(.w85-livery-art, .w85-livery-ticks),
@@ -2334,11 +2334,11 @@ html.low-power .w85-motion-chrome { display: none; }
   content: "";
   position: absolute;
   top: 5%;
-  right: -70px;
-  width: 360px;
-  height: 440px;
+  right: -90px;
+  width: 620px;
+  height: 520px;
   opacity: 0;
-  background: radial-gradient(ellipse, rgba(var(--hub-accent-rgb), 0.2), transparent 68%);
+  background: radial-gradient(ellipse, rgba(var(--hub-accent-rgb), 0.32), transparent 68%);
 }
 .w85-livery-cap::after {
   content: "";
@@ -2366,7 +2366,7 @@ html.low-power .w85-motion-chrome { display: none; }
 }
 @keyframes w85LiveryGlow {
   0%, 100% { transform: translate(0, 0) scale(0.9); opacity: 0.45; }
-  50% { transform: translate(-28px, 24px) scale(1.12); opacity: 1; }
+  50% { transform: translate(-70px, 40px) scale(1.16); opacity: 1; }
 }
 @keyframes w85LiveryFlow {
   from { stroke-dashoffset: 100; opacity: 0.9; }
@@ -2380,10 +2380,10 @@ html.low-power .w85-motion-chrome { display: none; }
 @media (prefers-reduced-motion: no-preference) {
   .w85-motion-chrome::before { animation: w85EdgeTrail 10s linear infinite paused; }
   .w85-motion-chrome::after { animation: w85EdgeTrail 12s linear -6s infinite reverse paused; }
-  .w85-livery-decoration::before { animation: w85LiveryGlow 9s ease-in-out infinite paused; }
-  .w85-livery-cap::after { animation: w85FinalScan 6s ease-in-out -2s infinite paused; }
-  .w85-livery-flow { animation: w85LiveryFlow 8s linear infinite paused; }
-  .w85-livery-flow-secondary { animation-delay: -4s; animation-duration: 11s; }
+  .w85-livery-decoration::before { animation: w85LiveryGlow 6s ease-in-out infinite paused; }
+  .w85-livery-cap::after { animation: w85FinalScan 3.5s ease-in-out -2s infinite paused; }
+  .w85-livery-flow { animation: w85LiveryFlow 4s linear infinite paused; }
+  .w85-livery-flow-secondary { animation-delay: -2s; animation-duration: 5.5s; }
   .w85-panel-accent::before { animation: w85AccentGlide 6s ease-in-out infinite paused; transform-origin: left; }
   .w10-clay-rail::before { animation: w85TelemetryTicks 7s ease-in-out -3s infinite paused; }
 
@@ -2394,4 +2394,127 @@ html.low-power .w85-motion-chrome { display: none; }
   [data-w85-active] [data-w85-in-view] .w85-livery-flow,
   [data-w85-active] .w85-panel-accent[data-w85-in-view]::before,
   [data-w85-active] .w10-clay-rail[data-w85-in-view]::before { animation-play-state: running; }
+}
+
+/* The fuller W85 motion treatment keeps every label and input stationary.
+   Rings, beams, borders and symbols carry the motion around the content. */
+@property --w85-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.w85-livery-orbits {
+  position: absolute;
+  width: min(48%, 460px);
+  height: auto;
+  top: -80px;
+  right: -24px;
+  stroke: var(--hub-accent-on-dark);
+  stroke-width: 1.6;
+  opacity: 0.6;
+}
+.w85-orbit-outer,
+.w85-orbit-inner { transform-origin: 180px 180px; }
+.w85-orbit-inner { stroke: rgb(var(--hub-secondary-rgb)); stroke-width: 2.5; }
+.w85-orbit-node { fill: var(--hub-accent-on-dark); stroke: none; }
+
+.w85-livery-decoration::after {
+  content: "";
+  position: absolute;
+  inset: -30% auto -30% -35%;
+  width: 28%;
+  background: linear-gradient(90deg, transparent, rgba(var(--hub-accent-rgb), 0.22), rgba(255, 255, 255, 0.12), transparent);
+  opacity: 0;
+}
+.w85-livery-equalizer {
+  position: absolute;
+  left: 52px;
+  bottom: 15px;
+  height: 22px;
+  display: flex;
+  align-items: end;
+  gap: 4px;
+}
+.w85-livery-equalizer > span {
+  width: 3px;
+  height: 100%;
+  background: var(--hub-accent-on-dark);
+  opacity: 0.65;
+  transform: scaleY(0.3);
+  transform-origin: bottom;
+}
+
+.w10-clay-shell [data-w85-ambient-card] { position: relative; }
+@supports (mask-composite: exclude) {
+  .w10-clay-shell [data-w85-ambient-card]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: conic-gradient(from var(--w85-border-angle), transparent 12%, var(--hub-accent) 28%, transparent 42% 62%, rgb(var(--hub-secondary-rgb)) 78%, transparent 92%);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    transform: none;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+}
+
+@keyframes w85OrbitSpin { to { transform: rotate(360deg); } }
+@keyframes w85BorderOrbit { to { --w85-border-angle: 360deg; } }
+@keyframes w85HeroBeam {
+  0% { transform: translateX(0) skewX(-18deg); opacity: 0; }
+  18%, 65% { opacity: 1; }
+  100% { transform: translateX(510%) skewX(-18deg); opacity: 0; }
+}
+@keyframes w85Equalizer {
+  0%, 100% { transform: scaleY(0.2); }
+  35% { transform: scaleY(0.9); }
+  65% { transform: scaleY(0.45); }
+  85% { transform: scaleY(1); }
+}
+@keyframes w85IconFloat {
+  0%, 100% { translate: 0 0; rotate: -3deg; }
+  50% { translate: 0 -4px; rotate: 4deg; }
+}
+@keyframes w85GridTravel {
+  from { background-position: right top, 24px 24px, 0 0, 0 0; }
+  to { background-position: right top, 72px 72px, 48px 48px, 48px 48px; }
+}
+
+@media (max-width: 639px) {
+  .w85-livery-orbits { width: 290px; top: -58px; right: -95px; opacity: 0.42; }
+  .w85-livery-equalizer { left: 36px; height: 16px; bottom: 10px; gap: 3px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w85-orbit-outer { animation: w85OrbitSpin 12s linear infinite paused; }
+  .w85-orbit-inner { animation: w85OrbitSpin 8s linear infinite reverse paused; }
+  .w85-livery-decoration::after { animation: w85HeroBeam 5s ease-in-out -1s infinite paused; }
+  .w85-livery-equalizer > span { animation-name: w85Equalizer; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
+  .w85-nav-icon { animation: w85IconFloat 3.6s ease-in-out infinite paused; }
+  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 1) .w85-nav-icon { animation-delay: -1.2s; }
+  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 2) .w85-nav-icon { animation-delay: -2.4s; }
+
+  .motion-route-shell main {
+    animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both, w85GridTravel 10s linear infinite;
+    animation-play-state: running, paused;
+  }
+  [data-w85-active] main { animation-play-state: running, running; }
+
+  @supports (mask-composite: exclude) {
+    .w10-clay-shell [data-w85-ambient-card]::after { animation: w85BorderOrbit 4.8s linear infinite paused; opacity: 0.8; }
+    .w10-clay-shell [data-w85-ambient-card="1"]::after { animation-delay: -1.2s; }
+    .w10-clay-shell [data-w85-ambient-card="2"]::after { animation-delay: -2.4s; }
+    .w10-clay-shell [data-w85-ambient-card="3"]::after { animation-delay: -3.6s; }
+    [data-w85-active] [data-w85-ambient-card][data-w85-in-view]::after { animation-play-state: running; }
+    .w10-clay-shell [data-w85-ambient-card]:focus-within::after { animation-play-state: paused; opacity: 0.35; }
+  }
+
+  [data-w85-active] .w85-livery-decoration[data-w85-in-view]::after,
+  [data-w85-active] [data-w85-in-view] :is(.w85-orbit-outer, .w85-orbit-inner, .w85-nav-icon),
+  [data-w85-active] [data-w85-in-view] .w85-livery-equalizer > span { animation-play-state: running; }
 }

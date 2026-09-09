@@ -89,7 +89,7 @@ export function NavRail({ active, expanded, onToggle }: { active: HubName; expan
                   <span className={`w09-active-bar absolute left-[3px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full ${theme.bar}`} />
                 )}
                 <span
-                  className={`text-[18px] shrink-0 leading-none transition-transform duration-300 ${
+                  className={`w85-nav-icon text-[18px] shrink-0 leading-none transition-transform duration-300 ${
                     isActive ? theme.icon : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'
                   }`}
                 >
@@ -158,7 +158,7 @@ export function MobileHubNav({ active }: { active: HubName }) {
             }`}
           >
             {isActive && <span className={`h-1.5 w-1.5 rounded-full ${theme.bar}`} />}
-            <span className={`text-[14px] leading-none ${isActive ? theme.icon : ''}`}>{item.icon}</span>
+            <span className={`w85-nav-icon text-[14px] leading-none ${isActive ? theme.icon : ''}`}>{item.icon}</span>
             <span className="whitespace-nowrap text-[10px] font-bold tracking-tight">{item.name}</span>
           </Link>
         );

@@ -10,7 +10,8 @@ const REVEAL_SELECTOR = [
   'main div[class*="rounded-"][class*="border"]',
   'main a[class*="rounded-"][class*="border"]',
 ].join(',');
-const IDLE_SELECTOR = '.w85-livery-decoration, .w10-brand-mark, .w85-panel-accent, .w10-clay-rail';
+const CARD_SELECTOR = 'main :is(section, article, div, a)[class*="rounded-"][class*="border"], main [data-motion-card]';
+const IDLE_SELECTOR = `.w85-livery-decoration, .w10-brand-mark, .w85-panel-accent, .w10-clay-rail, .w10-clay-dock, ${CARD_SELECTOR}`;
 const EXCLUDED = 'dialog, [role="dialog"], [class~="fixed"], nav, aside, [contenteditable="true"], [data-w85-reveal="off"]';
 
 /** Progressive enhancement: content is never hidden while waiting for JS. */
@@ -36,6 +37,7 @@ export function usePageMotion(
     let scrollport: HTMLElement | null = null;
     let scrollFrame = 0;
     let scanFrame = 0;
+    let cardPhase = 0;
 
     const finish = (element: HTMLElement, animation: Animation) => {
       if (animations.get(element) !== animation) return;
@@ -85,8 +87,20 @@ export function usePageMotion(
     }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
 
     const idleVisibility = new IntersectionObserver((entries) => {
+      entries.sort((a, b) => a.target.compareDocumentPosition(b.target) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
       for (const entry of entries) {
-        entry.target.toggleAttribute('data-w85-in-view', entry.isIntersecting);
+        const element = entry.target as HTMLElement;
+        element.toggleAttribute('data-w85-in-view', entry.isIntersecting);
+        // Illuminate substantial card perimeters, once per nested card group.
+        // Inputs, floating menus and entire page containers stay untouched.
+        if (element.matches(CARD_SELECTOR) && !element.hasAttribute('data-w85-ambient-card') &&
+          !element.matches('[data-motion="hero"]') && !element.closest(EXCLUDED) &&
+          !element.parentElement?.closest('[data-w85-ambient-card]') &&
+          entry.boundingClientRect.width >= 200 && entry.boundingClientRect.height >= 90 &&
+          entry.boundingClientRect.height <= 900 &&
+          !['absolute', 'fixed', 'sticky'].includes(getComputedStyle(element).position)) {
+          element.dataset.w85AmbientCard = String(cardPhase++ % 4);
+        }
       }
     });
 
@@ -217,7 +231,10 @@ export function usePageMotion(
       for (const animation of animations.values()) animation.cancel();
       animations.clear();
       for (const element of registered) delete element.dataset.w85RevealState;
-      for (const element of idle) element.removeAttribute('data-w85-in-view');
+      for (const element of idle) {
+        element.removeAttribute('data-w85-in-view');
+        element.removeAttribute('data-w85-ambient-card');
+      }
       shell.removeAttribute('data-w85-active');
       shell.removeAttribute('data-w85-scrollable');
       progress.style.transform = 'scaleX(0)';
