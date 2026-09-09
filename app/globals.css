@@ -2310,3 +2310,88 @@ html.ferrari { --hub-accent-on-dark: #ef4a56; } /* 5.3:1 on the hero ground */
   .w85-motion-chrome { display: none; }
 }
 html.low-power .w85-motion-chrome { display: none; }
+
+/* Ambient W85 detail: small edge trails, illuminated livery and card caps.
+   Reuse the visibility observer so offscreen decorations stop working. */
+.w85-motion-chrome::before,
+.w85-motion-chrome::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 24%;
+  opacity: 0;
+  background: linear-gradient(transparent, var(--hub-accent), transparent);
+}
+.w85-motion-chrome::after {
+  left: auto;
+  right: 0;
+  background: linear-gradient(transparent, rgb(var(--hub-secondary-rgb)), transparent);
+}
+
+.w85-livery-decoration::before {
+  content: "";
+  position: absolute;
+  top: 5%;
+  right: -70px;
+  width: 360px;
+  height: 440px;
+  opacity: 0;
+  background: radial-gradient(ellipse, rgba(var(--hub-accent-rgb), 0.2), transparent 68%);
+}
+.w85-livery-cap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -28%;
+  width: 28%;
+  height: 100%;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+}
+.w85-livery-flow {
+  stroke: var(--hub-accent-on-dark);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 14 86;
+  opacity: 0;
+}
+.w85-livery-flow-secondary { stroke: rgb(var(--hub-secondary-rgb)); }
+
+@keyframes w85EdgeTrail {
+  0% { transform: translateY(-100%); opacity: 0; }
+  18%, 75% { opacity: 0.75; }
+  100% { transform: translateY(420%); opacity: 0; }
+}
+@keyframes w85LiveryGlow {
+  0%, 100% { transform: translate(0, 0) scale(0.9); opacity: 0.45; }
+  50% { transform: translate(-28px, 24px) scale(1.12); opacity: 1; }
+}
+@keyframes w85LiveryFlow {
+  from { stroke-dashoffset: 100; opacity: 0.9; }
+  to { stroke-dashoffset: 0; opacity: 0.9; }
+}
+@keyframes w85AccentGlide {
+  0%, 100% { transform: translateX(0) scaleX(0.85); opacity: 0.5; }
+  50% { transform: translateX(22px) scaleX(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w85-motion-chrome::before { animation: w85EdgeTrail 10s linear infinite paused; }
+  .w85-motion-chrome::after { animation: w85EdgeTrail 12s linear -6s infinite reverse paused; }
+  .w85-livery-decoration::before { animation: w85LiveryGlow 9s ease-in-out infinite paused; }
+  .w85-livery-cap::after { animation: w85FinalScan 6s ease-in-out -2s infinite paused; }
+  .w85-livery-flow { animation: w85LiveryFlow 8s linear infinite paused; }
+  .w85-livery-flow-secondary { animation-delay: -4s; animation-duration: 11s; }
+  .w85-panel-accent::before { animation: w85AccentGlide 6s ease-in-out infinite paused; transform-origin: left; }
+  .w10-clay-rail::before { animation: w85TelemetryTicks 7s ease-in-out -3s infinite paused; }
+
+  [data-w85-active] > .w85-motion-chrome::before,
+  [data-w85-active] > .w85-motion-chrome::after,
+  [data-w85-active] .w85-livery-decoration[data-w85-in-view]::before,
+  [data-w85-active] [data-w85-in-view] .w85-livery-cap::after,
+  [data-w85-active] [data-w85-in-view] .w85-livery-flow,
+  [data-w85-active] .w85-panel-accent[data-w85-in-view]::before,
+  [data-w85-active] .w10-clay-rail[data-w85-in-view]::before { animation-play-state: running; }
+}

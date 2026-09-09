@@ -10,7 +10,7 @@ const REVEAL_SELECTOR = [
   'main div[class*="rounded-"][class*="border"]',
   'main a[class*="rounded-"][class*="border"]',
 ].join(',');
-const IDLE_SELECTOR = '.w85-livery-decoration, .w10-brand-mark';
+const IDLE_SELECTOR = '.w85-livery-decoration, .w10-brand-mark, .w85-panel-accent, .w10-clay-rail';
 const EXCLUDED = 'dialog, [role="dialog"], [class~="fixed"], nav, aside, [contenteditable="true"], [data-w85-reveal="off"]';
 
 /** Progressive enhancement: content is never hidden while waiting for JS. */
