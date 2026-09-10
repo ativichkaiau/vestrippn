@@ -11,7 +11,8 @@ const REVEAL_SELECTOR = [
   'main a[class*="rounded-"][class*="border"]',
 ].join(',');
 const CARD_SELECTOR = 'main :is(section, article, div, a)[class*="rounded-"][class*="border"], main [data-motion-card]';
-const IDLE_SELECTOR = `.w85-livery-decoration, .w10-brand-mark, .w85-panel-accent, .w10-clay-rail, .w10-clay-dock, ${CARD_SELECTOR}`;
+const HEADING_SELECTOR = 'main h1, main h2';
+const IDLE_SELECTOR = `.w85-livery-decoration, .w10-brand-mark, .w85-panel-accent, .w10-clay-rail, .w10-clay-dock, header, ${HEADING_SELECTOR}, ${CARD_SELECTOR}`;
 const EXCLUDED = 'dialog, [role="dialog"], [class~="fixed"], nav, aside, [contenteditable="true"], [data-w85-reveal="off"]';
 
 /** Progressive enhancement: content is never hidden while waiting for JS. */
@@ -91,6 +92,12 @@ export function usePageMotion(
       for (const entry of entries) {
         const element = entry.target as HTMLElement;
         element.toggleAttribute('data-w85-in-view', entry.isIntersecting);
+        if (element.matches(HEADING_SELECTOR) && !element.closest(`${EXCLUDED}, button, a, summary`) &&
+          entry.boundingClientRect.width >= 120 && entry.boundingClientRect.height >= 20 &&
+          ['static', 'relative'].includes(getComputedStyle(element).position) &&
+          ['none', 'normal'].includes(getComputedStyle(element, '::after').content)) {
+          element.setAttribute('data-w85-heading', '');
+        }
         // Illuminate substantial card perimeters, once per nested card group.
         // Inputs, floating menus and entire page containers stay untouched.
         if (element.matches(CARD_SELECTOR) && !element.hasAttribute('data-w85-ambient-card') &&
@@ -100,6 +107,12 @@ export function usePageMotion(
           entry.boundingClientRect.height <= 900 &&
           !['absolute', 'fixed', 'sticky'].includes(getComputedStyle(element).position)) {
           element.dataset.w85AmbientCard = String(cardPhase++ % 4);
+          // Preserve component-owned artwork; the shared accent cap is safe
+          // to incorporate into a larger decorative surface.
+          if (element.matches('.w85-panel-accent') ||
+            ['none', 'normal'].includes(getComputedStyle(element, '::before').content)) {
+            element.setAttribute('data-w85-card-wash', '');
+          }
         }
       }
     });
@@ -234,6 +247,8 @@ export function usePageMotion(
       for (const element of idle) {
         element.removeAttribute('data-w85-in-view');
         element.removeAttribute('data-w85-ambient-card');
+        element.removeAttribute('data-w85-card-wash');
+        element.removeAttribute('data-w85-heading');
       }
       shell.removeAttribute('data-w85-active');
       shell.removeAttribute('data-w85-scrollable');

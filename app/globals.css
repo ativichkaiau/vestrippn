@@ -2518,3 +2518,134 @@ html.low-power .w85-motion-chrome { display: none; }
   [data-w85-active] [data-w85-in-view] :is(.w85-orbit-outer, .w85-orbit-inner, .w85-nav-icon),
   [data-w85-active] [data-w85-in-view] .w85-livery-equalizer > span { animation-play-state: running; }
 }
+
+/* Persistent motion beyond the hero: circuit currents frame every route,
+   while headings and visible content cards carry their own ambient accents. */
+.w85-ambient-circuit { position: absolute; inset: 0; overflow: hidden; }
+.w85-ambient-circuit > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.w85-ambient-circuit path { vector-effect: non-scaling-stroke; }
+.w85-circuit-rail { stroke: rgba(var(--hub-accent-rgb), 0.14); stroke-width: 1; }
+.w85-circuit-current {
+  stroke: var(--hub-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 9 91;
+  opacity: 0.65;
+}
+.w85-ambient-circuit g:nth-child(even) .w85-circuit-current { stroke: rgb(var(--hub-secondary-rgb)); }
+.w85-circuit-beacons { fill: var(--hub-accent); opacity: 0.45; }
+.w85-circuit-aura {
+  position: absolute;
+  width: min(48vw, 620px);
+  height: min(70vh, 620px);
+  border-radius: 50%;
+  opacity: 0.65;
+}
+.w85-circuit-aura-primary {
+  right: -20%;
+  top: 6%;
+  background: radial-gradient(ellipse, rgba(var(--hub-accent-rgb), 0.16), transparent 68%);
+}
+.w85-circuit-aura-secondary {
+  left: -20%;
+  bottom: 0;
+  background: radial-gradient(ellipse, rgba(var(--hub-secondary-rgb), 0.14), transparent 68%);
+}
+.w85-circuit-ribbon {
+  position: absolute;
+  width: clamp(100px, 18vw, 240px);
+  height: 9px;
+  background: repeating-linear-gradient(115deg, var(--hub-accent) 0 3px, transparent 3px 12px);
+  opacity: 0.32;
+  mask-image: linear-gradient(90deg, transparent, #000 20% 80%, transparent);
+}
+.w85-circuit-ribbon-top { top: 8px; right: 8%; }
+.w85-circuit-ribbon-bottom { bottom: 8px; left: 10%; }
+
+.w10-clay-shell [data-w85-heading] { position: relative; }
+.w10-clay-shell [data-w85-heading]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: min(35%, 104px);
+  height: 2px;
+  border-radius: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--hub-accent), transparent 40% 52%, rgb(var(--hub-secondary-rgb)) 66%, transparent 90%);
+  background-size: 220% 100%;
+  transform-origin: left;
+  opacity: 0.7;
+}
+
+.w10-clay-shell [data-w85-card-wash]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  border-radius: inherit;
+  pointer-events: none;
+  transform: none;
+  background-image:
+    linear-gradient(110deg, var(--hub-accent) 58%, transparent 58% 65%, rgb(var(--hub-secondary-rgb)) 65% 84%, transparent 84% 91%, var(--hub-accent) 91%),
+    linear-gradient(110deg, transparent 20%, rgba(var(--hub-accent-rgb), 0.11) 45%, rgba(var(--hub-secondary-rgb), 0.07) 55%, transparent 80%);
+  background-size: 76px 3px, 240% 100%;
+  background-position: 20px 0, 100% 0;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+}
+
+@keyframes w85CircuitCurrent { to { stroke-dashoffset: -100; } }
+@keyframes w85CircuitBeacon { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.8; } }
+@keyframes w85CircuitAura {
+  0%, 100% { transform: translate(0, 0) scale(0.85); opacity: 0.45; }
+  50% { transform: translate(-36px, 56px) scale(1.18); opacity: 1; }
+}
+@keyframes w85RibbonTravel { to { background-position: 48px 0; } }
+@keyframes w85HeadingSignal {
+  0%, 100% { background-position: 100% 0; transform: scaleX(0.65); }
+  50% { background-position: 0 0; transform: scaleX(1); }
+}
+@keyframes w85CardWash {
+  0%, 100% { background-position: 20px 0, 100% 0; }
+  50% { background-position: 48px 0, 0 0; }
+}
+@keyframes w85HeaderLivery {
+  0%, 100% { background-position: 0 0; }
+  50% { background-position: 100% 0; }
+}
+
+@media (max-width: 639px) {
+  .w85-circuit-current { stroke-width: 1.5; opacity: 0.45; }
+  .w85-circuit-rail { opacity: 0.5; }
+  .w85-circuit-aura { width: 90vw; height: 50vh; }
+  .w85-circuit-aura-primary { right: -65%; }
+  .w85-circuit-aura-secondary { left: -65%; }
+  .w85-circuit-ribbon { height: 6px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w85-circuit-current { animation: w85CircuitCurrent 5.2s linear infinite paused; animation-delay: inherit; }
+  .w85-circuit-beacons { animation: w85CircuitBeacon 3s ease-in-out infinite paused; }
+  .w85-circuit-aura { animation: w85CircuitAura 9s ease-in-out infinite paused; }
+  .w85-circuit-aura-secondary { animation-delay: -4.5s; animation-direction: reverse; }
+  .w85-circuit-ribbon { animation: w85RibbonTravel 2.4s linear infinite paused; }
+  .w85-circuit-ribbon-bottom { animation-direction: reverse; }
+  [data-w85-active] .w85-ambient-circuit :is(.w85-circuit-current, .w85-circuit-beacons, .w85-circuit-aura, .w85-circuit-ribbon) { animation-play-state: running; }
+
+  .w10-clay-shell [data-w85-heading]::after { animation: w85HeadingSignal 4s ease-in-out infinite paused; }
+  .w10-clay-shell [data-w85-card-wash]::before { animation: w85CardWash 6s ease-in-out infinite paused; }
+  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="1"]::before { animation-delay: -1.5s; }
+  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="2"]::before { animation-delay: -3s; }
+  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="3"]::before { animation-delay: -4.5s; }
+  [data-w85-active] [data-w85-heading][data-w85-in-view]::after,
+  [data-w85-active] [data-w85-card-wash][data-w85-in-view]::before { animation-play-state: running; }
+  .w10-clay-shell [data-w85-card-wash]:focus-within::before { animation-play-state: paused; opacity: 0.3; }
+
+  .w10-clay-shell > :where([class*="h-screen"]) > header::after {
+    background-size: 180% 100%;
+    animation: w85HeaderLivery 7s ease-in-out infinite paused;
+  }
+  [data-w85-active] > :where([class*="h-screen"]) > header[data-w85-in-view]::after { animation-play-state: running; }
+}

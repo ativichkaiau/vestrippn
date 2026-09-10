@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { routeTransition, routeVariants, w09Ease } from './motionPresets';
 import { useLowPower } from './useLowPower';
 import { usePageMotion } from './usePageMotion';
+import AmbientCircuit from './AmbientCircuit';
 import { vtSupported } from '@/lib/view-transition';
 
 const subscribeToCapability = () => () => {};
@@ -70,6 +71,7 @@ function MotionPage({ children, motionOff, routeMotionOff }: {
         />
       )}
       <div aria-hidden="true" className="w85-motion-chrome">
+        <AmbientCircuit />
         <span className="w85-final-scan" />
         <span className="w85-scroll-track"><span ref={progressRef} className="w85-scroll-fill" /></span>
       </div>
