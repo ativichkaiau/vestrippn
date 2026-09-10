@@ -1,5 +1,9 @@
-// Shared Canvas telemetry fetch. Used by the Academics page (server component)
-// and the Cockpit Intelligence assistant so both report the same live scores.
+// Shared Canvas telemetry fetch. Used by the Academics page (server component),
+// the Cockpit Intelligence assistant, and the W85 daily planner. The optional
+// user id lets the planner follow the courses a user has edited in Workspace;
+// existing callers without an id retain the established course set.
+
+import { getActiveCourses } from '@/lib/curriculum';
 
 // All tracked Canvas course ids (dashboard card + Academics hub read the same
 // list, so both show the same courses — full parity).
@@ -44,9 +48,15 @@ export interface CanvasTelemetry {
   subjects: CanvasSubject[];
   metrics: { quizzes: number; assignments: number };
   upcoming: UpcomingAssignment[];
+  deadlines: UpcomingAssignment[];
+  status: 'connected' | 'partial' | 'offline' | 'not-configured' | 'unknown';
+  syncedAt: string | null;
 }
 
-const EMPTY: CanvasTelemetry = { subjects: [], metrics: { quizzes: 0, assignments: 0 }, upcoming: [] };
+const EMPTY: CanvasTelemetry = {
+  subjects: [], metrics: { quizzes: 0, assignments: 0 }, upcoming: [], deadlines: [],
+  status: 'not-configured', syncedAt: null,
+};
 
 // Cache only SUCCESSFUL results (module-scoped, warm-instance). This runs on
 // every Academics render AND every assistant message (via buildHubContext), so
@@ -55,16 +65,33 @@ const EMPTY: CanvasTelemetry = { subjects: [], metrics: { quizzes: 0, assignment
 // token or transient Canvas error is retried on the next call and recovers the
 // instant the token is fixed — never a stale-empty screen for 5 minutes.
 const CACHE_TTL_MS = 5 * 60 * 1000;
-let telemetryCache: { at: number; data: CanvasTelemetry } | null = null;
+const telemetryCache = new Map<string, { at: number; data: CanvasTelemetry }>();
 
-export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
+export async function fetchCanvasTelemetry(userId?: string): Promise<CanvasTelemetry> {
   const token = process.env.CANVAS_TOKEN;
   const base = process.env.CANVAS_BASE_URL || 'https://mango-cmu.instructure.com';
 
   if (!token) return EMPTY;
-  if (telemetryCache && Date.now() - telemetryCache.at < CACHE_TTL_MS) {
-    return telemetryCache.data;
+
+  let configuredCourses = TARGET_COURSES;
+  let configuredLabels: Record<string, string> = { ...COURSE_LABEL };
+  if (userId) {
+    try {
+      const courses = await getActiveCourses(userId);
+      if (courses.length) {
+        configuredCourses = courses.map((course) => course.canvasCourseId).filter((id): id is string => Boolean(id));
+        configuredLabels = Object.fromEntries(courses.flatMap((course) => course.canvasCourseId ? [[course.canvasCourseId, course.code]] : []));
+      }
+    } catch (error) {
+      // A stale database must not blank Canvas telemetry; use the established
+      // fallback set while the curriculum endpoint reports the database error.
+      console.warn('[CANVAS] Curriculum lookup failed; using default courses.', error);
+    }
   }
+
+  const cacheKey = `${userId ?? 'default'}:${configuredCourses.join(',')}`;
+  const cached = telemetryCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.data;
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -79,7 +106,7 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
     const allCourses = await res.json();
 
     const courses = (Array.isArray(allCourses) ? allCourses : []).filter(
-      (c: any) => c.id && TARGET_COURSES.includes(c.id.toString())
+      (c: any) => c.id && configuredCourses.includes(c.id.toString())
     );
 
     // Global accumulators for the two summary metrics
@@ -124,7 +151,7 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
               upcoming.push({
                 id: a.id?.toString() ?? `${id}-${a.due_at}`,
                 courseId: id,
-                courseName: COURSE_LABEL[id] || c.course_code || c.name || id,
+                courseName: configuredLabels[id] || c.course_code || c.name || id,
                 name: a.name || 'Untitled assignment',
                 dueAt: a.due_at,
                 url: a.html_url,
@@ -148,19 +175,20 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
         }
 
         // Use a stable label when known, else Canvas's course_code (the number).
-        return { id, name: COURSE_LABEL[id] || c.course_code || c.name, progress };
+        return { id, name: configuredLabels[id] || c.course_code || c.name, progress };
       })
     );
 
     // Ensure every tracked course appears even if Canvas didn't return it, so
     // the dashboard and Academics hub always show the same set (full parity).
     const returned = new Set(subjects.map((s) => s.id));
-    for (const id of TARGET_COURSES) {
-      if (!returned.has(id)) subjects.push({ id, name: COURSE_FALLBACK[id] || id, progress: null });
+    for (const id of configuredCourses) {
+      if (!returned.has(id)) subjects.push({ id, name: configuredLabels[id] || COURSE_FALLBACK[id] || id, progress: null });
     }
 
     upcoming.sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
 
+    const partial = courses.length !== configuredCourses.length;
     const data: CanvasTelemetry = {
       subjects,
       metrics: {
@@ -168,13 +196,16 @@ export async function fetchCanvasTelemetry(): Promise<CanvasTelemetry> {
         assignments: assTotal > 0 ? Math.round((assEarned / assTotal) * 100) : 0,
       },
       upcoming: upcoming.slice(0, 6),
+      deadlines: upcoming.slice(0, 6),
+      status: partial ? 'partial' : 'connected',
+      syncedAt: new Date().toISOString(),
     };
     // Cache only a real result (never the empty catch state), so an expired
     // token recovers on the next call instead of sticking for the TTL.
-    if (data.subjects.length > 0) telemetryCache = { at: Date.now(), data };
+    if (data.subjects.length > 0) telemetryCache.set(cacheKey, { at: Date.now(), data });
     return data;
   } catch (error) {
     console.error('[CANVAS] Telemetry sync failed:', error);
-    return EMPTY;
+    return { ...EMPTY, status: 'offline' };
   }
 }

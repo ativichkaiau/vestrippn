@@ -10,11 +10,11 @@ import MissionBlock from '../../components/MissionBlock';
 import { NavRail, MobileHubNav } from '../../components/HubNav';
 import HubIntro from '../../components/HubIntro';
 import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
-import FocusMode from '../../components/FocusMode';
 import BrandMark from '../../components/BrandMark';
 import AnkiTrend from '../../components/AnkiTrend';
 import { syncAnkiData } from '@/app/actions';
 import { HCVS_EXAM_TARGET, HGB_EXAM_TARGET, HRS_EXAM_TARGET } from '@/lib/exams';
+import type { ActiveExamData, CourseData } from '@/lib/curriculum-types';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
@@ -37,6 +37,8 @@ interface AcademicsProps {
     streak: number;
   };
   ankiHistory?: AnkiHistoryPoint[];
+  curriculumCourses?: CourseData[];
+  curriculumExams?: ActiveExamData[];
 }
 
 const DEFAULT_ANKI = { due: 0, new: 0, reviewedToday: 0, streak: 0 };
@@ -56,13 +58,28 @@ function isCompletedCanvasSubject(subject: Subject) {
   return COMPLETED_CANVAS_SUBJECT_IDS.has(subject.id) || COMPLETED_CANVAS_MATCHER.test(subject.name);
 }
 
-export default function AcademicsClient({ initialCanvasData, ankiData, ankiHistory = [] }: AcademicsProps) {
+export default function AcademicsClient({ initialCanvasData, ankiData, ankiHistory = [], curriculumCourses = [], curriculumExams = [] }: AcademicsProps) {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
+  const [nowMs, setNowMs] = useState(0);
   const secretExamPodBuffer = useRef('');
 
   const canvasData = initialCanvasData || { subjects: [], metrics: { quizzes: 0, assignments: 0 } };
   const canvasSubjects = canvasData.subjects;
+  const canvasUrlById = useMemo(() => new Map(curriculumCourses.flatMap((course) => course.canvasCourseId && course.canvasUrl ? [[course.canvasCourseId, course.canvasUrl] as const] : [])), [curriculumCourses]);
+  const examSchedule = useMemo<Exam[]>(() => {
+    if (curriculumExams.length) {
+      return curriculumExams.map((exam, index) => ({ name: exam.name, date: new Date(exam.scheduledAt), color: ['text-rose-500 dark:text-rose-400', 'text-cyan-500 dark:text-cyan-400', 'text-amber-500 dark:text-amber-400', 'text-emerald-500 dark:text-emerald-400'][index % 4] }));
+    }
+    return [
+      { name: 'HEN-2', date: new Date('2026-06-09T09:00:00'), color: 'text-pink-500 dark:text-pink-400' },
+      { name: 'HMS-2', date: new Date('2026-06-12T09:00:00'), color: 'text-neutral-400 dark:text-neutral-500' },
+      { name: 'HNS-2', date: new Date('2026-06-16T09:00:00'), color: 'text-blue-500 dark:text-blue-400' },
+      { name: 'HCVS-2', date: HCVS_EXAM_TARGET, color: 'text-rose-500 dark:text-rose-400' },
+      { name: 'HGB-2', date: HGB_EXAM_TARGET, color: 'text-emerald-500 dark:text-emerald-400' },
+      { name: 'HRS-2', date: HRS_EXAM_TARGET, color: 'text-cyan-500 dark:text-cyan-400' },
+    ];
+  }, [curriculumExams]);
   
   // 🚀 UPGRADE: Local State for Interactive Anki
   const [liveAnki, setLiveAnki] = useState(ankiData || DEFAULT_ANKI);
@@ -272,19 +289,12 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
   }, []);
 
   useEffect(() => {
-    const exams: Exam[] = [
-      { name: 'HEN-2', date: new Date('2026-06-09T09:00:00'), color: 'text-pink-500 dark:text-pink-400' },
-      { name: 'HMS-2', date: new Date('2026-06-12T09:00:00'), color: 'text-neutral-400 dark:text-neutral-500' },
-      { name: 'HNS-2', date: new Date('2026-06-16T09:00:00'), color: 'text-blue-500 dark:text-blue-400' },
-      { name: 'HCVS-2', date: HCVS_EXAM_TARGET, color: 'text-rose-500 dark:text-rose-400' },
-      { name: 'HGB-2', date: HGB_EXAM_TARGET, color: 'text-emerald-500 dark:text-emerald-400' },
-      { name: 'HRS-2', date: HRS_EXAM_TARGET, color: 'text-cyan-500 dark:text-cyan-400' },
-    ];
-
     const updateTimers = () => {
+      const now = Date.now();
+      setNowMs(now);
       const newTimers: { [key: string]: string } = {};
-      exams.forEach(exam => {
-        const diff = exam.date.getTime() - Date.now();
+      examSchedule.forEach(exam => {
+        const diff = exam.date.getTime() - now;
         if (diff > 0) {
           const d = Math.floor(diff / (1000 * 60 * 60 * 24));
           const h = Math.floor((diff / (1000 * 60 * 60)) % 24).toString().padStart(2, '0');
@@ -298,7 +308,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
     updateTimers();
     const tick = window.setInterval(updateTimers, 1000);
     return () => window.clearInterval(tick);
-  }, []);
+  }, [examSchedule]);
 
   return (
     <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
@@ -333,7 +343,14 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
         <div className="flex gap-4 lg:gap-6 items-center">
           <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
           <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
-          <FocusMode />
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('vest:focus-open'))}
+            className="hidden rounded-full border border-black/10 bg-white/70 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-widest text-neutral-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-neutral-200 dark:hover:bg-white/10 sm:inline-flex"
+            title="Open Focus Mode"
+          >
+            <span className="mr-2 text-sm">🏁</span> Focus
+          </button>
           <TopNavProfile />
           <ThemeToggle />
         </div>
@@ -383,7 +400,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
               contextItems={[
                 { label: 'Current mission', value: 'Post-exam consolidation' },
                 { label: 'Completed modules', value: 'HMS-2 · HNS-2 · HCVS-2 · HGB-2 · HRS-2' },
-                { label: 'Canvas courses', value: `${canvasSubjects.length} tracked` },
+                { label: 'Canvas courses', value: `${curriculumCourses.length || canvasSubjects.length} tracked` },
                 { label: 'Anki due', value: `${liveAnki.due} cards` },
               ]}
             />
@@ -400,31 +417,29 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                 initial="hidden" animate="visible"
                 variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
               >
-                {[
-                  { name: 'HEN-2', date: '09 JUN', time: '09:00', color: 'text-pink-500 dark:text-pink-400', done: true },
-                  { name: 'HMS-2', date: '12 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
-                  { name: 'HNS-2', date: '16 JUN', time: '09:00', color: 'text-neutral-400 dark:text-neutral-500', done: true },
-                  { name: 'HCVS-2', date: '04 AUG', time: '08:00', color: 'text-rose-500 dark:text-rose-400', done: true },
-                  { name: 'HGB-2', date: '07 AUG', time: '08:00', color: 'text-emerald-500 dark:text-emerald-400', done: true },
-                  { name: 'HRS-2', date: '11 AUG', time: '08:00', color: 'text-cyan-500 dark:text-cyan-400', done: true },
-                ].map(exam => (
+                {examSchedule.map(exam => {
+                  const done = nowMs > 0 && exam.date.getTime() <= nowMs;
+                  const dateLabel = exam.date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'Asia/Bangkok' }).toUpperCase();
+                  const timeLabel = exam.date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' });
+                  return (
                   <motion.div
                     key={exam.name}
                     variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 24 } } }}
-                    whileHover={exam.done ? undefined : { y: -8, scale: 1.03, boxShadow: '0 24px 56px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                    whileTap={exam.done ? undefined : { scale: 0.97 }}
-                    className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default transition-all duration-500 ${exam.done ? 'grayscale opacity-50' : ''}`}
+                    whileHover={done ? undefined : { y: -8, scale: 1.03, boxShadow: '0 24px 56px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
+                    whileTap={done ? undefined : { scale: 0.97 }}
+                    className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default transition-all duration-500 ${done ? 'grayscale opacity-50' : ''}`}
                   >
                     <div className="flex justify-between items-start mb-6 relative z-10">
-                      <span className={`font-black tracking-tight text-[20px] lg:text-[22px] transition-colors duration-700 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : exam.color}`}>{exam.name}</span>
-                      <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{`${exam.date} // ${exam.time}`}</span>
+                      <span className={`font-black tracking-tight text-[20px] lg:text-[22px] transition-colors duration-700 ${done ? 'text-neutral-400 dark:text-neutral-500' : exam.color}`}>{exam.name}</span>
+                      <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{`${dateLabel} // ${timeLabel}`}</span>
                     </div>
-                    <div className={`text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter transition-colors duration-700 relative z-10 ${exam.done ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
-                      {exam.done ? 'COMPLETED' : (timers[exam.name] || "--D --H --M")}
+                    <div className={`text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter transition-colors duration-700 relative z-10 ${done ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
+                      {done ? 'COMPLETED' : (timers[exam.name] || "--D --H --M")}
                     </div>
-                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest opacity-80 transition-colors duration-700">{exam.done ? 'Milestone Cleared ✓' : 'T-Minus Terminal'}</div>
+                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest opacity-80 transition-colors duration-700">{done ? 'Milestone Cleared ✓' : 'T-Minus Terminal'}</div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </motion.section>
             </div>
 
@@ -452,7 +467,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                     return (
                     <a 
                       key={sub.id} 
-                      href={`https://mango-cmu.instructure.com/courses/${sub.id}`} 
+                      href={canvasUrlById.get(sub.id) ?? `https://mango-cmu.instructure.com/courses/${sub.id}`}
                       target="_blank" 
                       rel="noopener noreferrer"
                       className={`group/sub min-w-0 block rounded-2xl transition-all duration-300 ${subjectCompleted ? 'grayscale opacity-[0.55] hover:opacity-70' : ''}`}
@@ -497,7 +512,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                     <ul className="space-y-2">
                       {canvasData.upcoming.slice(0, 5).map((a) => {
                         const due = new Date(a.dueAt);
-                        const days = Math.ceil((due.getTime() - Date.now()) / 86400000);
+                        const days = Math.ceil((due.getTime() - (nowMs || 0)) / 86400000);
                         const color = days <= 2 ? 'text-rose-500 dark:text-rose-400' : days <= 5 ? 'text-amber-500 dark:text-amber-400' : 'text-neutral-500 dark:text-neutral-400';
                         const rel = days <= 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days}d`;
                         const row = (
@@ -918,6 +933,22 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                  <span className="w-1.5 h-4 bg-pink-500 rounded-full animate-pulse"></span>
                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">AI Grounding Matrix</h3>
                </div>
+               {curriculumCourses.length > 0 && (
+                 <div className="mb-6 rounded-2xl border border-[var(--hub-accent)]/25 bg-[var(--hub-accent)]/5 p-4 lg:p-5">
+                   <div className="flex flex-wrap items-center justify-between gap-2">
+                     <span className="text-[10px] font-black uppercase tracking-widest text-[var(--hub-accent)]">Managed curriculum links</span>
+                     <a href="/workspace?tab=courses" className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 underline underline-offset-4">Edit in Workspace ↗</a>
+                   </div>
+                   <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                     {curriculumCourses.filter((course) => course.notebookUrl).map((course) => (
+                       <a key={course.id} href={course.notebookUrl ?? undefined} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-black/10 bg-white/60 px-3 py-2.5 text-xs transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
+                         <span className="block font-black text-[var(--hub-accent)]">{course.code}</span>
+                         <span className="mt-1 block break-words font-semibold text-neutral-800 dark:text-neutral-100">{course.name}</span>
+                       </a>
+                     ))}
+                   </div>
+                 </div>
+               )}
                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
                   <a href="https://notebooklm.google.com/notebook/db9fd595-41ad-4c0d-848c-783a972904b1" target="_blank" rel="noopener noreferrer" className="p-5 lg:p-6 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 group/nb active:scale-[0.98]">
                      <div className="flex justify-between items-center mb-4">

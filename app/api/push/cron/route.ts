@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { env } from '@/lib/env';
-import { UPCOMING_EXAMS, daysUntil, countdownLabel, REMINDER_BUCKETS } from '@/lib/exams';
+import { UPCOMING_EXAMS, daysUntil, countdownLabel, REMINDER_BUCKETS, type UpcomingExam } from '@/lib/exams';
+import { getActiveExams } from '@/lib/curriculum';
 import { sendPush } from '@/lib/push';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,7 @@ function fmtExamDate(d: Date): string {
     day: '2-digit',
     month: 'short',
     timeZone: 'Asia/Bangkok',
-  })} · 08:00`;
+  })} · ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' })}`;
 }
 
 // Daily cron (Vercel: 01:00 UTC = 08:00 Bangkok). For each subscription, push any
@@ -26,6 +27,16 @@ export async function GET(req: Request) {
 
   const now = Date.now();
   const subs = await prisma.pushSubscription.findMany();
+  const examCache = new Map<string, Promise<UpcomingExam[]>>();
+  const examsFor = (userId: string) => {
+    const cached = examCache.get(userId);
+    if (cached) return cached;
+    const value = getActiveExams(userId)
+      .then((exams) => exams.map((exam) => ({ name: exam.name, fullName: `${exam.fullName} · ${exam.title}`, date: new Date(exam.scheduledAt) })).filter((exam) => Number.isFinite(exam.date.getTime())))
+      .catch(() => UPCOMING_EXAMS);
+    examCache.set(userId, value);
+    return value;
+  };
   let sent = 0;
   let pruned = 0;
 
@@ -33,8 +44,9 @@ export async function GET(req: Request) {
     const notified: Record<string, boolean> = { ...((sub.notified as Record<string, boolean>) || {}) };
     let changed = false;
     let gone = false;
+    const exams = await examsFor(sub.userId);
 
-    for (const ex of UPCOMING_EXAMS) {
+    for (const ex of exams) {
       const days = daysUntil(ex.date, now);
       if (days < 0) continue;
       const crossed = REMINDER_BUCKETS.filter((b) => days <= b && !notified[`${ex.name}:${b}`]);

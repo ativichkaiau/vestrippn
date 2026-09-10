@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { UPCOMING_EXAMS, daysUntil, countdownLabel, REMINDER_BUCKETS } from '@/lib/exams';
 import { subscribeToPush } from '@/lib/push-client';
 import { toast } from '@/lib/toast-bus';
@@ -14,11 +14,11 @@ interface Notification {
 }
 
 const fmtExamDate = (d: Date) =>
-  `${d.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })} 08:00`;
+  `${d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', timeZone: 'Asia/Bangkok' })} ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' })}`;
 
 // Exam countdowns as feed items (future exams, soonest first).
-function buildExamReminders(now = Date.now()): Notification[] {
-  return UPCOMING_EXAMS.map((ex) => ({ ex, days: daysUntil(ex.date, now) }))
+function buildExamReminders(exams: typeof UPCOMING_EXAMS = UPCOMING_EXAMS, now = Date.now()): Notification[] {
+  return exams.map((ex) => ({ ex, days: daysUntil(ex.date, now) }))
     .filter(({ days }) => days >= 0)
     .sort((a, b) => a.days - b.days)
     .map(({ ex, days }) => ({
@@ -32,12 +32,12 @@ function buildExamReminders(now = Date.now()): Notification[] {
 
 // Fire a native notification the first time an exam crosses a T-minus bucket.
 // Persists fired buckets so a milestone isn't repeated across sessions.
-function fireExamMilestones() {
+function fireExamMilestones(exams: typeof UPCOMING_EXAMS = UPCOMING_EXAMS) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   let fired: Record<string, boolean> = {};
   try { fired = JSON.parse(localStorage.getItem('vest_exam_notified') || '{}'); } catch { /* ignore */ }
   const now = Date.now();
-  for (const ex of UPCOMING_EXAMS) {
+  for (const ex of exams) {
     const days = daysUntil(ex.date, now);
     if (days < 0) continue;
     const crossed = REMINDER_BUCKETS.filter((b) => days <= b && !fired[`${ex.name}:${b}`]);
@@ -57,23 +57,42 @@ interface NotificationCenterProps {
 
 export default function NotificationCenter({ initialNotifications = [] }: NotificationCenterProps) {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
-  const [examReminders, setExamReminders] = useState<Notification[]>([]);
+  const [examTargets, setExamTargets] = useState(UPCOMING_EXAMS);
   const [remindersOn, setRemindersOn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const examReminders = useMemo(() => buildExamReminders(examTargets), [examTargets]);
+
+  // Pull editable exam targets once. The static schedule remains the fallback
+  // when a signed-out browser or a temporarily unavailable database cannot
+  // answer the curriculum request.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/curriculum', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const data = await response.json();
+        const dynamic = Array.isArray(data.semesters) ? data.semesters
+          .filter((semester: { archivedAt?: string | null }) => !semester.archivedAt)
+          .flatMap((semester: { courses?: Array<{ code: string; name: string; exams?: Array<{ id: string; title: string; scheduledAt: string }> }> }) => (semester.courses ?? []).flatMap((course) => (course.exams ?? []).map((exam) => ({ name: course.code, fullName: `${course.name} · ${exam.title}`, date: new Date(exam.scheduledAt) }))))
+          .filter((exam: { date: Date }) => Number.isFinite(exam.date.getTime())) : [];
+        if (!cancelled && dynamic.length) setExamTargets(dynamic);
+      })
+      .catch(() => { /* keep the static fallback */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Compute exam countdowns + catch up on any native milestones since last open.
   useEffect(() => {
-    setExamReminders(buildExamReminders());
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       setRemindersOn(true);
-      fireExamMilestones();
+      fireExamMilestones(examTargets);
       void subscribeToPush(); // re-ensure this device's push subscription is on file
     }
-  }, []);
+  }, [examTargets]);
 
   const toggleReminders = useCallback(async () => {
     if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'granted') { setRemindersOn(true); fireExamMilestones(); void subscribeToPush(); return; }
+    if (Notification.permission === 'granted') { setRemindersOn(true); fireExamMilestones(examTargets); void subscribeToPush(); return; }
     if (Notification.permission === 'denied') {
       toast({ title: 'Notifications are blocked', message: 'Allow them in your browser settings to get exam reminders.', variant: 'warn', icon: '🔕' });
       return;
@@ -81,11 +100,11 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
     const perm = await Notification.requestPermission();
     if (perm === 'granted') {
       setRemindersOn(true);
-      fireExamMilestones();
+      fireExamMilestones(examTargets);
       void subscribeToPush({ confirm: true });
       toast({ title: 'Exam reminders on', message: "You'll get a nudge at 14 · 7 · 3 · 1 days out.", variant: 'success', icon: '🔔' });
     }
-  }, []);
+  }, [examTargets]);
 
   // Pull the live Gmail + Canvas feed from /api/notifications. We do NOT also
   // watch `initialNotifications` — its default `= []` creates a fresh array on

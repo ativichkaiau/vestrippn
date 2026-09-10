@@ -29,7 +29,8 @@ export type HubName =
   | 'Archive'
   | 'IELTS'
   | 'Tools'
-  | 'Identity';
+  | 'Identity'
+  | 'Workspace';
 
 export const HUBS: { name: HubName; icon: string; href: string }[] = [
   { name: 'Dashboard', icon: '◉', href: '/' },
@@ -41,6 +42,7 @@ export const HUBS: { name: HubName; icon: string; href: string }[] = [
   { name: 'IELTS', icon: '◎', href: '/ielts' },
   { name: 'Tools', icon: '⚙', href: '/tools' },
   { name: 'Identity', icon: '⚇', href: '/identity' },
+  { name: 'Workspace', icon: '▦', href: '/workspace?tab=plan' },
 ];
 
 /* W09 color coding — every hub owns a hue, used by the rail, the mobile
@@ -56,6 +58,7 @@ export const HUB_THEME: Record<HubName, { bar: string; icon: string }> = {
   IELTS: { bar: 'bg-indigo-400', icon: 'text-indigo-400' },
   Tools: { bar: 'bg-amber-400', icon: 'text-amber-400' },
   Identity: { bar: 'bg-teal-400', icon: 'text-teal-400' },
+  Workspace: { bar: 'bg-yellow-400', icon: 'text-yellow-400' },
 };
 
 export function NavRail({ active, expanded, onToggle }: { active: HubName; expanded: boolean; onToggle: () => void }) {

@@ -46,6 +46,14 @@ const USER_SCOPED_MODELS = new Set<string>([
   "FitnessLog",
   "Notification",
   "AnkiTelemetry",
+  "AnkiHistory",
+  "Semester",
+  "Course",
+  "Exam",
+  "ResearchMilestone",
+  "StudyPlanDay",
+  "FocusSessionRecord",
+  "UserPreferences",
 ]);
 
 // Inject userId into the `where` filter.

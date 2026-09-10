@@ -1,4 +1,5 @@
 'use client';
+import { notifyPreferenceEdit } from './device-sync';
 
 // Shared theme controls (livery, day/night). Both ThemeToggle and the command
 // palette drive the theme through here so there's one source of truth; changes
@@ -80,6 +81,7 @@ export function setTheme(lv: Livery, md?: Mode): void {
     /* ignore */
   }
   window.dispatchEvent(new Event('vest:theme-change'));
+  notifyPreferenceEdit({ livery: lv, ...(md ? { mode: md } : {}) });
 }
 
 // Cycle to the next livery (wraps). Returns the new livery for a toast label.

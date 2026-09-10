@@ -3,23 +3,29 @@ export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth/owner";
 import { fetchCanvasTelemetry } from "@/lib/canvas";
+import { getActiveCourses, getActiveExams } from "@/lib/curriculum";
+import type { ActiveExamData, CourseData } from "@/lib/curriculum-types";
 import { getAnkiHistory, type AnkiHistoryPoint } from "@/lib/anki";
 import AcademicsClient from "./AcademicsClient";
 
 export default async function AcademicsPage() {
-  // 1. Fetch Canvas API Data (scores + upcoming deadlines, one set of calls)
-  const liveCanvasData = await fetchCanvasTelemetry();
-
-  // 2. Fetch Anki telemetry + daily history for the owner
   const userId = await requireUserId();
+  // 1. Fetch Canvas API data from the courses the owner manages in Workspace.
+  const liveCanvasData = await fetchCanvasTelemetry(userId ?? undefined);
+
+  // 2. Fetch the editable curriculum plus Anki telemetry and daily history.
   let formattedAnkiData = undefined;
   let ankiHistory: AnkiHistoryPoint[] = [];
+  let curriculumCourses: CourseData[] = [];
+  let curriculumExams: ActiveExamData[] = [];
 
   if (userId) {
     try {
-      const [ankiRecord, history] = await Promise.all([
+      const [ankiRecord, history, courses, exams] = await Promise.all([
         prisma.ankiTelemetry.findUnique({ where: { userId } }),
         getAnkiHistory(userId, 30),
+        getActiveCourses(userId),
+        getActiveExams(userId),
       ]);
 
       if (ankiRecord) {
@@ -31,6 +37,8 @@ export default async function AcademicsPage() {
         };
       }
       ankiHistory = history;
+      curriculumCourses = courses;
+      curriculumExams = exams;
     } catch (error) {
       console.error("[CRITICAL] Anki Postgres Uplink Failed:", error);
     }
@@ -42,6 +50,8 @@ export default async function AcademicsPage() {
         initialCanvasData={liveCanvasData}
         ankiData={formattedAnkiData}
         ankiHistory={ankiHistory}
+        curriculumCourses={curriculumCourses}
+        curriculumExams={curriculumExams}
       />
     </div>
   );

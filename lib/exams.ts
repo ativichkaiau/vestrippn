@@ -1,5 +1,6 @@
-// Single source of truth for the exam schedule. Imported by the Academics hub
-// (countdowns) and the notification reminders so a date is never duplicated.
+// Safe fallback schedule for the exam countdowns and notification reminders.
+// Signed-in users can override these targets from Workspace; server and client
+// consumers retain this fallback while the curriculum is unavailable.
 // Times are 08:00 Bangkok (Buddhist year 2569 = 2026).
 
 export const HCVS_EXAM_TARGET = new Date('2026-08-04T08:00:00+07:00');

@@ -4,8 +4,12 @@
 // a private-mode or quota failure just yields empty history rather than throwing.
 
 import { CIRCUIT_META } from './circuits';
+import { validateFocusSession, type SyncedSession } from './device-sync';
 
 export type FocusSession = {
+  id?: string;
+  title?: string;
+  agendaItemId?: string;
   ts: number; // completed-at, epoch ms
   circuit: string; // circuit id (aus, mon, …)
   mode: 'open' | 'min' | 'laps';
@@ -16,23 +20,64 @@ export type FocusSession = {
 };
 
 const FOCUS_LOG = 'vest_focus_log';
-const FOCUS_LOG_CAP = 200; // keep the most recent N sessions
+const FOCUS_LOG_CAP = 10_000;
+let focusOwner: string | null = null;
+const focusKey = () => focusOwner ? `${FOCUS_LOG}:${focusOwner}` : FOCUS_LOG;
+
+export function setFocusLogOwner(userId: string | null): void {
+  focusOwner = userId;
+  if (!userId) return;
+  try {
+    const claimed = localStorage.getItem('vest_focus_legacy_owner');
+    if (!claimed) {
+      const legacy = readStoredFocusLog(FOCUS_LOG);
+      localStorage.setItem('vest_focus_legacy_owner', userId);
+      mergeFocusSessions(legacy);
+      localStorage.removeItem(FOCUS_LOG);
+    }
+  } catch { /* local history stays available when storage is blocked */ }
+  window.dispatchEvent(new Event('vest:focus-log-change'));
+}
+
+function readStoredFocusLog(key: string): SyncedSession[] {
+  try {
+    const rows: unknown = JSON.parse(localStorage.getItem(key) || '[]');
+    if (!Array.isArray(rows)) return [];
+    const result: SyncedSession[] = [];
+    for (const row of rows) {
+      try {
+        // Deterministic legacy IDs prevent duplicate imports on multiple devices.
+        const item = row as FocusSession;
+        const id = item.id || `legacy:${item.ts}:${item.circuit}:${item.durationSec}:${item.laps}`;
+        result.push(validateFocusSession({ ...item, id }));
+      } catch { /* ignore corrupt legacy rows */ }
+    }
+    return result;
+  } catch { return []; }
+}
 
 export function readFocusLog(): FocusSession[] {
-  try {
-    const raw = localStorage.getItem(FOCUS_LOG);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? (arr as FocusSession[]) : [];
-  } catch {
-    return [];
+  return readStoredFocusLog(focusKey());
+}
+
+export function mergeFocusSessions(sessions: FocusSession[]): SyncedSession[] {
+  const existing = readStoredFocusLog(focusKey());
+  const merged = new Map(existing.map(session => [session.id, session]));
+  for (const session of sessions) {
+    try {
+      const row = validateFocusSession({ ...session, id: session.id || crypto.randomUUID() });
+      if (!merged.has(row.id)) merged.set(row.id, row);
+    } catch { /* malformed sessions must not poison the offline queue */ }
   }
+  const rows = [...merged.values()].sort((a, b) => a.ts - b.ts).slice(-FOCUS_LOG_CAP);
+  try { localStorage.setItem(focusKey(), JSON.stringify(rows)); } catch { /* best effort */ }
+  return rows;
 }
 
 export function appendFocusSession(s: FocusSession): void {
   try {
-    const log = readFocusLog();
-    log.push(s);
-    localStorage.setItem(FOCUS_LOG, JSON.stringify(log.slice(-FOCUS_LOG_CAP)));
+    mergeFocusSessions([{ ...s, id: s.id || crypto.randomUUID() }]);
+    window.dispatchEvent(new Event('vest:focus-log-change'));
   } catch {
     /* ignore */
   }
@@ -42,19 +87,27 @@ export type CircuitPB = { id: string; best: number };
 
 // Read every Focus Mode personal best that has been set (one key per circuit).
 export function readPBs(): CircuitPB[] {
-  const out: CircuitPB[] = [];
+  const best = new Map<string, number>();
   try {
     for (const id of Object.keys(CIRCUIT_META)) {
       const v = localStorage.getItem(`vest_focus_pb_${id}`);
       if (v) {
         const n = parseFloat(v);
-        if (Number.isFinite(n)) out.push({ id, best: n });
+        if (Number.isFinite(n)) best.set(id, n);
       }
     }
   } catch {
     /* ignore */
   }
-  return out;
+  // Synced session records carry each lap's best time. Folding them into the
+  // local PB view makes personal bests follow the account onto a new device
+  // even though the original PB keys were browser-local.
+  for (const session of readFocusLog()) {
+    if (session.bestLap == null || !Number.isFinite(session.bestLap)) continue;
+    const previous = best.get(session.circuit);
+    if (previous == null || session.bestLap < previous) best.set(session.circuit, session.bestLap);
+  }
+  return [...best.entries()].map(([id, value]) => ({ id, best: value }));
 }
 
 // ── daily snapshots (streak + grades) — one row per local calendar day ──

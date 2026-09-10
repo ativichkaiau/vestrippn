@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { notifyPreferenceEdit } from '@/lib/device-sync';
 
 /**
  * Reactive read of low-power mode (the `low-power` class on <html>).
@@ -31,4 +32,5 @@ export function setLowPowerMode(on: boolean) {
     /* ignore */
   }
   window.dispatchEvent(new Event('vest-lowpower'));
+  notifyPreferenceEdit({ lowPower: on });
 }

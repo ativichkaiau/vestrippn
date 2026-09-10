@@ -617,7 +617,9 @@ type Tod = 'day' | 'dusk' | 'night';
 type Phase = 'setup' | 'running' | 'complete';
 type TargetType = 'open' | 'min' | 'laps';
 
-export default function FocusMode() {
+type FocusLaunchDetail = { title?: string; minutes?: number; agendaItemId?: string };
+
+export default function FocusMode({ showTrigger = true }: { showTrigger?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>('setup');
@@ -626,6 +628,8 @@ export default function FocusMode() {
   const [targetValue, setTargetValue] = useState<number>(25);
   const [tod, setTod] = useState<Tod>('day');
   const [wet, setWet] = useState(false);
+  const [focusTitle, setFocusTitle] = useState<string | undefined>();
+  const [agendaItemId, setAgendaItemId] = useState<string | undefined>();
   const todTouchedRef = useRef(false); // user overrode the auto night/day default
 
   const [elapsed, setElapsed] = useState(0); // throttled HUD clock
@@ -681,17 +685,31 @@ export default function FocusMode() {
   // Open on request — the ⌘K command palette fires `vest:focus-open` (same page)
   // or sets a sessionStorage flag before navigating here (cross-page).
   useEffect(() => {
-    const openFocus = () => setOpen(true);
+    let openTimer: number | undefined;
+    const openFocus = (event: Event) => {
+      const detail = (event as CustomEvent<FocusLaunchDetail>).detail;
+      if (detail?.minutes && Number.isFinite(detail.minutes)) {
+        setTargetType('min');
+        setTargetValue(Math.max(5, Math.min(120, Math.round(detail.minutes))));
+      }
+      setFocusTitle(typeof detail?.title === 'string' ? detail.title.slice(0, 200) : undefined);
+      setAgendaItemId(typeof detail?.agendaItemId === 'string' ? detail.agendaItemId.slice(0, 200) : undefined);
+      setPhase('setup');
+      setOpen(true);
+    };
     try {
       if (sessionStorage.getItem('vest_focus_open') === '1') {
         sessionStorage.removeItem('vest_focus_open');
-        setOpen(true);
+        openTimer = window.setTimeout(() => setOpen(true), 0);
       }
     } catch {
       /* ignore */
     }
     window.addEventListener('vest:focus-open', openFocus);
-    return () => window.removeEventListener('vest:focus-open', openFocus);
+    return () => {
+      window.removeEventListener('vest:focus-open', openFocus);
+      if (openTimer !== undefined) window.clearTimeout(openTimer);
+    };
   }, []);
 
   // Lock the page while the overlay is open
@@ -761,6 +779,8 @@ export default function FocusMode() {
     if (phase !== 'complete' || !selected || loggedRef.current) return;
     loggedRef.current = true;
     appendFocusSession({
+      ...(focusTitle ? { title: focusTitle } : {}),
+      ...(agendaItemId ? { agendaItemId } : {}),
       ts: Date.now(),
       circuit: selected.id,
       mode: targetType,
@@ -769,12 +789,14 @@ export default function FocusMode() {
       laps: lapNo,
       bestLap: bestLap ?? null,
     });
-  }, [phase, selected, targetType, targetValue, elapsed, lapNo, bestLap]);
+  }, [phase, selected, targetType, targetValue, elapsed, lapNo, bestLap, focusTitle, agendaItemId]);
 
   const close = useCallback(() => {
     setOpen(false);
     setPhase('setup');
     setSelected(null);
+    setFocusTitle(undefined);
+    setAgendaItemId(undefined);
     setReady(false);
     setPaused(false);
     setLights(-1);
@@ -1041,7 +1063,7 @@ export default function FocusMode() {
   return (
     <>
       {/* Trigger */}
-      <button
+      {showTrigger && <button
         onClick={() => {
           setPhase('setup');
           setOpen(true);
@@ -1051,7 +1073,7 @@ export default function FocusMode() {
       >
         <span className="text-[14px] leading-none">🏁</span>
         <span className="hidden sm:inline">Focus</span>
-      </button>
+      </button>}
 
       {open && mounted && createPortal(
         <div data-no-typewriter className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
@@ -1109,6 +1131,12 @@ export default function FocusMode() {
                   Pick a track to start · page locks until you hold-to-end
                 </span>
               </div>
+              {focusTitle && (
+                <div className="mx-5 mb-4 rounded-xl border border-[color:rgba(var(--hub-accent-rgb),0.35)] bg-[color:rgba(var(--hub-accent-rgb),0.08)] px-4 py-3 text-xs text-neutral-200 sm:mx-8">
+                  <span className="font-black uppercase tracking-widest text-[var(--hub-accent)]">Agenda focus</span>
+                  <span className="ml-2 break-words font-semibold">{focusTitle}</span>
+                </div>
+              )}
 
               {/* conditions: time of day + weather */}
               <div className="flex flex-wrap items-center gap-3 px-5 pb-4 sm:px-8">

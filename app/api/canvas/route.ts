@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchCanvasTelemetry } from '@/lib/canvas';
+import { requireUserId } from '@/lib/auth/owner';
 
 // Always fresh (the client also cache-busts).
 export const dynamic = 'force-dynamic';
@@ -11,5 +12,6 @@ export const dynamic = 'force-dynamic';
 // an empty payload (subjects: []) instead of an error, so the UI shows "no
 // data" rather than SERVER_OFFLINE.
 export async function GET() {
-  return NextResponse.json(await fetchCanvasTelemetry());
+  const userId = await requireUserId();
+  return NextResponse.json(await fetchCanvasTelemetry(userId ?? undefined));
 }

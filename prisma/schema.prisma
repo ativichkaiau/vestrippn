@@ -45,6 +45,7 @@ model User {
   emailVerified DateTime?
   image         String?
   passwordHash  String?   @db.Text
+  curriculumInitializedAt DateTime?
 
   // System Links
   accounts Account[]
@@ -75,6 +76,13 @@ model User {
   caseProgress   CaseProgress[]
   assistantUsage AssistantUsage[]
   pushSubscriptions PushSubscription[]
+  semesters       Semester[]
+  courses         Course[]
+  exams           Exam[]
+  researchMilestones ResearchMilestone[]
+  studyPlanDays   StudyPlanDay[]
+  focusSessions   FocusSessionRecord[]
+  preferences     UserPreferences?
 }
 
 // ==========================================
@@ -96,6 +104,9 @@ model Task {
   title     String
   completed Boolean  @default(false)
   category  String   @default("GENERAL")
+  dueAt     DateTime?
+  estimatedMinutes Int @default(25)
+  priority  Int      @default(1)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -442,4 +453,108 @@ model CaseProgress {
 
   @@unique([userId, caseId])
   @@index([userId])
+}
+
+// W85 workspace: editable curriculum, planning, and portable study history.
+model Semester {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  startsAt   DateTime?
+  endsAt     DateTime?
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  courses    Course[]
+
+  @@index([userId, archivedAt])
+}
+
+model Course {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  semesterId     String
+  semester       Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  code           String
+  name           String
+  canvasCourseId String?
+  canvasUrl      String?
+  notebookUrl    String?
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  exams          Exam[]
+
+  @@index([userId, semesterId])
+}
+
+model Exam {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  scheduledAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, scheduledAt])
+}
+
+model ResearchMilestone {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String
+  dueAt            DateTime?
+  estimatedMinutes Int      @default(45)
+  completed        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId, completed, dueAt])
+}
+
+model StudyPlanDay {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day              String
+  availableMinutes Int      @default(120)
+  completedItems   Json     @default("[]")
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, day])
+}
+
+model FocusSessionRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId     String
+  startedAt    DateTime
+  circuit      String
+  mode         String
+  target       Int
+  durationSec  Int
+  laps         Int
+  bestLap      Float?
+  title        String?
+  agendaItemId String?
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, clientId])
+  @@index([userId, startedAt])
+}
+
+model UserPreferences {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  values    Json     @default("{}")
+  revision  Int      @default(0)
+  updatedAt DateTime @updatedAt
 }

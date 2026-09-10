@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { setLowPowerMode } from "./useLowPower";
-import { applyLivery, getLivery, getMode, LIVERY_LABEL, type Livery, type Mode } from "@/lib/theme";
+import { applyLivery, setTheme, getLivery, getMode, LIVERY_LABEL, type Livery, type Mode } from "@/lib/theme";
 
 // Trigger-button glyph per livery (the picker rows carry their own emoji).
 const LIVERY_ICON: Record<Livery, string> = {
@@ -97,9 +97,7 @@ export default function ThemeToggle() {
     const nextMode = md ?? mode;
     setLivery(lv);
     if (md) setMode(md);
-    applyLivery(lv, nextMode);
-    localStorage.setItem('vest_livery', lv);
-    if (md) localStorage.setItem('vest_mode', md);
+    setTheme(lv, nextMode);
     setOpen(false);
   };
 

@@ -11,9 +11,8 @@ import AnalyticsClient from './AnalyticsClient';
 // day-over-day trend snapshots live in the browser (localStorage) and are read
 // client-side in AnalyticsClient.
 export default async function AnalyticsPage() {
-  const canvas = await fetchCanvasTelemetry();
-
   const session = await auth();
+  const canvas = await fetchCanvasTelemetry(session?.user?.id);
   let anki: { due: number; new: number; reviewedToday: number; streak: number } | undefined;
   let ankiHistory: AnkiHistoryPoint[] = [];
   if (session?.user?.id) {

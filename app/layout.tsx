@@ -9,6 +9,8 @@ import Toaster from "../components/Toaster";
 import PwaHud from "../components/PwaHud";
 import ViewTransitions from "../components/ViewTransitions";
 import SiteMotion from "../components/SiteMotion";
+import DeviceSync from "../components/DeviceSync";
+import FocusMode from "../components/FocusMode";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -78,6 +80,8 @@ export default function RootLayout({
           <ServiceWorkerRegister />
           <Toaster />
           <PwaHud />
+          <DeviceSync />
+          <FocusMode showTrigger={false} />
           <ViewTransitions />
           <SiteMotion>{children}</SiteMotion>
         </AuthProvider>

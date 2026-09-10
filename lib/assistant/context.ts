@@ -11,9 +11,9 @@ export type IntelligenceHub =
 
 export interface ContextItem { label: string; value: string }
 
-async function canvasItems(): Promise<ContextItem[]> {
+async function canvasItems(userId?: string): Promise<ContextItem[]> {
   try {
-    const data = await fetchCanvasTelemetry();
+    const data = await fetchCanvasTelemetry(userId);
     if (!data.subjects.length) return [];
     const scores = data.subjects
       .map((s) => `${s.name} ${s.progress != null ? `${s.progress}%` : 'n/a'}`)
@@ -138,9 +138,9 @@ async function ieltsItems(userId: string): Promise<ContextItem[]> {
 export async function buildHubContext(userId: string, hub: IntelligenceHub): Promise<ContextItem[]> {
   switch (hub) {
     case 'academics':
-      return [...(await canvasItems()), ...(await ankiItems(userId))];
+      return [...(await canvasItems(userId)), ...(await ankiItems(userId))];
     case 'dashboard':
-      return [...(await taskItems(userId)), ...(await ankiItems(userId)), ...(await canvasItems())];
+      return [...(await taskItems(userId)), ...(await ankiItems(userId)), ...(await canvasItems(userId))];
     case 'tools':
       return taskItems(userId);
     case 'archive':
