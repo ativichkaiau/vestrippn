@@ -83,6 +83,7 @@ model User {
   studyPlanDays   StudyPlanDay[]
   focusSessions   FocusSessionRecord[]
   preferences     UserPreferences?
+  coverageObjectives CoverageObjective[]
 }
 
 // ==========================================
@@ -486,6 +487,7 @@ model Course {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   exams          Exam[]
+  coverageObjectives CoverageObjective[]
 
   @@index([userId, semesterId])
 }
@@ -557,4 +559,33 @@ model UserPreferences {
   values    Json     @default("{}")
   revision  Int      @default(0)
   updatedAt DateTime @updatedAt
+}
+
+enum CoverageStatus {
+  untouched
+  reviewed
+  tested
+}
+
+// Only changed WilliamsHub objectives and custom objectives need a row.
+// Course ownership keeps repeated subjects in separate semesters independent.
+model CoverageObjective {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  key           String
+  sourceTopicId String?
+  title         String
+  section       String
+  status        CoverageStatus @default(untouched)
+  notes         String         @default("") @db.Text
+  noteUrl       String?
+  results       Json           @default("[]")
+  revision      Int            @default(0)
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([courseId, key])
+  @@index([userId, courseId])
 }

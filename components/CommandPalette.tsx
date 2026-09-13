@@ -32,6 +32,7 @@ const COMMANDS: Command[] = [
   ...HUBS.map((h) => ({ id: `hub:${h.name}`, label: h.name, hint: 'Hub', icon: h.icon, href: h.href })),
   { id: 'cases', label: 'Clinical Cases', hint: 'Academics · interactive', icon: '🩺', href: '/learn/cases', keywords: 'case study branching' },
   { id: 'milestones', label: 'Exam Milestones', hint: 'Academics · countdowns', icon: '⏱', href: '/academics#milestones', keywords: 'exam countdown hcvs hgb hrs' },
+  { id: 'coverage', label: 'Exam Coverage Map', hint: 'Workspace · learning objectives', icon: '▦', href: '/workspace?tab=coverage', keywords: 'hhl hsc topics notes reviewed tested practice progress' },
   { id: 'literature', label: 'Literature Search', hint: 'Research', icon: '🔎', href: '/research#literature-search', keywords: 'pubmed papers srma' },
   { id: 'summaries', label: 'University Summaries', hint: 'Archive', icon: '📚', href: '/archive#uni-summaries', keywords: 'notes modules years' },
   { id: 'williamslab', label: 'WilliamsLab', hint: 'Research engine ↗', icon: '🔬', url: 'https://williamslab.vercel.app', keywords: 'knowledge graph brugada' },

@@ -25,7 +25,7 @@ function mergeLocalFocus(payload: BackupPayload): BackupPayload {
 }
 
 function countRecords(payload: BackupPayload) {
-  return payload.tasks.length + payload.milestones.length + payload.notes.length + payload.papers.length + payload.documents.length + payload.semesters.length + payload.semesters.reduce((sum, semester) => sum + semester.courses.length + semester.courses.reduce((courseSum, course) => courseSum + course.exams.length, 0), 0) + payload.planDays.length + payload.focusSessions.length;
+  return payload.tasks.length + payload.milestones.length + payload.notes.length + payload.papers.length + payload.documents.length + payload.semesters.length + payload.semesters.reduce((sum, semester) => sum + semester.courses.length + semester.courses.reduce((courseSum, course) => courseSum + course.exams.length + course.coverage.length, 0), 0) + payload.planDays.length + payload.focusSessions.length;
 }
 
 export default function BackupManager() {
@@ -115,7 +115,7 @@ export default function BackupManager() {
       {error && <div role="alert" className="rounded-xl border border-red-500/25 bg-red-500/5 p-4 text-sm text-red-700 dark:text-red-300">{error}</div>}
       {notice && <p role="status" className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">{notice}</p>}
       {preview && <section className="rounded-2xl border border-[var(--hub-accent)]/40 bg-[var(--hub-accent)]/5 p-5 sm:p-7"><p className="text-[10px] font-black uppercase tracking-widest text-[var(--hub-accent)]">Restore preview</p><h3 className="mt-2 text-xl font-black break-words">{preview.fileName}</h3><p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{(preview.bytes / 1024).toFixed(1)} KB · {countRecords(preview.payload)} records · preferences and focus history included</p><div className="mt-5 flex flex-wrap gap-3"><button type="button" className="rounded-xl bg-[var(--hub-accent)] px-4 py-2.5 text-sm font-black text-black disabled:opacity-50" onClick={() => void restoreBackup()} disabled={busy !== null}>{busy === 'import' ? 'Restoring…' : 'Restore this backup'}</button><button type="button" className={buttonClass} onClick={() => setPreview(null)} disabled={busy !== null}>Cancel</button></div></section>}
-      <p className="text-xs leading-5 text-neutral-500">Backups exclude sign-in credentials and authentication tokens. Archive document metadata is included; original files remain wherever you first stored them.</p>
+      <p className="text-xs leading-5 text-neutral-500">Coverage statuses, objective notes, and practice results are included. Backups exclude sign-in credentials and authentication tokens. Archive document metadata is included; original files remain wherever you first stored them.</p>
     </div>
   );
 }

@@ -54,6 +54,7 @@ const USER_SCOPED_MODELS = new Set<string>([
   "StudyPlanDay",
   "FocusSessionRecord",
   "UserPreferences",
+  "CoverageObjective",
 ]);
 
 // Inject userId into the `where` filter.

@@ -30,3 +30,6 @@ jobs:
 
       - name: Validate clinical cases
         run: npm run validate:cases
+
+      - name: Validate exam coverage
+        run: npm run validate:coverage

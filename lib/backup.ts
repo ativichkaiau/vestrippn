@@ -1,7 +1,9 @@
 import { validateFocusSession, validatePreferences, type SyncedPreferences, type SyncedSession } from './device-sync';
+import { validateCoverageRecord } from './coverage-validation';
+import type { CoverageRecord } from './coverage-types';
 
 export const BACKUP_FORMAT = 'vestrippn-w85-backup';
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
 export const BACKUP_MAX_BYTES = 8_000_000;
 
 export type BackupTask = { id: string; title: string; completed: boolean; category: string; dueAt: string | null; estimatedMinutes: number; priority: number };
@@ -10,7 +12,7 @@ export type BackupNote = { id: string; text: string; updatedAt: string };
 export type BackupPaper = { id: string; pmid: string | null; title: string; authors: string | null; journal: string | null; url: string | null; source: string | null; doi: string | null; abstract: string | null; year: number | null; status: string; createdAt: string };
 export type BackupDocument = { id: string; title: string; sourceType: string; originalUrl: string | null; status: string; pages: number | null; processedAt: string | null; createdAt: string };
 export type BackupExam = { id: string; title: string; scheduledAt: string };
-export type BackupCourse = { id: string; code: string; name: string; canvasCourseId: string | null; canvasUrl: string | null; notebookUrl: string | null; sortOrder: number; exams: BackupExam[] };
+export type BackupCourse = { id: string; code: string; name: string; canvasCourseId: string | null; canvasUrl: string | null; notebookUrl: string | null; sortOrder: number; exams: BackupExam[]; coverage: CoverageRecord[] };
 export type BackupSemester = { id: string; name: string; startsAt: string | null; endsAt: string | null; archivedAt: string | null; courses: BackupCourse[] };
 export type BackupPlanDay = { id: string; day: string; availableMinutes: number; completedItems: string[]; updatedAt: string };
 export type BackupFocusSession = SyncedSession;
@@ -96,9 +98,15 @@ function validateSemesters(value: unknown): BackupSemester[] {
         if (!course || typeof course !== 'object' || Array.isArray(course)) throw new Error('Invalid course in backup.');
         const item = course as Record<string, unknown>;
         if (!Array.isArray(item.exams)) throw new Error('Invalid exams in backup.');
+        // Version 1 backups predate the coverage map.
+        const coverage = item.coverage === undefined ? [] : item.coverage;
+        if (!Array.isArray(coverage) || coverage.length > 5000) throw new Error('Invalid coverage in backup.');
+        const coverageRows = coverage.map(validateCoverageRecord);
+        if (new Set(coverageRows.map(row => row.key)).size !== coverageRows.length) throw new Error('Duplicate learning objectives in backup.');
         return {
           id: rowId(item.id, 'Course'), code: rowText(item.code, 'Course code', 40), name: rowText(item.name, 'Course name', 180), canvasCourseId: text(item.canvasCourseId, 40), canvasUrl: text(item.canvasUrl, 2048), notebookUrl: text(item.notebookUrl, 2048), sortOrder: int(item.sortOrder, 0, 10_000, 0),
           exams: item.exams.map((exam) => { if (!exam || typeof exam !== 'object' || Array.isArray(exam)) throw new Error('Invalid exam in backup.'); const e = exam as Record<string, unknown>; return { id: rowId(e.id, 'Exam'), title: rowText(e.title, 'Exam title', 180), scheduledAt: iso(e.scheduledAt) ?? (() => { throw new Error('Exam date is invalid.'); })() }; }),
+          coverage: coverageRows,
         };
       }),
     };
@@ -108,7 +116,7 @@ function validateSemesters(value: unknown): BackupSemester[] {
 export function validateBackup(value: unknown): BackupPayload {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Backup must be a JSON object.');
   const row = value as Record<string, unknown>;
-  if (row.format !== BACKUP_FORMAT || row.version !== BACKUP_VERSION) throw new Error('This backup is from an unsupported VESTRIPPN edition.');
+  if (row.format !== BACKUP_FORMAT || (row.version !== 1 && row.version !== BACKUP_VERSION)) throw new Error('This backup is from an unsupported VESTRIPPN edition.');
   const createdAt = iso(row.createdAt);
   if (!createdAt) throw new Error('Backup timestamp is invalid.');
   const list = <T>(key: string, validate: (value: unknown) => T, max: number): T[] => { if (!Array.isArray(row[key]) || row[key].length > max) throw new Error(`Backup ${key} is invalid or too large.`); return (row[key] as unknown[]).map(validate); };

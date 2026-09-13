@@ -937,6 +937,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                  <div className="mb-6 rounded-2xl border border-[var(--hub-accent)]/25 bg-[var(--hub-accent)]/5 p-4 lg:p-5">
                    <div className="flex flex-wrap items-center justify-between gap-2">
                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--hub-accent)]">Managed curriculum links</span>
+                     <a href="/workspace?tab=coverage" className="text-[10px] font-bold uppercase tracking-widest text-[var(--hub-accent)] underline underline-offset-4">Exam coverage map ↗</a>
                      <a href="/workspace?tab=courses" className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 underline underline-offset-4">Edit in Workspace ↗</a>
                    </div>
                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

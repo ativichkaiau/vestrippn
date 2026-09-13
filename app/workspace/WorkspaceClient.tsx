@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ArcDate from '@/components/ArcDate';
 import BrandMark from '@/components/BrandMark';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -10,22 +10,25 @@ import { MobileHubNav, NavRail } from '@/components/HubNav';
 import DailyStudyPlan from '@/components/DailyStudyPlan';
 import CourseSemesterManager from '@/components/CourseSemesterManager';
 import BackupManager from '@/components/BackupManager';
+import ExamCoverageMap from '@/components/ExamCoverageMap';
 
-type Tab = 'plan' | 'courses' | 'backup';
+type Tab = 'plan' | 'courses' | 'coverage' | 'backup';
 
 const tabs: { id: Tab; label: string; eyebrow: string; description: string }[] = [
   { id: 'plan', label: 'Daily Plan', eyebrow: 'Priority agenda', description: 'Bring deadlines, reviews, tasks, and research into one time-boxed run sheet.' },
   { id: 'courses', label: 'Courses', eyebrow: 'Curriculum control', description: 'Edit course links and exam dates, then archive semesters when the block is complete.' },
+  { id: 'coverage', label: 'Exam Coverage', eyebrow: 'Topics & evidence', description: 'Track learning objectives, link your notes, and record practice results across your courses.' },
   { id: 'backup', label: 'Backup & Sync', eyebrow: 'Portable state', description: 'Keep focus history and preferences moving with you, and export a restorable copy of your work.' },
 ];
 
 export default function WorkspaceClient({ initialTab }: { initialTab: Tab }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>(initialTab);
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const tab = tabs.find(item => item.id === requestedTab)?.id ?? initialTab;
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   function selectTab(next: Tab) {
-    setTab(next);
     router.replace(`/workspace?tab=${next}`, { scroll: false });
   }
 
@@ -93,6 +96,7 @@ export default function WorkspaceClient({ initialTab }: { initialTab: Tab }) {
               </div>
               {tab === 'plan' && <DailyStudyPlan />}
               {tab === 'courses' && <CourseSemesterManager />}
+              {tab === 'coverage' && <ExamCoverageMap />}
               {tab === 'backup' && <BackupManager />}
             </section>
           </div>

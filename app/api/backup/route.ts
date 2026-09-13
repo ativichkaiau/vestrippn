@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { requireUserId } from '@/lib/auth/owner';
 import { BACKUP_MAX_BYTES, BACKUP_FORMAT, BACKUP_VERSION, validateBackup, type BackupPayload } from '@/lib/backup';
 import { validateFocusSession, validatePreferences, type SyncedPreferences } from '@/lib/device-sync';
+import { serializeCoverage } from '@/lib/coverage';
+import { coverageResults } from '@/lib/coverage-validation';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -18,7 +20,7 @@ async function createBackup(userId: string): Promise<BackupPayload> {
     prisma.ieltsModule.findMany({ where: { userId }, orderBy: { updatedAt: 'asc' } }),
     prisma.researchExtraction.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
     prisma.studyDocument.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
-    prisma.semester.findMany({ where: { userId }, orderBy: { createdAt: 'asc' }, include: { courses: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }], include: { exams: { orderBy: { scheduledAt: 'asc' } } } } } }),
+    prisma.semester.findMany({ where: { userId }, orderBy: { createdAt: 'asc' }, include: { courses: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }], include: { exams: { orderBy: { scheduledAt: 'asc' } }, coverageObjectives: { where: { userId } } } } } }),
     prisma.studyPlanDay.findMany({ where: { userId }, orderBy: { day: 'asc' } }),
     prisma.focusSessionRecord.findMany({ where: { userId }, orderBy: { startedAt: 'asc' }, take: 10_000 }),
     prisma.userPreferences.findUnique({ where: { userId } }),
@@ -32,7 +34,7 @@ async function createBackup(userId: string): Promise<BackupPayload> {
     notes: notes.map((note) => ({ id: note.id, text: note.text, updatedAt: note.updatedAt.toISOString() })),
     papers: papers.map((paper) => ({ id: paper.id, pmid: paper.pmid, title: paper.title, authors: paper.authors, journal: paper.journal, url: paper.url, source: paper.source, doi: paper.doi, abstract: paper.abstract, year: paper.year, status: paper.status, createdAt: paper.createdAt.toISOString() })),
     documents: documents.map((document) => ({ id: document.id, title: document.title, sourceType: document.sourceType, originalUrl: document.originalUrl, status: document.status, pages: document.pages, processedAt: iso(document.processedAt), createdAt: document.createdAt.toISOString() })),
-    semesters: semesters.map((semester) => ({ id: semester.id, name: semester.name, startsAt: iso(semester.startsAt), endsAt: iso(semester.endsAt), archivedAt: iso(semester.archivedAt), courses: semester.courses.map((course) => ({ id: course.id, code: course.code, name: course.name, canvasCourseId: course.canvasCourseId, canvasUrl: course.canvasUrl, notebookUrl: course.notebookUrl, sortOrder: course.sortOrder, exams: course.exams.map((exam) => ({ id: exam.id, title: exam.title, scheduledAt: exam.scheduledAt.toISOString() })) })) })),
+    semesters: semesters.map((semester) => ({ id: semester.id, name: semester.name, startsAt: iso(semester.startsAt), endsAt: iso(semester.endsAt), archivedAt: iso(semester.archivedAt), courses: semester.courses.map((course) => ({ id: course.id, code: course.code, name: course.name, canvasCourseId: course.canvasCourseId, canvasUrl: course.canvasUrl, notebookUrl: course.notebookUrl, sortOrder: course.sortOrder, exams: course.exams.map((exam) => ({ id: exam.id, title: exam.title, scheduledAt: exam.scheduledAt.toISOString() })), coverage: course.coverageObjectives.map(serializeCoverage) })) })),
     planDays: planDays.map((day) => ({ id: day.id, day: day.day, availableMinutes: day.availableMinutes, completedItems: Array.isArray(day.completedItems) ? day.completedItems.filter((value): value is string => typeof value === 'string') : [], updatedAt: day.updatedAt.toISOString() })),
     focusSessions: sessions.flatMap((session) => {
       try { return [validateFocusSession({ id: session.clientId, ts: session.startedAt.getTime() + session.durationSec * 1000, circuit: session.circuit, mode: session.mode, target: session.target, durationSec: session.durationSec, laps: session.laps, bestLap: session.bestLap, title: session.title ?? undefined, agendaItemId: session.agendaItemId ?? undefined })]; }
@@ -88,6 +90,22 @@ async function restore(userId: string, backup: BackupPayload) {
       for (const course of row.courses) {
         const courseId = await ownedId(tx.course as unknown as IdDelegate, userId, 'course', course.id);
         await tx.course.upsert({ where: { id: courseId }, create: { id: courseId, userId, semesterId: id, code: course.code, name: course.name, canvasCourseId: course.canvasCourseId, canvasUrl: course.canvasUrl, notebookUrl: course.notebookUrl, sortOrder: course.sortOrder }, update: { semesterId: id, code: course.code, name: course.name, canvasCourseId: course.canvasCourseId, canvasUrl: course.canvasUrl, notebookUrl: course.notebookUrl, sortOrder: course.sortOrder } }); imported++;
+        for (const objective of course.coverage) {
+          const where = { courseId_key: { courseId, key: objective.key } };
+          const existing = await tx.coverageObjective.findUnique({ where });
+          if (existing && existing.userId !== userId) throw new Error('Coverage ownership mismatch.');
+          const previousResults = existing ? coverageResults(existing.results) : [];
+          const merged = new Map([...objective.results, ...previousResults].map(result => [result.id, result]));
+          const results = [...merged.values()].sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)).slice(0, 100);
+          const values = { title: objective.title, section: objective.section, sourceTopicId: objective.sourceTopicId, status: objective.status, notes: objective.notes, noteUrl: objective.noteUrl };
+          const useImported = !existing || (objective.updatedAt !== null && Date.parse(objective.updatedAt) >= existing.updatedAt.getTime());
+          await tx.coverageObjective.upsert({
+            where,
+            create: { userId, courseId, key: objective.key, ...values, results, revision: 1, ...(objective.updatedAt ? { updatedAt: new Date(objective.updatedAt) } : {}) },
+            update: { ...(useImported ? values : {}), results, revision: { increment: 1 } },
+          });
+          imported++;
+        }
         for (const exam of course.exams) {
           const examId = await ownedId(tx.exam as unknown as IdDelegate, userId, 'exam', exam.id);
           await tx.exam.upsert({ where: { id: examId }, create: { id: examId, userId, courseId, title: exam.title, scheduledAt: new Date(exam.scheduledAt) }, update: { courseId, title: exam.title, scheduledAt: new Date(exam.scheduledAt) } }); imported++;
@@ -109,7 +127,7 @@ async function restore(userId: string, backup: BackupPayload) {
     const currentValues = currentPreferences ? validatePreferences(currentPreferences.values) : {};
     const values = { ...backup.preferences, ...currentValues };
     await tx.userPreferences.upsert({ where: { userId }, create: { userId, values: backup.preferences, revision: 0 }, update: { values, revision: { increment: 1 } } });
-  });
+  }, { maxWait: 10_000, timeout: 60_000 });
   return { imported, skipped: 0 };
 }
 
