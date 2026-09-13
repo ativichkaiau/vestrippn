@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
 
-const EXPECTED_CASE_COUNT = 44;
+const EXPECTED_CASE_COUNT = 50;
 const EXPECTED_SPECIALTIES = new Set([
   "Cardiovascular System",
   "Digestive and Biliary Tract System",
@@ -17,6 +17,8 @@ const EXPECTED_SPECIALTIES = new Set([
   "Respiratory System",
   "Biochemistry",
   "Immunology",
+  "Skin and Connective Tissue System",
+  "Haematopoietic and Lymphoreticular System",
 ]);
 const PUBLIC_LEAK_RE = /\b(optimal|suboptimal|deadly|correct choice|incorrect choice)\b/i;
 

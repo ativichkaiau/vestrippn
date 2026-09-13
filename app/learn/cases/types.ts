@@ -91,6 +91,7 @@ const SPECIALTY_ICONS: [string, string][] = [
   ['endocrin', '💧'], ['gastro', '🍽️'], ['renal', '🧪'], ['nephro', '🧪'],
   ['hemat', '🩸'], ['infect', '🦠'], ['derm', '🩹'], ['musculo', '🦴'],
   ['biochem', '🧬'], ['immun', '🛡️'], ['micro', '🦠'], ['reproduct', '🤰'], ['digest', '🍽️'],
+  ['skin', '🩹'], ['haemat', '🩸'], ['lymph', '🩸'],
 ];
 export function specialtyIcon(specialty: string | null): string {
   if (!specialty) return '🩺';
