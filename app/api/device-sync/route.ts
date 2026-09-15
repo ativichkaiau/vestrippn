@@ -13,7 +13,7 @@ async function snapshot(userId: string) {
   ]);
   return {
     sessions: sessions.map((s: (typeof sessions)[number]) => ({ id: s.clientId, ts: s.startedAt.getTime() + s.durationSec * 1000, circuit: s.circuit, mode: s.mode as 'open' | 'min' | 'laps', target: s.target, durationSec: s.durationSec, laps: s.laps, bestLap: s.bestLap, ...(s.title ? { title: s.title } : {}), ...(s.agendaItemId ? { agendaItemId: s.agendaItemId } : {}) })),
-    preferences: { values: preferences?.values || {}, revision: preferences?.revision || 0 },
+    preferences: { values: validatePreferences(preferences?.values || {}), revision: preferences?.revision || 0 },
   };
 }
 

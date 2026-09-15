@@ -3,6 +3,7 @@ export default function LiveryDecoration() {
   return (
     <div className="w85-livery-decoration" aria-hidden="true">
       <span className="w85-livery-cap" />
+      <span className="w85-livery-ribbon" />
       <svg className="w85-livery-orbits" viewBox="0 0 360 360" fill="none" focusable="false">
         <g className="w85-orbit-outer">
           <circle cx="180" cy="180" r="148" pathLength="100" strokeDasharray="23 5 9 5 23 5 9 21" />

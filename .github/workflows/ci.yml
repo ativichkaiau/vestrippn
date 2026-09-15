@@ -33,3 +33,6 @@ jobs:
 
       - name: Validate exam coverage
         run: npm run validate:coverage
+
+      - name: Validate liveries and twilight
+        run: npm run validate:themes

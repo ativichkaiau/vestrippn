@@ -1,108 +1,57 @@
 'use client';
 import { notifyPreferenceEdit } from './device-sync';
+import { LIVERIES, LIVERY_CATALOG, type Livery, type Mode } from './liveries';
+import { themeEngine } from './theme-config';
 
-// Shared theme controls (livery, day/night). Both ThemeToggle and the command
-// palette drive the theme through here so there's one source of truth; changes
-// fire a `vest:theme-change` event that ThemeToggle listens for to re-sync its
-// popover. Low-power lives in useLowPower (its own `vest-lowpower` channel).
+export type { Livery, Mode } from './liveries';
+export const LIVERY_CYCLE = LIVERIES;
+export const LIVERY_LABEL = Object.fromEntries(LIVERIES.map(id => [id, LIVERY_CATALOG[id].name])) as Record<Livery, string>;
+export const MODE_LABEL: Record<Mode, string> = { auto: 'Auto', day: 'Silver day', twilight: 'Twilight', night: 'Carbon night' };
 
-export type Livery =
-  | 'normal'
-  | 'monza'
-  | 'senna'
-  | 'verstappen'
-  | 'ferrari'
-  | 'forceindia'
-  | 'mclaren'
-  | 'benetton'
-  | 'jps'
-  | 'alpine';
-export type Mode = 'day' | 'night';
-
-// Every special (dark-only) livery, in picker/cycle order.
-export const SPECIAL_LIVERIES: Livery[] = ['monza', 'senna', 'verstappen', 'ferrari', 'forceindia', 'mclaren', 'benetton', 'jps', 'alpine'];
-
-export const LIVERY_CYCLE: Livery[] = ['normal', ...SPECIAL_LIVERIES];
-export const LIVERY_LABEL: Record<Livery, string> = {
-  normal: 'Normal',
-  monza: 'Williams',
-  senna: 'Senna',
-  verstappen: 'Verstappen',
-  ferrari: 'Ferrari',
-  forceindia: 'Force India',
-  mclaren: 'McLaren',
-  benetton: 'Benetton',
-  jps: 'JPS Lotus',
-  alpine: 'Alpine',
-};
-
-// Apply livery + mode classes to <html> (mirrors the boot script in layout.tsx).
-export function applyLivery(lv: Livery, md: Mode): void {
-  const el = document.documentElement;
-  el.classList.remove(...SPECIAL_LIVERIES, ...SPECIAL_LIVERIES.map((l) => `w09-${l}`));
-  if (lv !== 'normal') {
-    el.classList.add('dark', lv, `w09-${lv}`);
-  } else if (md === 'night') {
-    el.classList.add('dark');
-  } else {
-    el.classList.remove('dark');
-  }
+export function applyLivery(livery: Livery, mode: Mode): void {
+  const theme = themeEngine.apply(document.documentElement, themeEngine.livery(livery) ?? 'normal', themeEngine.mode(mode));
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach(meta => { meta.content = theme.palette.canvas; });
 }
-
 export function getLivery(): Livery {
-  try {
-    const v = localStorage.getItem('vest_livery');
-    if (v && (LIVERY_CYCLE as string[]).includes(v)) return v as Livery;
-  } catch {
-    /* ignore */
-  }
-  return 'normal';
+  try { return themeEngine.livery(localStorage.getItem('vest_livery')) ?? 'normal'; } catch { return themeEngine.livery(document.documentElement.dataset.livery) ?? 'normal'; }
 }
-
 export function getMode(): Mode {
-  try {
-    const v = localStorage.getItem('vest_mode');
-    if (v === 'day' || v === 'night') return v;
-  } catch {
-    /* ignore */
-  }
-  const hour = new Date().getHours();
-  return hour < 6 || hour >= 18 ? 'night' : 'day';
+  try { return themeEngine.mode(localStorage.getItem('vest_mode')); } catch { return themeEngine.mode(document.documentElement.dataset.mode); }
 }
-
-// Persist + apply + notify.
-export function setTheme(lv: Livery, md?: Mode): void {
-  const mode = md ?? getMode();
-  applyLivery(lv, mode);
+export function setTheme(livery: Livery, mode?: Mode): void {
+  const selectedMode = mode ?? getMode();
+  applyLivery(livery, selectedMode);
   try {
-    localStorage.setItem('vest_livery', lv);
-    if (md) localStorage.setItem('vest_mode', md);
-  } catch {
-    /* ignore */
-  }
+    localStorage.setItem('vest_livery', livery);
+    if (mode) localStorage.setItem('vest_mode', mode);
+  } catch { /* The applied DOM remains usable when storage is unavailable. */ }
   window.dispatchEvent(new Event('vest:theme-change'));
-  notifyPreferenceEdit({ livery: lv, ...(md ? { mode: md } : {}) });
+  notifyPreferenceEdit({ livery, ...(mode ? { mode } : {}) });
 }
-
-// Cycle to the next livery (wraps). Returns the new livery for a toast label.
 export function cycleLivery(): Livery {
   const next = LIVERY_CYCLE[(LIVERY_CYCLE.indexOf(getLivery()) + 1) % LIVERY_CYCLE.length];
   setTheme(next);
   return next;
 }
-
-// Flip day/night. Special liveries are always dark, so drop back to Normal to
-// make the switch visible. Returns the new mode.
 export function toggleMode(): Mode {
-  const next: Mode = getMode() === 'night' ? 'day' : 'night';
+  const modes: Mode[] = ['day', 'twilight', 'night', 'auto'];
+  const next = modes[(modes.indexOf(getMode()) + 1) % modes.length];
   setTheme('normal', next);
   return next;
 }
-
+export function subscribeTheme(listener: () => void) {
+  window.addEventListener('vest:theme-change', listener);
+  window.addEventListener('vest-lowpower', listener);
+  return () => {
+    window.removeEventListener('vest:theme-change', listener);
+    window.removeEventListener('vest-lowpower', listener);
+  };
+}
+export function themeSnapshot() {
+  const el = document.documentElement;
+  return `${getLivery()}|${getMode()}|${el.dataset.phase ?? 'day'}|${isLowPower() ? '1' : '0'}`;
+}
+export const serverThemeSnapshot = () => 'normal|auto|day|0';
 export function isLowPower(): boolean {
-  try {
-    return document.documentElement.classList.contains('low-power');
-  } catch {
-    return false;
-  }
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('low-power');
 }

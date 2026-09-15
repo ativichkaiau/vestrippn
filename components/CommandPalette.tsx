@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 import { HUBS } from './HubNav';
 import { vtNavigate } from '@/lib/view-transition';
 import { toast } from '@/lib/toast-bus';
-import { cycleLivery, toggleMode, isLowPower, LIVERY_LABEL } from '@/lib/theme';
+import { cycleLivery, toggleMode, isLowPower, LIVERY_LABEL, MODE_LABEL } from '@/lib/theme';
 import { setLowPowerMode } from './useLowPower';
 import { enableReminders } from '@/lib/reminders';
 
@@ -99,7 +99,7 @@ export default function CommandPalette() {
         label: 'Cycle livery',
         hint: 'Action · theme',
         icon: '🎨',
-        keywords: 'livery theme skin color williams senna verstappen ferrari normal',
+        keywords: 'livery theme skin color mercedes williams canon martini bmw red bull infiniti ford suzuka porcelain senna verstappen',
         run: () => {
           const lv = cycleLivery();
           toast({ id: 'theme', title: `Livery · ${LIVERY_LABEL[lv]}`, variant: 'success', icon: '🎨' });
@@ -107,18 +107,18 @@ export default function CommandPalette() {
       },
       {
         id: 'act:mode',
-        label: 'Toggle day / night',
+        label: 'Cycle silver / twilight / night / auto',
         hint: 'Action · theme',
         icon: '🌓',
-        keywords: 'dark light mode day night theme obsidian silver',
+        keywords: 'dark light mode day twilight sunset night auto theme carbon silver',
         run: () => {
           const m = toggleMode();
           toast({
             id: 'theme',
-            title: m === 'night' ? 'Night mode' : 'Day mode',
-            message: m === 'night' ? 'Obsidian EQ' : 'Liquid Silver',
+            title: MODE_LABEL[m],
+            message: m === 'auto' ? 'Following the sun in Chiang Mai' : 'Mercedes Silver Arrow',
             variant: 'success',
-            icon: m === 'night' ? '🌙' : '☀️',
+            icon: m === 'night' ? '🌙' : m === 'day' ? '☀️' : '◒',
           });
         },
       },

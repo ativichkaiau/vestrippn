@@ -1,228 +1,104 @@
 'use client';
-import { useEffect, useState } from "react";
-import { setLowPowerMode } from "./useLowPower";
-import { applyLivery, setTheme, getLivery, getMode, LIVERY_LABEL, type Livery, type Mode } from "@/lib/theme";
 
-// Trigger-button glyph per livery (the picker rows carry their own emoji).
-const LIVERY_ICON: Record<Livery, string> = {
-  normal: '☀️', monza: '🏁', senna: '🇧🇷', verstappen: '🇳🇱', ferrari: '🐎',
-  forceindia: '🧡', mclaren: '🏎️', benetton: '🌈', jps: '🖤', alpine: '🇫🇷',
+import { useId, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
+import { setLowPowerMode } from './useLowPower';
+import { MODE_LABEL, serverThemeSnapshot, setTheme, subscribeTheme, themeSnapshot } from '@/lib/theme';
+import { LIVERIES, LIVERY_CATALOG, LIVERY_TEAMS, MODES, type Livery, type LiveryDefinition, type Mode, type ThemePhase } from '@/lib/liveries';
+
+type Team = typeof LIVERY_TEAMS[number]['id'];
+const PHASE_ICON: Record<ThemePhase, string> = { day: '☀', twilight: '◒', night: '☾' };
+const subscribeMounted = () => () => {};
+const clientMounted = () => true;
+const serverMounted = () => false;
+const TEAM_DESCRIPTION: Record<Team, string> = {
+  mercedes: 'Silver in daylight. Graphite at dusk. Carbon after dark.',
+  williams: 'Four eras from Grove. One unmistakable racing line.',
+  redbull: 'Championship colours, a new era, and special editions.',
+  drivers: 'Personal colours from the people behind the wheel.',
 };
 
-function LiveryRow({
-  active,
-  onClick,
-  emoji,
-  title,
-  sub,
-  swatches = [],
-}: {
-  active: boolean;
-  onClick: () => void;
-  emoji: string;
-  title: string;
-  sub: string;
-  swatches?: string[];
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w10-clay-tab w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors text-left ${
-        active ? 'bg-[#00A598]/10 dark:bg-[#00D2BE]/10' : 'hover:bg-black/5 dark:hover:bg-white/10'
-      }`}
-      data-state={active ? 'active' : undefined}
-    >
-      <span className="shrink-0 text-[18px] leading-none">{emoji}</span>
-      <div className="min-w-0 flex-1 leading-tight">
-        <div className="text-[12px] font-bold text-neutral-900 dark:text-white">{title}</div>
-        <div className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">{sub}</div>
-      </div>
-      {swatches.length > 0 && (
-        <div className="flex h-4 w-12 shrink-0 overflow-hidden rounded-[4px] border border-black/10 bg-white/40 p-px shadow-sm dark:border-white/20 dark:bg-black/25" aria-hidden>
-          {swatches.map((swatch) => (
-            <span key={swatch} className="h-full min-w-0 flex-1" style={{ backgroundColor: swatch }} />
-          ))}
-        </div>
-      )}
-      {active && <span className="shrink-0 text-[12px] font-black text-[#00A598] dark:text-[#00D2BE]">✓</span>}
-    </button>
-  );
+function LiveryPreview({ livery }: { livery: Livery }) {
+  const definition = LIVERY_CATALOG[livery];
+  const style = {
+    '--preview-ground': definition.palette.canvas, '--preview-text': definition.palette.text,
+    '--preview-stripe': definition.stripe, '--preview-color': definition.colors[0],
+  } as CSSProperties;
+  return <span className="livery-preview" data-design={livery} style={style} aria-hidden="true">
+    <span className="livery-preview-grain" /><span className="livery-preview-disc" />
+    <span className="livery-preview-ribbon" />
+    <span className="livery-preview-year">{definition.year}</span>
+    <span className="livery-preview-chassis">{definition.chassis}</span>
+  </span>;
 }
 
 export default function ThemeToggle() {
-  const [livery, setLivery] = useState<Livery>('normal');
-  const [mode, setMode] = useState<Mode>('night');
-  const [open, setOpen] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [lowPower, setLowPower] = useState(false);
+  const mounted = useSyncExternalStore(subscribeMounted, clientMounted, serverMounted);
+  const snapshot = useSyncExternalStore(subscribeTheme, themeSnapshot, serverThemeSnapshot);
+  const [livery, mode, phase, power] = snapshot.split('|') as [Livery, Mode, ThemePhase, string];
+  const [team, setTeam] = useState<Team>('mercedes');
+  const [notice, setNotice] = useState('');
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const definition = LIVERY_CATALOG[livery];
+  const label = livery === 'normal' ? mode === 'auto' ? `Auto · ${MODE_LABEL[phase]}` : MODE_LABEL[mode] : `${definition.name} · ${definition.year}`;
+  const entries = LIVERIES.filter(id => LIVERY_CATALOG[id].team === team);
+  const lowPower = power === '1';
 
-  // Initialise from storage, falling back to time-of-day for Normal livery
-  useEffect(() => {
-    const lv = getLivery();
-    const md = getMode();
-
-    applyLivery(lv, md);
-    const handle = window.setTimeout(() => {
-      setLivery(lv);
-      setMode(md);
-      setLowPower(document.documentElement.classList.contains('low-power'));
-      setReady(true);
-    }, 0);
-
-    return () => window.clearTimeout(handle);
-  }, []);
-
-  // Re-sync when the theme/low-power is changed elsewhere (e.g. the ⌘K palette).
-  useEffect(() => {
-    const sync = () => {
-      setLivery(getLivery());
-      setMode(getMode());
-      setLowPower(document.documentElement.classList.contains('low-power'));
-    };
-    window.addEventListener('vest:theme-change', sync);
-    window.addEventListener('vest-lowpower', sync);
-    return () => {
-      window.removeEventListener('vest:theme-change', sync);
-      window.removeEventListener('vest-lowpower', sync);
-    };
-  }, []);
-
-  const toggleLowPower = () => {
-    const next = !lowPower;
-    setLowPower(next);
-    setLowPowerMode(next);
-  };
-
-  const choose = (lv: Livery, md?: Mode) => {
-    const nextMode = md ?? mode;
-    setLivery(lv);
-    if (md) setMode(md);
-    setTheme(lv, nextMode);
-    setOpen(false);
-  };
-
-  if (!ready) {
-    return <div className="w10-livery-skeleton h-[38px] w-[38px] rounded-full bg-black/5 animate-pulse dark:bg-white/5 sm:w-[104px]" />;
+  function openPicker() {
+    setTeam(definition.team); setNotice('');
+    dialogRef.current?.showModal();
+  }
+  function choose(id: Livery, selectedMode?: Mode) {
+    setTheme(id, selectedMode);
+    setNotice(`${LIVERY_CATALOG[id].name}${selectedMode ? ` · ${MODE_LABEL[selectedMode]}` : ` · ${LIVERY_CATALOG[id].year}`} applied`);
   }
 
-  const label = livery === 'normal' ? (mode === 'night' ? 'Night' : 'Day') : LIVERY_LABEL[livery];
-  const icon = livery === 'normal' ? (mode === 'night' ? '🌙' : '☀️') : LIVERY_ICON[livery];
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="w10-livery-trigger w10-clay-control flex h-[38px] w-[38px] items-center justify-center gap-2 rounded-full border border-transparent bg-black/5 p-0 shadow-sm transition-all duration-300 hover:bg-black/10 active:scale-95 dark:border-white/5 dark:bg-white/5 dark:hover:bg-white/10 sm:h-auto sm:w-auto sm:justify-start sm:px-3 sm:py-1.5"
-        title="Select livery"
-      >
-        <div className="hidden flex-col items-start leading-none sm:flex">
-          <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Livery</span>
-          <span className="text-[11px] font-bold tracking-tight text-neutral-900 dark:text-white">{label}</span>
+  return <>
+    <button type="button" onClick={openPicker} className="livery-trigger" aria-label={`Choose livery. Current: ${label}`} aria-haspopup="dialog" title="Choose livery">
+      <span className="livery-trigger-swatch" style={{ background: definition.stripe }} aria-hidden="true" />
+      <span className="livery-trigger-copy"><span>Livery</span><strong>{livery === 'normal' ? MODE_LABEL[mode] : definition.name}</strong></span>
+      <span className="livery-trigger-icon" aria-hidden="true">{livery === 'normal' ? PHASE_ICON[phase] : '⌄'}</span>
+    </button>
+    {mounted && createPortal(<dialog ref={dialogRef} className="livery-dialog" aria-labelledby={titleId} onClick={event => { if (event.target === event.currentTarget) dialogRef.current?.close(); }}>
+      <div className="livery-dialog-inner">
+        <header className="livery-dialog-header">
+          <div><p className="livery-eyebrow">W85 · The livery collection</p><h2 id={titleId}>Pick your racing colours.</h2></div>
+          <button type="button" className="livery-close" onClick={() => dialogRef.current?.close()} aria-label="Close livery collection" autoFocus>×</button>
+        </header>
+        <nav className="livery-teams" aria-label="Livery teams">
+          {LIVERY_TEAMS.map(item => <button type="button" key={item.id} aria-pressed={team === item.id} onClick={() => setTeam(item.id)}>{item.name}<span>{LIVERIES.filter(id => LIVERY_CATALOG[id].team === item.id).length}</span></button>)}
+        </nav>
+        <div className="livery-dialog-scroll custom-scrollbar">
+          <p className="livery-team-description">{TEAM_DESCRIPTION[team]}</p>
+          {team === 'mercedes' ? <>
+            <div className="livery-mercedes-preview"><LiveryPreview livery="normal" /><div><p className="livery-eyebrow">2014 · F1 W05 Hybrid</p><h3>Silver Arrow</h3><p>Cool metal, a clean teal line, and the black theme you know.</p></div></div>
+            <div className="livery-modes" aria-label="Mercedes lighting">
+              {MODES.map(md => <button type="button" key={md} aria-pressed={livery === 'normal' && mode === md} onClick={() => choose('normal', md)}><span aria-hidden="true">{md === 'auto' ? '◷' : PHASE_ICON[md]}</span><strong>{MODE_LABEL[md]}</strong><small>{md === 'auto' ? 'Follow the sun' : md === 'day' ? '2014 silver' : md === 'twilight' ? 'Graphite grey' : 'Original black'}</small></button>)}
+            </div>
+            <div className="livery-solar-note"><span aria-hidden="true">◷</span><p><strong>Auto follows the sun in Chiang Mai.</strong> Silver fades through grey around sunrise and sunset, then settles into carbon black. It updates while the app is open.</p></div>
+            <div className="livery-day-track" aria-hidden="true"><span>Silver</span><span>Twilight</span><span>Carbon</span></div>
+          </> : <>
+            <div className="livery-grid">
+              {entries.filter(id => !(LIVERY_CATALOG[id] as LiveryDefinition).special).map(id => <LiveryCard key={id} id={id} active={livery === id} onChoose={choose} />)}
+            </div>
+            {entries.some(id => (LIVERY_CATALOG[id] as LiveryDefinition).special) && <><h3 className="livery-section-title">Special editions <span>Race tributes & original designs</span></h3><div className="livery-grid">{entries.filter(id => (LIVERY_CATALOG[id] as LiveryDefinition).special).map(id => <LiveryCard key={id} id={id} active={livery === id} onChoose={choose} />)}</div></>}
+          </>}
         </div>
-        <span className="text-[16px] leading-none group-hover:scale-110 transition-transform duration-300">{icon}</span>
-      </button>
+        <footer className="livery-dialog-footer">
+          <button type="button" role="switch" aria-checked={lowPower} className="livery-power" onClick={() => setLowPowerMode(!lowPower)}><span className="livery-switch" data-on={lowPower}><span /></span><span><strong>Low power</strong><small>Pause decorative motion</small></span></button>
+          <p role="status" className="livery-notice">{notice || `Active · ${label}`}</p>
+          <button type="button" className="livery-done" onClick={() => dialogRef.current?.close()}>Done</button>
+        </footer>
+      </div>
+    </dialog>, document.body)}
+  </>;
+}
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-[55]" onClick={() => setOpen(false)} />
-          <div className="w10-clay-surface absolute right-0 mt-2 w-56 z-[60] p-2 rounded-2xl bg-white/95 dark:bg-[#0e0e10]/95 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-[0_20px_50px_rgb(0,0,0,0.18)] dark:shadow-[0_20px_50px_rgb(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-            <div className="px-3 pt-1.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Normal Livery</div>
-            <LiveryRow active={livery === 'normal' && mode === 'day'} onClick={() => choose('normal', 'day')} emoji="☀️" title="Day" sub="Liquid Silver" />
-            <LiveryRow active={livery === 'normal' && mode === 'night'} onClick={() => choose('normal', 'night')} emoji="🌙" title="Night" sub="Obsidian EQ" />
-            <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
-            <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Special Liveries</div>
-            <LiveryRow
-              active={livery === 'monza'}
-              onClick={() => choose('monza')}
-              emoji="🏁"
-              title="Williams"
-              sub="Navy · Gold · Red"
-              swatches={['#210E6F', '#FFFFFF', '#C59955', '#D5172D']}
-            />
-            <LiveryRow
-              active={livery === 'senna'}
-              onClick={() => choose('senna')}
-              emoji="🇧🇷"
-              title="Senna"
-              sub="Helmet Yellow · Green · Blue"
-              swatches={['#061329', '#FFD400', '#00A651', '#1F6FEB']}
-            />
-            <LiveryRow
-              active={livery === 'verstappen'}
-              onClick={() => choose('verstappen')}
-              emoji="🇳🇱"
-              title="Verstappen"
-              sub="Orange · Red · White · Blue"
-              swatches={['#FF6B00', '#DC2626', '#FFFFFF', '#1D4ED8', '#061A3A']}
-            />
-            <LiveryRow
-              active={livery === 'ferrari'}
-              onClick={() => choose('ferrari')}
-              emoji="🐎"
-              title="Ferrari"
-              sub="F1-75 · Deep Rosso · Verde"
-              swatches={['#A80814', '#080304', '#009640', '#FFDD00']}
-            />
-            <LiveryRow
-              active={livery === 'forceindia'}
-              onClick={() => choose('forceindia')}
-              emoji="🧡"
-              title="Force India"
-              sub="Saffron · Green · Silver"
-              swatches={['#FF6D0A', '#00A94F', '#C9CED6', '#101216']}
-            />
-            <LiveryRow
-              active={livery === 'mclaren'}
-              onClick={() => choose('mclaren')}
-              emoji="🏎️"
-              title="McLaren Marlboro"
-              sub="Race Red · White · Gold"
-              swatches={['#E4002B', '#FFFFFF', '#B98A2A', '#160C0D']}
-            />
-            <LiveryRow
-              active={livery === 'benetton'}
-              onClick={() => choose('benetton')}
-              emoji="🌈"
-              title="Benetton"
-              sub="Green · Blue · Yellow · Red"
-              swatches={['#00A651', '#0072CE', '#F5B800', '#E02328']}
-            />
-            <LiveryRow
-              active={livery === 'jps'}
-              onClick={() => choose('jps')}
-              emoji="🖤"
-              title="JPS Lotus"
-              sub="Black · Gold"
-              swatches={['#080703', '#D4AF37', '#A37D20', '#F0E2B0']}
-            />
-            <LiveryRow
-              active={livery === 'alpine'}
-              onClick={() => choose('alpine')}
-              emoji="🇫🇷"
-              title="Alpine"
-              sub="BWT Blue · Pink"
-              swatches={['#0090D4', '#EC0080', '#FFFFFF', '#061524']}
-            />
-            <div className="my-1.5 h-px bg-black/5 dark:bg-white/10" />
-            <div className="px-3 pt-0.5 pb-1 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">Performance</div>
-            <button
-              onClick={toggleLowPower}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left hover:bg-black/5 dark:hover:bg-white/10"
-            >
-              <span className="text-[18px] leading-none">🔋</span>
-              <div className="flex-1 leading-tight">
-                <div className="text-[12px] font-bold text-neutral-900 dark:text-white">Low-Power Mode</div>
-                <div className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Stops animations · saves battery</div>
-              </div>
-              <span
-                className={`relative h-[18px] w-[32px] shrink-0 rounded-full transition-colors ${lowPower ? 'bg-[#00A598] dark:bg-[#00D2BE]' : 'bg-black/15 dark:bg-white/15'}`}
-              >
-                <span className={`absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow transition-all ${lowPower ? 'left-[16px]' : 'left-[2px]'}`} />
-              </span>
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+function LiveryCard({ id, active, onChoose }: { id: Livery; active: boolean; onChoose: (id: Livery) => void }) {
+  const item = LIVERY_CATALOG[id];
+  return <button type="button" className="livery-card" aria-pressed={active} aria-label={`${item.name}, ${item.year}`} onClick={() => onChoose(id)}>
+    <LiveryPreview livery={id} />
+    <span className="livery-card-copy"><span className="livery-card-name"><strong>{item.name}</strong>{active && <span className="livery-selected" aria-hidden="true">✓</span>}</span><span className="livery-card-description">{item.description}</span><span className="livery-card-finish">{item.finish} · {item.chassis}</span></span>
+  </button>;
 }

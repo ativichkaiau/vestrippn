@@ -1,6 +1,8 @@
-// Shared wire validation: deliberately excludes authentication and arbitrary storage.
-export const LIVERIES = ['normal', 'monza', 'senna', 'verstappen', 'ferrari', 'forceindia', 'mclaren', 'benetton', 'jps', 'alpine'] as const;
-export type SyncedPreferences = { livery?: typeof LIVERIES[number]; mode?: 'day' | 'night'; lowPower?: boolean };
+import { MODES, type Livery, type Mode } from './liveries';
+import { themeEngine } from './theme-config';
+export { LIVERIES } from './liveries';
+// Validate and migrate older device caches and backup files with the same catalog.
+export type SyncedPreferences = { livery?: Livery; mode?: Mode; lowPower?: boolean };
 export type SyncedSession = { id: string; ts: number; circuit: string; mode: 'open' | 'min' | 'laps'; target: number; durationSec: number; laps: number; bestLap: number | null; title?: string; agendaItemId?: string };
 export type SyncSnapshot = { sessions: SyncedSession[]; preferences: { values: SyncedPreferences; revision: number } };
 export type SyncStatus = { state: 'signed-out' | 'syncing' | 'synced' | 'offline' | 'error'; message: string; lastSync?: string };
@@ -11,10 +13,11 @@ export function validatePreferences(value: unknown): SyncedPreferences {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid preferences.');
   const data = value as Record<string, unknown>;
   if (Object.keys(data).some(key => !['livery', 'mode', 'lowPower'].includes(key))) throw new Error('Unsupported preference.');
-  if (data.livery !== undefined && !LIVERIES.includes(data.livery as typeof LIVERIES[number])) throw new Error('Invalid livery.');
-  if (data.mode !== undefined && data.mode !== 'day' && data.mode !== 'night') throw new Error('Invalid display mode.');
+  const livery = data.livery === undefined ? undefined : themeEngine.livery(data.livery);
+  if (livery === null) throw new Error('Invalid livery.');
+  if (data.mode !== undefined && !MODES.includes(data.mode as Mode)) throw new Error('Invalid display mode.');
   if (data.lowPower !== undefined && typeof data.lowPower !== 'boolean') throw new Error('Invalid low-power setting.');
-  return { ...data } as SyncedPreferences;
+  return { ...data, ...(livery !== undefined ? { livery } : {}) } as SyncedPreferences;
 }
 
 export function validateFocusSession(value: unknown): SyncedSession {

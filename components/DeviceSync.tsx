@@ -30,6 +30,7 @@ function storedPreferences(): SyncedPreferences {
 }
 
 function applyPreferences(values: SyncedPreferences) {
+  values = validatePreferences(values);
   try {
     if (values.livery !== undefined) localStorage.setItem('vest_livery', values.livery);
     if (values.mode !== undefined) localStorage.setItem('vest_mode', values.mode);
@@ -67,7 +68,7 @@ export default function DeviceSync() {
       migratePreferences = !previousOwner;
       if (previousOwner && previousOwner !== userId) {
         for (const storageKey of ['vest_livery', 'vest_mode', 'vest_lowpower']) localStorage.removeItem(storageKey);
-        applyPreferences({ livery: 'normal', mode: 'day', lowPower: false });
+        applyPreferences({ livery: 'normal', mode: 'auto', lowPower: false });
       }
       localStorage.setItem('vest_preferences_owner', userId);
     } catch { /* continue online when browser storage is unavailable */ }
@@ -86,6 +87,7 @@ export default function DeviceSync() {
         const response = await fetch('/api/device-sync', { cache: 'no-store', signal: controller.signal });
         if (!response.ok) throw new Error(response.status === 401 ? 'Sign in again to sync.' : 'Sync is unavailable. Your changes remain on this device.');
         let remote: SyncSnapshot = await response.json();
+        remote.preferences.values = validatePreferences(remote.preferences.values);
         if (stopped) return;
         if (migratePreferences && Object.keys(remote.preferences.values).length === 0 && Object.keys(cache.pending).length === 0) {
           cache.pending = storedPreferences();
@@ -107,6 +109,7 @@ export default function DeviceSync() {
           const upload = await fetch('/api/device-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessions: unsent.slice(offset, offset + 1000), ...(hasPreferences ? { preferences: { baseRevision: cache.revision, values: { ...cache.values, ...pending } } } : {}) }), signal: controller.signal });
           if (!upload.ok) throw new Error('Sync could not finish. Your changes remain queued on this device.');
           const result: SyncSnapshot & { conflict: boolean } = await upload.json();
+          result.preferences.values = validatePreferences(result.preferences.values);
           if (stopped) return;
           remote = result;
           if (result.conflict) {

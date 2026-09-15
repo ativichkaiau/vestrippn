@@ -1,21 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import ThemeToggle from '../../../components/ThemeToggle';
 import ChatPane from '../../../components/w09/ChatPane';
 import CitationPopover from '../../../components/w09/CitationPopover';
 import QuestionCard from '../../../components/w09/QuestionCard';
 import CaseStepper from '../../../components/w09/CaseStepper';
-
-type Livery = 'neutral' | 'monza' | 'esther' | 'senna' | 'verstappen' | 'ferrari';
-
-const LIVERIES: { id: Livery; label: string }[] = [
-  { id: 'neutral', label: 'Neutral' },
-  { id: 'monza', label: 'Williams' },
-  { id: 'esther', label: 'Esther Bunny' },
-  { id: 'senna', label: 'Senna' },
-  { id: 'verstappen', label: 'Verstappen' },
-  { id: 'ferrari', label: 'Ferrari' },
-];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -27,9 +16,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function PreviewClient() {
-  const [livery, setLivery] = useState<Livery>('neutral');
-  const wrapperClass = livery === 'neutral' ? '' : `w09-${livery}`;
-
   const steps = [
     { id: 'a', label: 'Presentation' },
     { id: 'b', label: 'History' },
@@ -38,27 +24,14 @@ export default function PreviewClient() {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-100 p-6 dark:bg-neutral-950">
-      {/* Harness chrome (intentionally NOT contract-themed) */}
+    <div className="min-h-screen overflow-y-auto bg-[var(--w09-bg)] p-6 text-[color:var(--w09-text)]">
       <div className="mx-auto mb-6 flex max-w-5xl flex-wrap items-center gap-2">
-        <span className="mr-2 text-xs font-bold uppercase tracking-widest text-neutral-500">Livery</span>
-        {LIVERIES.map((l) => (
-          <button
-            key={l.id}
-            onClick={() => setLivery(l.id)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-              livery === l.id
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
-                : 'bg-white text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300'
-            }`}
-          >
-            {l.label}
-          </button>
-        ))}
+        <span className="mr-auto text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">W85 · Component materials</span>
+        <ThemeToggle />
       </div>
 
       {/* Themed surface */}
-      <div className={`${wrapperClass} mx-auto max-w-5xl rounded-2xl bg-[var(--w09-bg)] p-6`}>
+      <div className="mx-auto max-w-5xl rounded-2xl bg-[var(--w09-bg)] p-6">
         <div className="grid gap-6 lg:grid-cols-2">
           <Section title="QuestionCard">
             <QuestionCard

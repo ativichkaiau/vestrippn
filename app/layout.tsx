@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 import "./globals.css";
+import "./liveries.css";
 import AuthProvider from "../components/AuthProvider";
 import HoverTypewriter from "../components/HoverTypewriter";
 import CommandPalette from "../components/CommandPalette";
@@ -11,6 +12,8 @@ import ViewTransitions from "../components/ViewTransitions";
 import SiteMotion from "../components/SiteMotion";
 import DeviceSync from "../components/DeviceSync";
 import FocusMode from "../components/FocusMode";
+import ThemeController from "../components/ThemeController";
+import { THEME_BOOT_SCRIPT } from "../lib/theme-config";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,7 +46,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAFAFA' },
+    { media: '(prefers-color-scheme: light)', color: '#bac2c9' },
     { media: '(prefers-color-scheme: dark)', color: '#050505' },
   ],
   width: 'device-width',
@@ -71,10 +74,11 @@ export default function RootLayout({
       >
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var lv=localStorage.getItem('vest_livery');var md=localStorage.getItem('vest_mode');var h=new Date().getHours();if(md!=='day'&&md!=='night'){md=(h<6||h>=18)?'night':'day';}var el=document.documentElement;el.classList.add('w10-eq-power');if(['monza','senna','verstappen','ferrari','forceindia','mclaren','benetton','jps','alpine'].indexOf(lv)>=0){el.classList.add('dark',lv,'w09-'+lv);}else{if(md==='night'){el.classList.add('dark');}else{el.classList.remove('dark');}}if(localStorage.getItem('vest_lowpower')==='1'){el.classList.add('low-power');}}catch(e){}})();`,
+            __html: THEME_BOOT_SCRIPT,
           }}
         />
         <AuthProvider>
+          <ThemeController />
           <HoverTypewriter />
           <CommandPalette />
           <ServiceWorkerRegister />

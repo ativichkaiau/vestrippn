@@ -35,35 +35,25 @@ every primitive with zero component edits.
 | `--w09-motion-duration` | Base transition duration |
 | `--w09-motion-ease` | Base easing curve |
 
-Defaults are declared in `app/globals.css`:
-
-- `:root` → **Neutral (light)**
-- `.dark` → **Neutral (dark)** — so W09 surfaces sit correctly inside W07's
-  existing dark mode with no livery applied.
+Defaults and the shared surface aliases are declared in `app/liveries.css`.
+The `--w09-*` contract inherits the same palette as every W85 route. Semantic
+success and danger colours retain their meaning across team selections.
 
 ## Liveries
 
-A livery is a single class that overrides the contract for itself and all
-descendants. Apply it to `<html>` (app-wide) **or** any wrapper element
-(scoped / preview):
-
-| Livery | Class | Identity |
-| --- | --- | --- |
-| Williams | `.w09-monza` | navy · white · brass-gold · classic red |
-| Esther Bunny | `.w09-esther` | pink · pastel · soft motion · cozy (larger radius, slower motion) |
-| Senna | `.w09-senna` | helmet yellow · green/blue stripe · analog motorsport |
-| Verstappen | `.w09-verstappen` | Dutch orange · deep navy · red/white/blue flash |
-
-Because CSS variables inherit, a value declared on a closer element always wins,
-so wrapper-scoped liveries override the neutral root regardless of selector
-specificity. (Neutral-dark is keyed on `.dark` — a plain class — so a livery
-class on the same `<html>` element wins by source order.)
+`lib/liveries.ts` owns IDs, team groups, labels, stripes, and palettes.
+`lib/theme-engine.ts` resolves the palette; `lib/theme.ts` applies it to `<html>`
+with `data-livery`, `data-mode`, `data-phase`, and `data-tone`. The same engine
+is serialized into the pre-paint script, and a global controller follows the
+Chiang Mai solar cycle in Auto mode. Light-bodied liveries use light controls;
+dark liveries use dark controls. The preview uses the real collection picker.
 
 ### Adding a livery
 
-1. Add a `.w09-<name> { … }` block in `globals.css` overriding any subset of the
-   variables above (unset variables fall back to neutral).
-2. No component changes required.
+1. Add a definition to `LIVERY_CATALOG` in `lib/liveries.ts`.
+2. Add an optional pattern in `app/liveries.css` using `data-livery` and the
+   corresponding `data-design` preview. Avoid global colour-ramp remapping.
+3. Run `npm run validate:themes`, check a real page, and check this preview.
 
 ## Consuming the contract (Tailwind v4 cheatsheet)
 
@@ -89,5 +79,6 @@ ease-[var(--w09-motion-ease)]
 - `QuestionCard` — IELTS practice (uncontrolled or controlled)
 - `CaseStepper` — Clinical Cases progress (uncontrolled or controlled)
 
-> Scope note: `.w09-monza` remains the class name for compatibility with older
-> stored preferences, but the visible livery identity is Williams.
+Legacy `monza` and `verstappen` preferences migrate to `williams-1996` and
+`redbull-dutch-2026`. Retired team preferences migrate to Mercedes. Backup
+restore and device sync run the same migration; obsolete classes are removed.
