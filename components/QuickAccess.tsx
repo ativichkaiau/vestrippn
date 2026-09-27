@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Skel, SkelGroup } from '@/components/w100/Skeleton';
 
 const categories = [
   { id: 'Core', colorClass: 'bg-blue-500', textClass: 'text-blue-500' },
@@ -41,12 +42,12 @@ export default function QuickAccess() {
   const filteredLinks = links.filter(link => link.cat === activeTab);
 
   if (!isMounted) return (
-    <div className="flex flex-col gap-6 animate-pulse transition-colors duration-700">
-      <div className="h-10 w-full bg-black/5 dark:bg-white/5 rounded-xl"></div>
+    <SkelGroup label="quick access" className="flex flex-col gap-6">
+      <Skel className="h-10 w-full rounded-xl" />
       <div className="grid grid-cols-3 gap-3">
-        {[1,2,3,4,5,6].map(i => <div key={i} className="h-20 bg-black/5 dark:bg-white/5 rounded-2xl"></div>)}
+        {[1,2,3,4,5,6].map(i => <Skel key={i} className="h-20 rounded-2xl" />)}
       </div>
-    </div>
+    </SkelGroup>
   );
 
   return (

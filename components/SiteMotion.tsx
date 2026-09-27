@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { routeTransition, routeVariants, w09Ease } from './motionPresets';
 import { useLowPower } from './useLowPower';
 import { usePageMotion } from './usePageMotion';
+import { useDepth } from './w100/useDepth';
 import AmbientCircuit from './AmbientCircuit';
 import { vtSupported } from '@/lib/view-transition';
 
@@ -49,6 +50,8 @@ function MotionPage({ children, motionOff, routeMotionOff }: {
   const shellRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
   usePageMotion(shellRef, progressRef, motionOff);
+  // W100: every panel on the route becomes a tiltable slab.
+  useDepth(shellRef, motionOff);
 
   return (
     <motion.div

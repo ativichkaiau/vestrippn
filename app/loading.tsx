@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import Mark3D from '../components/w100/Mark3D';
+import { SkelLabel } from '../components/w100/Skeleton';
 
 /* ════════════════════════════════════════════════════════════════════════
-   W85 ROUTE LOADER — shown by Next while a hub route streams.
+   W100 ROUTE LOADER — shown by Next while a hub route streams.
 
-   Same language as the W85 boot (components/SignatureIntro.tsx): matte
-   ground, one accent hairline, restrained type. The W12 loader's spinning
-   "3" coin, conic HUD ring, orbiting dot, perspective grid floor and glow
-   pulse are retired. The fun fact stays — it is the one part that was
-   content rather than chrome.
+   The 3D mark on a turntable in the active livery, a run bar painted in the
+   livery's own stripe, and a pit-wall channel label ticking through its
+   sectors. The fun fact stays: it is content, not chrome.
    ════════════════════════════════════════════════════════════════════════ */
 
 const FACTS = [
@@ -34,39 +34,27 @@ export default function Loading() {
 
   return (
     <div
+      role="status"
+      aria-busy="true"
       className="fixed left-0 top-0 z-[300] flex h-[100dvh] w-screen flex-col items-center justify-center overflow-hidden px-8"
-      style={{ background: 'var(--w85-canvas)' }}
+      style={{ background: 'var(--livery-canvas, var(--w85-canvas))', color: 'var(--livery-text)' }}
     >
-      <style>{`
-        @keyframes w85Sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
-        @media (prefers-reduced-motion: reduce) {
-          .w85-sweep { animation: none !important; transform: none !important; width: 100% !important; opacity: 0.5; }
-        }
-      `}</style>
+      <span className="sr-only">Loading…</span>
 
-      <div
-        className="text-[clamp(18px,3.2vw,26px)] font-semibold tracking-[0.28em] text-neutral-900 dark:text-white"
-      >
+      <div className="w100-loader-track lp-keep" aria-hidden="true"><span className="lp-keep" /></div>
+
+      <Mark3D mode="spin" interactive={false} className="w100-loader-stage" label="" />
+
+      <div className="mt-4 text-[clamp(18px,3.2vw,26px)] font-semibold tracking-[0.28em]" aria-hidden="true">
         VESTRIPPN
       </div>
+      <SkelLabel label="W100 · Spooling route" className="mt-3" />
 
-      <div className="mt-3 font-mono text-[9px] font-medium uppercase tracking-[0.42em] text-neutral-400 dark:text-neutral-500">
-        W85
-      </div>
-
-      <div className="mt-10 max-w-[440px] text-center">
-        <div className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.3em] text-neutral-400 dark:text-neutral-600">
+      <div className="mt-9 max-w-[440px] text-center">
+        <div className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.3em]" style={{ color: 'var(--livery-muted)' }}>
           Fun fact
         </div>
-        <p className="text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">{fact}</p>
-      </div>
-
-      {/* the one moving part: a thin indeterminate accent sweep */}
-      <div className="absolute inset-x-0 top-0 h-px overflow-hidden bg-black/5 dark:bg-white/10">
-        <div
-          className="lp-keep w85-sweep h-full w-1/4"
-          style={{ background: 'var(--hub-accent)', animation: 'w85Sweep 1.2s ease-in-out infinite' }}
-        />
+        <p className="text-[13px] leading-relaxed" style={{ color: 'var(--livery-muted)' }}>{fact}</p>
       </div>
     </div>
   );

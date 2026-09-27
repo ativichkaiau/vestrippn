@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CaseStepper from '@/components/w09/CaseStepper';
 import BranchingPlayer from './BranchingPlayer';
 import { type CaseDetail, type CaseSummary, colorFor, difficultyColor, isRare, nonRareTags, specialtyIcon } from './types';
+import { Skel, SkelGroup } from '@/components/w100/Skeleton';
 
 export default function CasesClient() {
   const [cases, setCases] = useState<CaseSummary[]>([]);
@@ -164,11 +165,11 @@ export default function CasesClient() {
 
             <h2 className="mt-7 mb-3 text-xs font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">Select a clinical case</h2>
             {loading ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <SkelGroup label="clinical cases" className="grid gap-4 sm:grid-cols-2">
                 {[1, 2, 3, 4].map((n) => (
-                  <div key={n} className="h-36 rounded-[var(--w09-radius)] bg-[var(--w09-surface)] animate-pulse" />
+                  <Skel key={n} className="h-36 rounded-[var(--w09-radius)]" />
                 ))}
-              </div>
+              </SkelGroup>
             ) : visible.length === 0 ? (
               <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-8 text-center text-sm text-[color:var(--w09-text-muted)]">
                 No cases available.

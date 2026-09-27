@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 import { addTask, deleteTask } from '@/app/actions'; // <-- Cloud Uplinks
 
 // Aligning with your Prisma Database Schema
@@ -72,15 +73,13 @@ export default function Reminders({ initialTasks = [] }: RemindersProps) {
     }
   };
 
-  // Minimal skeleton matching Day/Night surface
+  // W100 skeleton: livery-lit carbon (components/w100/Skeleton).
   if (!isMounted) return (
-    <div className="flex flex-col gap-4 animate-pulse transition-colors duration-700 h-full min-h-[250px]">
-      <div className="flex justify-between items-center mb-2">
-        <div className="h-6 w-32 bg-black/5 dark:bg-white/5 rounded-full"></div>
-      </div>
-      {[1, 2, 3].map(i => <div key={i} className="h-10 bg-black/5 dark:bg-white/5 rounded-xl"></div>)}
-      <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-xl mt-4"></div>
-    </div>
+    <SkelGroup label="reminders" className="flex h-full min-h-[250px] flex-col gap-4">
+      <SkelLabel label="Pit board · Reminders" className="mb-2 h-6" />
+      {[1, 2, 3].map(i => <Skel key={i} className="h-10 rounded-xl" />)}
+      <Skel className="mt-4 h-12 w-full rounded-xl" />
+    </SkelGroup>
   );
 
   return (

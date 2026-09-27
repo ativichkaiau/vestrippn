@@ -2,6 +2,7 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
+import { Skel, SkelGroup } from '@/components/w100/Skeleton';
 import Link from "next/link"; // Import Link for the legal route
 
 function InfoAnchor() {
@@ -21,12 +22,14 @@ function InfoAnchor() {
 export default function TopNavProfile() {
   const { data: session, status } = useSession();
 
-  // STATE 1: Glassmorphic Loading Skeleton
+  // STATE 1: W100 loading skeleton (components/w100/Skeleton)
   if (status === "loading") {
     return (
       <div className="flex items-center">
         <InfoAnchor />
-        <div className="w10-auth-skeleton h-[38px] w-[38px] animate-pulse rounded-full bg-black/5 transition-colors duration-700 dark:bg-white/5 sm:h-[40px] sm:w-[140px]"></div>
+        <SkelGroup label="profile" className="w10-auth-skeleton">
+          <Skel className="h-[38px] w-[38px] rounded-full sm:h-[40px] sm:w-[140px]" />
+        </SkelGroup>
       </div>
     );
   }

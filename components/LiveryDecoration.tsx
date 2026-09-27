@@ -23,7 +23,7 @@ export default function LiveryDecoration() {
         <path className="w85-livery-secondary" d="M432 -40h23L215 600h-23z" />
         <path className="w85-livery-flow" pathLength="100" d="M268 -40 28 600" />
         <path className="w85-livery-flow w85-livery-flow-secondary" pathLength="100" d="M421 -40 181 600" />
-        <text className="w85-livery-number" x="458" y="334" textAnchor="end">85</text>
+        <text className="w85-livery-number" x="458" y="334" textAnchor="end">100</text>
         <path className="w85-livery-outline" d="M282 422h120m-106 10h88m-73 10h56" />
       </svg>
       <span className="w85-livery-corner" />

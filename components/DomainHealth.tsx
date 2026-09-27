@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 
 const initialDomains = [
   { name: 'Academics', status: 'good' },
@@ -54,18 +55,17 @@ export default function DomainHealth() {
     }
   };
 
-  // Sleek loading skeleton seamlessly matching the Day/Night surface colors
+  // W100 skeleton: livery-lit carbon (components/w100/Skeleton).
   if (!isMounted) {
     return (
-      <div className="flex flex-col gap-3">
-        <div className="flex justify-between items-center mb-1 pb-2 border-b border-black/5 dark:border-white/5">
-          <div className="h-3 w-16 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
-          <div className="h-3 w-12 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
+      <SkelGroup label="domain health" className="flex flex-col gap-3">
+        <div className="mb-1 border-b border-black/5 pb-2 dark:border-white/5">
+          <SkelLabel label="Sectors · Domain health" />
         </div>
         {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <div key={i} className="h-8 w-full bg-black/5 dark:bg-white/5 rounded-xl animate-pulse"></div>
+          <Skel key={i} className="h-8 w-full rounded-xl" />
         ))}
-      </div>
+      </SkelGroup>
     );
   }
 

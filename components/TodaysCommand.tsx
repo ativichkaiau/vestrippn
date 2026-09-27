@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { Skel, SkelGroup, SkelLabel, SkelLap } from '@/components/w100/Skeleton';
 import { addTask, toggleTask } from "@/app/actions"; // <-- The Cloud Uplink
 
 // This matches your Prisma Database schema
@@ -62,13 +63,14 @@ export default function TodaysCommand({ initialTasks = [] }: TodaysCommandProps)
     }
   };
 
-  // Sleek Glassmorphic Skeleton
+  // W100 skeleton: livery-lit carbon (components/w100/Skeleton).
   if (!isMounted) return (
-    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-[350px] animate-pulse flex flex-col gap-4">
-      <div className="h-6 w-48 bg-black/5 dark:bg-white/5 rounded-full mb-4"></div>
-      <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-2xl"></div>
-      <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-2xl"></div>
-    </div>
+    <SkelGroup label="today's command" className="relative flex h-[350px] flex-col gap-4 overflow-hidden rounded-[32px] border border-black/5 bg-white/60 p-6 dark:border-white/5 dark:bg-white/5 lg:p-8">
+      <SkelLabel label="Race control · Today" className="mb-4 h-6" />
+      <Skel className="h-12 w-full rounded-2xl" />
+      <Skel className="h-12 w-[82%] rounded-2xl" />
+      <SkelLap />
+    </SkelGroup>
   );
 
   const displayDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });

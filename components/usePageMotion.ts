@@ -68,6 +68,14 @@ export function usePageMotion(
         const style = getComputedStyle(element);
         const from: Keyframe = { translate: '0 18px' };
         const to: Keyframe = { translate: style.translate === 'none' ? '0 0' : style.translate };
+        // W100: content stands up out of depth, hinged at its base. Only where
+        // nothing else owns `transform` (framer writes it inline; some CSS
+        // hovers set it), so the reveal never fights another animation.
+        if (!element.style.transform && style.transform === 'none') {
+          const hinge = /^H[123]$/.test(element.tagName) ? 7 : 10;
+          Object.assign(from, { transform: `perspective(1200px) rotateX(${hinge}deg)`, transformOrigin: '50% 100%' });
+          Object.assign(to, { transform: 'perspective(1200px) rotateX(0deg)', transformOrigin: '50% 100%' });
+        }
         // Framer owns inline opacity on its panels. Leave that untouched;
         // static cards fade toward their actual opacity (including done states).
         if (!element.style.opacity) {
@@ -76,7 +84,7 @@ export function usePageMotion(
           to.opacity = opacity;
         }
         const animation = element.animate([from, to], {
-          duration: 560,
+          duration: 620,
           delay: Math.min(stagger++, 4) * 45,
           easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
         });

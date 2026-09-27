@@ -1,0 +1,412 @@
+/* ████████████████████████████████████████████████████████████████████████
+   W100 — THIRD DIMENSION
+   Builds on W85's livery layer. Every surface gains depth: panels tilt under
+   the pointer, routes turn in space, the mark is a real 3D object, a livery
+   swap is a site-wide 3D event, and loading states are VESTRIPPN's own.
+
+   Everything here is gated the same way as W85 motion: prefers-reduced-motion
+   and html.low-power keep the static design. Imported after liveries.css.
+   ████████████████████████████████████████████████████████████████████████ */
+
+:root {
+  --w100-perspective: 1100px;
+  --w100-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --w100-sweep-ease: cubic-bezier(0.65, 0.05, 0.36, 1);
+  /* Livery bands run at 114°, so a band edge rises 0.445 of the height to the
+     right. Wipes that follow the livery use this lean. */
+  --w100-lean: 44.52vh;
+}
+
+/* Registered so the glare can fade instead of cutting out. */
+@property --w100-glare {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+/* ── DEPTH ENGINE (components/w100/useDepth.ts) ─────────────────────────── */
+
+[data-w100-stage]:not(:has(.fixed, dialog[open])) {
+  perspective: var(--w100-perspective);
+}
+
+html body [data-w100-depth][data-w100-depth] {
+  --w100-glare: 1;
+  transition:
+    transform 110ms linear, rotate 110ms linear, --w100-glare 0.3s ease,
+    box-shadow 0.26s var(--w100-ease), translate 0.3s var(--w100-ease), scale 0.3s var(--w100-ease),
+    background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease !important;
+  box-shadow:
+    calc(var(--w100-sx, 0) * 16px) calc(var(--w100-sy, 0) * 16px + 20px) 40px -22px rgba(4, 10, 20, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+html body [data-w100-depth="settle"][data-w100-depth="settle"] {
+  --w100-glare: 0;
+  transition:
+    transform 0.52s var(--w100-ease), rotate 0.52s var(--w100-ease), --w100-glare 0.4s ease,
+    box-shadow 0.52s var(--w100-ease), translate 0.3s var(--w100-ease), scale 0.3s var(--w100-ease),
+    background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease !important;
+  box-shadow: 0 20px 40px -22px rgba(4, 10, 20, 0), inset 0 1px 0 rgba(255, 255, 255, 0) !important;
+}
+html body [data-w100-mode="own"][data-w100-depth]:not(:has(.fixed, dialog[open])) {
+  transform: perspective(var(--w100-perspective)) rotate3d(var(--w100-rx, 0), var(--w100-ry, 1), 0, var(--w100-angle, 0deg)) !important;
+}
+html body [data-w100-mode="stage"][data-w100-depth] {
+  rotate: var(--w100-rx, 0) var(--w100-ry, 1) 0 var(--w100-angle, 0deg);
+}
+html body [data-w100-depth][data-w100-glare] {
+  background-image: radial-gradient(circle at var(--w100-gx, 50%) var(--w100-gy, 50%), rgba(255, 255, 255, calc(var(--w100-glare) * 0.24)), transparent 46%) !important;
+}
+html.dark body [data-w100-depth][data-w100-glare] {
+  background-image: radial-gradient(circle at var(--w100-gx, 50%) var(--w100-gy, 50%), rgba(255, 255, 255, calc(var(--w100-glare) * 0.075)), transparent 46%) !important;
+}
+
+/* Hero parallax: livery artwork sinks behind, the content floats forward. */
+[data-motion="hero"][data-w100-depth] .w85-livery-decoration {
+  translate: calc(var(--w100-px, 0) * -20px) calc(var(--w100-py, 0) * -14px);
+  transition: translate 140ms linear;
+}
+[data-motion="hero"][data-w100-depth] > .z-10 {
+  translate: calc(var(--w100-px, 0) * 9px) calc(var(--w100-py, 0) * 6px);
+  transition: translate 140ms linear;
+}
+[data-motion="hero"][data-w100-depth="settle"] .w85-livery-decoration,
+[data-motion="hero"][data-w100-depth="settle"] > .z-10 {
+  transition: translate 0.52s var(--w100-ease);
+}
+
+/* ── THE 3D MARK (components/w100/Mark3D.tsx) ───────────────────────────── */
+
+.w100-mark {
+  position: relative;
+  display: block;
+  isolation: isolate;
+}
+.w100-mark-interactive {
+  cursor: grab;
+  touch-action: pan-y;
+}
+.w100-mark-interactive:active { cursor: grabbing; }
+.w100-mark-canvas,
+.w100-mark-fallback {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.w100-mark-fallback { object-fit: contain; }
+/* Contact shadow, so the slab sits on something. */
+.w100-mark::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 3%;
+  height: 8%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.32), transparent);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+/* ── ROUTES TURN IN SPACE (native View Transitions) ─────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.low-power):not(.w100-livery-swap)::view-transition-old(root) {
+    animation: w100RouteOut 0.34s cubic-bezier(0.7, 0, 0.84, 0) both;
+  }
+  html:not(.low-power):not(.w100-livery-swap)::view-transition-new(root) {
+    animation: w100RouteIn 0.52s var(--w100-ease) 0.05s both;
+  }
+}
+@keyframes w100RouteOut {
+  to { opacity: 0; transform: perspective(1600px) translateZ(-140px) rotateX(2.5deg); }
+}
+@keyframes w100RouteIn {
+  from { opacity: 0; transform: perspective(1600px) translateZ(-180px) rotateX(-3.5deg); }
+}
+
+/* ── LIVE LIVERY SWAP (lib/w100/livery-swap.ts) ─────────────────────────
+   The old cockpit recedes; the new livery wipes in along its own 114° lean.
+   Between the two runs an 18vw gap where the incoming stripe shows through,
+   painted on the root group behind both snapshots. Wipe geometry: the front
+   sits at x = F at the bottom edge and F + lean at the top, F running from
+   −(lean + 18vw) to 100vw. */
+
+html.w100-livery-swap :is(.w10-brand-mark, [data-motion="nav-rail"], .w10-clay-hero) {
+  view-transition-name: none !important;
+}
+html.w100-livery-swap::view-transition-group(root) {
+  background: var(--w100-swap-stripe, #0d0e10);
+  animation: none;
+}
+html.w100-livery-swap::view-transition-old(root) {
+  animation: w100SwapOld 1s var(--w100-sweep-ease) both;
+}
+html.w100-livery-swap::view-transition-new(root) {
+  animation: w100SwapNew 1s var(--w100-sweep-ease) both;
+}
+@keyframes w100SwapOld {
+  0% {
+    clip-path: polygon(0 0, 300vw 0, 300vw 100%, calc(-1 * var(--w100-lean)) 100%);
+    transform: none;
+    filter: none;
+  }
+  32% {
+    transform: perspective(1400px) translateZ(-90px) rotateY(-4deg);
+    filter: brightness(0.8);
+  }
+  100% {
+    clip-path: polygon(calc(118vw + var(--w100-lean)) 0, 300vw 0, 300vw 100%, 118vw 100%);
+    transform: perspective(1400px) translateZ(-90px) rotateY(-4deg);
+    filter: brightness(0.8);
+  }
+}
+@keyframes w100SwapNew {
+  from { clip-path: polygon(-300vw 0, -18vw 0, calc(-18vw - var(--w100-lean)) 100%, -300vw 100%); }
+  to { clip-path: polygon(-300vw 0, calc(100vw + var(--w100-lean)) 0, 100vw 100%, -300vw 100%); }
+}
+
+/* ── SKELETONS (components/w100/Skeleton.tsx) ───────────────────────────
+   Carbon-twill slabs, each crossed by a streak in the livery's two colours
+   at its 114° angle. Slabs that mount together start together, so a loading
+   panel sweeps in unison. (Not a viewport-fixed layer: W85 leaves a computed
+   `translate` on <main>, and any transformed ancestor disables
+   background-attachment: fixed.) */
+
+.w100-skel {
+  display: block;
+  position: relative;
+  border-radius: 8px;
+  background-color: var(--livery-inset, rgba(18, 37, 57, 0.06));
+  background-image:
+    linear-gradient(114deg, transparent 42%, rgba(var(--livery-accent-rgb, 0, 210, 190), 0.55) 47.5%, rgba(var(--livery-secondary-rgb, 89, 108, 121), 0.45) 50.5%, transparent 56%),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.04) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 5px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0.035));
+  background-repeat: no-repeat, repeat, repeat, no-repeat;
+  /* A 320%-wide streak layer: at 100% the band sits off the left edge, at 0%
+     off the right, so animating 100% → 0% carries it across the slab. */
+  background-size: 320% 100%, auto, auto, auto;
+  background-position: 100% 0, 0 0, 0 0, 0 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), inset 0 -1px 0 rgba(0, 0, 0, 0.07);
+}
+.w100-skel-group {
+  position: relative;
+  transform-origin: 50% 100%;
+}
+.w100-skel-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid var(--livery-line, rgba(18, 37, 57, 0.18));
+  border-radius: var(--w85-radius, 12px);
+  background: var(--livery-surface, #fff);
+}
+.w100-skel-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--livery-muted, #4a607b);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.w100-skel-tick {
+  width: 3px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background: var(--livery-stripe, var(--hub-accent));
+}
+.w100-skel-channel { overflow: hidden; text-overflow: ellipsis; }
+.w100-skel-sectors {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: auto;
+}
+.w100-skel-sectors i {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--livery-line, rgba(18, 37, 57, 0.18));
+}
+.w100-skel-lap {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  width: 54px;
+  height: auto;
+  opacity: 0.6;
+  pointer-events: none;
+}
+.w100-skel-lap path { vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.w100-skel-lap-track { stroke: var(--livery-line-strong, rgba(18, 37, 57, 0.3)); stroke-width: 1px; }
+.w100-skel-lap-car {
+  stroke: var(--livery-accent, var(--hub-accent));
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-dasharray: 9 91;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w100-skel { animation: w100SkelStreak 2.4s cubic-bezier(0.55, 0, 0.3, 1) infinite; }
+  .w100-skel-group { animation: w100SkelAssemble 0.6s var(--w100-ease) both; }
+  .w100-skel-sectors i { animation: w100Sector 1.8s steps(1, end) infinite; }
+  .w100-skel-sectors i:nth-child(2) { animation-delay: 0.6s; }
+  .w100-skel-sectors i:nth-child(3) { animation-name: w100SectorBest; animation-delay: 1.2s; }
+  .w100-skel-lap-car { animation: w100Lap 2.2s linear infinite; }
+}
+@keyframes w100SkelStreak {
+  from { background-position: 100% 0, 0 0, 0 0, 0 0; }
+  to { background-position: 0% 0, 0 0, 0 0, 0 0; }
+}
+@keyframes w100SkelAssemble {
+  from { opacity: 0.35; transform: perspective(900px) rotateX(14deg) translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes w100Sector {
+  0% { background: var(--livery-accent, var(--hub-accent)); }
+  33.34%, 100% { background: var(--livery-line, rgba(18, 37, 57, 0.18)); }
+}
+/* Final sector goes "purple": the livery's second colour, as a session best. */
+@keyframes w100SectorBest {
+  0% { background: rgb(var(--livery-secondary-rgb, 89, 108, 121)); }
+  33.34%, 100% { background: var(--livery-line, rgba(18, 37, 57, 0.18)); }
+}
+@keyframes w100Lap { to { stroke-dashoffset: -100; } }
+
+/* ── THE GARAGE (livery picker, components/ThemeToggle.tsx) ─────────────── */
+
+/* Sticky, so the preview stays in view while you browse the cards below.
+   top matches .livery-dialog-scroll's top padding to sit flush. */
+.w100-garage {
+  position: sticky;
+  top: -19px;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 14px 20px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--livery-line);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 90% at 28% 115%, rgba(var(--livery-accent-rgb), 0.18), transparent 62%),
+    var(--livery-inset);
+}
+/* Garage floor: a grid laid down in perspective under the turntable. */
+.w100-garage::before {
+  content: "";
+  position: absolute;
+  inset: 52% 50% -60% -20%;
+  z-index: -1;
+  background-image:
+    linear-gradient(var(--livery-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--livery-line) 1px, transparent 1px);
+  background-size: 30px 30px;
+  transform: perspective(320px) rotateX(64deg);
+  transform-origin: 50% 0;
+  /* Under the turntable only; fades out before it reaches the copy. */
+  mask-image: linear-gradient(to bottom, #000 10%, transparent 80%), linear-gradient(to right, transparent, #000 18% 70%, transparent);
+  mask-composite: intersect;
+  pointer-events: none;
+}
+@media (max-width: 560px) {
+  .w100-garage::before { inset: 38% -20% -60% -20%; }
+}
+.w100-garage-stage { height: 190px; }
+.w100-garage-copy { display: grid; gap: 6px; min-width: 0; }
+.w100-garage-copy h3 {
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+.w100-garage-copy p { color: var(--livery-muted); font-size: 12px; line-height: 1.6; }
+.w100-garage-meta {
+  color: var(--livery-muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.w100-garage-stripe {
+  height: 6px;
+  width: min(220px, 100%);
+  margin-top: 4px;
+  border-radius: 3px;
+  background: var(--w100-garage-stripe);
+  transition: background 0.4s ease;
+}
+.w100-garage-hint {
+  margin-top: 6px;
+  color: var(--livery-muted);
+  font-size: 10px;
+}
+.w100-garage[data-previewing] .w100-garage-meta::after {
+  content: " · Preview";
+  color: var(--livery-accent);
+}
+@media (max-width: 560px) {
+  .w100-garage { grid-template-columns: 1fr; text-align: center; }
+  .w100-garage-stage { height: 150px; }
+  .w100-garage-stripe { margin-inline: auto; }
+}
+/* Short viewports: keep the sticky stage from eating the card list. */
+@media (max-height: 760px) {
+  .w100-garage { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); padding-block: 8px; text-align: left; }
+  .w100-garage-stage { height: 112px; }
+  .w100-garage-copy p:not(.w100-garage-meta), .w100-garage-hint { display: none; }
+  .w100-garage-stripe { margin-inline: 0; }
+}
+
+/* ── ROUTE LOADER (app/loading.tsx) ─────────────────────────────────────── */
+
+.w100-loader-stage { width: min(260px, 62vw); height: min(200px, 48vw); }
+.w100-loader-track {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  overflow: hidden;
+  background: var(--livery-line, rgba(18, 37, 57, 0.18));
+}
+.w100-loader-track > span {
+  display: block;
+  width: 34%;
+  height: 100%;
+  background: var(--livery-stripe, var(--hub-accent));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .w100-loader-track > span { animation: w100LoaderRun 1.25s var(--w100-sweep-ease) infinite; }
+}
+@keyframes w100LoaderRun {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .w100-loader-track > span { width: 100%; opacity: 0.6; }
+}
+
+/* ── BRAND MARK: a quarter-turn on hover ────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  html:not(.low-power) .w10-brand-mark img {
+    transition: transform 0.6s var(--w100-ease);
+  }
+  html:not(.low-power) .w10-brand-mark:hover img {
+    transform: perspective(220px) rotateY(-32deg) rotateX(10deg);
+  }
+}

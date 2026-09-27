@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 
 const schumacherQuotes = [
   "I've always believed that you should never, ever give up and you should always keep fighting.",
@@ -48,13 +49,13 @@ export default function IdentityAnchor() {
 
   if (!isMounted) {
     return (
-      <div className="flex flex-col h-full animate-pulse transition-colors duration-700">
-        <div className="h-4 w-24 bg-black/5 dark:bg-white/5 rounded-full mb-4"></div>
-        <div className="h-16 w-full bg-black/5 dark:bg-white/5 rounded-xl mb-6"></div>
-        <div className="grid grid-cols-4 gap-2 mt-auto">
-          {[1,2,3,4].map(i => <div key={i} className="h-10 bg-black/5 dark:bg-white/5 rounded-lg"></div>)}
+      <SkelGroup label="identity" className="flex h-full flex-col">
+        <SkelLabel label="Signal · Identity" className="mb-4 h-4" />
+        <Skel className="mb-6 h-16 w-full rounded-xl" />
+        <div className="mt-auto grid grid-cols-4 gap-2">
+          {[1,2,3,4].map(i => <Skel key={i} className="h-10 rounded-lg" />)}
         </div>
-      </div>
+      </SkelGroup>
     );
   }
 

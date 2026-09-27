@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { updateFitnessData } from '@/app/actions';
+import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 
 interface FitnessCardProps {
   initialWorkoutDays?: boolean[];
@@ -112,10 +113,13 @@ export default function FitnessCard({
 
   // --- Skeleton Loader ---
   if (!isMounted) return (
-    <div className="w-full flex items-center justify-between animate-pulse">
-       <div className="h-10 w-1/2 bg-black/5 dark:bg-white/5 rounded-xl"></div>
-       <div className="h-24 w-[200px] bg-black/5 dark:bg-white/5 rounded-xl"></div>
-    </div>
+    <SkelGroup label="training" className="flex w-full items-center justify-between gap-6">
+      <div className="flex w-1/2 flex-col gap-3">
+        <SkelLabel label="Telemetry · Training" />
+        <Skel className="h-10 w-full rounded-xl" />
+      </div>
+      <Skel className="h-24 w-[200px] rounded-xl" />
+    </SkelGroup>
   );
 
   const completedCount = workoutDays.filter(Boolean).length;

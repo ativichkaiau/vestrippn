@@ -1,0 +1,261 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { LIVERY_CATALOG, type Livery } from '@/lib/liveries';
+import { carbonPaint, liveryPaint } from '@/lib/w100/livery-paint';
+import { MarkRenderer } from '@/lib/w100/mark-renderer';
+import { motionAllowed } from '@/lib/view-transition';
+
+/**
+ * The W100 mark: the VESTRIPPN "3" in real 3D, painted in a livery.
+ *
+ * - `livery` previews a specific livery (the garage); omit it to follow the
+ *   site's active livery live, repainting with a wet-paint sweep on change.
+ * - `mode`: `idle` drifts on a slow turntable, `spin` rotates continuously
+ *   (loaders), `intro` flies in unpainted and has its livery sprayed on.
+ * - Drag to rotate, with inertia, when `interactive`.
+ *
+ * Pass `label=""` when the mark is decorative next to a visible name.
+ *
+ * Reduced motion and low power render still frames on demand — the mark stays
+ * 3D and draggable, it just never animates on its own. Without WebGL it falls
+ * back to the flat logo.
+ */
+type Mode = 'idle' | 'spin' | 'intro';
+
+const SWEEP_MS = 760;
+const INTRO_FLY_S = 1.5;
+const INTRO_PAINT_AT_S = 0.55;
+const clamp = (v: number, min = 0, max = 1) => Math.max(min, Math.min(max, v));
+const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+function activeLivery(): Livery {
+  const value = document.documentElement.dataset.livery;
+  return value && Object.prototype.hasOwnProperty.call(LIVERY_CATALOG, value) ? (value as Livery) : 'normal';
+}
+
+export default function Mark3D({
+  livery,
+  mode = 'idle',
+  interactive = true,
+  className = '',
+  label = 'VESTRIPPN mark',
+}: {
+  livery?: Livery;
+  mode?: Mode;
+  interactive?: boolean;
+  className?: string;
+  label?: string;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const liveryRef = useRef(livery);
+  const repaintRef = useRef<(target: Livery) => void>(() => {});
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const canvas = canvasRef.current;
+    if (!wrap || !canvas) return;
+    const target = () => liveryRef.current ?? activeLivery();
+    const renderer = MarkRenderer.create(canvas, mode === 'intro' ? carbonPaint() : liveryPaint(target()));
+    if (!renderer) {
+      // WebGL is missing or blocked: show the flat logo instead of an empty box.
+      queueMicrotask(() => setFailed(true));
+      return;
+    }
+
+    let still = !motionAllowed();
+    let visible = true;
+    let frame = 0;
+    const started = performance.now();
+    let last = started;
+    let sweepStart = -1;
+    let painted = mode !== 'intro';
+    const drag = { active: false, x: 0, y: 0, vx: 0, lastMove: -Infinity, pointer: -1 };
+    const pose = renderer.pose;
+    pose.yaw = mode === 'intro' ? -2.4 : 0.42;
+    pose.pitch = -0.12;
+
+    const resize = () => {
+      const rect = wrap.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      renderer.resize(Math.max(1, Math.round(rect.width * dpr)), Math.max(1, Math.round(rect.height * dpr)));
+    };
+
+    const repaint = (next: Livery) => {
+      painted = true;
+      // ThemeController re-announces the same livery every 30s in Auto mode.
+      if (!renderer.setPaint(liveryPaint(next), !still)) return;
+      sweepStart = still ? -1 : performance.now();
+      requestFrame();
+    };
+    repaintRef.current = repaint;
+
+    const tick = (now: number) => {
+      frame = 0;
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const t = (now - started) / 1000;
+
+      if (still) {
+        // Static but faithful: intro lands painted, sweeps apply instantly.
+        pose.scale = 1; pose.z = 0;
+        if (mode === 'intro' && !painted) { renderer.setPaint(liveryPaint(target()), false); painted = true; }
+        if (!drag.active && drag.lastMove < 0) { pose.yaw = 0.42; pose.pitch = -0.12; }
+        renderer.swap = 1;
+        renderer.render();
+        return;
+      }
+
+      if (mode === 'intro') {
+        const k = easeOut(clamp(t / INTRO_FLY_S));
+        pose.scale = 0.5 + 0.5 * k;
+        pose.z = -2.6 * (1 - k);
+        pose.roll = -0.35 * (1 - k);
+        if (!painted && t >= INTRO_PAINT_AT_S) repaint(target());
+      }
+
+      const since = (now - drag.lastMove) / 1000;
+      if (drag.active) {
+        // Pose follows the pointer directly (pointermove updates it).
+      } else if (Math.abs(drag.vx) > 0.02) {
+        pose.yaw += drag.vx * dt;
+        drag.vx *= Math.pow(0.05, dt);
+      } else if (mode === 'spin') {
+        pose.yaw += dt * 1.7;
+        pose.pitch += (-0.16 - pose.pitch) * (1 - Math.pow(0.1, dt));
+      } else if (since > 1.1) {
+        // Ease back onto the turntable once the user lets go.
+        const idleYaw = 0.34 + Math.sin(t * 0.5) * 0.44;
+        const idlePitch = -0.12 + Math.sin(t * 0.37) * 0.07;
+        const pull = 1 - Math.pow(mode === 'intro' && t < INTRO_FLY_S ? 0.02 : 0.25, dt);
+        pose.yaw += (idleYaw - pose.yaw) * pull;
+        pose.pitch += (idlePitch - pose.pitch) * pull;
+      }
+
+      if (sweepStart >= 0) {
+        const k = clamp((now - sweepStart) / SWEEP_MS);
+        renderer.swap = easeInOut(k);
+        if (k >= 1) sweepStart = -1;
+      }
+      renderer.render();
+      if (visible && !document.hidden) frame = requestAnimationFrame(tick);
+    };
+
+    function requestFrame() {
+      if (!frame) frame = requestAnimationFrame(tick);
+    }
+
+    const onThemeChange = () => {
+      if (liveryRef.current === undefined && painted) repaint(activeLivery());
+    };
+    const onPower = () => {
+      still = !motionAllowed();
+      requestFrame();
+    };
+    const onVisibility = () => { if (!document.hidden) requestFrame(); };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!interactive || drag.pointer !== -1) return;
+      drag.active = true;
+      drag.pointer = event.pointerId;
+      drag.x = event.clientX;
+      drag.y = event.clientY;
+      drag.vx = 0;
+      drag.lastMove = performance.now();
+      wrap.setPointerCapture(event.pointerId);
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!drag.active || event.pointerId !== drag.pointer) return;
+      const now = performance.now();
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      drag.x = event.clientX;
+      drag.y = event.clientY;
+      const dYaw = dx * 0.012;
+      pose.yaw += dYaw;
+      pose.pitch = clamp(pose.pitch + dy * 0.008, -0.75, 0.55);
+      drag.vx = dYaw / Math.max(0.008, (now - drag.lastMove) / 1000);
+      drag.lastMove = now;
+      requestFrame();
+    };
+    const onPointerUp = (event: PointerEvent) => {
+      if (event.pointerId !== drag.pointer) return;
+      drag.active = false;
+      drag.pointer = -1;
+      if (still) drag.vx = 0;
+      requestFrame();
+    };
+
+    const resizeObserver = new ResizeObserver(() => { resize(); requestFrame(); });
+    resizeObserver.observe(wrap);
+    const intersection = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) requestFrame();
+    });
+    intersection.observe(wrap);
+    const onLost = (event: Event) => {
+      event.preventDefault();
+      // Stop drawing into a dead context; the flat logo takes over.
+      visible = false;
+      cancelAnimationFrame(frame);
+      frame = 0;
+      setFailed(true);
+    };
+
+    resize();
+    requestFrame();
+    window.addEventListener('vest:theme-change', onThemeChange);
+    window.addEventListener('vest-lowpower', onPower);
+    document.addEventListener('visibilitychange', onVisibility);
+    canvas.addEventListener('webglcontextlost', onLost);
+    wrap.addEventListener('pointerdown', onPointerDown);
+    wrap.addEventListener('pointermove', onPointerMove);
+    wrap.addEventListener('pointerup', onPointerUp);
+    wrap.addEventListener('pointercancel', onPointerUp);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+      intersection.disconnect();
+      window.removeEventListener('vest:theme-change', onThemeChange);
+      window.removeEventListener('vest-lowpower', onPower);
+      document.removeEventListener('visibilitychange', onVisibility);
+      canvas.removeEventListener('webglcontextlost', onLost);
+      wrap.removeEventListener('pointerdown', onPointerDown);
+      wrap.removeEventListener('pointermove', onPointerMove);
+      wrap.removeEventListener('pointerup', onPointerUp);
+      wrap.removeEventListener('pointercancel', onPointerUp);
+      repaintRef.current = () => {};
+      renderer.dispose();
+    };
+  }, [mode, interactive]);
+
+  // A preview livery (the garage) repaints without rebuilding the renderer.
+  useEffect(() => {
+    const previous = liveryRef.current;
+    liveryRef.current = livery;
+    if (livery !== previous) repaintRef.current(livery ?? activeLivery());
+  }, [livery]);
+
+  return (
+    <div
+      ref={wrapRef}
+      className={`w100-mark ${interactive ? 'w100-mark-interactive' : ''} ${className}`}
+      // An empty label means decorative (a heading beside it already names it).
+      role={label ? 'img' : undefined}
+      aria-label={label || undefined}
+      aria-hidden={label ? undefined : true}
+      data-mode={mode}
+    >
+      {failed ? (
+        // eslint-disable-next-line @next/next/no-img-element -- static fallback art, no layout shift concerns
+        <img src="/vestrippn-logo.png" alt="" className="w100-mark-fallback" />
+      ) : (
+        <canvas ref={canvasRef} className="w100-mark-canvas" />
+      )}
+    </div>
+  );
+}

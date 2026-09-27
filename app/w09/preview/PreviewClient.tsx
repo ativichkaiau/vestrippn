@@ -26,7 +26,7 @@ export default function PreviewClient() {
   return (
     <div className="min-h-screen overflow-y-auto bg-[var(--w09-bg)] p-6 text-[color:var(--w09-text)]">
       <div className="mx-auto mb-6 flex max-w-5xl flex-wrap items-center gap-2">
-        <span className="mr-auto text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">W85 · Component materials</span>
+        <span className="mr-auto text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">W100 · Component materials</span>
         <ThemeToggle />
       </div>
 

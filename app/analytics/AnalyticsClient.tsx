@@ -20,6 +20,7 @@ import {
 } from '@/lib/study-log';
 import type { CanvasTelemetry } from '@/lib/canvas';
 import type { AnkiHistoryPoint } from '@/lib/anki';
+import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 
 type Props = {
   canvas: CanvasTelemetry;
@@ -222,7 +223,7 @@ export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Prop
               {/* SEASON STANDINGS */}
               <Panel id="standings" accent="bg-emerald-500" eyebrow="Focus Mode · Qualifying" title="Season standings" note="Ranked by gap to 2017 pole — smallest % gap takes P1.">
                 {!mounted ? (
-                  <div className="h-40 animate-pulse rounded-2xl bg-black/5 dark:bg-white/5" />
+                  <SkelGroup label="season standings" className="flex h-40 flex-col gap-3"><SkelLabel label="Timing · Standings" /><Skel className="w-full flex-1 rounded-2xl" /></SkelGroup>
                 ) : standings.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-black/10 py-10 text-center text-[13px] font-medium italic text-neutral-400 dark:border-white/10 dark:text-neutral-500">
                     No qualifying laps yet — set a PB in Focus Mode to take your first grid slot.
@@ -292,7 +293,7 @@ export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Prop
               {/* FOCUS HISTORY */}
               <Panel id="focus-history" accent="bg-fuchsia-500" eyebrow="Focus Mode · Sessions" title="Focus history" note="Logged when you finish a qualifying run.">
                 {!mounted ? (
-                  <div className="h-40 animate-pulse rounded-2xl bg-black/5 dark:bg-white/5" />
+                  <SkelGroup label="focus history" className="flex h-40 flex-col gap-3"><SkelLabel label="Timing · Sessions" /><Skel className="w-full flex-1 rounded-2xl" /></SkelGroup>
                 ) : focus.total === 0 ? (
                   <div className="rounded-2xl border border-dashed border-black/10 py-10 text-center text-[13px] font-medium italic text-neutral-400 dark:border-white/10 dark:text-neutral-500">
                     No sessions logged yet — complete a Focus Mode run and it lands here.

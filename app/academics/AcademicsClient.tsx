@@ -15,6 +15,7 @@ import AnkiTrend from '../../components/AnkiTrend';
 import { syncAnkiData } from '@/app/actions';
 import { HCVS_EXAM_TARGET, HGB_EXAM_TARGET, HRS_EXAM_TARGET } from '@/lib/exams';
 import type { ActiveExamData, CourseData } from '@/lib/curriculum-types';
+import { Skel } from '@/components/w100/Skeleton';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
@@ -610,9 +611,10 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {clinicalLoading ? (
-                  [1, 2, 3].map((n) => (
-                    <div key={n} className="h-[92px] rounded-[24px] bg-black/5 dark:bg-white/5 animate-pulse" />
-                  ))
+                  <>
+                    <span role="status" className="sr-only">Loading clinical cases…</span>
+                    {[1, 2, 3].map((n) => <Skel key={n} className="h-[92px] rounded-[24px]" />)}
+                  </>
                 ) : featuredClinicalCases.length > 0 ? (
                   featuredClinicalCases.map((c) => {
                     const rare = c.tags?.some((tag) => tag.toLowerCase() === 'rare');

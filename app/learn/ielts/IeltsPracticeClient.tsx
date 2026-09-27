@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import QuestionCard from '@/components/w09/QuestionCard';
+import { Skel, SkelGroup } from '@/components/w100/Skeleton';
 
 type Question = { id: string; number: number; prompt: string; options: { id: string; label: string }[] };
 type AnswerState = { selectedId?: string; status: 'idle' | 'answered'; correctId?: string };
@@ -111,11 +112,11 @@ export default function IeltsPracticeClient() {
         {error && <p className="mt-4 text-sm text-[color:var(--w09-danger)]">{error}</p>}
 
         {loading ? (
-          <div className="mt-6 space-y-4">
+          <SkelGroup label="IELTS practice" className="mt-6 space-y-4">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="h-40 rounded-[var(--w09-radius)] bg-[var(--w09-surface)] animate-pulse" />
+              <Skel key={n} className="h-40 rounded-[var(--w09-radius)]" />
             ))}
-          </div>
+          </SkelGroup>
         ) : total === 0 ? (
           <div className="mt-10 rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-8 text-center text-sm text-[color:var(--w09-text-muted)]">
             No questions{section !== 'all' ? ` in ${section}` : ''} yet.

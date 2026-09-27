@@ -71,7 +71,7 @@ export default function WorkspaceClient({ initialTab }: { initialTab: Tab }) {
               <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[var(--hub-accent)]/15 blur-3xl" />
               <div className="relative z-10 flex flex-wrap items-end justify-between gap-6">
                 <div className="max-w-3xl">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--hub-accent)]">W85 · Workspace</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--hub-accent)]">W100 · Workspace</p>
                   <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Make the final edition usable every day.</h1>
                   <p className="mt-4 max-w-2xl text-sm leading-7 text-neutral-500 dark:text-neutral-400">A durable control layer for your course data, daily study time, and portable history. Your edits stay attached to your account and flow into the rest of the cockpit.</p>
                 </div>

@@ -20,6 +20,7 @@ import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import BrandMark from '../components/BrandMark';
 import SignatureIntro from '../components/SignatureIntro';
 import LiveryDecoration from '../components/LiveryDecoration';
+import { SkelLabel, SkelLap } from '../components/w100/Skeleton';
 import Link from 'next/link';
 
 type DashboardTask = { id: string; title: string; completed: boolean; category: string };
@@ -165,7 +166,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                       className="h-1.5 w-1.5 rounded-full"
                       style={{ backgroundColor: 'var(--hub-accent)' }}
                     />
-                    W85 · Command Cockpit
+                    W100 · Command Cockpit
                   </div>
 
                   <h1 className="mx-auto max-w-4xl text-[38px] font-black leading-[0.95] tracking-tighter sm:text-[58px] lg:mx-0 lg:text-[72px]">
@@ -227,7 +228,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       {[
                         ['Domains', '8'],
-                        ['Version', 'W85'],
+                        ['Version', 'W100'],
                         ['Pending', `${pendingTaskCount}`],
                       ].map(([label, value]) => (
                         <div key={label} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
@@ -437,25 +438,12 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
    LOADING SCREEN — brief pre-mount state
    ════════════════════════════════════════════════════════════ */
 function LoadingScreen() {
+  // Lives for ~one tick before mount, so an SVG lap (not a WebGL context).
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-700">
-      <div className="relative flex flex-col items-center gap-6">
-        <motion.div
-          className="relative w-14 h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center text-[26px] font-black"
-          animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          V
-        </motion.div>
-        <div className="relative h-[3px] w-32 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full w-1/3 rounded-full"
-            style={{ background: 'linear-gradient(90deg,var(--hub-accent),var(--hub-accent-deep))' }}
-            animate={{ x: ['-120%', '380%'] }}
-            transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </div>
-      </div>
+    <div role="status" aria-busy="true" className="fixed inset-0 z-[300] flex flex-col items-center justify-center gap-5" style={{ background: 'var(--livery-canvas, var(--w85-canvas))' }}>
+      <span className="sr-only">Loading VESTRIPPN…</span>
+      <SkelLap className="!static !h-auto !w-24 !opacity-90" />
+      <SkelLabel label="W100 · Spooling cockpit" />
     </div>
   );
 }

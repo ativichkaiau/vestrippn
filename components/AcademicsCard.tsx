@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface AcademicsData {
@@ -53,12 +54,13 @@ export default function AcademicsCard() {
     ? Math.round(graded.reduce((sum, sub) => sum + (sub.progress ?? 0), 0) / graded.length)
     : 0;
 
-  // Clean, day/night compatible skeleton loader
+  // W100 skeleton: livery-lit carbon (components/w100/Skeleton).
   if (!isMounted) return (
-    <div className="flex flex-col gap-6 w-full animate-pulse">
-      <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
-      <div className="h-12 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
-    </div>
+    <SkelGroup label="academic progress" className="flex w-full flex-col gap-4">
+      <SkelLabel label="Sync · Academics" />
+      <Skel className="h-24 w-full rounded-2xl" />
+      <Skel className="h-12 w-full rounded-2xl" />
+    </SkelGroup>
   );
 
   const radius = 38;

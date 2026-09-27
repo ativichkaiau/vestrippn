@@ -33,10 +33,18 @@ export function routeVariants(reduced: boolean): Variants {
     };
   }
 
+  // W100: routes turn in space — the page rises out of depth, tilted back,
+  // and the old one sinks away. `transformPerspective` returns to its default
+  // (0) when the entrance ends so framer writes `transform: none`; a lingering
+  // perspective() would make this shell the containing block for every fixed
+  // element on the page.
   return {
-    initial: { opacity: 0, y: 12, scale: 0.998, filter: 'blur(2px)' },
-    animate: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
-    exit: { opacity: 0, y: -10, scale: 0.998, filter: 'blur(2px)' },
+    initial: { opacity: 0, y: 14, z: -120, rotateX: 5, transformPerspective: 1600, filter: 'blur(2px)' },
+    animate: {
+      opacity: 1, y: 0, z: 0, rotateX: 0, transformPerspective: 1600, filter: 'blur(0px)',
+      transitionEnd: { transformPerspective: 0 },
+    },
+    exit: { opacity: 0, y: -10, z: -140, rotateX: -4, transformPerspective: 1600, filter: 'blur(2px)' },
   };
 }
 

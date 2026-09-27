@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import "./liveries.css";
+import "./w100.css";
 import AuthProvider from "../components/AuthProvider";
 import HoverTypewriter from "../components/HoverTypewriter";
 import CommandPalette from "../components/CommandPalette";
@@ -36,7 +37,7 @@ const revolut = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "VESTRIPPN — W85 · Final Edition",
+  title: "VESTRIPPN — W100",
   description: "Personal telemetry, mission control, and Claude-ready command surfaces.",
   // 🚨 THE FIX: This injects the Google site verification tag into your <head>
   verification: {

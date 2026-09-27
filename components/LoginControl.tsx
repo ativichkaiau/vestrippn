@@ -2,17 +2,17 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
+import { SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 
 export default function LoginControl() {
   const { data: session, status } = useSession();
 
-  // STATE 1: LOADING (Glassmorphic Skeleton Pill)
+  // STATE 1: LOADING (W100 skeleton pill, components/w100/Skeleton)
   if (status === "loading") {
     return (
-      <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 px-4 py-2 rounded-full border border-transparent dark:border-white/5 animate-pulse transition-colors duration-700 h-[40px] w-[130px]">
-        <div className="w-2 h-2 bg-amber-400/50 rounded-full"></div>
-        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-bold tracking-widest uppercase">Syncing...</span>
-      </div>
+      <SkelGroup label="session" className="w100-skel flex h-[40px] w-[130px] items-center rounded-full px-4">
+        <SkelLabel label="Syncing" className="w-full" />
+      </SkelGroup>
     );
   }
 

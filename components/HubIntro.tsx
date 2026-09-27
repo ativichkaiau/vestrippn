@@ -32,7 +32,7 @@ const HUB_ACCENT: Record<HubKey, { dot: string; text: string; chipBg: string; ic
   ielts: { dot: 'bg-indigo-400', text: 'text-indigo-300', chipBg: 'bg-indigo-400/15', icon: '◎' },
 };
 
-/* Deck names for the W85 brand pill (shared with the dashboard hero). */
+/* Deck names for the W100 brand pill (shared with the dashboard hero). */
 const HUB_DECK: Record<HubKey, string> = {
   academics: 'Academics Deck',
   research: 'Research Deck',
@@ -173,7 +173,7 @@ export default function HubIntro({
         <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           {/* title zone */}
           <motion.div variants={motionOff ? undefined : fadeUp} className="text-center lg:text-left">
-            {/* W85 deck pill — same brand element as the dashboard hero */}
+            {/* W100 deck pill — same brand element as the dashboard hero */}
             <div
               className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em]"
               style={{ color: 'var(--hub-text-soft)' }}
@@ -182,7 +182,7 @@ export default function HubIntro({
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: 'var(--hub-accent)' }}
               />
-              W85 · {hub ? HUB_DECK[hub] : 'Command Deck'}
+              W100 · {hub ? HUB_DECK[hub] : 'Command Deck'}
             </div>
 
             <h1 className="mx-auto max-w-4xl text-[34px] font-black leading-[0.95] tracking-tighter sm:text-[52px] lg:mx-0 lg:text-[64px]">

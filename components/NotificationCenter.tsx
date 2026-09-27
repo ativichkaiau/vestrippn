@@ -4,6 +4,7 @@ import { useCallback, useState, useEffect, useMemo } from 'react';
 import { UPCOMING_EXAMS, daysUntil, countdownLabel, REMINDER_BUCKETS } from '@/lib/exams';
 import { subscribeToPush } from '@/lib/push-client';
 import { toast } from '@/lib/toast-bus';
+import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
 
 interface Notification {
   id: string;
@@ -166,12 +167,13 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
       {/* FEED CONTENT */}
       <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative z-10 min-h-[250px]">
         {isLoading && feed.length === 0 ? (
-          // Glassmorphic Skeleton Loader
-          <div className="h-full flex flex-col gap-3">
+          // W100 skeleton: livery-lit carbon (components/w100/Skeleton)
+          <SkelGroup label="notifications" className="flex h-full flex-col gap-3">
+            <SkelLabel label="Radio · Inbox" />
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-[84px] w-full bg-black/5 dark:bg-white/5 rounded-2xl animate-pulse transition-colors duration-700" />
+              <Skel key={i} className="h-[84px] w-full rounded-2xl" />
             ))}
-          </div>
+          </SkelGroup>
         ) : feed.length === 0 ? (
           // Empty State
           <div className="h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500 text-[12px] font-medium italic transition-colors duration-700">
