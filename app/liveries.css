@@ -18,7 +18,7 @@
   --livery-line: rgba(18, 37, 57, 0.18);
   --livery-line-strong: rgba(18, 37, 57, 0.3);
   --livery-grid: rgba(18, 37, 57, 0.05);
-  --livery-stripe: linear-gradient(115deg, #bac5cc 0% 43%, #eff3f5 43% 46%, #00a99c 46% 65%, #151c22 65% 100%);
+  --livery-stripe: linear-gradient(115deg, #bac5cc 0% 43%, #eff3f5 43% 46%, #00a99c 46% 65%, #2b363e 65% 100%);
 }
 
 html[data-livery], :root {
@@ -102,6 +102,13 @@ html :is(.from-\[\#00A598\], .from-\[\#00D2BE\]) { --tw-gradient-from: var(--liv
 html :is(.to-\[\#00A598\], .to-\[\#00D2BE\]) { --tw-gradient-to: var(--livery-secondary); }
 html ::selection { background: rgba(var(--livery-accent-rgb), 0.28); }
 html .custom-scrollbar { scrollbar-color: rgba(var(--livery-accent-rgb), 0.42) transparent; }
+
+/* Silver Arrow: its dark islands (hero panels, dark cards) are graphite, like
+   its night palette — pure carbon black clashed with the brushed silver. */
+html[data-livery="normal"] .dark {
+  --w85-canvas: #161c20;
+  --w85-surface: #1d242a;
+}
 
 /* The coloured hero remains a readable dark field in white-bodied liveries. */
 html .w10-clay-hero, html .w10-clay-hero.dark {

@@ -13,15 +13,16 @@ export type LiveryDefinition = {
 export const MERCEDES_PALETTES: Record<'day' | 'twilight' | 'night', ThemePalette> = {
   day: { canvas: '#bac2c9', surface: '#d8dee3', raised: '#edf0f2', inset: '#c9d1d7', text: '#172127', muted: '#44535e', accent: '#006e64', secondary: '#596c79', hero: '#112227', heroAccent: '#67e6d0' },
   twilight: { canvas: '#444c54', surface: '#525c65', raised: '#606b74', inset: '#39434c', text: '#ffffff', muted: '#e1e8ed', accent: '#7ae9d6', secondary: '#bdcbd4', hero: '#19272d', heroAccent: '#7ae9d6' },
-  night: { canvas: '#08090a', surface: '#101113', raised: '#1c2024', inset: '#0c0e10', text: '#f4f6f8', muted: '#a3adb7', accent: '#00d2be', secondary: '#c7ccd4', hero: '#0d0e10', heroAccent: '#00d2be' },
+  // Graphite, not carbon black: cool-tinted to sit with the brushed silver.
+  night: { canvas: '#161c20', surface: '#1d242a', raised: '#283037', inset: '#191f24', text: '#f4f6f8', muted: '#a3adb7', accent: '#00d2be', secondary: '#c7ccd4', hero: '#1a2126', heroAccent: '#00d2be' },
 };
 
 export const LIVERY_CATALOG = {
   normal: {
     name: 'Silver Arrow', year: '2014', chassis: 'W05', team: 'mercedes',
     description: 'Brushed silver, PETRONAS teal, carbon edges.', finish: 'Brushed metal', tone: 'light',
-    colors: ['#c4ccd2', '#eff3f5', '#00a99c', '#151c22'],
-    stripe: 'linear-gradient(115deg, #222d33 0% 12%, #bac5cc 12% 43%, #eff3f5 43% 46%, #00a99c 46% 65%, #086860 65% 70%, #151c22 70% 100%)',
+    colors: ['#c4ccd2', '#eff3f5', '#00a99c', '#2b363e'],
+    stripe: 'linear-gradient(115deg, #3a4851 0% 12%, #bac5cc 12% 43%, #eff3f5 43% 46%, #00a99c 46% 65%, #086860 65% 70%, #2b363e 70% 100%)',
     palette: MERCEDES_PALETTES.day,
   },
   'williams-1993': {
