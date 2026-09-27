@@ -14,6 +14,10 @@ const CARD_SELECTOR = 'main :is(section, article, div, a)[class*="rounded-"][cla
 const HEADING_SELECTOR = 'main h1, main h2';
 const IDLE_SELECTOR = `.w85-livery-decoration, .w10-brand-mark, .w85-panel-accent, .w10-clay-rail, .w10-clay-dock, header, ${HEADING_SELECTOR}, ${CARD_SELECTOR}`;
 const EXCLUDED = 'dialog, [role="dialog"], [class~="fixed"], nav, aside, [contenteditable="true"], [data-w85-reveal="off"]';
+// W100 scroll depth: where scroll-driven animations exist, the page's
+// top-level blocks ride the scroll in 3D instead of the one-shot reveal
+// (app/w100.css, "SCROLL DEPTH").
+const SCROLL_DEPTH_SKIP = '[data-motion="hero"], [data-w85-reveal="off"], dialog, [role="dialog"], nav, aside';
 
 /** Progressive enhancement: content is never hidden while waiting for JS. */
 export function usePageMotion(
@@ -39,6 +43,8 @@ export function usePageMotion(
     let scrollFrame = 0;
     let scanFrame = 0;
     let cardPhase = 0;
+    const scrollDepth = typeof CSS !== 'undefined' && CSS.supports('animation-timeline: view()');
+    const scrollBlocks = new Set<HTMLElement>();
 
     const finish = (element: HTMLElement, animation: Animation) => {
       if (animations.get(element) !== animation) return;
@@ -55,6 +61,7 @@ export function usePageMotion(
         const element = entry.target as HTMLElement;
         reveals.unobserve(element);
         element.dataset.w85RevealState = 'done';
+        if (element.hasAttribute('data-w100-scroll')) continue;
         const rect = element.getBoundingClientRect();
         const heading = /^H[123]$/.test(element.tagName);
         if ((!heading && (rect.width < 150 || rect.height < 64)) ||
@@ -125,6 +132,35 @@ export function usePageMotion(
       }
     });
 
+    // Tag the page's top-level blocks (children of main's content column) that
+    // fit comfortably in the scrollport; taller ones keep the timed reveal.
+    const tagScrollBlocks = () => {
+      if (!scrollDepth || !main) return;
+      let column: Element = main;
+      for (let depth = 0; depth < 3 && column.children.length === 1; depth++) {
+        const only = column.firstElementChild;
+        if (!only || only.matches(SCROLL_DEPTH_SKIP)) break;
+        column = only;
+      }
+      const limit = main.clientHeight * 1.1;
+      for (const block of scrollBlocks) {
+        if (!block.isConnected || block.parentElement !== column) {
+          block.removeAttribute('data-w100-scroll');
+          scrollBlocks.delete(block);
+        }
+      }
+      if (scrollport !== main) return;
+      for (const block of column.children) {
+        if (!(block instanceof HTMLElement)) continue;
+        const height = block.offsetHeight;
+        const fits = !block.matches(SCROLL_DEPTH_SKIP) && height >= 64 && height <= limit &&
+          !['fixed', 'sticky', 'absolute'].includes(getComputedStyle(block).position);
+        block.toggleAttribute('data-w100-scroll', fits);
+        if (fits) scrollBlocks.add(block);
+        else scrollBlocks.delete(block);
+      }
+    };
+
     const updateProgress = () => {
       scrollFrame = 0;
       if (!scrollport?.isConnected) {
@@ -158,6 +194,7 @@ export function usePageMotion(
           }
         }
       }
+      tagScrollBlocks();
       scheduleProgress();
     };
     const resize = new ResizeObserver(refreshScrollport);
@@ -252,6 +289,7 @@ export function usePageMotion(
       for (const animation of animations.values()) animation.cancel();
       animations.clear();
       for (const element of registered) delete element.dataset.w85RevealState;
+      for (const block of scrollBlocks) block.removeAttribute('data-w100-scroll');
       for (const element of idle) {
         element.removeAttribute('data-w85-in-view');
         element.removeAttribute('data-w85-ambient-card');

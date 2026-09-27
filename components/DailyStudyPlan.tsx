@@ -174,7 +174,7 @@ function AgendaEditor({ item, onClose, onSaved }: { item: AgendaItem | 'new-task
   const [error, setError] = useState('');
 
   return <div className="fixed inset-0 z-[200] overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-8" role="dialog" aria-modal="true" aria-labelledby="agenda-editor-title" data-w85-reveal="off">
-    <form className="mx-auto my-8 max-w-xl space-y-4 rounded-2xl border border-black/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-neutral-900" onSubmit={async event => {
+    <form className="w100-pop mx-auto my-8 max-w-xl space-y-4 rounded-2xl border border-black/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-neutral-900" onSubmit={async event => {
       event.preventDefault(); setSaving(true); setError('');
       try {
         await requestJson('/api/study-plan/items', existing ? 'PATCH' : 'POST', { kind, id: existing?.sourceId, title, dueAt: dueAt ? `${dueAt}T23:59:00+07:00` : null, estimatedMinutes: Number(estimate), priority: Number(priority) });

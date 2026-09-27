@@ -20,6 +20,7 @@ import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import BrandMark from '../components/BrandMark';
 import SignatureIntro from '../components/SignatureIntro';
 import LiveryDecoration from '../components/LiveryDecoration';
+import Mark3D from '../components/w100/Mark3D';
 import { SkelLabel, SkelLap } from '../components/w100/Skeleton';
 import Link from 'next/link';
 
@@ -154,10 +155,13 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
               data-motion="hero"
               data-no-typewriter
             >
-              <LiveryDecoration />
+              {/* The cockpit's mark floats beside the headline instead of in
+                  the gyroscope, which the tall panel here would cover. */}
+              <LiveryDecoration mark={false} />
 
               <div className="relative z-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-                <div className="text-center lg:text-left">
+                <div className="relative text-center lg:text-left">
+                  <Mark3D follow className="w100-hero-mark" label="" />
                   <div
                     className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] backdrop-blur-xl"
                     style={{ color: 'var(--hub-text-soft)' }}
@@ -204,7 +208,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                   </div>
                 </div>
 
-                <div className="relative">
+                <div className="w100-console relative">
                   <div
                     className="absolute -inset-8 rounded-[36px] blur-3xl"
                     style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}

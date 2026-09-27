@@ -4,8 +4,9 @@
 // hub navigation) and SiteMotion (which yields its JS route animation when the
 // browser will animate the route natively, so they don't double up).
 
+export type ViewTransitionHandle = { finished: Promise<void>; ready: Promise<void> };
 type VTDocument = Document & {
-  startViewTransition?: (cb: () => void | Promise<void>) => { finished: Promise<void> };
+  startViewTransition?: (cb: () => void | Promise<void>) => ViewTransitionHandle;
 };
 
 export function vtSupported(): boolean {
@@ -27,8 +28,8 @@ export function vtActive(): boolean {
   return vtSupported() && motionAllowed();
 }
 
-export function startViewTransition(cb: () => void | Promise<void>): void {
-  (document as VTDocument).startViewTransition?.(cb);
+export function startViewTransition(cb: () => void | Promise<void>): ViewTransitionHandle | undefined {
+  return (document as VTDocument).startViewTransition?.(cb);
 }
 
 // The active navigate-with-transition fn, published by <ViewTransitions/> so

@@ -14,6 +14,7 @@ import { motionAllowed } from '@/lib/view-transition';
  * - `mode`: `idle` drifts on a slow turntable, `spin` rotates continuously
  *   (loaders), `intro` flies in unpainted and has its livery sprayed on.
  * - Drag to rotate, with inertia, when `interactive`.
+ * - `follow` turns the idle mark to face a nearby mouse pointer (hero marks).
  *
  * Pass `label=""` when the mark is decorative next to a visible name.
  *
@@ -39,12 +40,14 @@ export default function Mark3D({
   livery,
   mode = 'idle',
   interactive = true,
+  follow = false,
   className = '',
   label = 'VESTRIPPN mark',
 }: {
   livery?: Livery;
   mode?: Mode;
   interactive?: boolean;
+  follow?: boolean;
   className?: string;
   label?: string;
 }) {
@@ -74,6 +77,7 @@ export default function Mark3D({
     let sweepStart = -1;
     let painted = mode !== 'intro';
     const drag = { active: false, x: 0, y: 0, vx: 0, lastMove: -Infinity, pointer: -1 };
+    const look = { yaw: 0, pitch: 0, at: -Infinity };
     const pose = renderer.pose;
     pose.yaw = mode === 'intro' ? -2.4 : 0.42;
     pose.pitch = -0.12;
@@ -127,10 +131,12 @@ export default function Mark3D({
         pose.yaw += dt * 1.7;
         pose.pitch += (-0.16 - pose.pitch) * (1 - Math.pow(0.1, dt));
       } else if (since > 1.1) {
-        // Ease back onto the turntable once the user lets go.
-        const idleYaw = 0.34 + Math.sin(t * 0.5) * 0.44;
-        const idlePitch = -0.12 + Math.sin(t * 0.37) * 0.07;
-        const pull = 1 - Math.pow(mode === 'intro' && t < INTRO_FLY_S ? 0.02 : 0.25, dt);
+        // Ease back onto the turntable once the user lets go — or, while a
+        // mouse is moving nearby, turn to face it.
+        const looking = now - look.at < 2400;
+        const idleYaw = looking ? look.yaw : 0.34 + Math.sin(t * 0.5) * 0.44;
+        const idlePitch = looking ? look.pitch : -0.12 + Math.sin(t * 0.37) * 0.07;
+        const pull = 1 - Math.pow(mode === 'intro' && t < INTRO_FLY_S ? 0.02 : looking ? 0.08 : 0.25, dt);
         pose.yaw += (idleYaw - pose.yaw) * pull;
         pose.pitch += (idlePitch - pose.pitch) * pull;
       }
@@ -181,6 +187,16 @@ export default function Mark3D({
       drag.lastMove = now;
       requestFrame();
     };
+    const onLook = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse' || still || !visible) return;
+      const rect = wrap.getBoundingClientRect();
+      const dx = (event.clientX - (rect.left + rect.width / 2)) / (window.innerWidth * 0.5);
+      const dy = (event.clientY - (rect.top + rect.height / 2)) / (window.innerHeight * 0.5);
+      // Bias toward the three-quarter view so the livery face stays readable.
+      look.yaw = 0.3 + clamp(dx, -1, 1) * 0.6;
+      look.pitch = -0.1 + clamp(dy, -1, 1) * 0.3;
+      look.at = performance.now();
+    };
     const onPointerUp = (event: PointerEvent) => {
       if (event.pointerId !== drag.pointer) return;
       drag.active = false;
@@ -215,6 +231,7 @@ export default function Mark3D({
     wrap.addEventListener('pointermove', onPointerMove);
     wrap.addEventListener('pointerup', onPointerUp);
     wrap.addEventListener('pointercancel', onPointerUp);
+    if (follow) window.addEventListener('pointermove', onLook, { passive: true });
 
     return () => {
       cancelAnimationFrame(frame);
@@ -228,10 +245,11 @@ export default function Mark3D({
       wrap.removeEventListener('pointermove', onPointerMove);
       wrap.removeEventListener('pointerup', onPointerUp);
       wrap.removeEventListener('pointercancel', onPointerUp);
+      window.removeEventListener('pointermove', onLook);
       repaintRef.current = () => {};
       renderer.dispose();
     };
-  }, [mode, interactive]);
+  }, [mode, interactive, follow]);
 
   // A preview livery (the garage) repaints without rebuilding the renderer.
   useEffect(() => {

@@ -231,7 +231,7 @@ export default function CommandPalette() {
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-black/10 bg-white/95 shadow-[0_40px_120px_rgba(0,0,0,0.4)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#0e1216]/95"
+        className="w100-pop relative w-full max-w-xl overflow-hidden rounded-3xl border border-black/10 bg-white/95 shadow-[0_40px_120px_rgba(0,0,0,0.4)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#0e1216]/95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-black/5 px-4 py-3.5 dark:border-white/10">

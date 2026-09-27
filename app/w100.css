@@ -111,21 +111,43 @@ html.dark body [data-w100-depth][data-w100-glare] {
   pointer-events: none;
 }
 
-/* ── ROUTES TURN IN SPACE (native View Transitions) ─────────────────────── */
+/* ── ROUTES TURN IN SPACE (native View Transitions) ─────────────────────
+   Hubs sit on a carousel in nav-rail order: moving down the rail turns it
+   left, moving up turns it right (components/ViewTransitions.tsx sets
+   data-w100-nav). The page swings away in depth and the hero flips over
+   like a card. The incoming page arrives after the route's loading screen,
+   so its hero swings in on mount ("SCROLL DEPTH", w100HeroArrive) rather
+   than inside the transition. */
+
+:root { --w100-turn: 1; }
+html[data-w100-nav="back"] { --w100-turn: -1; }
 
 @media (prefers-reduced-motion: no-preference) {
   html:not(.low-power):not(.w100-livery-swap)::view-transition-old(root) {
-    animation: w100RouteOut 0.34s cubic-bezier(0.7, 0, 0.84, 0) both;
+    animation: w100RouteOut 0.4s cubic-bezier(0.7, 0, 0.84, 0) both;
   }
   html:not(.low-power):not(.w100-livery-swap)::view-transition-new(root) {
-    animation: w100RouteIn 0.52s var(--w100-ease) 0.05s both;
+    animation: w100RouteIn 0.6s var(--w100-ease) 0.08s both;
+  }
+  html:not(.low-power):not(.w100-livery-swap)::view-transition-old(vt-hero) {
+    animation: w100HeroFlipOut 0.34s cubic-bezier(0.55, 0, 1, 0.45) both;
+    backface-visibility: hidden;
   }
 }
 @keyframes w100RouteOut {
-  to { opacity: 0; transform: perspective(1600px) translateZ(-140px) rotateX(2.5deg); }
+  to {
+    opacity: 0;
+    transform: perspective(1600px) translateX(calc(var(--w100-turn) * -8%)) translateZ(-240px) rotateY(calc(var(--w100-turn) * 16deg));
+  }
 }
 @keyframes w100RouteIn {
-  from { opacity: 0; transform: perspective(1600px) translateZ(-180px) rotateX(-3.5deg); }
+  from {
+    opacity: 0;
+    transform: perspective(1600px) translateX(calc(var(--w100-turn) * 10%)) translateZ(-280px) rotateY(calc(var(--w100-turn) * -18deg));
+  }
+}
+@keyframes w100HeroFlipOut {
+  to { transform: perspective(2200px) rotateY(calc(var(--w100-turn) * -90deg)); filter: brightness(0.55); }
 }
 
 /* ── LIVE LIVERY SWAP (lib/w100/livery-swap.ts) ─────────────────────────
@@ -408,5 +430,278 @@ html.w100-livery-swap::view-transition-new(root) {
   }
   html:not(.low-power) .w10-brand-mark:hover img {
     transform: perspective(220px) rotateY(-32deg) rotateX(10deg);
+  }
+}
+
+/* ── ODOMETER (components/TickNumber.tsx) ────────────────────────────────
+   Each digit is a ten-faced drum. Faces sit on a cylinder whose radius puts
+   a face exactly one line tall (r = ½ line ÷ tan 18°); the drum is pulled
+   back by r so the front face renders at its true size. Digits roll up. */
+
+.w100-odo {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.w100-odo-slot {
+  --odo-r: calc(1lh * 1.539);
+  position: relative;
+  display: inline-block;
+  perspective: 6em;
+  /* The window: neighbours on the drum stay hidden above and below. */
+  clip-path: inset(0 -0.2em);
+}
+.w100-odo-sizer { visibility: hidden; }
+.w100-odo-drum {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(-1 * var(--odo-r))) rotateX(calc(var(--odo-steps, 0) * 36deg));
+  transition: transform var(--odo-ms, 1.1s) cubic-bezier(0.2, 0.72, 0.1, 1);
+}
+.w100-odo-face {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  backface-visibility: hidden;
+  transform: rotateX(calc(var(--odo-face) * -36deg)) translateZ(var(--odo-r));
+}
+
+/* ── HERO DIORAMA (components/LiveryDecoration.tsx) ─────────────────────
+   Every hub hero is a small 3D set. Depth order, back to front: track
+   floor → orbit gyroscope → livery art → extruded edition number →
+   content. The depth engine's pointer vars (--w100-px/py, inherited from the
+   hero) drive each layer's parallax, scaled by how deep it sits. */
+
+/* Track floor: a grid laid in perspective, running toward the viewer. */
+.w100-hero-floor {
+  position: absolute;
+  left: -40%;
+  right: -40%;
+  bottom: 0;
+  height: 92%;
+  transform-origin: 50% 100%;
+  transform: perspective(600px) rotateX(58deg);
+  background-image:
+    linear-gradient(rgba(var(--hub-accent-rgb), 0.9) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, rgba(var(--hub-accent-rgb), 0.6) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: 50% 0;
+  mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.45) 40%, transparent 88%);
+  opacity: 0.42;
+  translate: calc(var(--w100-px, 0) * -34px) 0;
+  transition: translate 140ms linear;
+}
+
+/* Orbit gyroscope: two rings on their own axes inside a turning body. The
+   W85 dash spin keeps running in each ring's plane. */
+.w85-livery-orbits {
+  display: block;
+  aspect-ratio: 1;
+  perspective: 900px;
+  translate: calc(var(--w100-px, 0) * -12px) calc(var(--w100-py, 0) * -9px);
+  transition: translate 140ms linear;
+}
+.w100-gyro {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--w100-py, 0) * -14deg)) rotateY(calc(var(--w100-px, 0) * 18deg));
+  transition: transform 160ms linear;
+}
+.w100-gyro-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.w100-gyro-outer { transform: rotateX(62deg) rotateY(-16deg); }
+.w100-gyro-inner { transform: rotateY(64deg) rotateX(14deg); }
+.w100-gyro-core {
+  position: absolute;
+  inset: 44%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--hub-accent-on-dark) 38%, rgba(var(--hub-accent-rgb), 0) 72%);
+  box-shadow: 0 0 26px rgba(var(--hub-accent-rgb), 0.6);
+}
+
+/* Extruded edition number: wireframe copies stepping back into the hero,
+   leaning away from the pointer the way a solid numeral would. */
+.w85-livery-number.w100-extrude {
+  stroke: rgb(255 255 255 / calc(0.13 - var(--w100-layer) * 0.014));
+  translate:
+    calc(var(--w100-layer) * (1.6px + var(--w100-sx, 0) * 2.2px))
+    calc(var(--w100-layer) * (2px + var(--w100-sy, 0) * 1.6px));
+  transition: translate 160ms linear;
+}
+.w85-livery-number:not(.w100-extrude) {
+  translate: calc(var(--w100-px, 0) * 8px) calc(var(--w100-py, 0) * 6px);
+  transition: translate 160ms linear;
+}
+[data-w100-depth="settle"] :is(.w100-hero-floor, .w85-livery-orbits, .w100-gyro, .w85-livery-number) {
+  transition-duration: 0.52s;
+  transition-timing-function: var(--w100-ease);
+}
+
+@media (max-width: 639px) {
+  .w100-hero-floor { height: 70%; opacity: 0.24; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .w100-hero-floor { animation: w100FloorRun 1.4s linear infinite paused; }
+  .w100-gyro-inner { animation: w100Precess 14s linear infinite paused; }
+  .w100-gyro-core { animation: w100CorePulse 2.8s ease-in-out infinite paused; }
+  [data-w85-active] .w85-livery-decoration[data-w85-in-view] :is(.w100-hero-floor, .w100-gyro-inner, .w100-gyro-core) {
+    animation-play-state: running;
+  }
+}
+@keyframes w100FloorRun { to { background-position: 50% 56px; } }
+/* The inner ring's axis swings round the body: the gyroscope's wobble. */
+@keyframes w100Precess {
+  from { transform: rotateY(64deg) rotateX(14deg); }
+  to { transform: rotateY(424deg) rotateX(14deg); }
+}
+@keyframes w100CorePulse {
+  0%, 100% { scale: 0.8; opacity: 0.7; }
+  50% { scale: 1.15; opacity: 1; }
+}
+
+/* The live mark levitates inside the gyroscope. It shares the rings' 3D
+   context, so each ring passes in front of it on one side and behind it on
+   the other. The rings carry the W85 translucency; the mark stays solid. */
+.w85-livery-orbits.w85-livery-orbits { opacity: 1; }
+.w100-gyro-ring { opacity: 0.6; }
+.w100-gyro-mark {
+  position: absolute;
+  inset: 30% 26%;
+  transform: translateZ(1px);
+}
+.w100-gyro-mark::after { display: none; }
+@media (max-width: 639px) {
+  .w100-gyro-ring { opacity: 0.42; }
+  .w100-gyro-mark { display: none; }
+}
+
+/* ── SCROLL DEPTH (components/usePageMotion.ts tags the blocks) ──────────
+   Scroll-driven, so the motion is tied to the scrollbar, not a clock. The
+   page's top-level blocks rise out of depth as they scroll in, hinged at
+   their base, and tip back over the top edge as they leave; the hero lifts
+   away like a lid, after swinging in on mount (w100HeroArrive). Fill mode
+   none: fully in view, nothing is applied, so framer-motion and hover
+   transforms own the element as before. Withheld while a block holds focus
+   (someone is typing in it), a fixed element or an open dialog, which a
+   transform would otherwise re-anchor. */
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.low-power) main [data-motion="hero"]:not(:has(.fixed, dialog[open], [role="dialog"])) {
+    animation: w100HeroArrive 0.8s var(--w100-ease) backwards;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.low-power) main [data-motion="hero"]:not(:focus-within, :has(.fixed, dialog[open], [role="dialog"])) {
+      animation: w100HeroArrive 0.8s var(--w100-ease) backwards, w100HeroAway linear none;
+      animation-timeline: auto, view();
+      animation-range: normal, exit 0% exit 100%;
+    }
+    html:not(.low-power) main [data-w100-scroll]:not(:focus-within, :has(.fixed, dialog[open], [role="dialog"])) {
+      animation: w100BlockRise linear none, w100BlockCrest linear none;
+      animation-timeline: view(), view();
+      animation-range: entry 0% entry 100%, exit 0% exit 100%;
+    }
+  }
+}
+/* The flip's second half: the hero swings in from the side the route
+   turned toward. */
+@keyframes w100HeroArrive {
+  from {
+    opacity: 0;
+    transform: perspective(2200px) translateZ(-160px) rotateY(calc(var(--w100-turn) * 62deg));
+  }
+}
+@keyframes w100HeroAway {
+  from { transform: perspective(1400px) rotateX(0deg) scale(1); transform-origin: 50% 100%; }
+  to { transform: perspective(1400px) rotateX(28deg) scale(0.9); transform-origin: 50% 100%; opacity: 0.2; }
+}
+@keyframes w100BlockRise {
+  from {
+    transform: perspective(1200px) translateY(64px) rotateX(22deg) scale(0.93);
+    transform-origin: 50% 100%;
+    opacity: 0.15;
+  }
+  to { transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1); transform-origin: 50% 100%; opacity: 1; }
+}
+@keyframes w100BlockCrest {
+  from { transform: perspective(1200px) rotateX(0deg) scale(1); transform-origin: 50% 0%; opacity: 1; }
+  to { transform: perspective(1200px) rotateX(-24deg) scale(0.93); transform-origin: 50% 0%; opacity: 0.25; }
+}
+
+/* ── CONTENT LIFTS OFF THE SLAB ─────────────────────────────────────────
+   While a card tilts, its headings float above the surface: they drift
+   with the pointer, against the card's own tilt, so text reads as a layer
+   in front of the panel. Only elements nothing else translates. */
+
+[data-w100-depth] :is(h1, h2, h3):not([class*="translate"]) {
+  translate: calc(var(--w100-px, 0) * 6px) calc(var(--w100-py, 0) * 4px);
+  transition: translate 140ms linear;
+}
+[data-w100-depth="settle"] :is(h1, h2, h3):not([class*="translate"]) {
+  transition: translate 0.52s var(--w100-ease);
+}
+
+/* ── DIALOGS SWING IN ───────────────────────────────────────────────────
+   Overlays hinge down from their top edge out of depth. */
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.low-power) .livery-dialog[open] { animation: w100DialogIn 0.62s var(--w100-ease) both; }
+  html:not(.low-power) .livery-dialog[open]::backdrop { animation: w100Fade 0.4s ease both; }
+  html:not(.low-power) .w100-pop { animation: w100PopIn 0.5s var(--w100-ease) both; }
+}
+@keyframes w100DialogIn {
+  from { opacity: 0; transform: perspective(1400px) translateY(-24px) translateZ(-200px) rotateX(18deg); }
+}
+@keyframes w100PopIn {
+  from { opacity: 0; transform-origin: 50% 0; transform: perspective(1200px) translateY(-10px) rotateX(-24deg) scale(0.96); }
+  to { transform-origin: 50% 0; }
+}
+@keyframes w100Fade { from { opacity: 0; } }
+
+/* ── NAV: ICONS SPIN LIKE COINS ─────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  html:not(.low-power) :is(.w09-nav-link, .w09-nav-chip) .w85-nav-icon {
+    transition: transform 0.8s var(--w100-ease), scale 0.3s ease, opacity 0.3s ease, color 0.3s ease;
+  }
+  html:not(.low-power) :is(.w09-nav-link, .w09-nav-chip):is(:hover, :focus-visible) .w85-nav-icon {
+    transform: perspective(160px) rotateY(360deg);
+  }
+}
+
+/* ── COCKPIT DISPLAYS ───────────────────────────────────────────────────
+   The hero's telemetry panel rests at an angle, turned toward the copy the
+   way a car's centre display turns toward the driver. `rotate` rather than
+   `transform`, so framer's hover lift still applies on top. */
+
+@media (min-width: 1024px) {
+  .w100-console { perspective: 1500px; }
+  .w100-console > .w10-clay-dark-panel {
+    rotate: y -11deg;
+    transition: rotate 0.6s var(--w100-ease);
+  }
+  [data-w100-depth] .w100-console > .w10-clay-dark-panel { rotate: y calc(-11deg + var(--w100-px, 0) * 5deg); transition-duration: 160ms; }
+}
+
+/* The dashboard's own hero mark, beside the headline (wide screens only;
+   narrower, the headline needs the room). */
+.w100-hero-mark { display: none; }
+@media (min-width: 1280px) {
+  .w100-hero-mark {
+    position: absolute;
+    z-index: -1; /* behind the headline, should the two ever meet */
+    display: block;
+    top: -46px;
+    right: -10px;
+    width: 176px;
+    height: 148px;
   }
 }

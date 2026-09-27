@@ -227,7 +227,7 @@ export default function HubIntro({
           </motion.div>
 
           {/* telemetry stack */}
-          <motion.div variants={motionOff ? undefined : slidePanel} className="relative">
+          <motion.div variants={motionOff ? undefined : slidePanel} className="w100-console relative">
             <div
               className="absolute -inset-8 rounded-[36px] blur-3xl"
               style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}

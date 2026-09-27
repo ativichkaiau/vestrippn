@@ -3,6 +3,17 @@
 import { useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { setVtNavigate, startViewTransition, vtActive } from '@/lib/view-transition';
+import { HUBS } from './HubNav';
+
+// W100: the route turns in the direction of travel along the nav rail —
+// forward down the rail, back up it (app/w100.css, "ROUTES TURN IN SPACE").
+function hubIndex(path: string) {
+  const index = HUBS.findIndex((hub) => {
+    const href = hub.href.split('?')[0];
+    return href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
+  });
+  return index === -1 ? HUBS.length : index;
+}
 
 // Drives cross-hub navigation through the native View Transitions API. Intercepts
 // internal <a> clicks (the nav rail, mobile dock, brand mark) and publishes a
@@ -30,13 +41,20 @@ export default function ViewTransitions() {
         router.push(href);
         return;
       }
-      startViewTransition(
+      // Kept after the transition too: the incoming hero, which mounts after
+      // the route's loading screen, swings in from the same side.
+      document.documentElement.dataset.w100Nav =
+        hubIndex(path) < hubIndex(window.location.pathname) ? 'back' : 'forward';
+      const transition = startViewTransition(
         () =>
           new Promise<void>((resolve) => {
             finish.current = resolve;
             router.push(href);
           }),
       );
+      // A skipped transition (hidden tab, a newer navigation) rejects `ready`;
+      // the route still commits, so that is not an error.
+      transition?.ready.catch(() => {});
       // Failsafe: never leave the page frozen if the route effect doesn't fire.
       window.setTimeout(() => {
         if (finish.current) {
