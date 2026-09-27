@@ -20,6 +20,7 @@ import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import BrandMark from '../components/BrandMark';
 import SignatureIntro from '../components/SignatureIntro';
 import LiveryDecoration from '../components/LiveryDecoration';
+import LiveryScene from '../components/LiveryScene';
 import Mark3D from '../components/w100/Mark3D';
 import { SkelLabel, SkelLap } from '../components/w100/Skeleton';
 import Link from 'next/link';
@@ -209,6 +210,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                 </div>
 
                 <div className="w100-console relative">
+                  <LiveryScene compact className="mb-5" />
                   <div
                     className="absolute -inset-8 rounded-[36px] blur-3xl"
                     style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}

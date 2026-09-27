@@ -705,3 +705,35 @@ html.w100-livery-swap::view-transition-new(root) {
     height: 148px;
   }
 }
+
+/* ── WITH THE SPATIAL MATERIALS (app/depth.css) ──────────────────────────
+   depth.css builds every panel from a machined material: a pointer-lit face
+   and a stepped edge. W100 drives that light from the tilt engine's pointer,
+   and while a slab is engaged keeps the machined edge with the tilt's moving
+   contact shadow beneath it. (Specificity outranks depth.css's surface rule;
+   both are !important.) */
+
+[data-w100-depth] {
+  --spatial-light-x: var(--w100-gx, 18%);
+  --spatial-light-y: var(--w100-gy, 0%);
+}
+html .motion-route-shell.w10-clay-shell :is(.w10-clay-surface, .w10-clay-hero, .w85-panel-accent, main :where(section, article, div, a)[class*="rounded-"][class*="border"])[data-w100-depth][data-w100-depth][data-w100-depth]:not([class*="rounded-full"]):not(.w85-showroom *) {
+  box-shadow:
+    inset 0 1px 0 var(--spatial-highlight),
+    inset 1px 0 0 var(--spatial-sheen),
+    inset 0 -1px 0 var(--spatial-shade),
+    0 1px 0 var(--spatial-edge),
+    0 2px 0 var(--spatial-edge),
+    0 3px 0 var(--spatial-edge-deep),
+    0 4px 0 var(--spatial-edge-deep),
+    calc(var(--w100-sx, 0) * 16px) calc(var(--w100-sy, 0) * 16px + 22px) 40px -22px var(--spatial-contact) !important;
+}
+html .motion-route-shell.w10-clay-shell main a[class*="rounded-"][class*="border"][data-w100-depth][data-w100-depth][data-w100-depth]:not([class*="rounded-full"]):active {
+  box-shadow: inset 0 1px 3px var(--spatial-shade), 0 1px 0 var(--spatial-edge-deep), 0 3px 5px -3px var(--spatial-contact) !important;
+}
+
+/* The sign-in panel's mark (narrow screens; wide ones show the showroom). */
+.w100-mark.spatial-auth-mark { width: 132px; height: 104px; margin: 0 auto 20px; }
+@media (min-width: 1024px) {
+  .w100-mark.spatial-auth-mark { display: none; }
+}

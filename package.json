@@ -9,7 +9,8 @@
     "lint": "eslint",
     "validate:cases": "node scripts/validate-branching-cases.mjs",
     "validate:coverage": "node scripts/validate-coverage.mjs",
-    "validate:themes": "node scripts/validate-themes.mjs"
+    "validate:themes": "node scripts/validate-themes.mjs",
+    "validate:spatial": "node scripts/validate-spatial.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -26,6 +27,7 @@
     "pg": "^8.20.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "three": "^0.186.1",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
@@ -34,6 +36,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.186.0",
     "@types/web-push": "^3.6.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",

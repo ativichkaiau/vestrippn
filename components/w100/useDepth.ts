@@ -26,7 +26,10 @@ import { useEffect, type RefObject } from 'react';
  * - CSS withholds both from cards/stages holding a `fixed` element or an open
  *   dialog, which a transform would otherwise re-anchor.
  * - Glare paints as the card's background-image, and only on cards that have
- *   none, so gradient artwork is never replaced.
+ *   none, so gradient artwork is never replaced. Surfaces built from the
+ *   spatial material (app/depth.css) take the pointer as their light instead.
+ * - Never while someone is typing: form controls stop the tilt, and so does
+ *   pointing at an interactive 3D viewer (the car showroom, which drags).
  *
  * Off for touch/coarse pointers, reduced motion and low power.
  */
@@ -39,10 +42,18 @@ const CARD_SELECTOR = [
   '[data-w100-tilt="on"]',
 ].join(',');
 const EXCLUDED = 'input, textarea, select, [contenteditable="true"], nav, [data-w100-tilt="off"], .w100-skel, .w100-skel-group';
+const FIELDS = 'input, textarea, select, [contenteditable="true"]';
+// Pointing here settles the tilt: form fields, and 3D viewers that drag.
+const HOLD = `${FIELDS}, [data-spatial="off"], .w100-mark-interactive`;
 const SETTLE_MS = 520;
 const VARS = ['--w100-rx', '--w100-ry', '--w100-angle', '--w100-gx', '--w100-gy', '--w100-px', '--w100-py', '--w100-sx', '--w100-sy'];
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+// Someone is typing in this card: it holds still until they leave the field.
+const typingIn = (card: HTMLElement) => {
+  const focused = document.activeElement;
+  return focused instanceof Element && focused !== card && card.contains(focused) && focused.matches(FIELDS);
+};
 
 export function depthAllowed() {
   return !document.documentElement.classList.contains('low-power') &&
@@ -69,13 +80,13 @@ export function attachDepth(shell: HTMLElement): () => void {
   };
 
   const cardAt = (target: EventTarget | null): HTMLElement | null => {
-    if (!(target instanceof Element)) return null;
+    if (!(target instanceof Element) || target.closest(HOLD)) return null;
     // Inside a hero, the hero moves as one object.
     const hero = target.closest<HTMLElement>('[data-motion="hero"]');
-    if (hero && shell.contains(hero)) return eligible(hero) ? hero : null;
+    if (hero && shell.contains(hero)) return eligible(hero) && !typingIn(hero) ? hero : null;
     let card = target.closest<HTMLElement>(CARD_SELECTOR);
     while (card && !eligible(card)) card = card.parentElement?.closest<HTMLElement>(CARD_SELECTOR) ?? null;
-    return card && shell.contains(card) ? card : null;
+    return card && shell.contains(card) && !typingIn(card) ? card : null;
   };
 
   // Would `perspective` on this parent re-anchor something positioned above it?
@@ -138,6 +149,7 @@ export function attachDepth(shell: HTMLElement): () => void {
     const card = active;
     if (!card) return;
     if (!card.isConnected) { active = null; return; }
+    if (typingIn(card)) { retarget(null); return; }
     const rect = card.getBoundingClientRect();
     const nx = clamp(((pointerX - rect.left) / rect.width) * 2 - 1, -1, 1);
     const ny = clamp(((pointerY - rect.top) / rect.height) * 2 - 1, -1, 1);
@@ -180,6 +192,8 @@ export function attachDepth(shell: HTMLElement): () => void {
     if (active) settle(active);
     active = null;
   };
+  // Focus moved into a field under a still pointer (a click, or Tab).
+  const onFocus = () => { if (active && typingIn(active)) retarget(null); };
   const onScroll = () => {
     if (!active) return;
     // Content moved under a still pointer.
@@ -190,12 +204,14 @@ export function attachDepth(shell: HTMLElement): () => void {
   shell.addEventListener('pointermove', onMove, { passive: true });
   shell.addEventListener('pointerleave', onLeave);
   shell.addEventListener('scroll', onScroll, { capture: true, passive: true });
+  shell.addEventListener('focusin', onFocus);
 
   return () => {
     cancelAnimationFrame(frame);
     shell.removeEventListener('pointermove', onMove);
     shell.removeEventListener('pointerleave', onLeave);
     shell.removeEventListener('scroll', onScroll, true);
+    shell.removeEventListener('focusin', onFocus);
     for (const timer of settling.values()) window.clearTimeout(timer);
     for (const card of shell.querySelectorAll<HTMLElement>('[data-w100-depth]')) {
       delete card.dataset.w100Depth;

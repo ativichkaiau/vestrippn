@@ -8,6 +8,7 @@ import { attachDepth, depthAllowed } from './w100/useDepth';
 import { MODE_LABEL, serverThemeSnapshot, subscribeTheme, themeSnapshot } from '@/lib/theme';
 import { swapLivery } from '@/lib/w100/livery-swap';
 import { LIVERIES, LIVERY_CATALOG, LIVERY_TEAMS, MODES, type Livery, type LiveryDefinition, type Mode, type ThemePhase } from '@/lib/liveries';
+import LiveryScene from './LiveryScene';
 
 // The header renders this on every page; the 3D mark only loads with the garage.
 // It holds its grid slot while loading so the garage copy doesn't jump.
@@ -105,6 +106,7 @@ export default function ThemeToggle() {
               <p className="w100-garage-hint">Drag to spin. Hover a livery to try it on; choose it to repaint everything.</p>
             </div>
           </section>
+          {open && <LiveryScene compact className="livery-collection-scene" />}
           <p className="livery-team-description">{TEAM_DESCRIPTION[team]}</p>
           {team === 'mercedes' ? <>
             <div className="livery-mercedes-preview"><LiveryPreview livery="normal" /><div><p className="livery-eyebrow">2014 · F1 W05 Hybrid</p><h3>Silver Arrow</h3><p>Cool metal, a clean teal line, and the black theme you know.</p></div></div>
