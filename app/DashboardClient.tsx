@@ -20,6 +20,8 @@ import CockpitIntelligencePanel from '../components/CockpitIntelligencePanel';
 import BrandMark from '../components/BrandMark';
 import SignatureIntro from '../components/SignatureIntro';
 import LiveryDecoration from '../components/LiveryDecoration';
+import LiveryScene from '../components/LiveryScene';
+import SpatialMark from '../components/SpatialMark';
 import Link from 'next/link';
 
 type DashboardTask = { id: string; title: string; completed: boolean; category: string };
@@ -204,6 +206,7 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
                 </div>
 
                 <div className="relative">
+                  <LiveryScene compact className="mb-5" />
                   <div
                     className="absolute -inset-8 rounded-[36px] blur-3xl"
                     style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}
@@ -438,15 +441,9 @@ export default function DashboardClient({ cloudCommand, cloudTasks, cloudResearc
    ════════════════════════════════════════════════════════════ */
 function LoadingScreen() {
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-700">
+    <div className="grid h-full w-full place-items-center" style={{ background: 'var(--w85-canvas)' }}>
       <div className="relative flex flex-col items-center gap-6">
-        <motion.div
-          className="relative w-14 h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center text-[26px] font-black"
-          animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          V
-        </motion.div>
+        <SpatialMark compact />
         <div className="relative h-[3px] w-32 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             className="h-full w-1/3 rounded-full"

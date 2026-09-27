@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useLowPower } from './useLowPower';
+import SpatialMark from './SpatialMark';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const INTRO_DURATION_MS = 3800;
@@ -70,23 +70,12 @@ export default function SignatureIntro({
 
       <div className="relative my-auto w-full max-w-xl shrink-0 self-center py-8 text-center sm:py-10">
         <motion.div
-          className="relative mx-auto mb-7 grid h-24 w-24 place-items-center sm:mb-9"
+          className="relative mx-auto mb-7 grid place-items-center sm:mb-9"
           initial={motionOff ? false : { opacity: 0, scale: 0.86 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: motionOff ? 0 : 0.65, ease: EASE }}
         >
-          <svg className="pointer-events-none absolute -inset-2 h-28 w-28" viewBox="0 0 112 112" fill="none" aria-hidden>
-            <rect x="1" y="1" width="110" height="110" rx="32" stroke="var(--w09-border)" />
-            <motion.rect
-              x="1" y="1" width="110" height="110" rx="32"
-              stroke="var(--hub-accent)"
-              strokeWidth="1.5"
-              initial={motionOff ? false : { pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ delay: motionOff ? 0 : 0.15, duration: motionOff ? 0 : 1.2, ease: EASE }}
-            />
-          </svg>
-          <Image src="/vestrippn-logo.png" width={80} height={80} alt="" loading="eager" />
+          <SpatialMark animated={!motionOff} />
         </motion.div>
 
         <motion.h1

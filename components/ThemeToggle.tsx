@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { setLowPowerMode } from './useLowPower';
 import { MODE_LABEL, serverThemeSnapshot, setTheme, subscribeTheme, themeSnapshot } from '@/lib/theme';
 import { LIVERIES, LIVERY_CATALOG, LIVERY_TEAMS, MODES, type Livery, type LiveryDefinition, type Mode, type ThemePhase } from '@/lib/liveries';
+import LiveryScene from './LiveryScene';
 
 type Team = typeof LIVERY_TEAMS[number]['id'];
 const PHASE_ICON: Record<ThemePhase, string> = { day: '☀', twilight: '◒', night: '☾' };
@@ -38,6 +39,7 @@ export default function ThemeToggle() {
   const [livery, mode, phase, power] = snapshot.split('|') as [Livery, Mode, ThemePhase, string];
   const [team, setTeam] = useState<Team>('mercedes');
   const [notice, setNotice] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const definition = LIVERY_CATALOG[livery];
@@ -48,6 +50,7 @@ export default function ThemeToggle() {
   function openPicker() {
     setTeam(definition.team); setNotice('');
     dialogRef.current?.showModal();
+    setIsOpen(true);
   }
   function choose(id: Livery, selectedMode?: Mode) {
     setTheme(id, selectedMode);
@@ -60,16 +63,17 @@ export default function ThemeToggle() {
       <span className="livery-trigger-copy"><span>Livery</span><strong>{livery === 'normal' ? MODE_LABEL[mode] : definition.name}</strong></span>
       <span className="livery-trigger-icon" aria-hidden="true">{livery === 'normal' ? PHASE_ICON[phase] : '⌄'}</span>
     </button>
-    {mounted && createPortal(<dialog ref={dialogRef} className="livery-dialog" aria-labelledby={titleId} onClick={event => { if (event.target === event.currentTarget) dialogRef.current?.close(); }}>
+    {mounted && createPortal(<dialog ref={dialogRef} className="livery-dialog" aria-labelledby={titleId} onClose={() => setIsOpen(false)} onClick={event => { if (event.target === event.currentTarget) dialogRef.current?.close(); }}>
       <div className="livery-dialog-inner">
         <header className="livery-dialog-header">
-          <div><p className="livery-eyebrow">W85 · The livery collection</p><h2 id={titleId}>Pick your racing colours.</h2></div>
+          <div><p className="livery-eyebrow">W85 · The 3D collection</p><h2 id={titleId}>Your livery. Every angle.</h2></div>
           <button type="button" className="livery-close" onClick={() => dialogRef.current?.close()} aria-label="Close livery collection" autoFocus>×</button>
         </header>
         <nav className="livery-teams" aria-label="Livery teams">
           {LIVERY_TEAMS.map(item => <button type="button" key={item.id} aria-pressed={team === item.id} onClick={() => setTeam(item.id)}>{item.name}<span>{LIVERIES.filter(id => LIVERY_CATALOG[id].team === item.id).length}</span></button>)}
         </nav>
         <div className="livery-dialog-scroll custom-scrollbar">
+          {isOpen && <LiveryScene compact className="livery-collection-scene" />}
           <p className="livery-team-description">{TEAM_DESCRIPTION[team]}</p>
           {team === 'mercedes' ? <>
             <div className="livery-mercedes-preview"><LiveryPreview livery="normal" /><div><p className="livery-eyebrow">2014 · F1 W05 Hybrid</p><h3>Silver Arrow</h3><p>Cool metal, a clean teal line, and the black theme you know.</p></div></div>

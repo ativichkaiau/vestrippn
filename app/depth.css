@@ -1,0 +1,176 @@
+/* W85 spatial materials. Loaded after the palette so every livery shares the
+   same physical construction: lit face, machined bevel, edge, and contact shade. */
+:root {
+  --spatial-highlight: rgba(255, 255, 255, .64);
+  --spatial-sheen: rgba(255, 255, 255, .25);
+  --spatial-fill: rgba(255, 255, 255, .12);
+  --spatial-shade: rgba(18, 29, 40, .19);
+  --spatial-contact: rgba(18, 29, 40, .2);
+  --spatial-edge: color-mix(in srgb, var(--livery-inset) 68%, var(--livery-muted));
+  --spatial-edge-deep: color-mix(in srgb, var(--livery-inset) 78%, #152029);
+}
+html[data-tone="dark"] {
+  --spatial-highlight: rgba(220, 237, 255, .2);
+  --spatial-sheen: rgba(209, 230, 255, .075);
+  --spatial-fill: rgba(0, 0, 0, .12);
+  --spatial-shade: rgba(0, 0, 0, .33);
+  --spatial-contact: rgba(0, 0, 0, .45);
+  --spatial-edge: color-mix(in srgb, var(--livery-raised) 77%, var(--livery-muted));
+  --spatial-edge-deep: color-mix(in srgb, var(--livery-inset) 80%, #000);
+}
+
+/* A perspective floor and extruded rails sit at the screen edge. They do not
+   intercept the page, change its scroll dimensions, or repaint on a timer. */
+.spatial-world {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  perspective: 680px;
+  perspective-origin: 50% 72%;
+  contain: strict;
+}
+.spatial-world-floor {
+  position: absolute;
+  inset: auto -20% -190px;
+  height: 370px;
+  transform-origin: center bottom;
+  transform: rotateX(63deg) translateZ(-28px);
+  background-image: linear-gradient(rgba(var(--livery-accent-rgb), .2) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--livery-accent-rgb), .19) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image: linear-gradient(transparent, #000 48% 80%, transparent);
+  opacity: .43;
+}
+.spatial-world-rail {
+  position: absolute;
+  top: 18%;
+  bottom: 13%;
+  width: 7px;
+  border: 1px solid var(--livery-line);
+  background: linear-gradient(90deg, var(--spatial-highlight), var(--livery-inset) 45%, var(--spatial-edge-deep));
+  opacity: .62;
+  mask-image: linear-gradient(transparent, #000 18% 82%, transparent);
+}
+.spatial-world-rail-left { left: 0; transform: rotateY(26deg); transform-origin: left; box-shadow: 3px 0 8px var(--spatial-contact); }
+.spatial-world-rail-right { right: 0; transform: rotateY(-26deg); transform-origin: right; box-shadow: -3px 0 8px var(--spatial-contact); }
+
+/* CSS supplies the complete static material before hydration. The hook adds
+   pointer lighting only after interaction, without mutating streamed markup. */
+html .motion-route-shell.w10-clay-shell :is([data-spatial-surface], .w10-clay-surface, .w10-clay-hero, .w85-panel-accent,
+  main :where(section, article, div, a)[class*="rounded-"][class*="border"]
+):not([class*="rounded-full"]):not(.w85-showroom *) {
+  border-color: var(--livery-line-strong) !important;
+  background-image: radial-gradient(ellipse at var(--spatial-light-x, 18%) var(--spatial-light-y, 0%), var(--spatial-fill), transparent 68%) !important;
+  box-shadow:
+    inset 0 1px 0 var(--spatial-highlight),
+    inset 1px 0 0 var(--spatial-sheen),
+    inset 0 -1px 0 var(--spatial-shade),
+    0 1px 0 var(--spatial-edge),
+    0 2px 0 var(--spatial-edge),
+    0 3px 0 var(--spatial-edge-deep),
+    0 4px 0 var(--spatial-edge-deep),
+    0 7px 7px -4px var(--spatial-contact),
+    0 18px 28px -20px var(--spatial-contact) !important;
+}
+html .motion-route-shell.w10-clay-shell :is(.w10-clay-hero, [data-spatial-surface="hero"]) {
+  --spatial-highlight: rgba(255, 255, 255, .24);
+  --spatial-sheen: rgba(255, 255, 255, .08);
+  --spatial-fill: rgba(0, 0, 0, .12);
+  --spatial-edge: color-mix(in srgb, var(--livery-hero) 74%, var(--livery-heroAccent));
+  --spatial-edge-deep: color-mix(in srgb, var(--livery-hero) 84%, #000);
+  border-color: color-mix(in srgb, var(--livery-heroAccent) 28%, var(--livery-hero)) !important;
+}
+html .motion-route-shell.w10-clay-shell :is(.w10-clay-dark-panel, [data-w10-tone="dark"]) { --spatial-fill: rgba(0, 0, 0, .12); }
+html .motion-route-shell.w10-clay-shell [data-spatial-tiltable][data-spatial-active] {
+  rotate: var(--spatial-axis-x, 0) var(--spatial-axis-y, 1) 0 var(--spatial-angle, 0deg);
+  transform-origin: center;
+}
+html .motion-route-shell.w10-clay-shell [data-spatial-surface]:focus-within {
+  rotate: none !important;
+  transition: none !important;
+}
+html .motion-route-shell.w10-clay-shell [data-spatial-pressed] {
+  box-shadow: inset 0 1px 3px var(--spatial-shade), 0 1px 0 var(--spatial-edge-deep), 0 3px 5px -3px var(--spatial-contact) !important;
+}
+
+/* The permanent frame, dock, form recesses, and substantial buttons are made
+   from the same material. Existing semantic colours and focus rings survive. */
+html .motion-route-shell.w10-clay-shell > :where([class*="h-screen"]) > header,
+html .motion-route-shell.w10-clay-shell .w10-clay-rail {
+  background-image: linear-gradient(135deg, var(--spatial-fill), transparent 45%) !important;
+  box-shadow: inset 0 1px var(--spatial-highlight), 0 2px var(--spatial-edge-deep), 0 7px 12px -8px var(--spatial-contact) !important;
+}
+html .motion-route-shell.w10-clay-shell .w10-clay-dock {
+  background-image: linear-gradient(140deg, var(--spatial-fill), transparent 65%) !important;
+  box-shadow: inset 0 1px var(--spatial-highlight), 0 3px 0 var(--spatial-edge-deep), 0 12px 24px -8px var(--spatial-contact) !important;
+}
+html .motion-route-shell.w10-clay-shell :where(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  box-shadow: inset 0 2px 4px var(--spatial-shade), inset 0 1px 1px var(--spatial-shade), 0 1px 0 var(--spatial-highlight);
+}
+html .motion-route-shell.w10-clay-shell :where(input, textarea, select):focus-visible {
+  box-shadow: inset 0 1px 3px var(--spatial-shade), 0 0 0 2px var(--livery-accent), 0 1px var(--spatial-highlight);
+}
+html .motion-route-shell.w10-clay-shell :where(button[class*="rounded-"][class*="border"], button[type="submit"], .w10-clay-control):not([role="switch"]):not([disabled]),
+.livery-trigger, .livery-modes button, .livery-done, .livery-close {
+  box-shadow: inset 0 1px var(--spatial-highlight), inset 0 -1px var(--spatial-shade), 0 2px 0 var(--spatial-edge-deep), 0 4px 6px -4px var(--spatial-contact) !important;
+}
+html .motion-route-shell.w10-clay-shell :where(button[class*="rounded-"][class*="border"], button[type="submit"], .w10-clay-control):not([disabled]):active,
+.livery-trigger:active, .livery-modes button:active, .livery-done:active, .livery-close:active {
+  box-shadow: inset 0 2px 3px var(--spatial-shade), 0 1px 0 var(--spatial-edge-deep) !important;
+}
+
+/* Collection tiles have a bevelled swatch and a raised year plate. A single
+   interactive WebGL scene can sit above these inexpensive miniature samples. */
+.livery-dialog { box-shadow: inset 0 1px var(--spatial-highlight), 0 4px 0 var(--spatial-edge), 0 8px 0 var(--spatial-edge-deep), 0 38px 110px rgba(0, 0, 0, .45); }
+.livery-card, .livery-mercedes-preview { box-shadow: inset 0 1px var(--spatial-highlight), 0 3px 0 var(--spatial-edge-deep), 0 10px 18px -13px var(--spatial-contact); }
+.livery-preview { perspective: 550px; box-shadow: inset 0 1px 0 rgba(255,255,255,.32), inset 0 -12px 20px -14px #000; }
+.livery-preview-ribbon { box-shadow: -6px 0 0 rgba(0, 0, 0, .14), -10px 8px 14px rgba(0, 0, 0, .2), inset 2px 0 0 rgba(255,255,255,.6); }
+.livery-preview-year { text-shadow: 0 1px 0 var(--preview-ground), 1px 2px 0 color-mix(in srgb, var(--preview-text) 35%, var(--preview-ground)), 2px 4px 8px rgba(0,0,0,.2); transform: translateZ(14px); }
+.livery-preview-chassis { transform: translateZ(10px); }
+
+/* Real CSS geometry: six faces, a 22px edge, and a separate ground plane. */
+.spatial-mark { --mark-size: 108px; --mark-depth: 22px; display: inline-grid; position: relative; place-items: center; width: 178px; height: 166px; perspective: 700px; flex-shrink: 0; vertical-align: middle; }
+.spatial-mark-cube { position: relative; width: var(--mark-size); height: var(--mark-size); transform-style: preserve-3d; transform: rotateX(-18deg) rotateY(-28deg) rotateZ(-6deg); }
+.spatial-mark-face { position: absolute; display: block; border: 1px solid color-mix(in srgb, var(--livery-accent) 26%, var(--livery-line)); backface-visibility: hidden; }
+.spatial-mark-front, .spatial-mark-back { inset: 0; border-radius: 10px; background: linear-gradient(135deg, var(--livery-raised), var(--livery-surface) 55%, var(--livery-inset)); }
+.spatial-mark-front { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; transform: translateZ(calc(var(--mark-depth) / 2)); box-shadow: inset 1px 1px 0 var(--spatial-highlight), inset -1px -1px 0 var(--spatial-shade); }
+.spatial-mark-back { transform: rotateY(180deg) translateZ(calc(var(--mark-depth) / 2)); }
+.spatial-mark-left, .spatial-mark-right { top: 0; left: calc((var(--mark-size) - var(--mark-depth)) / 2); width: var(--mark-depth); height: var(--mark-size); background: linear-gradient(90deg, var(--spatial-edge-deep), var(--livery-accent), var(--spatial-edge)); }
+.spatial-mark-left { transform: rotateY(-90deg) translateZ(calc(var(--mark-size) / 2)); }
+.spatial-mark-right { transform: rotateY(90deg) translateZ(calc(var(--mark-size) / 2)); }
+.spatial-mark-top, .spatial-mark-bottom { left: 0; top: calc((var(--mark-size) - var(--mark-depth)) / 2); width: var(--mark-size); height: var(--mark-depth); background: linear-gradient(var(--livery-raised), var(--spatial-edge)); }
+.spatial-mark-top { transform: rotateX(90deg) translateZ(calc(var(--mark-size) / 2)); }
+.spatial-mark-bottom { transform: rotateX(-90deg) translateZ(calc(var(--mark-size) / 2)); background: var(--spatial-edge-deep); }
+.spatial-mark-label { color: var(--livery-muted); font: 700 7px var(--font-mono, monospace); letter-spacing: .16em; transform: translateZ(1px); }
+.spatial-mark-number { color: var(--livery-text); font: 850 34px/1 var(--font-sans, sans-serif); letter-spacing: -.065em; text-shadow: 0 1px var(--spatial-highlight), 0 2px var(--spatial-edge), 1px 3px var(--spatial-edge-deep); transform: translateZ(3px); }
+.spatial-mark-stripe { position: absolute; inset: auto 0 10px; height: 5px; background: var(--livery-stripe); }
+.spatial-mark-plinth { position: absolute; bottom: 23px; width: 124px; height: 64px; transform: rotateX(65deg) rotateZ(-24deg); border: 1px solid var(--livery-line-strong); background: linear-gradient(135deg, var(--livery-raised), var(--livery-inset)); box-shadow: 0 3px 0 var(--spatial-edge-deep), 0 9px 12px -5px var(--spatial-contact); }
+.spatial-mark-coordinate { position: absolute; bottom: 0; color: var(--livery-muted); font: 650 7px var(--font-mono, monospace); letter-spacing: .22em; }
+.spatial-mark-compact { --mark-size: 84px; --mark-depth: 18px; width: 144px; height: 136px; }
+.spatial-mark-compact .spatial-mark-number { font-size: 28px; }
+.spatial-mark-compact .spatial-mark-label { font-size: 5px; }
+.spatial-mark-compact .spatial-mark-plinth { width: 108px; height: 52px; bottom: 19px; }
+.spatial-mark.spatial-auth-mark { --mark-size: 60px; --mark-depth: 14px; width: 106px; height: 96px; }
+.spatial-mark.spatial-auth-mark .spatial-mark-number { font-size: 21px; }
+.spatial-mark.spatial-auth-mark .spatial-mark-label { font-size: 4px; }
+.spatial-mark.spatial-auth-mark .spatial-mark-plinth { width: 74px; height: 36px; bottom: 13px; }
+.spatial-mark.spatial-auth-mark .spatial-mark-coordinate { font-size: 5px; }
+.spatial-mark.spatial-auth-mark .spatial-mark-stripe { height: 3px; bottom: 6px; }
+
+@keyframes spatialMarkTurn { from { transform: rotateX(-18deg) rotateY(-36deg) rotateZ(-6deg); } to { transform: rotateX(-12deg) rotateY(-17deg) rotateZ(-3deg); } }
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  html:not(.low-power) [data-spatial-tiltable] { transition: rotate .18s ease-out; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.low-power) .spatial-mark[data-animated="true"] .spatial-mark-cube { animation: spatialMarkTurn 2.4s ease-in-out both; }
+}
+@media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+  html .motion-route-shell.w10-clay-shell [data-spatial-tiltable] { rotate: none !important; }
+}
+html.low-power .motion-route-shell.w10-clay-shell [data-spatial-tiltable] { rotate: none !important; }
+@media (max-width: 640px) {
+  .spatial-world-floor { opacity: .23; height: 270px; bottom: -150px; }
+  .spatial-world-rail { width: 4px; opacity: .38; }
+}

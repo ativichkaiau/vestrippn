@@ -20,6 +20,7 @@ import TickNumber from './TickNumber';
 import { fadeUp, hoverLift, pressTap, slidePanel, softScale, staggerContainer } from './motionPresets';
 import { useLowPower } from './useLowPower';
 import LiveryDecoration from './LiveryDecoration';
+import LiveryScene from './LiveryScene';
 
 /* W09 per-hub accents (Tailwind classes so liveries can remap them) */
 const HUB_ACCENT: Record<HubKey, { dot: string; text: string; chipBg: string; icon: string }> = {
@@ -228,6 +229,7 @@ export default function HubIntro({
 
           {/* telemetry stack */}
           <motion.div variants={motionOff ? undefined : slidePanel} className="relative">
+            <LiveryScene compact className="mb-5" />
             <div
               className="absolute -inset-8 rounded-[36px] blur-3xl"
               style={{ backgroundColor: 'rgba(var(--hub-accent-rgb), 0.10)' }}

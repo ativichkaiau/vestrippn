@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { routeTransition, routeVariants, w09Ease } from './motionPresets';
 import { useLowPower } from './useLowPower';
 import { usePageMotion } from './usePageMotion';
+import { useSpatialDepth } from './useSpatialDepth';
 import AmbientCircuit from './AmbientCircuit';
 import { vtSupported } from '@/lib/view-transition';
 
@@ -49,6 +50,7 @@ function MotionPage({ children, motionOff, routeMotionOff }: {
   const shellRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
   usePageMotion(shellRef, progressRef, motionOff);
+  useSpatialDepth(shellRef, motionOff);
 
   return (
     <motion.div
@@ -61,6 +63,11 @@ function MotionPage({ children, motionOff, routeMotionOff }: {
       transition={routeTransition(routeMotionOff)}
       data-motion-route
     >
+      <div className="spatial-world" aria-hidden="true">
+        <span className="spatial-world-floor" />
+        <span className="spatial-world-rail spatial-world-rail-left" />
+        <span className="spatial-world-rail spatial-world-rail-right" />
+      </div>
       {!routeMotionOff && (
         <motion.span
           aria-hidden

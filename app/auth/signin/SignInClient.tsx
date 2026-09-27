@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
+import LiveryScene from "../../../components/LiveryScene";
+import SpatialMark from "../../../components/SpatialMark";
 
 type Mode = "signin" | "register";
 
@@ -49,7 +51,15 @@ export default function SignInClient({ callbackUrl }: { callbackUrl: string }) {
 
   return (
     <main className="flex h-full flex-col items-center overflow-y-auto bg-[var(--w09-bg)] px-5 py-10 text-[color:var(--w09-text)]">
-      <div className="w85-panel-accent my-auto w-full max-w-md shrink-0 rounded-[32px] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-2xl backdrop-blur-xl">
+      <div className="spatial-auth-layout">
+        <aside className="spatial-auth-showcase" aria-label="Your W85 workspace">
+          <p className="livery-eyebrow">W85 · Final edition</p>
+          <h2>Your world.<br />A new dimension.</h2>
+          <p>Clinical learning. Research. Everyday progress.</p>
+          <LiveryScene />
+        </aside>
+      <div className="w85-panel-accent spatial-auth-panel w-full max-w-md shrink-0 rounded-[32px] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-2xl backdrop-blur-xl">
+        <SpatialMark compact className="spatial-auth-mark" />
         <div className="mb-7">
           <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#00A598]">
             VESTRIPPN W85 · Auth
@@ -152,6 +162,7 @@ export default function SignInClient({ callbackUrl }: { callbackUrl: string }) {
         >
           {mode === "signin" ? "Need a local account?" : "Already have a local account?"}
         </button>
+      </div>
       </div>
     </main>
   );

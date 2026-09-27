@@ -1,15 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import SpatialMark from '../components/SpatialMark';
 
 /* ════════════════════════════════════════════════════════════════════════
    W85 ROUTE LOADER — shown by Next while a hub route streams.
 
-   Same language as the W85 boot (components/SignatureIntro.tsx): matte
-   ground, one accent hairline, restrained type. The W12 loader's spinning
-   "3" coin, conic HUD ring, orbiting dot, perspective grid floor and glow
-   pulse are retired. The fun fact stays — it is the one part that was
-   content rather than chrome.
+   The shared dimensional mark stays visible while route content streams.
+   Its CSS geometry needs no graphics download or WebGL initialization.
    ════════════════════════════════════════════════════════════════════════ */
 
 const FACTS = [
@@ -43,6 +41,8 @@ export default function Loading() {
           .w85-sweep { animation: none !important; transform: none !important; width: 100% !important; opacity: 0.5; }
         }
       `}</style>
+
+      <SpatialMark compact className="mb-8" />
 
       <div
         className="text-[clamp(18px,3.2vw,26px)] font-semibold tracking-[0.28em] text-neutral-900 dark:text-white"
