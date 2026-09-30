@@ -144,6 +144,11 @@ html .w10-clay-shell main {
 html[data-livery="normal"] {
   --livery-pattern: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 4px), linear-gradient(112deg, transparent 28%, rgba(255,255,255,.12) 47%, transparent 65%);
 }
+/* Night: the sheen tiles every 64px into a carbon weave, which competed with
+   content on the graphite ground. Same weave, a third of the strength. */
+html[data-livery="normal"][data-tone="dark"] {
+  --livery-pattern: repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px), linear-gradient(112deg, transparent 28%, rgba(255,255,255,.04) 47%, transparent 65%);
+}
 html[data-livery="normal"][data-tone="light"] .w10-clay-shell > :where([class*="h-screen"]) > header,
 html[data-livery="normal"][data-tone="light"] .w10-clay-rail {
   background-image: linear-gradient(115deg, rgba(255,255,255,.22), transparent 28% 68%, rgba(45,64,77,.06)) !important;
