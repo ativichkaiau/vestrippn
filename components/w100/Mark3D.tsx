@@ -25,6 +25,9 @@ import { motionAllowed } from '@/lib/view-transition';
 type Mode = 'idle' | 'spin' | 'intro';
 
 const SWEEP_MS = 760;
+// Idle drift and pointer-follow are slow: 30fps is indistinguishable and
+// halves the GPU work. Flying in, painting and dragging run at full rate.
+const IDLE_FRAME_MS = 1000 / 30;
 const INTRO_FLY_S = 1.5;
 const INTRO_PAINT_AT_S = 0.55;
 const clamp = (v: number, min = 0, max = 1) => Math.max(min, Math.min(max, v));
@@ -72,6 +75,7 @@ export default function Mark3D({
     let still = !motionAllowed();
     let visible = true;
     let frame = 0;
+    let idleTimer = 0;
     const started = performance.now();
     let last = started;
     let sweepStart = -1;
@@ -99,9 +103,10 @@ export default function Mark3D({
 
     const tick = (now: number) => {
       frame = 0;
+      const t = (now - started) / 1000;
+      const brisk = drag.active || Math.abs(drag.vx) > 0.02 || sweepStart >= 0 || (mode === 'intro' && t < INTRO_FLY_S + 0.2);
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      const t = (now - started) / 1000;
 
       if (still) {
         // Static but faithful: intro lands painted, sweeps apply instantly.
@@ -147,10 +152,15 @@ export default function Mark3D({
         if (k >= 1) sweepStart = -1;
       }
       renderer.render();
-      if (visible && !document.hidden) frame = requestAnimationFrame(tick);
+      if (!visible || document.hidden) return;
+      // Between idle frames the page sleeps: a timer, not a rAF that wakes
+      // the browser every vsync only to skip the draw.
+      if (brisk) frame = requestAnimationFrame(tick);
+      else idleTimer = window.setTimeout(() => { idleTimer = 0; requestFrame(); }, IDLE_FRAME_MS);
     };
 
     function requestFrame() {
+      if (idleTimer) { window.clearTimeout(idleTimer); idleTimer = 0; }
       if (!frame) frame = requestAnimationFrame(tick);
     }
 
@@ -217,6 +227,7 @@ export default function Mark3D({
       // Stop drawing into a dead context; the flat logo takes over.
       visible = false;
       cancelAnimationFrame(frame);
+      window.clearTimeout(idleTimer);
       frame = 0;
       setFailed(true);
     };
@@ -235,6 +246,7 @@ export default function Mark3D({
 
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(idleTimer);
       resizeObserver.disconnect();
       intersection.disconnect();
       window.removeEventListener('vest:theme-change', onThemeChange);

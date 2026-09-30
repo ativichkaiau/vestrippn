@@ -126,6 +126,7 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   let failed = false;
   let ready = false;
   let frame = 0;
+  let idleTimer = 0;
   let lastFrame = -Infinity;
   let intersects = true;
   let occluded = false;
@@ -143,14 +144,24 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
 
   const visible = () => intersects && !occluded && document.visibilityState !== 'hidden';
   const canOrbit = () => motionAllowed && !interacted && visible();
-  const stopFrame = () => { if (frame) cancelAnimationFrame(frame); frame = 0; };
+  const stopFrame = () => {
+    if (frame) cancelAnimationFrame(frame);
+    if (idleTimer) window.clearTimeout(idleTimer);
+    frame = idleTimer = 0;
+  };
+  // The idle sway sleeps between frames on a timer; a rAF that skips most
+  // vsyncs still wakes the whole page 60 times a second.
+  const IDLE_FRAME_MS = 1000 / 15;
+  const sleepThenDraw = () => { idleTimer = window.setTimeout(() => { idleTimer = 0; if (!frame) frame = requestAnimationFrame(draw); }, IDLE_FRAME_MS); };
   function draw(time: number) {
     frame = 0;
     if (disposed || failed || !visible()) return;
     const orbit = canOrbit();
-    host.dataset.sceneMotion = orbit ? 'orbit' : 'still';
-    if (orbit && time - lastFrame < 1000 / 30) {
-      frame = requestAnimationFrame(draw);
+    const motion = orbit ? 'orbit' : 'still';
+    if (host.dataset.sceneMotion !== motion) host.dataset.sceneMotion = motion;
+    // The idle sway is a few degrees over ~90s: 15fps is visually identical.
+    if (orbit && time - lastFrame < IDLE_FRAME_MS - 4) {
+      sleepThenDraw();
       return;
     }
     const width = Math.round(host.clientWidth);
@@ -178,9 +189,10 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
       return;
     }
     lastFrame = time;
-    if (orbit) frame = requestAnimationFrame(draw);
+    if (orbit) sleepThenDraw();
   }
   function invalidate() {
+    if (idleTimer) { window.clearTimeout(idleTimer); idleTimer = 0; }
     if (!frame && !disposed && !failed && visible()) frame = requestAnimationFrame(draw);
   }
   function updateTheme(theme: LiverySceneTheme) {
@@ -194,7 +206,7 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   }
   function setMotionAllowed(allowed: boolean) {
     motionAllowed = allowed;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, allowed ? 1.75 : 1.25));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, allowed ? 1.5 : 1.25));
     previousWidth = previousHeight = 0;
     stopFrame();
     invalidate();

@@ -46,7 +46,20 @@ const FIELDS = 'input, textarea, select, [contenteditable="true"]';
 // Pointing here settles the tilt: form fields, and 3D viewers that drag.
 const HOLD = `${FIELDS}, [data-spatial="off"], .w100-mark-interactive`;
 const SETTLE_MS = 520;
-const VARS = ['--w100-rx', '--w100-ry', '--w100-angle', '--w100-gx', '--w100-gy', '--w100-px', '--w100-py', '--w100-sx', '--w100-sy'];
+const VARS = ['--w100-rx', '--w100-ry', '--w100-angle', '--w100-gx', '--w100-gy'];
+// Layers inside a slab that parallax with the pointer. The tilt vars are
+// registered as non-inheriting (app/w100.css), and each layer gets its own
+// --w100-px/py: a pointer frame restyles these few elements rather than the
+// slab's whole subtree, which is what an inherited custom property costs.
+const LAYERS = [
+  ':scope > .z-10', '.w85-livery-decoration', '.w100-hero-floor', '.w85-livery-orbits', '.w100-gyro',
+  '.w100-console > .w10-clay-dark-panel',
+].join(',');
+// The tilt eases toward the pointer here, in one rAF loop, rather than with
+// CSS transitions: a transition retargeted on every pointer frame recreates
+// its compositor animation each time, which is what made hovering stutter.
+const FOLLOW = 0.3;
+const PARALLAX = ['--w100-px', '--w100-py'];
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 // Someone is typing in this card: it holds still until they leave the field.
@@ -68,6 +81,25 @@ export function attachDepth(shell: HTMLElement): () => void {
   let pointerX = 0;
   let pointerY = 0;
   const settling = new Map<HTMLElement, number>();
+  const layers = new Map<HTMLElement, HTMLElement[]>();
+  const eased = new Map<HTMLElement, { x: number; y: number }>();
+  const written = new Map<HTMLElement, string>();
+  const setParallax = (card: HTMLElement, x: string, y: string) => {
+    for (const layer of layers.get(card) ?? []) {
+      layer.style.setProperty('--w100-px', x);
+      layer.style.setProperty('--w100-py', y);
+    }
+  };
+  const release = (card: HTMLElement) => {
+    delete card.dataset.w100Depth;
+    delete card.dataset.w100Mode;
+    card.removeAttribute('data-w100-glare');
+    for (const name of VARS) card.style.removeProperty(name);
+    for (const layer of layers.get(card) ?? []) for (const name of PARALLAX) layer.style.removeProperty(name);
+    layers.delete(card);
+    written.delete(card);
+    eased.delete(card);
+  };
 
   const eligible = (element: HTMLElement) => {
     if (element.closest(EXCLUDED)) return false;
@@ -111,15 +143,15 @@ export function attachDepth(shell: HTMLElement): () => void {
 
   const settle = (card: HTMLElement) => {
     card.dataset.w100Depth = 'settle';
-    for (const name of ['--w100-angle', '--w100-px', '--w100-py', '--w100-sx', '--w100-sy']) card.style.setProperty(name, name === '--w100-angle' ? '0deg' : '0');
+    card.style.setProperty('--w100-angle', '0deg');
+    setParallax(card, '0', '0');
+    written.delete(card);
+    eased.delete(card);
     window.clearTimeout(settling.get(card));
     settling.set(card, window.setTimeout(() => {
       settling.delete(card);
       if (card === active) return;
-      delete card.dataset.w100Depth;
-      delete card.dataset.w100Mode;
-      card.removeAttribute('data-w100-glare');
-      for (const name of VARS) card.style.removeProperty(name);
+      release(card);
       clearStage(card);
     }, SETTLE_MS));
   };
@@ -127,6 +159,7 @@ export function attachDepth(shell: HTMLElement): () => void {
   const engage = (card: HTMLElement) => {
     window.clearTimeout(settling.get(card));
     settling.delete(card);
+    if (!layers.has(card)) layers.set(card, [...card.querySelectorAll<HTMLElement>(LAYERS)]);
     if (!card.dataset.w100Depth) {
       const computed = getComputedStyle(card);
       if (computed.backgroundImage === 'none') card.setAttribute('data-w100-glare', '');
@@ -151,8 +184,16 @@ export function attachDepth(shell: HTMLElement): () => void {
     if (!card.isConnected) { active = null; return; }
     if (typingIn(card)) { retarget(null); return; }
     const rect = card.getBoundingClientRect();
-    const nx = clamp(((pointerX - rect.left) / rect.width) * 2 - 1, -1, 1);
-    const ny = clamp(((pointerY - rect.top) / rect.height) * 2 - 1, -1, 1);
+    const tx = clamp(((pointerX - rect.left) / rect.width) * 2 - 1, -1, 1);
+    const ty = clamp(((pointerY - rect.top) / rect.height) * 2 - 1, -1, 1);
+    const at = eased.get(card) ?? { x: 0, y: 0 };
+    at.x += (tx - at.x) * FOLLOW;
+    at.y += (ty - at.y) * FOLLOW;
+    eased.set(card, at);
+    // Keep easing while the pointer rests; stop once it has caught up.
+    if (Math.abs(tx - at.x) > 0.004 || Math.abs(ty - at.y) > 0.004) schedule();
+    const nx = at.x;
+    const ny = at.y;
     const hero = card.matches('[data-motion="hero"]');
     // Big slabs move less; small tiles can afford a livelier tilt.
     const max = hero ? 2.6 : clamp(2800 / Math.max(rect.width, rect.height), 2, 6.5);
@@ -160,16 +201,23 @@ export function attachDepth(shell: HTMLElement): () => void {
     // Press where the pointer is: that edge recedes, the opposite lifts.
     const axisX = magnitude < 0.001 ? 0 : -ny / magnitude;
     const axisY = magnitude < 0.001 ? 1 : nx / magnitude;
+    const px = nx.toFixed(2);
+    const py = ny.toFixed(2);
+    // Sub-pixel pointer jitter changes nothing visible: skip the style work.
+    const key = `${px},${py}`;
+    if (written.get(card) === key) return;
+    written.set(card, key);
     const style = card.style;
     style.setProperty('--w100-rx', axisX.toFixed(3));
     style.setProperty('--w100-ry', axisY.toFixed(3));
     style.setProperty('--w100-angle', `${(Math.min(1, magnitude) * max).toFixed(2)}deg`);
-    style.setProperty('--w100-gx', `${(((nx + 1) / 2) * 100).toFixed(1)}%`);
-    style.setProperty('--w100-gy', `${(((ny + 1) / 2) * 100).toFixed(1)}%`);
-    style.setProperty('--w100-px', nx.toFixed(3));
-    style.setProperty('--w100-py', ny.toFixed(3));
-    style.setProperty('--w100-sx', (-nx).toFixed(3));
-    style.setProperty('--w100-sy', (-ny).toFixed(3));
+    // The hero is lit by its own artwork; repainting its whole face per
+    // frame for a moving highlight costs more than it shows.
+    if (!hero) {
+      style.setProperty('--w100-gx', `${Math.round(((nx + 1) / 2) * 100)}%`);
+      style.setProperty('--w100-gy', `${Math.round(((ny + 1) / 2) * 100)}%`);
+    }
+    setParallax(card, px, py);
   };
   const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
 
@@ -213,12 +261,7 @@ export function attachDepth(shell: HTMLElement): () => void {
     shell.removeEventListener('scroll', onScroll, true);
     shell.removeEventListener('focusin', onFocus);
     for (const timer of settling.values()) window.clearTimeout(timer);
-    for (const card of shell.querySelectorAll<HTMLElement>('[data-w100-depth]')) {
-      delete card.dataset.w100Depth;
-      delete card.dataset.w100Mode;
-      card.removeAttribute('data-w100-glare');
-      for (const name of VARS) card.style.removeProperty(name);
-    }
+    for (const card of [...layers.keys(), ...shell.querySelectorAll<HTMLElement>('[data-w100-depth]')]) release(card);
     for (const stage of shell.querySelectorAll<HTMLElement>('[data-w100-stage]')) {
       stage.removeAttribute('data-w100-stage');
       stage.style.removeProperty('perspective-origin');

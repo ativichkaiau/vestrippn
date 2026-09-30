@@ -360,15 +360,11 @@ h1, h2, h3, .font-orbitron {
     translate: 0 -1px;
   }
 
-  .motion-route-shell :where([data-motion="hero"]):not([class*="animate-"]) {
-    animation: siteSurfaceBreath 14s ease-in-out infinite;
-    will-change: filter, translate;
-  }
+  /* (The hero's saturate() "breath" is retired: a filter animation on the
+     largest surface re-rendered everything inside it every frame.) */
 
-  .motion-route-shell :where([class*="bg-gradient"], [class*="bg-clip-text"]):not([class*="animate-"]):not([class*="blur-"]) {
-    animation: siteGradientFlow 9s ease-in-out infinite;
-    background-size: 180% 180%;
-  }
+  /* W100 perf: gradients no longer flow — background-position loops repaint
+     every frame on the main thread. */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -638,17 +634,11 @@ p { text-wrap: pretty; }
   100% { opacity: 0; transform: translateX(115%); }
 }
 
+/* Pulses animate opacity/transform only, so they run on the compositor —
+   a filter keyframe kept the main thread ticking every frame (W100 perf). */
 @keyframes w09ActiveChipPulse {
-  0%, 100% {
-    filter: saturate(1);
-    opacity: 0.78;
-    transform: scale(1);
-  }
-  50% {
-    filter: saturate(1.24);
-    opacity: 1;
-    transform: scale(1.12);
-  }
+  0%, 100% { opacity: 0.78; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
 }
 
 @keyframes w09MissionScan {
@@ -658,8 +648,8 @@ p { text-wrap: pretty; }
 }
 
 @keyframes w09StateBreath {
-  0%, 100% { filter: brightness(1); opacity: 0.78; }
-  50% { filter: brightness(1.16); opacity: 1; }
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 1; }
 }
 
 @keyframes w09StateSync {
@@ -674,8 +664,8 @@ p { text-wrap: pretty; }
 }
 
 @keyframes w09StateCritical {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.24); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 /* Shared structural surfaces. Palette values live in liveries.css. */
@@ -1282,12 +1272,13 @@ p { text-wrap: pretty; }
 
 @media (prefers-reduced-motion: no-preference) {
   .w85-final-scan { animation: w85FinalScan 7s ease-in-out infinite paused; }
-  .w85-livery-art { animation: w85LiveryDrift 11s ease-in-out infinite paused; }
+  /* (.w85-livery-art no longer drifts: Chrome repaints an animated <svg>
+     every frame, which kept the whole page repainting at rest. W100 perf.) */
   .w85-livery-ticks { animation: w85TelemetryTicks 5s ease-in-out infinite paused; }
   .w10-brand-mark img { animation: w85MarkSheen 6s ease-in-out infinite paused, w85IconFloat 7s ease-in-out infinite paused; }
 
   [data-w85-active] > .w85-motion-chrome .w85-final-scan,
-  [data-w85-active] [data-w85-in-view] :is(.w85-livery-art, .w85-livery-ticks),
+  [data-w85-active] [data-w85-in-view] .w85-livery-ticks,
   [data-w85-active] .w10-brand-mark[data-w85-in-view] img { animation-play-state: running; }
 }
 
@@ -1367,8 +1358,6 @@ html.low-power .w85-motion-chrome { display: none; }
   .w85-motion-chrome::after { animation: w85EdgeTrail 12s linear -6s infinite reverse paused; }
   .w85-livery-decoration::before { animation: w85LiveryGlow 9s ease-in-out infinite paused; }
   .w85-livery-cap::after { animation: w85FinalScan 6s ease-in-out -2s infinite paused; }
-  .w85-livery-flow { animation: w85LiveryFlow 7s linear infinite paused; }
-  .w85-livery-flow-secondary { animation-delay: -3.5s; animation-duration: 9s; }
   .w85-panel-accent::before { animation: w85AccentGlide 9s ease-in-out infinite paused; transform-origin: left; }
   .w10-clay-rail::before { animation: w85TelemetryTicks 7s ease-in-out -3s infinite paused; }
 
@@ -1376,7 +1365,6 @@ html.low-power .w85-motion-chrome { display: none; }
   [data-w85-active] > .w85-motion-chrome::after,
   [data-w85-active] .w85-livery-decoration[data-w85-in-view]::before,
   [data-w85-active] [data-w85-in-view] .w85-livery-cap::after,
-  [data-w85-active] [data-w85-in-view] .w85-livery-flow,
   [data-w85-active] .w85-panel-accent[data-w85-in-view]::before,
   [data-w85-active] .w10-clay-rail[data-w85-in-view]::before { animation-play-state: running; }
 }
@@ -1476,31 +1464,30 @@ html.low-power .w85-motion-chrome { display: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w85-orbit-outer { animation: w85OrbitSpin 22s linear infinite paused; }
-  .w85-orbit-inner { animation: w85OrbitSpin 15s linear infinite reverse paused; }
   .w85-livery-decoration::after { animation: w85HeroBeam 9s ease-in-out -1s infinite paused; }
   .w85-livery-equalizer > span { animation-name: w85Equalizer; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
   .w85-nav-icon { animation: w85IconFloat 6s ease-in-out infinite paused; }
   :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 1) .w85-nav-icon { animation-delay: -2s; }
   :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 2) .w85-nav-icon { animation-delay: -4s; }
 
+  /* The grid stays put (W100 perf): travelling it repainted the whole
+     scroll container every frame. */
   .motion-route-shell main {
-    animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both, w85GridTravel 18s linear infinite;
-    animation-play-state: running, paused;
+    animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
   }
-  [data-w85-active] main { animation-play-state: running, running; }
 
   @supports (mask-composite: exclude) {
-    .w10-clay-shell [data-w85-ambient-card]::after { animation: w85BorderOrbit 8s linear infinite paused; opacity: 0.55; }
-    .w10-clay-shell [data-w85-ambient-card="1"]::after { animation-delay: -2s; }
-    .w10-clay-shell [data-w85-ambient-card="2"]::after { animation-delay: -4s; }
-    .w10-clay-shell [data-w85-ambient-card="3"]::after { animation-delay: -6s; }
-    [data-w85-active] [data-w85-ambient-card][data-w85-in-view]::after { animation-play-state: running; }
-    .w10-clay-shell [data-w85-ambient-card]:focus-within::after { animation-play-state: paused; opacity: 0.35; }
+    /* Accent arcs hold still, each card at its own angle (W100 perf: the
+       orbiting conic repainted every visible card every frame). */
+    .w10-clay-shell [data-w85-ambient-card]::after { opacity: 0.55; }
+    .w10-clay-shell [data-w85-ambient-card="1"]::after { --w85-border-angle: 90deg; }
+    .w10-clay-shell [data-w85-ambient-card="2"]::after { --w85-border-angle: 180deg; }
+    .w10-clay-shell [data-w85-ambient-card="3"]::after { --w85-border-angle: 270deg; }
+    .w10-clay-shell [data-w85-ambient-card]:focus-within::after { opacity: 0.35; }
   }
 
   [data-w85-active] .w85-livery-decoration[data-w85-in-view]::after,
-  [data-w85-active] [data-w85-in-view] :is(.w85-orbit-outer, .w85-orbit-inner, .w85-nav-icon),
+  [data-w85-active] [data-w85-in-view] .w85-nav-icon,
   [data-w85-active] [data-w85-in-view] .w85-livery-equalizer > span { animation-play-state: running; }
 }
 
@@ -1611,26 +1598,14 @@ html.low-power .w85-motion-chrome { display: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w85-circuit-current { animation: w85CircuitCurrent 8s linear infinite paused; animation-delay: inherit; }
-  .w85-circuit-beacons { animation: w85CircuitBeacon 4.5s ease-in-out infinite paused; }
+  /* W100 perf: only the auras move (transform/opacity, on the compositor);
+     the SVG currents, beacons and ribbons are static — animating them
+     repainted a full-screen SVG every frame. */
   .w85-circuit-aura { animation: w85CircuitAura 9s ease-in-out infinite paused; }
   .w85-circuit-aura-secondary { animation-delay: -4.5s; animation-direction: reverse; }
-  .w85-circuit-ribbon { animation: w85RibbonTravel 4.5s linear infinite paused; }
-  .w85-circuit-ribbon-bottom { animation-direction: reverse; }
-  [data-w85-active] .w85-ambient-circuit :is(.w85-circuit-current, .w85-circuit-beacons, .w85-circuit-aura, .w85-circuit-ribbon) { animation-play-state: running; }
+  [data-w85-active] .w85-ambient-circuit .w85-circuit-aura { animation-play-state: running; }
 
-  .w10-clay-shell [data-w85-heading]::after { animation: w85HeadingSignal 7s ease-in-out infinite paused; }
-  .w10-clay-shell [data-w85-card-wash]::before { animation: w85CardWash 10s ease-in-out infinite paused; }
-  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="1"]::before { animation-delay: -2.5s; }
-  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="2"]::before { animation-delay: -5s; }
-  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="3"]::before { animation-delay: -7.5s; }
-  [data-w85-active] [data-w85-heading][data-w85-in-view]::after,
-  [data-w85-active] [data-w85-card-wash][data-w85-in-view]::before { animation-play-state: running; }
-  .w10-clay-shell [data-w85-card-wash]:focus-within::before { animation-play-state: paused; opacity: 0.3; }
-
-  .w10-clay-shell > :where([class*="h-screen"]) > header::after {
-    background-size: 180% 100%;
-    animation: w85HeaderLivery 11s ease-in-out infinite paused;
-  }
-  [data-w85-active] > :where([class*="h-screen"]) > header[data-w85-in-view]::after { animation-play-state: running; }
+  /* Heading signals, card washes and the header stripe hold still (W100
+     perf: each was a background-position loop, repainted every frame). */
+  .w10-clay-shell [data-w85-card-wash]:focus-within::before { opacity: 0.3; }
 }

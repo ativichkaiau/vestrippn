@@ -1,8 +1,13 @@
-import type { CSSProperties } from 'react';
 import Mark3D from './w100/Mark3D';
 
 // Depth layers behind the "100", back to front (W100 wireframe extrusion).
-const EXTRUDE = [7, 6, 5, 4, 3, 2, 1];
+// Offsets and fades are plain SVG attributes: computed in CSS from a custom
+// property they re-laid-out the whole art SVG on every hover/scroll frame.
+const EXTRUDE = [7, 6, 5, 4, 3, 2, 1].map((depth) => ({
+  depth,
+  transform: `translate(${(depth * 1.6).toFixed(1)} ${depth * 2})`,
+  opacity: (0.13 - depth * 0.014) / 0.16,
+}));
 
 /**
  * Decorative W85 artwork; visible surfaces gain ambient motion via CSS.
@@ -45,11 +50,12 @@ export default function LiveryDecoration({ mark = true }: { mark?: boolean }) {
         <path className="w85-livery-secondary" d="M432 -40h23L215 600h-23z" />
         <path className="w85-livery-flow" pathLength="100" d="M268 -40 28 600" />
         <path className="w85-livery-flow w85-livery-flow-secondary" pathLength="100" d="M421 -40 181 600" />
-        {EXTRUDE.map((depth) => (
+        {EXTRUDE.map(({ depth, transform, opacity }) => (
           <text
             key={depth}
             className="w85-livery-number w100-extrude"
-            style={{ '--w100-layer': depth } as CSSProperties}
+            transform={transform}
+            strokeOpacity={opacity.toFixed(3)}
             x="458"
             y="334"
             textAnchor="end"

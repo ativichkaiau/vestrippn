@@ -23,6 +23,19 @@
   inherits: false;
   initial-value: 0;
 }
+/* The tilt engine writes these every pointer frame. Registered as
+   non-inheriting so a write restyles only the element that carries it —
+   an inherited custom property restyles its entire subtree. Parallax layers
+   receive their own --w100-px/py from the engine (useDepth "LAYERS"). */
+@property --w100-rx { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --w100-ry { syntax: '<number>'; inherits: false; initial-value: 1; }
+@property --w100-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --w100-gx { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --w100-gy { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --w100-px { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --w100-py { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --spatial-light-x { syntax: '<percentage>'; inherits: false; initial-value: 18%; }
+@property --spatial-light-y { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
 
 /* ── DEPTH ENGINE (components/w100/useDepth.ts) ─────────────────────────── */
 
@@ -32,13 +45,15 @@
 
 html body [data-w100-depth][data-w100-depth] {
   --w100-glare: 1;
+  /* No transform/rotate transition while engaged: useDepth eases the tilt
+     itself. Transitions return only for the settle back to rest. */
   transition:
-    transform 110ms linear, rotate 110ms linear, --w100-glare 0.3s ease,
+    --w100-glare 0.3s ease,
     box-shadow 0.26s var(--w100-ease), translate 0.3s var(--w100-ease), scale 0.3s var(--w100-ease),
     background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease !important;
-  box-shadow:
-    calc(var(--w100-sx, 0) * 16px) calc(var(--w100-sy, 0) * 16px + 20px) 40px -22px rgba(4, 10, 20, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  /* Lifted, but fixed: a shadow that tracked the pointer repainted the whole
+     slab every frame. It fades in and out with the engage/settle transition. */
+  box-shadow: 0 20px 40px -22px rgba(4, 10, 20, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 html body [data-w100-depth="settle"][data-w100-depth="settle"] {
   --w100-glare: 0;
@@ -64,11 +79,15 @@ html.dark body [data-w100-depth][data-w100-glare] {
 /* Hero parallax: livery artwork sinks behind, the content floats forward. */
 [data-motion="hero"][data-w100-depth] .w85-livery-decoration {
   translate: calc(var(--w100-px, 0) * -20px) calc(var(--w100-py, 0) * -14px);
-  transition: translate 140ms linear;
 }
 [data-motion="hero"][data-w100-depth] > .z-10 {
   translate: calc(var(--w100-px, 0) * 9px) calc(var(--w100-py, 0) * 6px);
-  transition: translate 140ms linear;
+}
+/* Own compositor layers while they move, so a parallax step is a layer
+   offset rather than a repaint of the whole hero. */
+[data-motion="hero"][data-w100-depth="on"] :is(.w85-livery-decoration, .w85-livery-orbits),
+[data-motion="hero"][data-w100-depth="on"] > .z-10 {
+  will-change: translate;
 }
 [data-motion="hero"][data-w100-depth="settle"] .w85-livery-decoration,
 [data-motion="hero"][data-w100-depth="settle"] > .z-10 {
@@ -469,8 +488,8 @@ html.w100-livery-swap::view-transition-new(root) {
 /* ── HERO DIORAMA (components/LiveryDecoration.tsx) ─────────────────────
    Every hub hero is a small 3D set. Depth order, back to front: track
    floor → orbit gyroscope → livery art → extruded edition number →
-   content. The depth engine's pointer vars (--w100-px/py, inherited from the
-   hero) drive each layer's parallax, scaled by how deep it sits. */
+   content. The depth engine hands each layer its own pointer vars
+   (--w100-px/py), and each parallaxes by how deep it sits. */
 
 /* Track floor: a grid laid in perspective, running toward the viewer. */
 .w100-hero-floor {
@@ -481,32 +500,39 @@ html.w100-livery-swap::view-transition-new(root) {
   height: 92%;
   transform-origin: 50% 100%;
   transform: perspective(600px) rotateX(58deg);
+  overflow: hidden;
+  mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.45) 40%, transparent 88%);
+  opacity: 0.42;
+  translate: calc(var(--w100-px, 0) * -22px) 0;
+}
+
+/* The grid is one cell taller than the floor and slides by one cell, so it
+   runs on the compositor; animating background-position repainted it. */
+.w100-hero-floor::before {
+  content: "";
+  position: absolute;
+  inset: -56px 0 0;
   background-image:
     linear-gradient(rgba(var(--hub-accent-rgb), 0.9) 1.5px, transparent 1.5px),
     linear-gradient(90deg, rgba(var(--hub-accent-rgb), 0.6) 1px, transparent 1px);
   background-size: 56px 56px;
   background-position: 50% 0;
-  mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.45) 40%, transparent 88%);
-  opacity: 0.42;
-  translate: calc(var(--w100-px, 0) * -22px) 0;
-  transition: translate 140ms linear;
 }
 
 /* Orbit gyroscope: two rings on their own axes inside a turning body. The
-   W85 dash spin keeps running in each ring's plane. */
+   outer ring spins in its own plane; the inner one precesses. Both are
+   transforms on the ring itself, so they run on the compositor. */
 .w85-livery-orbits {
   display: block;
   aspect-ratio: 1;
   perspective: 900px;
   translate: calc(var(--w100-px, 0) * -12px) calc(var(--w100-py, 0) * -9px);
-  transition: translate 140ms linear;
 }
 .w100-gyro {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
   transform: rotateX(calc(var(--w100-py, 0) * -9deg)) rotateY(calc(var(--w100-px, 0) * 12deg));
-  transition: transform 160ms linear;
 }
 .w100-gyro-ring {
   position: absolute;
@@ -526,21 +552,13 @@ html.w100-livery-swap::view-transition-new(root) {
 }
 
 /* Extruded edition number: wireframe copies stepping back into the hero,
-   leaning away from the pointer the way a solid numeral would. */
-.w85-livery-number.w100-extrude {
-  stroke: rgb(255 255 255 / calc(0.13 - var(--w100-layer) * 0.014));
-  translate:
-    calc(var(--w100-layer) * (1.6px + var(--w100-sx, 0) * 2.2px))
-    calc(var(--w100-layer) * (2px + var(--w100-sy, 0) * 1.6px));
-  transition: translate 160ms linear;
+   offset and faded by SVG attributes (components/LiveryDecoration.tsx). They
+   hold still — the decoration's parallax carries the depth. */
+[data-w100-depth="settle"] :is(.w100-hero-floor, .w85-livery-orbits) {
+  transition: translate 0.52s var(--w100-ease);
 }
-.w85-livery-number:not(.w100-extrude) {
-  translate: calc(var(--w100-px, 0) * 8px) calc(var(--w100-py, 0) * 6px);
-  transition: translate 160ms linear;
-}
-[data-w100-depth="settle"] :is(.w100-hero-floor, .w85-livery-orbits, .w100-gyro, .w85-livery-number) {
-  transition-duration: 0.52s;
-  transition-timing-function: var(--w100-ease);
+[data-w100-depth="settle"] .w100-gyro {
+  transition: transform 0.52s var(--w100-ease);
 }
 
 @media (max-width: 639px) {
@@ -548,14 +566,20 @@ html.w100-livery-swap::view-transition-new(root) {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w100-hero-floor { animation: w100FloorRun 5s linear infinite paused; }
+  .w100-hero-floor::before { animation: w100FloorRun 5s linear infinite paused; }
+  .w100-gyro-outer { animation: w100RingSpin 22s linear infinite paused; }
   .w100-gyro-inner { animation: w100Precess 26s linear infinite paused; }
   .w100-gyro-core { animation: w100CorePulse 4.5s ease-in-out infinite paused; }
-  [data-w85-active] .w85-livery-decoration[data-w85-in-view] :is(.w100-hero-floor, .w100-gyro-inner, .w100-gyro-core) {
+  [data-w85-active] .w85-livery-decoration[data-w85-in-view] .w100-hero-floor::before,
+  [data-w85-active] .w85-livery-decoration[data-w85-in-view] :is(.w100-gyro-outer, .w100-gyro-inner, .w100-gyro-core) {
     animation-play-state: running;
   }
 }
-@keyframes w100FloorRun { to { background-position: 50% 56px; } }
+@keyframes w100FloorRun { to { transform: translateY(56px); } }
+@keyframes w100RingSpin {
+  from { transform: rotateX(62deg) rotateY(-16deg) rotateZ(0deg); }
+  to { transform: rotateX(62deg) rotateY(-16deg) rotateZ(360deg); }
+}
 /* The inner ring's axis swings round the body: the gyroscope's wobble. */
 @keyframes w100Precess {
   from { transform: rotateY(64deg) rotateX(14deg); }
@@ -601,6 +625,7 @@ html.w100-livery-swap::view-transition-new(root) {
   @media (prefers-reduced-motion: no-preference) {
     html:not(.low-power) main [data-motion="hero"]:not(:focus-within, :has(.fixed, dialog[open], [role="dialog"])) {
       animation: w100HeroArrive 0.8s var(--w100-ease) backwards, w100HeroAway linear none;
+      will-change: auto;
       animation-timeline: auto, view();
       animation-range: normal, exit 0% exit 100%;
     }
@@ -619,34 +644,24 @@ html.w100-livery-swap::view-transition-new(root) {
     transform: perspective(2200px) translateZ(-90px) rotateY(calc(var(--w100-turn) * 30deg));
   }
 }
+/* Hinges are built into the transform (translate by half the height, turn,
+   translate back) rather than set with transform-origin: transform-origin is
+   not compositor-animatable, and one such keyframe moves the whole
+   scroll-driven animation onto the main thread. */
 @keyframes w100HeroAway {
-  from { transform: perspective(1400px) rotateX(0deg) scale(1); transform-origin: 50% 100%; }
-  to { transform: perspective(1400px) rotateX(15deg) scale(0.95); transform-origin: 50% 100%; opacity: 0.45; }
+  from { transform: perspective(1400px) translateY(50%) rotateX(0deg) translateY(-50%) scale(1); }
+  to { transform: perspective(1400px) translateY(50%) rotateX(15deg) translateY(-50%) scale(0.95); opacity: 0.45; }
 }
 @keyframes w100BlockRise {
   from {
-    transform: perspective(1200px) translateY(36px) rotateX(12deg) scale(0.97);
-    transform-origin: 50% 100%;
+    transform: perspective(1200px) translateY(calc(50% + 36px)) rotateX(12deg) translateY(-50%) scale(0.97);
     opacity: 0.4;
   }
-  to { transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1); transform-origin: 50% 100%; opacity: 1; }
+  to { transform: perspective(1200px) translateY(50%) rotateX(0deg) translateY(-50%) scale(1); opacity: 1; }
 }
 @keyframes w100BlockCrest {
-  from { transform: perspective(1200px) rotateX(0deg) scale(1); transform-origin: 50% 0%; opacity: 1; }
-  to { transform: perspective(1200px) rotateX(-12deg) scale(0.97); transform-origin: 50% 0%; opacity: 0.5; }
-}
-
-/* ── CONTENT LIFTS OFF THE SLAB ─────────────────────────────────────────
-   While a card tilts, its headings float above the surface: they drift
-   with the pointer, against the card's own tilt, so text reads as a layer
-   in front of the panel. Only elements nothing else translates. */
-
-[data-w100-depth] :is(h1, h2, h3):not([class*="translate"]) {
-  translate: calc(var(--w100-px, 0) * 3px) calc(var(--w100-py, 0) * 2px);
-  transition: translate 140ms linear;
-}
-[data-w100-depth="settle"] :is(h1, h2, h3):not([class*="translate"]) {
-  transition: translate 0.52s var(--w100-ease);
+  from { transform: perspective(1200px) translateY(-50%) rotateX(0deg) translateY(50%) scale(1); opacity: 1; }
+  to { transform: perspective(1200px) translateY(-50%) rotateX(-12deg) translateY(50%) scale(0.97); opacity: 0.5; }
 }
 
 /* ── DIALOGS SWING IN ───────────────────────────────────────────────────
@@ -655,14 +670,14 @@ html.w100-livery-swap::view-transition-new(root) {
 @media (prefers-reduced-motion: no-preference) {
   html:not(.low-power) .livery-dialog[open] { animation: w100DialogIn 0.62s var(--w100-ease) both; }
   html:not(.low-power) .livery-dialog[open]::backdrop { animation: w100Fade 0.4s ease both; }
-  html:not(.low-power) .w100-pop { animation: w100PopIn 0.5s var(--w100-ease) both; }
+  html:not(.low-power) .w100-pop { animation: w100PopIn 0.5s var(--w100-ease) backwards; }
 }
 @keyframes w100DialogIn {
   from { opacity: 0; transform: perspective(1400px) translateY(-14px) translateZ(-110px) rotateX(9deg); }
 }
 @keyframes w100PopIn {
-  from { opacity: 0; transform-origin: 50% 0; transform: perspective(1200px) translateY(-8px) rotateX(-12deg) scale(0.98); }
-  to { transform-origin: 50% 0; }
+  from { opacity: 0; transform: perspective(1200px) translateY(calc(-50% - 8px)) rotateX(-12deg) translateY(50%) scale(0.98); }
+  to { transform: perspective(1200px) translateY(-50%) rotateX(0deg) translateY(50%) scale(1); }
 }
 @keyframes w100Fade { from { opacity: 0; } }
 
@@ -688,7 +703,8 @@ html.w100-livery-swap::view-transition-new(root) {
     rotate: y -11deg;
     transition: rotate 0.6s var(--w100-ease);
   }
-  [data-w100-depth] .w100-console > .w10-clay-dark-panel { rotate: y calc(-11deg + var(--w100-px, 0) * 5deg); transition-duration: 160ms; }
+  [data-w100-depth] .w100-console > .w10-clay-dark-panel { rotate: y calc(-11deg + var(--w100-px, 0) * 5deg); transition-duration: 0s; }
+  [data-w100-depth="settle"] .w100-console > .w10-clay-dark-panel { transition-duration: 0.52s; }
 }
 
 /* The dashboard's own hero mark, beside the headline (wide screens only;
@@ -713,9 +729,9 @@ html.w100-livery-swap::view-transition-new(root) {
    contact shadow beneath it. (Specificity outranks depth.css's surface rule;
    both are !important.) */
 
-[data-w100-depth] {
-  --spatial-light-x: var(--w100-gx, 18%);
-  --spatial-light-y: var(--w100-gy, 0%);
+[data-w100-depth]:not([data-motion="hero"]) {
+  --spatial-light-x: var(--w100-gx);
+  --spatial-light-y: var(--w100-gy);
 }
 html .motion-route-shell.w10-clay-shell :is(.w10-clay-surface, .w10-clay-hero, .w85-panel-accent, main :where(section, article, div, a)[class*="rounded-"][class*="border"])[data-w100-depth][data-w100-depth][data-w100-depth]:not([class*="rounded-full"]):not(.w85-showroom *) {
   box-shadow:
@@ -726,7 +742,7 @@ html .motion-route-shell.w10-clay-shell :is(.w10-clay-surface, .w10-clay-hero, .
     0 2px 0 var(--spatial-edge),
     0 3px 0 var(--spatial-edge-deep),
     0 4px 0 var(--spatial-edge-deep),
-    calc(var(--w100-sx, 0) * 16px) calc(var(--w100-sy, 0) * 16px + 22px) 40px -22px var(--spatial-contact) !important;
+    0 22px 40px -22px var(--spatial-contact) !important;
 }
 html .motion-route-shell.w10-clay-shell main a[class*="rounded-"][class*="border"][data-w100-depth][data-w100-depth][data-w100-depth]:not([class*="rounded-full"]):active {
   box-shadow: inset 0 1px 3px var(--spatial-shade), 0 1px 0 var(--spatial-edge-deep), 0 3px 5px -3px var(--spatial-contact) !important;
