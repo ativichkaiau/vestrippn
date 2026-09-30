@@ -4,7 +4,7 @@
    W100 TELEMETRY ODOMETER — numbers roll into place on real 3D digit drums
    when they enter the viewport, and roll forward again whenever the value
    changes. Each digit is a ten-faced drum (styles: app/w100.css,
-   "ODOMETER"); the low places spin extra turns on the first roll, like an
+   "ODOMETER"); the ones place spins an extra turn on the first roll, like an
    odometer catching up. "56.5%"-style values keep their decimals and suffix.
 
    Non-numeric values, low power and reduced motion render plain text. The
@@ -36,7 +36,7 @@ function Drum({ digit, place, rolled }: { digit: number; place: number; rolled: 
     if (!rolled) return;
     const current = stepsRef.current;
     const forward = (digit - (current % 10) + 10) % 10;
-    const turns = spun.current ? 0 : place <= 0 ? 2 : place === 1 ? 1 : 0;
+    const turns = spun.current ? 0 : place <= 0 ? 1 : 0;
     spun.current = true;
     const next = current + forward + turns * 10;
     stepsRef.current = next;

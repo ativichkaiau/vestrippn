@@ -137,13 +137,13 @@ html[data-w100-nav="back"] { --w100-turn: -1; }
 @keyframes w100RouteOut {
   to {
     opacity: 0;
-    transform: perspective(1600px) translateX(calc(var(--w100-turn) * -8%)) translateZ(-240px) rotateY(calc(var(--w100-turn) * 16deg));
+    transform: perspective(1600px) translateX(calc(var(--w100-turn) * -4%)) translateZ(-140px) rotateY(calc(var(--w100-turn) * 9deg));
   }
 }
 @keyframes w100RouteIn {
   from {
     opacity: 0;
-    transform: perspective(1600px) translateX(calc(var(--w100-turn) * 10%)) translateZ(-280px) rotateY(calc(var(--w100-turn) * -18deg));
+    transform: perspective(1600px) translateX(calc(var(--w100-turn) * 5%)) translateZ(-160px) rotateY(calc(var(--w100-turn) * -10deg));
   }
 }
 @keyframes w100HeroFlipOut {
@@ -488,7 +488,7 @@ html.w100-livery-swap::view-transition-new(root) {
   background-position: 50% 0;
   mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.45) 40%, transparent 88%);
   opacity: 0.42;
-  translate: calc(var(--w100-px, 0) * -34px) 0;
+  translate: calc(var(--w100-px, 0) * -22px) 0;
   transition: translate 140ms linear;
 }
 
@@ -505,7 +505,7 @@ html.w100-livery-swap::view-transition-new(root) {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: rotateX(calc(var(--w100-py, 0) * -14deg)) rotateY(calc(var(--w100-px, 0) * 18deg));
+  transform: rotateX(calc(var(--w100-py, 0) * -9deg)) rotateY(calc(var(--w100-px, 0) * 12deg));
   transition: transform 160ms linear;
 }
 .w100-gyro-ring {
@@ -548,9 +548,9 @@ html.w100-livery-swap::view-transition-new(root) {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w100-hero-floor { animation: w100FloorRun 1.4s linear infinite paused; }
-  .w100-gyro-inner { animation: w100Precess 14s linear infinite paused; }
-  .w100-gyro-core { animation: w100CorePulse 2.8s ease-in-out infinite paused; }
+  .w100-hero-floor { animation: w100FloorRun 5s linear infinite paused; }
+  .w100-gyro-inner { animation: w100Precess 26s linear infinite paused; }
+  .w100-gyro-core { animation: w100CorePulse 4.5s ease-in-out infinite paused; }
   [data-w85-active] .w85-livery-decoration[data-w85-in-view] :is(.w100-hero-floor, .w100-gyro-inner, .w100-gyro-core) {
     animation-play-state: running;
   }
@@ -562,8 +562,8 @@ html.w100-livery-swap::view-transition-new(root) {
   to { transform: rotateY(424deg) rotateX(14deg); }
 }
 @keyframes w100CorePulse {
-  0%, 100% { scale: 0.8; opacity: 0.7; }
-  50% { scale: 1.15; opacity: 1; }
+  0%, 100% { scale: 0.92; opacity: 0.8; }
+  50% { scale: 1.06; opacity: 1; }
 }
 
 /* The live mark levitates inside the gyroscope. It shares the rings' 3D
@@ -616,24 +616,24 @@ html.w100-livery-swap::view-transition-new(root) {
 @keyframes w100HeroArrive {
   from {
     opacity: 0;
-    transform: perspective(2200px) translateZ(-160px) rotateY(calc(var(--w100-turn) * 62deg));
+    transform: perspective(2200px) translateZ(-90px) rotateY(calc(var(--w100-turn) * 30deg));
   }
 }
 @keyframes w100HeroAway {
   from { transform: perspective(1400px) rotateX(0deg) scale(1); transform-origin: 50% 100%; }
-  to { transform: perspective(1400px) rotateX(28deg) scale(0.9); transform-origin: 50% 100%; opacity: 0.2; }
+  to { transform: perspective(1400px) rotateX(15deg) scale(0.95); transform-origin: 50% 100%; opacity: 0.45; }
 }
 @keyframes w100BlockRise {
   from {
-    transform: perspective(1200px) translateY(64px) rotateX(22deg) scale(0.93);
+    transform: perspective(1200px) translateY(36px) rotateX(12deg) scale(0.97);
     transform-origin: 50% 100%;
-    opacity: 0.15;
+    opacity: 0.4;
   }
   to { transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1); transform-origin: 50% 100%; opacity: 1; }
 }
 @keyframes w100BlockCrest {
   from { transform: perspective(1200px) rotateX(0deg) scale(1); transform-origin: 50% 0%; opacity: 1; }
-  to { transform: perspective(1200px) rotateX(-24deg) scale(0.93); transform-origin: 50% 0%; opacity: 0.25; }
+  to { transform: perspective(1200px) rotateX(-12deg) scale(0.97); transform-origin: 50% 0%; opacity: 0.5; }
 }
 
 /* ── CONTENT LIFTS OFF THE SLAB ─────────────────────────────────────────
@@ -642,7 +642,7 @@ html.w100-livery-swap::view-transition-new(root) {
    in front of the panel. Only elements nothing else translates. */
 
 [data-w100-depth] :is(h1, h2, h3):not([class*="translate"]) {
-  translate: calc(var(--w100-px, 0) * 6px) calc(var(--w100-py, 0) * 4px);
+  translate: calc(var(--w100-px, 0) * 3px) calc(var(--w100-py, 0) * 2px);
   transition: translate 140ms linear;
 }
 [data-w100-depth="settle"] :is(h1, h2, h3):not([class*="translate"]) {
@@ -658,22 +658,22 @@ html.w100-livery-swap::view-transition-new(root) {
   html:not(.low-power) .w100-pop { animation: w100PopIn 0.5s var(--w100-ease) both; }
 }
 @keyframes w100DialogIn {
-  from { opacity: 0; transform: perspective(1400px) translateY(-24px) translateZ(-200px) rotateX(18deg); }
+  from { opacity: 0; transform: perspective(1400px) translateY(-14px) translateZ(-110px) rotateX(9deg); }
 }
 @keyframes w100PopIn {
-  from { opacity: 0; transform-origin: 50% 0; transform: perspective(1200px) translateY(-10px) rotateX(-24deg) scale(0.96); }
+  from { opacity: 0; transform-origin: 50% 0; transform: perspective(1200px) translateY(-8px) rotateX(-12deg) scale(0.98); }
   to { transform-origin: 50% 0; }
 }
 @keyframes w100Fade { from { opacity: 0; } }
 
-/* ── NAV: ICONS SPIN LIKE COINS ─────────────────────────────────────────── */
+/* ── NAV: ICONS LEAN TOWARD THE POINTER ──────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) and (hover: hover) {
   html:not(.low-power) :is(.w09-nav-link, .w09-nav-chip) .w85-nav-icon {
-    transition: transform 0.8s var(--w100-ease), scale 0.3s ease, opacity 0.3s ease, color 0.3s ease;
+    transition: transform 0.45s var(--w100-ease), scale 0.3s ease, opacity 0.3s ease, color 0.3s ease;
   }
   html:not(.low-power) :is(.w09-nav-link, .w09-nav-chip):is(:hover, :focus-visible) .w85-nav-icon {
-    transform: perspective(160px) rotateY(360deg);
+    transform: perspective(160px) rotateY(-28deg) rotateX(8deg);
   }
 }
 

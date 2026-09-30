@@ -1281,10 +1281,10 @@ p { text-wrap: pretty; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w85-final-scan { animation: w85FinalScan 4.5s ease-in-out infinite paused; }
-  .w85-livery-art { animation: w85LiveryDrift 7s ease-in-out infinite paused; }
+  .w85-final-scan { animation: w85FinalScan 7s ease-in-out infinite paused; }
+  .w85-livery-art { animation: w85LiveryDrift 11s ease-in-out infinite paused; }
   .w85-livery-ticks { animation: w85TelemetryTicks 5s ease-in-out infinite paused; }
-  .w10-brand-mark img { animation: w85MarkSheen 3.4s ease-in-out infinite paused, w85IconFloat 4.8s ease-in-out infinite paused; }
+  .w10-brand-mark img { animation: w85MarkSheen 6s ease-in-out infinite paused, w85IconFloat 7s ease-in-out infinite paused; }
 
   [data-w85-active] > .w85-motion-chrome .w85-final-scan,
   [data-w85-active] [data-w85-in-view] :is(.w85-livery-art, .w85-livery-ticks),
@@ -1365,11 +1365,11 @@ html.low-power .w85-motion-chrome { display: none; }
 @media (prefers-reduced-motion: no-preference) {
   .w85-motion-chrome::before { animation: w85EdgeTrail 10s linear infinite paused; }
   .w85-motion-chrome::after { animation: w85EdgeTrail 12s linear -6s infinite reverse paused; }
-  .w85-livery-decoration::before { animation: w85LiveryGlow 6s ease-in-out infinite paused; }
-  .w85-livery-cap::after { animation: w85FinalScan 3.5s ease-in-out -2s infinite paused; }
-  .w85-livery-flow { animation: w85LiveryFlow 4s linear infinite paused; }
-  .w85-livery-flow-secondary { animation-delay: -2s; animation-duration: 5.5s; }
-  .w85-panel-accent::before { animation: w85AccentGlide 6s ease-in-out infinite paused; transform-origin: left; }
+  .w85-livery-decoration::before { animation: w85LiveryGlow 9s ease-in-out infinite paused; }
+  .w85-livery-cap::after { animation: w85FinalScan 6s ease-in-out -2s infinite paused; }
+  .w85-livery-flow { animation: w85LiveryFlow 7s linear infinite paused; }
+  .w85-livery-flow-secondary { animation-delay: -3.5s; animation-duration: 9s; }
+  .w85-panel-accent::before { animation: w85AccentGlide 9s ease-in-out infinite paused; transform-origin: left; }
   .w10-clay-rail::before { animation: w85TelemetryTicks 7s ease-in-out -3s infinite paused; }
 
   [data-w85-active] > .w85-motion-chrome::before,
@@ -1462,8 +1462,8 @@ html.low-power .w85-motion-chrome { display: none; }
   85% { transform: scaleY(1); }
 }
 @keyframes w85IconFloat {
-  0%, 100% { translate: 0 0; rotate: -3deg; }
-  50% { translate: 0 -4px; rotate: 4deg; }
+  0%, 100% { translate: 0 0; rotate: -2deg; }
+  50% { translate: 0 -2px; rotate: 2deg; }
 }
 @keyframes w85GridTravel {
   from { background-position: right top, 24px 24px, 0 0, 0 0; }
@@ -1476,25 +1476,25 @@ html.low-power .w85-motion-chrome { display: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w85-orbit-outer { animation: w85OrbitSpin 12s linear infinite paused; }
-  .w85-orbit-inner { animation: w85OrbitSpin 8s linear infinite reverse paused; }
-  .w85-livery-decoration::after { animation: w85HeroBeam 5s ease-in-out -1s infinite paused; }
+  .w85-orbit-outer { animation: w85OrbitSpin 22s linear infinite paused; }
+  .w85-orbit-inner { animation: w85OrbitSpin 15s linear infinite reverse paused; }
+  .w85-livery-decoration::after { animation: w85HeroBeam 9s ease-in-out -1s infinite paused; }
   .w85-livery-equalizer > span { animation-name: w85Equalizer; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
-  .w85-nav-icon { animation: w85IconFloat 3.6s ease-in-out infinite paused; }
-  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 1) .w85-nav-icon { animation-delay: -1.2s; }
-  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 2) .w85-nav-icon { animation-delay: -2.4s; }
+  .w85-nav-icon { animation: w85IconFloat 6s ease-in-out infinite paused; }
+  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 1) .w85-nav-icon { animation-delay: -2s; }
+  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 2) .w85-nav-icon { animation-delay: -4s; }
 
   .motion-route-shell main {
-    animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both, w85GridTravel 10s linear infinite;
+    animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both, w85GridTravel 18s linear infinite;
     animation-play-state: running, paused;
   }
   [data-w85-active] main { animation-play-state: running, running; }
 
   @supports (mask-composite: exclude) {
-    .w10-clay-shell [data-w85-ambient-card]::after { animation: w85BorderOrbit 4.8s linear infinite paused; opacity: 0.8; }
-    .w10-clay-shell [data-w85-ambient-card="1"]::after { animation-delay: -1.2s; }
-    .w10-clay-shell [data-w85-ambient-card="2"]::after { animation-delay: -2.4s; }
-    .w10-clay-shell [data-w85-ambient-card="3"]::after { animation-delay: -3.6s; }
+    .w10-clay-shell [data-w85-ambient-card]::after { animation: w85BorderOrbit 8s linear infinite paused; opacity: 0.55; }
+    .w10-clay-shell [data-w85-ambient-card="1"]::after { animation-delay: -2s; }
+    .w10-clay-shell [data-w85-ambient-card="2"]::after { animation-delay: -4s; }
+    .w10-clay-shell [data-w85-ambient-card="3"]::after { animation-delay: -6s; }
     [data-w85-active] [data-w85-ambient-card][data-w85-in-view]::after { animation-play-state: running; }
     .w10-clay-shell [data-w85-ambient-card]:focus-within::after { animation-play-state: paused; opacity: 0.35; }
   }
@@ -1611,26 +1611,26 @@ html.low-power .w85-motion-chrome { display: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .w85-circuit-current { animation: w85CircuitCurrent 5.2s linear infinite paused; animation-delay: inherit; }
-  .w85-circuit-beacons { animation: w85CircuitBeacon 3s ease-in-out infinite paused; }
+  .w85-circuit-current { animation: w85CircuitCurrent 8s linear infinite paused; animation-delay: inherit; }
+  .w85-circuit-beacons { animation: w85CircuitBeacon 4.5s ease-in-out infinite paused; }
   .w85-circuit-aura { animation: w85CircuitAura 9s ease-in-out infinite paused; }
   .w85-circuit-aura-secondary { animation-delay: -4.5s; animation-direction: reverse; }
-  .w85-circuit-ribbon { animation: w85RibbonTravel 2.4s linear infinite paused; }
+  .w85-circuit-ribbon { animation: w85RibbonTravel 4.5s linear infinite paused; }
   .w85-circuit-ribbon-bottom { animation-direction: reverse; }
   [data-w85-active] .w85-ambient-circuit :is(.w85-circuit-current, .w85-circuit-beacons, .w85-circuit-aura, .w85-circuit-ribbon) { animation-play-state: running; }
 
-  .w10-clay-shell [data-w85-heading]::after { animation: w85HeadingSignal 4s ease-in-out infinite paused; }
-  .w10-clay-shell [data-w85-card-wash]::before { animation: w85CardWash 6s ease-in-out infinite paused; }
-  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="1"]::before { animation-delay: -1.5s; }
-  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="2"]::before { animation-delay: -3s; }
-  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="3"]::before { animation-delay: -4.5s; }
+  .w10-clay-shell [data-w85-heading]::after { animation: w85HeadingSignal 7s ease-in-out infinite paused; }
+  .w10-clay-shell [data-w85-card-wash]::before { animation: w85CardWash 10s ease-in-out infinite paused; }
+  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="1"]::before { animation-delay: -2.5s; }
+  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="2"]::before { animation-delay: -5s; }
+  .w10-clay-shell [data-w85-card-wash][data-w85-ambient-card="3"]::before { animation-delay: -7.5s; }
   [data-w85-active] [data-w85-heading][data-w85-in-view]::after,
   [data-w85-active] [data-w85-card-wash][data-w85-in-view]::before { animation-play-state: running; }
   .w10-clay-shell [data-w85-card-wash]:focus-within::before { animation-play-state: paused; opacity: 0.3; }
 
   .w10-clay-shell > :where([class*="h-screen"]) > header::after {
     background-size: 180% 100%;
-    animation: w85HeaderLivery 7s ease-in-out infinite paused;
+    animation: w85HeaderLivery 11s ease-in-out infinite paused;
   }
   [data-w85-active] > :where([class*="h-screen"]) > header[data-w85-in-view]::after { animation-play-state: running; }
 }

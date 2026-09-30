@@ -128,14 +128,14 @@ export default function Mark3D({
         pose.yaw += drag.vx * dt;
         drag.vx *= Math.pow(0.05, dt);
       } else if (mode === 'spin') {
-        pose.yaw += dt * 1.7;
+        pose.yaw += dt * 1.2;
         pose.pitch += (-0.16 - pose.pitch) * (1 - Math.pow(0.1, dt));
       } else if (since > 1.1) {
         // Ease back onto the turntable once the user lets go — or, while a
         // mouse is moving nearby, turn to face it.
         const looking = now - look.at < 2400;
-        const idleYaw = looking ? look.yaw : 0.34 + Math.sin(t * 0.5) * 0.44;
-        const idlePitch = looking ? look.pitch : -0.12 + Math.sin(t * 0.37) * 0.07;
+        const idleYaw = looking ? look.yaw : 0.34 + Math.sin(t * 0.36) * 0.36;
+        const idlePitch = looking ? look.pitch : -0.12 + Math.sin(t * 0.27) * 0.05;
         const pull = 1 - Math.pow(mode === 'intro' && t < INTRO_FLY_S ? 0.02 : looking ? 0.08 : 0.25, dt);
         pose.yaw += (idleYaw - pose.yaw) * pull;
         pose.pitch += (idlePitch - pose.pitch) * pull;

@@ -155,7 +155,7 @@ export function attachDepth(shell: HTMLElement): () => void {
     const ny = clamp(((pointerY - rect.top) / rect.height) * 2 - 1, -1, 1);
     const hero = card.matches('[data-motion="hero"]');
     // Big slabs move less; small tiles can afford a livelier tilt.
-    const max = hero ? 3.4 : clamp(3400 / Math.max(rect.width, rect.height), 2.6, 9);
+    const max = hero ? 2.6 : clamp(2800 / Math.max(rect.width, rect.height), 2, 6.5);
     const magnitude = Math.hypot(nx, ny);
     // Press where the pointer is: that edge recedes, the opposite lifts.
     const axisX = magnitude < 0.001 ? 0 : -ny / magnitude;

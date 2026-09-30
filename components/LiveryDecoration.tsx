@@ -63,7 +63,7 @@ export default function LiveryDecoration({ mark = true }: { mark?: boolean }) {
       <span className="w85-livery-corner" />
       <span className="w85-livery-equalizer">
         {Array.from({ length: 9 }, (_, index) => (
-          <span key={index} style={{ animationDelay: `${index * -0.17}s`, animationDuration: `${1.1 + (index % 3) * 0.25}s` }} />
+          <span key={index} style={{ animationDelay: `${index * -0.17}s`, animationDuration: `${1.8 + (index % 3) * 0.4}s` }} />
         ))}
       </span>
       <span className="w85-livery-ticks" />
