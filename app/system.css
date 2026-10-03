@@ -618,6 +618,9 @@ button.sys-tool:hover {
   color: var(--text-muted);
   font: 400 var(--text-2xs) / 1 var(--font-code);
 }
+.sys-tree-item[aria-current='page'] .sys-tree-index {
+  color: var(--text-secondary);
+}
 .sys-explorer .sys-nav-customize {
   margin: var(--space-2) var(--space-2) 0;
 }
@@ -945,7 +948,12 @@ button.sys-tool:hover {
   outline: none;
 }
 
-/* Status bar items */
+/* Status bar items: everything takes the bar's own text colour, which the
+   theme guarantees against the bar (Dark+/Light+ paint it blue). */
+.sys-statusbar .sys-status {
+  color: inherit;
+  font-size: inherit;
+}
 .sys-statusbar button {
   display: inline-flex;
   align-items: center;
