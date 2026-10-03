@@ -103,7 +103,7 @@ kbd,
   min-width: 0;
   padding: 0 var(--space-4) 0 0;
   border-bottom: 1px solid var(--line-subtle);
-  background: var(--bg-01);
+  background: var(--shell-title-bg);
 }
 
 .sys-brand {
@@ -261,14 +261,14 @@ button.sys-tool:hover {
   padding: 0 var(--space-4);
   overflow: hidden;
   border-top: 1px solid var(--line-subtle);
-  background: var(--bg-01);
-  color: var(--text-muted);
+  background: var(--shell-status-bg);
+  color: var(--shell-status-fg);
   font: 400 var(--text-2xs) / 1 var(--font-code);
   white-space: nowrap;
 }
 .sys-statusbar strong {
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: inherit;
+  font-weight: 600;
 }
 .sys-statusbar .sys-status-spacer {
   flex: 1;
@@ -278,7 +278,8 @@ button.sys-tool:hover {
   text-decoration: none;
 }
 .sys-statusbar a:hover {
-  color: var(--text-strong);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ── Navigation ─────────────────────────────────────────────────────────── */

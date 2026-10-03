@@ -8,11 +8,12 @@ import type { ResolvedNav } from '@/lib/system/nav-layout';
 import { openNavEditor } from '@/lib/system/nav-store';
 import { LOGS, NODES, OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from '@/lib/system/registry';
 import { enableReminders } from '@/lib/reminders';
-import { LIVERY_LABEL, MODE_LABEL, cycleLivery, getMode, isLowPower, toggleMode } from '@/lib/theme';
+import { COLOR_THEMES, COLOR_THEME_LABEL, LIVERY_LABEL, MODE_LABEL, cycleLivery, getMode, isLowPower, setColorTheme, toggleMode } from '@/lib/theme';
+import { VSCODE_THEMES } from '@/lib/vscode-themes';
 import { toast } from '@/lib/toast-bus';
 import { setLowPowerMode } from '../useLowPower';
 import type { BuildInfo } from './Shell';
-import { useNav } from './hooks';
+import { useColorTheme, useNav } from './hooks';
 
 /* ════════════════════════════════════════════════════════════════════════
    ⌘K / Ctrl+K — search VESTRIPPN.
@@ -135,6 +136,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
   const router = useRouter();
   const { status } = useSession();
   const nav = useNav();
+  const colorTheme = useColorTheme();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -192,6 +194,17 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           toast({ id: 'appearance', title: `appearance: ${MODE_LABEL[next]}`, message: next === 'auto' ? 'Follows the sun over Chiang Mai.' : undefined, variant: 'success' });
         },
       },
+      ...COLOR_THEMES.map((id) => ({
+        id: `act:theme:${id}`,
+        category: 'ACTION' as const,
+        label: `Color Theme: ${COLOR_THEME_LABEL[id]}`,
+        detail: `${id === 'vestrippn' ? 'graphite and the precise blue · liveries tint it' : VSCODE_THEMES[id].description}${id === colorTheme ? ' · current' : ''}`,
+        keywords: 'preferences color colour theme vscode vs code dark modern light plus classic',
+        run: () => {
+          setColorTheme(id);
+          toast({ id: 'theme', title: `color theme: ${COLOR_THEME_LABEL[id]}`, variant: 'success' });
+        },
+      })),
       {
         id: 'act:nav',
         category: 'ACTION',
@@ -260,7 +273,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
       list.push({ id: 'act:signout', category: 'ACTION', label: 'Sign out', detail: 'end session', keywords: 'logout session', run: () => signOut({ callbackUrl: '/auth/signin' }) });
     }
     return list;
-  }, [router, status]);
+  }, [router, status, colorTheme]);
 
   const verbose = /^about\s+--verbose$/.test(query.trim());
 

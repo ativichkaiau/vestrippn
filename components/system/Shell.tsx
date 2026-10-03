@@ -7,8 +7,8 @@ import { isCurrent, resolvePath } from '@/lib/system/navigation';
 import type { ResolvedNavItem } from '@/lib/system/nav-layout';
 import { openNavEditor } from '@/lib/system/nav-store';
 import { PROJECTS, SYSTEMS } from '@/lib/system/registry';
-import { MODE_LABEL, toggleMode } from '@/lib/theme';
-import { useClock, useLivery, useMode, useModifierLabel, useNav, useOnline, useRoutePathname } from './hooks';
+import { COLOR_THEME_LABEL, MODE_LABEL, cycleColorTheme, toggleMode } from '@/lib/theme';
+import { useClock, useColorTheme, useLivery, useMode, useModifierLabel, useNav, useOnline, useRoutePathname } from './hooks';
 import NavEditor from './NavEditor';
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -230,6 +230,7 @@ function SessionBlock() {
   const { data, status } = useSession();
   const mode = useMode();
   const livery = useLivery();
+  const colorTheme = useColorTheme();
   const user = data?.user?.name || data?.user?.email?.split('@')[0];
   return (
     <div className="sys-session">
@@ -242,6 +243,12 @@ function SessionBlock() {
         <Link href="/garage#paints" title="Open the paint library">
           <span className="sys-swatch" style={{ background: livery.definition.stripe }} aria-hidden="true" /> {livery.definition.name}
         </Link>
+      </div>
+      <div className="sys-session-row">
+        <span className="sys-label">theme</span>
+        <button type="button" onClick={cycleColorTheme} title="Switch colour theme (also in ⌘K → Color Theme)">
+          {COLOR_THEME_LABEL[colorTheme]}
+        </button>
       </div>
       <div className="sys-session-row">
         <span className="sys-label">appearance</span>

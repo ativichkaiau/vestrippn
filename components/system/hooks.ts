@@ -2,7 +2,7 @@
 
 import { useMemo, useSyncExternalStore } from 'react';
 import { usePathname, useSelectedLayoutSegment } from 'next/navigation';
-import { serverThemeSnapshot, subscribeTheme, themeSnapshot } from '@/lib/theme';
+import { serverThemeSnapshot, subscribeTheme, themeSnapshot, type ColorTheme } from '@/lib/theme';
 import { LIVERY_CATALOG, type Livery, type Mode } from '@/lib/liveries';
 import { readNavLayout, resolveNav, type ResolvedNav } from '@/lib/system/nav-layout';
 import { getNavSnapshot, serverNavSnapshot, subscribeNav } from '@/lib/system/nav-store';
@@ -65,6 +65,11 @@ export function useOnline(): boolean {
 export function useMode(): Mode {
   // The snapshot is `livery|mode|phase|lowPower`; hydration uses the server one.
   return useSyncExternalStore(subscribeTheme, themeSnapshot, serverThemeSnapshot).split('|')[1] as Mode;
+}
+
+/** The VS Code colour theme (or the VESTRIPPN default). */
+export function useColorTheme(): ColorTheme {
+  return useSyncExternalStore(subscribeTheme, themeSnapshot, serverThemeSnapshot).split('|')[4] as ColorTheme;
 }
 
 /** The selected livery and its catalogue entry. */

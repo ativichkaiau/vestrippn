@@ -104,4 +104,39 @@ assert(boot({ vest_lowpower: '1' }).classes.has('low-power'));
 const base = validatePreferences({ livery: 'monza', mode: 'day' });
 const remote = validatePreferences({ livery: 'williams-1996', mode: 'day' });
 assert.equal(reconcilePreferences(base, { mode: 'auto' }, remote).values.mode, 'auto', 'Migration does not create a false sync conflict');
+// VS Code colour themes: independent of the livery, readable in both
+// variants, applied before paint exactly as after hydration, and synced.
+const { COLOR_THEMES } = await jiti.import('../lib/vscode-themes.ts');
+let themeChecks = 0;
+for (const th of COLOR_THEMES.filter((id) => id !== 'vestrippn')) {
+  for (const mode of ['night', 'day']) {
+    const first = themeEngine.resolve('system', mode, day, th);
+    const env = first.environment;
+    for (const surface of ['--bg-root', '--bg-01', '--bg-02', '--bg-03']) {
+      for (const text of ['--text-strong', '--text-primary', '--text-secondary', '--text-muted', '--accent']) {
+        assert(themeEngine.contrast(env[text], env[surface]) >= 4.5, `${th}/${mode}: ${text} on ${surface}`);
+        themeChecks++;
+      }
+    }
+    assert(themeEngine.contrast(env['--shell-status-fg'], env['--shell-status-bg']) >= 4.5, `${th}/${mode}: status bar text`);
+    assert(themeEngine.contrast(env['--shell-title-fg'], env['--shell-title-bg']) >= 4.5, `${th}/${mode}: title bar text`);
+    assert(themeEngine.contrast(env['--on-accent'], env['--accent']) >= 3, `${th}/${mode}: label on accent`);
+    for (const id of ['normal', 'williams-1993', 'redbull-porcelain', 'senna']) {
+      const other = themeEngine.resolve(id, mode, day, th);
+      assert.deepEqual(other.environment, env, `${th}: the livery (${id}) does not tint a VS Code theme`);
+      assert.equal(other.appearance, first.appearance, `${th}: appearance still follows the mode`);
+    }
+    const { root, properties, classes } = boot({ vest_livery: 'senna', vest_mode: mode, vest_theme: th });
+    assert.equal(root.dataset.theme, th, 'Boot applies the saved colour theme');
+    assert.equal(classes.has('dark'), mode === 'night');
+    for (const [key, value] of Object.entries(env)) assert.equal(properties.get(key), value, `${th}/${mode}: boot parity for ${key}`);
+    assert.equal(properties.get('--livery-stripe'), LIVERY_CATALOG.senna.stripe, 'The livery stripe stays with a VS Code theme');
+  }
+}
+const plain = boot({ vest_theme: 'made-up' });
+assert.equal(plain.root.dataset.theme, 'vestrippn', 'Unknown themes fall back to VESTRIPPN');
+assert(!plain.properties.has('--shell-status-bg'), 'The default theme keeps the stylesheet shell tokens');
+assert.deepEqual(validatePreferences({ theme: 'vscode-modern' }), { theme: 'vscode-modern' });
+assert.throws(() => validatePreferences({ theme: 'monokai-hacked' }));
+console.log(`Theme checks passed: ${COLOR_THEMES.length - 1} VS Code themes x 2 variants (${themeChecks} contrast checks, boot parity, livery independence),`);
 console.log(`Theme checks passed: ${LIVERIES.length} liveries, ${twilightSamples} twilight samples, ${environmentChecks} environment surface checks, readable palettes, migration, sync, and pre-paint parity.`);

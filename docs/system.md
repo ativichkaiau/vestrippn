@@ -23,11 +23,12 @@ Every count, index and inspector page is read from the registry. A field is fill
 
 Open entries waiting on facts: launch URLs for `studyex_medeetomihub` and `Terra`, the source for `cardiac_sim_physics`, and the recording for `LOG_001`.
 
-## Appearance and liveries
+## Appearance, colour themes and liveries
 
-Two independent settings:
+Three independent settings:
 
 - **Appearance** (`vest_mode`): dark (default), light, or auto. Auto follows the sun over Chiang Mai, using the solar engine in `lib/theme-engine.ts`.
+- **Colour theme** (`vest_theme`): `vestrippn` (default), `vscode-modern` (Dark Modern / Light Modern) or `vscode-classic` (Dark+ / Light+, blue status bar). The appearance picks the dark or light variant. A VS Code theme sets the whole palette, including the shell's title, activity, tab and status bar tokens (`--shell-*`), from `lib/vscode-themes.ts`; the livery then contributes only its stripe and the garage paint. Switch it from ⌘K → *Color Theme* or the sidebar's session block.
 - **Livery** (`vest_livery`): repaints the environment and the garage objects. `environment()` in `lib/theme-engine.ts` derives the accent from the livery, tints the four surfaces and the lines toward the livery's colour, and recomputes the secondary and muted text so they stay at 4.5:1 or better. The shell shows the livery's stripe under the masthead, plus its name and swatch in the status bar and sidebar. Tailwind's cool hues follow the accent, so the hubs repaint too. `system` (VESTRIPPN graphite and blue) is the design as specified, with no tint and no stripe. First visits open on it, and a saved livery is kept.
 
 `npm run validate:themes` checks every livery in both appearances: contrast on all four surfaces, distinct accents, pre-paint parity between the boot script and the hydrated engine, and that a light livery never lightens a dark interface.
