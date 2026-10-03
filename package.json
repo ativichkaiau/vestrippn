@@ -11,7 +11,9 @@
     "validate:coverage": "node scripts/validate-coverage.mjs",
     "validate:themes": "node scripts/validate-themes.mjs",
     "validate:spatial": "node scripts/validate-spatial.mjs",
-    "validate:nav": "node scripts/validate-nav.mjs"
+    "validate:nav": "node scripts/validate-nav.mjs",
+    "test": "node --test \"tests/unit/*.test.mjs\"",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
@@ -31,6 +33,8 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.20.5",
     "@types/pg": "^8.23.1",

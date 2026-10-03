@@ -46,13 +46,15 @@ To seed the clinical case bank, run `npx tsx scripts/seed-w08-learn.ts`. The see
 | `npm run build` | `prisma generate`, `prisma migrate deploy`, then `next build`. Vercel runs this. |
 | `npm start` | Serve a production build |
 | `npm run lint` | ESLint, with zero warnings allowed |
+| `npm test` | Unit tests (`node:test`) for the pure modules: editor tabs, terminal, search, allow-list, rate limiter, workbench state |
+| `npm run test:e2e` | Playwright end-to-end and accessibility (axe, WCAG 2.1 AA) tests against a production build. Run `npx next build` first. A preinstalled Chromium can be used with `PW_CHROMIUM_PATH` |
 | `npm run validate:cases` | The 50 branching clinical cases are well-formed |
 | `npm run validate:coverage` | The WilliamsHub exam coverage catalogue and backups |
 | `npm run validate:themes` | Every livery in both appearances: contrast, sync and pre-paint parity |
 | `npm run validate:spatial` | The 3D garage model: geometry, camera bounds and livery materials |
 | `npm run validate:nav` | Editable navigation: layout round trip and rejection of hostile values |
 
-CI (`.github/workflows/ci.yml`) runs Prisma validation, the typecheck, lint and every validator on each push to `main` and on every pull request.
+CI (`.github/workflows/ci.yml`) runs Prisma validation, the typecheck, lint, unit tests and every validator, and in a second job builds the app and runs the Playwright suite (workbench, nav editor, themes, phone layout, security headers and auth, and an axe scan of 11 pages in three themes) on each push to `main` and on every pull request.
 
 ## Layout
 
