@@ -2,7 +2,7 @@
 
 The root environment for Kaiau's medicine, research, software and experiments: a personal website, study runtime, research engine and archive in one Next.js app, deployed at [vestrippn.vercel.app](https://vestrippn.vercel.app).
 
-Everything sits inside one application shell: a masthead with a path bar, a numbered sidebar, a status bar and a ⌘K command palette. Pages are either **environment** pages (root, identity, systems, projects, medicine, research, logs, garage, archive, contact) or **runtime** modules: the working study hubs (academics, workspace, cases, analytics, assistant, fitness, IELTS, tools).
+Everything sits inside one application shell laid out like VS Code: an activity bar with Explorer, Search, Appearance and Account views, editor tabs for the pages you open, breadcrumbs, a panel with an output log and a terminal, a status bar, and a ⌘K command palette. Colour themes include VS Code's Dark/Light Modern and Dark+/Light+. Pages are either **environment** pages (root, identity, systems, projects, medicine, research, logs, garage, archive, contact) or **runtime** modules: the working study hubs (academics, workspace, cases, analytics, assistant, fitness, IELTS, tools).
 
 See [`docs/system.md`](docs/system.md) for the design system, the registry and the appearance and livery model.
 

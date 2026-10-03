@@ -8,7 +8,8 @@ VESTRIPPN is the root environment: a personal website, study runtime, research e
 | --- | --- |
 | Design tokens (colour, type, radius, motion) and the Tailwind scale remap | `app/globals.css` |
 | Shared component styles (`sys-*`) | `app/system.css`, `app/garage.css` |
-| Shell: masthead, path bar, sidebar, drawer, status bar | `components/system/Shell.tsx` |
+| Shell (VS Code workbench): title bar, activity bar, side views, editor tabs, breadcrumbs, panel, status bar, drawer | `components/system/Shell.tsx`, `ActivityBar.tsx`, `SideViews.tsx`, `EditorTabs.tsx`, `Panel.tsx`, `Shortcuts.tsx` |
+| Workbench state, editor tabs, output log, terminal, shared search index | `lib/system/workbench.ts`, `editor-tabs.ts`, `output-log.ts`, `terminal.ts`, `search.ts` |
 | Command palette (⌘K / Ctrl+K) | `components/system/CommandPalette.tsx` |
 | Primitives: `Page`, `PageHeader`, `Section`, `MetadataGrid`, `RegistryTable`, `StatusIndicator`, `CommandLink`, `Action`, `Pipeline` | `components/system/primitives.tsx` |
 | Registry: systems, projects, runtime modules, logs, garage objects | `lib/system/registry.ts` |
@@ -44,3 +45,21 @@ Motion uses CSS only, at 120–220 ms: page fade-in, the drawer and palette reve
 ## Garage
 
 `OBJECT_001` (Silver Arrow) is the procedural three.js car in `lib/three/`. `npm run validate:spatial` checks it. The viewer offers ¾, side and front presets, a turntable, keyboard control, and a live yaw and pitch readout. It reads mesh and triangle counts from the loaded model. `OBJECT_002` is the W100 WebGL mark (`components/w100/Mark3D.tsx`), kept as an object.
+
+## Workbench
+
+The shell follows VS Code's layout. The **activity bar** switches the side view: Explorer (environment and runtime tabs, systems, projects as collapsible folders), Search (the same index as ⌘K), Appearance (colour theme, appearance, livery) and Account (session and device sync). Selecting the open view again hides the side bar.
+
+Every page you open gets an **editor tab**. Pinned tabs stay at the front. Tabs, the side view and the panel are saved per device (`vest_editor_tabs`, `vest_workbench`); the nav layout and colour theme sync to the account.
+
+The **panel** has OUTPUT (what the environment did this session: routes, sync, theme, notifications) and TERMINAL, a small shell over the tree: `ls`, `cd medicine`, `open williamshub`, `theme classic`, `appearance light`, `livery next`, `find anki`, `tabs`, `help`.
+
+| Keys | Action |
+| --- | --- |
+| ⌘/Ctrl+K, ⌘/Ctrl+P | Search everything / quick open |
+| ⌘/Ctrl+Shift+P | Commands only (or type `>` in the palette) |
+| ⌘/Ctrl+B | Toggle the side bar (the drawer on phones) |
+| ⌘/Ctrl+Shift+E / F | Explorer / Search view |
+| ⌘/Ctrl+` | Toggle the panel |
+| Alt+W, Alt+[ / ], Alt+1…9 | Close tab, previous/next tab, go to tab (browsers reserve Ctrl+W and Ctrl+Tab) |
+| ⌘/Ctrl+/ | Keyboard shortcuts sheet |
