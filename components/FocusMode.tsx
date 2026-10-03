@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { appendFocusSession } from '@/lib/study-log';
 import { toast } from '@/lib/toast-bus';
+import { useHydrated } from './system/hooks';
 
 type Track = {
   id: string;
@@ -617,11 +618,26 @@ type Tod = 'day' | 'dusk' | 'night';
 type Phase = 'setup' | 'running' | 'complete';
 type TargetType = 'open' | 'min' | 'laps';
 
+type HudView = {
+  hud: { leD: number; dist: number; speed: number; gear: number; onThrottle: boolean; drs: boolean };
+  plan: number[];
+  bestLapSecs: number[] | null;
+  bestSecs: (number | null)[];
+  lapSum: number;
+};
+const emptyHudView = (plan: number[]): HudView => ({
+  hud: { leD: 0, dist: 0, speed: 0, gear: 1, onThrottle: true, drs: false },
+  plan: [...plan],
+  bestLapSecs: null,
+  bestSecs: [null, null, null],
+  lapSum: 0,
+});
+
 type FocusLaunchDetail = { title?: string; minutes?: number; agendaItemId?: string };
 
 export default function FocusMode({ showTrigger = true }: { showTrigger?: boolean } = {}) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [phase, setPhase] = useState<Phase>('setup');
   const [selected, setSelected] = useState<Track | null>(null);
   const [targetType, setTargetType] = useState<TargetType>('min');
@@ -677,10 +693,21 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
   const pbRef = useRef<number | null>(null);
   const lapSumRef = useRef(0); // for average lap
   const hudRef = useRef({ leD: 0, dist: 0, speed: 0, gear: 1, onThrottle: true, drs: false });
+  // What the HUD renders: a copy of the per-frame refs, published with each
+  // throttled clock update so render never reads a ref.
+  const [hudView, setHudView] = useState<HudView>(() => emptyHudView([0, 0, 0]));
+  const publishHud = useCallback((e: number) => {
+    setElapsed(e);
+    setHudView({
+      hud: { ...hudRef.current },
+      plan: [...planRef.current],
+      bestLapSecs: bestLapSecsRef.current ? [...bestLapSecsRef.current] : null,
+      bestSecs: [...bestSecRef.current],
+      lapSum: lapSumRef.current,
+    });
+  }, []);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lightTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  useEffect(() => setMounted(true), []);
 
   // Open on request — the ⌘K command palette fires `vest:focus-open` (same page)
   // or sets a sessionStorage flag before navigating here (cross-page).
@@ -749,6 +776,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
     lapSumRef.current = 0;
     pbRef.current = loadPB(track.id);
     hudRef.current = { leD: 0, dist: 0, speed: 0, gear: 1, onThrottle: true, drs: false };
+    setHudView(emptyHudView(planRef.current));
     setCurSec([null, null, null]);
     setLastLap(null);
     setBestLap(null);
@@ -964,13 +992,13 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
       // target checks
       if (targetType === 'min' && e >= targetValue * 60) {
         finalRef.current = e;
-        setElapsed(e);
+        publishHud(e);
         finish();
         return;
       }
       if (targetType === 'laps' && lapNoRef.current >= targetValue) {
         finalRef.current = e;
-        setElapsed(e);
+        publishHud(e);
         finish();
         return;
       }
@@ -978,7 +1006,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
       if (now - lastHudRef.current >= 60) {
         lastHudRef.current = now;
         finalRef.current = e;
-        setElapsed(e);
+        publishHud(e);
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -987,7 +1015,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [phase, paused, ready, selected, targetType, targetValue, finish, tod, wet]);
+  }, [phase, paused, ready, selected, targetType, targetValue, finish, tod, wet, publishHud]);
 
   // Space = pause/resume while running
   useEffect(() => {
@@ -1023,15 +1051,15 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
     if (holdTimer.current) clearTimeout(holdTimer.current);
   };
 
-  // ---- derived HUD values (read per-frame state mirrored into hudRef) ----
-  const hud = hudRef.current;
+  // ---- derived HUD values (the published copy of the per-frame state) ----
+  const hud = hudView.hud;
   const speed = hud.speed;
   const gear = hud.gear;
   const onThrottle = hud.onThrottle;
   const drs = hud.drs;
   const leD = hud.leD; // current-lap elapsed
   const activeIdx = curSec.findIndex((s) => s == null); // sector currently running (-1 if none)
-  const cumPrev = activeIdx <= 0 ? 0 : planRef.current.slice(0, activeIdx).reduce((a, b) => a + b, 0);
+  const cumPrev = activeIdx <= 0 ? 0 : hudView.plan.slice(0, activeIdx).reduce((a, b) => a + b, 0);
   const liveSec = activeIdx >= 0 ? Math.max(0, leD - cumPrev) : 0;
   const sector = activeIdx < 0 ? 3 : activeIdx + 1;
   const remaining = targetType === 'min' ? Math.max(0, targetValue * 60 - elapsed) : 0;
@@ -1040,13 +1068,14 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
   // predictive delta to your best lap (sum of completed-sector splits vs best lap)
   const doneIdx = curSec.filter(Boolean).length;
   let delta: number | null = null;
-  if (doneIdx > 0 && bestLapSecsRef.current) {
+  const bestLapSecs = hudView.bestLapSecs;
+  if (doneIdx > 0 && bestLapSecs) {
     let cum = 0;
     let ref = 0;
     let ok = true;
     for (let k = 0; k < doneIdx; k++) {
       const s = curSec[k];
-      const b = bestLapSecsRef.current[k];
+      const b = bestLapSecs[k];
       if (!s || !b) { ok = false; break; }
       cum += s.t;
       ref += b;
@@ -1054,9 +1083,9 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
     if (ok) delta = cum - ref;
   }
   // theoretical best = sum of your best individual sectors
-  const bestSecs = bestSecRef.current;
+  const bestSecs = hudView.bestSecs;
   const theo = bestSecs[0] != null && bestSecs[1] != null && bestSecs[2] != null ? (bestSecs[0]! + bestSecs[1]! + bestSecs[2]!) : null;
-  const avgLap = lapNo > 0 ? lapSumRef.current / lapNo : null;
+  const avgLap = lapNo > 0 ? hudView.lapSum / lapNo : null;
   // shift lights: 15 LEDs filling toward the rev limit
   const litLeds = Math.max(0, Math.min(15, Math.round((speed / 320) * 15)));
 

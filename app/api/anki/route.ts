@@ -51,14 +51,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: any;
+  let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    const parsed: unknown = await req.json();
+    body = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const clamp = (v: any) => Math.max(0, Math.floor(Number(v) || 0));
+  const clamp = (v: unknown) => Math.max(0, Math.floor(Number(v) || 0));
   const due = clamp(body.due);
   const newCards = clamp(body.new ?? body.newCards);
   const reviewedToday = clamp(body.reviewedToday);

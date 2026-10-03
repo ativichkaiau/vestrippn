@@ -37,14 +37,15 @@ export async function GET() {
     }
 
     // 3. Fetch the actual subject lines for those unread emails
-    const emailPromises = mailData.messages.map(async (msg: any) => {
+    type GmailHeader = { name: string; value: string };
+    const emailPromises = (mailData.messages as { id: string }[]).map(async (msg) => {
       const msgRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From`, {
         headers: { Authorization: `Bearer ${access_token}` }
       });
       const msgDetails = await msgRes.json();
       
-      const subject = msgDetails.payload.headers.find((h: any) => h.name === 'Subject')?.value || 'No Subject';
-      const from = msgDetails.payload.headers.find((h: any) => h.name === 'From')?.value.split('<')[0] || 'Unknown';
+      const subject = (msgDetails.payload.headers as GmailHeader[]).find((h) => h.name === 'Subject')?.value || 'No Subject';
+      const from = (msgDetails.payload.headers as GmailHeader[]).find((h) => h.name === 'From')?.value.split('<')[0] || 'Unknown';
 
       return {
         id: `gmail-${msg.id}`,

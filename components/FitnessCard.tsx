@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { updateFitnessData } from '@/app/actions';
 import { Skel, SkelGroup, SkelLabel } from '@/components/system/Skeleton';
+import { useHydrated } from '@/components/system/hooks';
+import { useStoredValue } from '@/components/system/useStoredValue';
+
+const readToday = () => new Date().toDateString();
 
 interface FitnessCardProps {
   initialWorkoutDays?: boolean[];
@@ -16,27 +20,24 @@ export default function FitnessCard({
   initialLastWorkout = "No workout logged yet",
   initialStreak = 0
 }: FitnessCardProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useHydrated();
   const [workoutDays, setWorkoutDays] = useState<boolean[]>(initialWorkoutDays);
   const [lastWorkout, setLastWorkout] = useState(initialLastWorkout);
   const [streak, setStreak] = useState(initialStreak);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const today = useStoredValue(readToday, '');
+  const currentDate = today ? new Date(today) : new Date(0);
 
-  // Smart Sync: Prevent Infinite Loops while fetching fresh cloud data
-  useEffect(() => {
-    setWorkoutDays(prevDays => {
-      if (JSON.stringify(prevDays) === JSON.stringify(initialWorkoutDays)) return prevDays;
-      return initialWorkoutDays;
-    });
-    setLastWorkout(prev => prev === initialLastWorkout ? prev : initialLastWorkout);
-    setStreak(prev => prev === initialStreak ? prev : initialStreak);
-  }, [initialWorkoutDays, initialLastWorkout, initialStreak]);
-
-  useEffect(() => {
-    setIsMounted(true);
-    setCurrentDate(new Date());
-  }, []);
+  // Smart Sync: a field that changes in the cloud data replaces local state.
+  // Compared by value, so a re-render with the same data changes nothing.
+  const daysKey = JSON.stringify(initialWorkoutDays);
+  const [synced, setSynced] = useState({ daysKey, lastWorkout: initialLastWorkout, streak: initialStreak });
+  if (synced.daysKey !== daysKey || synced.lastWorkout !== initialLastWorkout || synced.streak !== initialStreak) {
+    if (synced.daysKey !== daysKey) setWorkoutDays(initialWorkoutDays);
+    if (synced.lastWorkout !== initialLastWorkout) setLastWorkout(initialLastWorkout);
+    if (synced.streak !== initialStreak) setStreak(initialStreak);
+    setSynced({ daysKey, lastWorkout: initialLastWorkout, streak: initialStreak });
+  }
 
   const handleCloudSync = async (newDays: boolean[], newLastWorkout: string, newStreak: number) => {
     try {

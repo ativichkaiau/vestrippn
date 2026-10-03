@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(results);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Extraction_Failed' }, { status: 500 });
   }
 }

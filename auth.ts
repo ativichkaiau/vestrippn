@@ -110,10 +110,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * SESSION UPLINK
      * Makes the provider token and User ID available to the Dashboard components.
      */
-    async session({ session, token }: any) {
+    async session({ session, token }) {
       if (token) {
-        session.accessToken = token.accessToken;
-        session.user.id = token.id;
+        Object.assign(session, { accessToken: token.accessToken });
+        if (typeof token.id === "string") session.user.id = token.id;
       }
       return session;
     },

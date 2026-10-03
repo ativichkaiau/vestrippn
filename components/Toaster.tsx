@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { onToast, type Toast } from '@/lib/toast-bus';
 import { useLowPower } from './useLowPower';
+import { useHydrated } from './system/hooks';
 
 // Semantic accents. `default` / `success` ride the livery --hub-accent so toasts
 // recolor with the theme; warn/error stay universal so alarms read the same.
@@ -17,15 +18,14 @@ const VARIANT: Record<NonNullable<Toast['variant']>, { bar: string; chip: string
 
 export default function Toaster() {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const reduce = useReducedMotion();
   const lowPower = useLowPower();
   const motionOff = Boolean(reduce || lowPower);
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
-  useEffect(() => setMounted(true), []);
-
   useEffect(() => {
+    const pending = timers.current;
     const clearTimer = (id: string) => {
       const t = timers.current.get(id);
       if (t) {
@@ -50,8 +50,8 @@ export default function Toaster() {
     const off = onToast(add, remove);
     return () => {
       off();
-      timers.current.forEach((t) => clearTimeout(t));
-      timers.current.clear();
+      pending.forEach((t) => clearTimeout(t));
+      pending.clear();
     };
   }, []);
 

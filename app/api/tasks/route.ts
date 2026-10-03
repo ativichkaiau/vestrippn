@@ -24,7 +24,8 @@ export async function GET() {
     const data = await res.json();
     
     // Notion data is deep; we flatten it for the UI
-    const tasks = data.results.map((page: any) => ({
+    type NotionPage = { id: string; properties: { Name?: { title: { plain_text?: string }[] }; Done?: { checkbox?: boolean } } };
+    const tasks = (data.results as NotionPage[]).map((page) => ({
       id: page.id,
       // Assuming your column is named "Name" or "Task"
       text: page.properties.Name?.title[0]?.plain_text || "Untitled Task",
@@ -33,7 +34,7 @@ export async function GET() {
     }));
 
     return NextResponse.json(tasks);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Notion Sync Failed' }, { status: 500 });
   }
 }
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       }),
     });
     return NextResponse.json(await res.json());
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create task' }, { status: 500 });
   }
 }
@@ -71,7 +72,7 @@ export async function PATCH(req: Request) {
       }),
     });
     return NextResponse.json(await res.json());
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 });
   }
 }

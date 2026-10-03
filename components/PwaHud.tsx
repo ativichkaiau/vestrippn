@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { toast } from '@/lib/toast-bus';
 import { useLowPower } from './useLowPower';
+import { useHydrated } from './system/hooks';
 
 // Minimal beforeinstallprompt typing (not in the standard DOM lib).
 type BeforeInstallPromptEvent = Event & {
@@ -18,14 +19,12 @@ const DISMISS_KEY = 'vest_pwa_install_dismissed';
 export default function PwaHud() {
   const [installEvt, setInstallEvt] = useState<BeforeInstallPromptEvent | null>(null);
   const [offline, setOffline] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const reduce = useReducedMotion();
   const lowPower = useLowPower();
   const motionOff = Boolean(reduce || lowPower);
 
   useEffect(() => {
-    setMounted(true);
-
     let dismissed = false;
     try {
       dismissed = localStorage.getItem(DISMISS_KEY) === '1';

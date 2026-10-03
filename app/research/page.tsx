@@ -1,9 +1,9 @@
-// 🚨 THE UPGRADE: Force dynamic rendering so the Postgres sync is always live
+// Force dynamic rendering so the Postgres sync is always live.
 export const dynamic = 'force-dynamic';
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import ResearchClient from "./ResearchClient";
+import ResearchClient, { type VaultItem } from "./ResearchClient";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,46 +11,32 @@ export const metadata: Metadata = {
   description: 'Systematic review infrastructure: systems, pipeline and tools.',
 };
 
+async function loadExtractions(userId: string): Promise<VaultItem[]> {
+  try {
+    const startTime = Date.now();
+    const extractions = await prisma.researchExtraction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+    console.log(`[RESEARCH SYNC] Loaded ${extractions.length} extractions in ${Date.now() - startTime}ms for Operator ${userId}`);
+    // `source` is a free string column; the app only writes ResearchSource ids.
+    return extractions as VaultItem[];
+  } catch (error) {
+    // Fails gracefully: an empty vault rather than a crashed page.
+    console.error("[CRITICAL] Research Postgres Uplink Failed:", error);
+    return [];
+  }
+}
+
 export default async function ResearchPage() {
   const session = await auth();
-  let researchProject = null;
-  let savedExtractions: any[] = [];
-
-  if (session?.user?.id) {
-    try {
-      const startTime = Date.now();
-
-      // 1. Fire parallel database requests for maximum speed
-      const [fetchedProject, fetchedExtractions] = await Promise.all([
-        prisma.researchProject.findUnique({
-          where: { userId: session.user.id }
-        }),
-        prisma.researchExtraction.findMany({
-          where: { userId: session.user.id },
-          orderBy: { createdAt: 'desc' }
-        })
-      ]);
-
-      researchProject = fetchedProject;
-      savedExtractions = fetchedExtractions;
-
-      // 2. Vercel Telemetry Log
-      console.log(`[RESEARCH SYNC] Loaded ${savedExtractions.length} extractions in ${Date.now() - startTime}ms for Operator ${session.user.id}`);
-      
-    } catch (error) {
-      console.error("[CRITICAL] Research Postgres Uplink Failed:", error);
-      // Fails gracefully: Variables remain null/empty so the UI doesn't crash
-    }
-  } else {
-    console.warn("[RESEARCH SYNC] No active session found. Serving local skeleton state.");
-  }
+  const userId = session?.user?.id;
+  if (!userId) console.warn("[RESEARCH SYNC] No active session found. Serving local skeleton state.");
+  const savedExtractions = userId ? await loadExtractions(userId) : [];
 
   return (
     <div className="relative h-full w-full">
-      <ResearchClient 
-        cloudResearch={researchProject} 
-        cloudExtractions={savedExtractions} 
-      />
+      <ResearchClient cloudExtractions={savedExtractions} />
     </div>
   );
 }

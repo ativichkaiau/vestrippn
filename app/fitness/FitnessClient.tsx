@@ -1,12 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
+import type { FitnessLog } from '@prisma/client';
 import { motion } from 'framer-motion';
 import FitnessCard from '../../components/FitnessCard';
 import { syncFitnessHubData } from '@/app/actions';
 import { Page, PageHeader } from '@/components/system/primitives';
+import { useHydrated } from '@/components/system/hooks';
 
-export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
+type Metrics = { sleepHours: number; sleepMinutes: number; weight: number; height: number; water: number };
+type MetricsProps = { metrics: Metrics; setMetrics: Dispatch<SetStateAction<Metrics>> };
+
+export default function FitnessClient({ cloudFitness }: { cloudFitness: FitnessLog | null }) {
   const targets = { protein: 160, carbs: 300, fats: 70, calories: 2470 };
 
   // 1. Cloud-Seeded State Initialization
@@ -18,7 +23,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
     } catch { return []; }
   });
   
-  const [metrics, setMetrics] = useState(() => {
+  const [metrics, setMetrics] = useState<Metrics>(() => {
     if (!cloudFitness?.metrics) return { sleepHours: 7, sleepMinutes: 30, weight: 72.4, height: 175, water: 2.1 };
     try { return JSON.parse(cloudFitness.metrics); } 
     catch { return { sleepHours: 7, sleepMinutes: 30, weight: 72.4, height: 175, water: 2.1 }; }
@@ -28,11 +33,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
 
   const [isLogging, setIsLogging] = useState(false);
   const [newMeal, setNewMeal] = useState({ name: '', protein: '', carbs: '', fats: '', calories: '' });
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useHydrated();
 
   // 2. The Debounced Cloud Sync Engine
   useEffect(() => {
@@ -216,7 +217,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
 // NEW INTERACTIVE RECOVERY COMPONENTS
 // ============================================================================
 
-function SleepCard({ metrics, setMetrics }: any) {
+function SleepCard({ metrics, setMetrics }: MetricsProps) {
   const [isEditing, setIsEditing] = useState(false);
   
   // Calculate exact 90-minute REM cycles
@@ -254,7 +255,7 @@ function SleepCard({ metrics, setMetrics }: any) {
   );
 }
 
-function WeightCard({ metrics, setMetrics }: any) {
+function WeightCard({ metrics, setMetrics }: MetricsProps) {
   const [isEditing, setIsEditing] = useState(false);
   
   // Dynamic BMI Calculation
@@ -293,7 +294,7 @@ function WeightCard({ metrics, setMetrics }: any) {
   );
 }
 
-function WaterCard({ metrics, setMetrics }: any) {
+function WaterCard({ metrics, setMetrics }: MetricsProps) {
   // Metabolically Accurate Target: 35ml per kg of body weight
   const targetWater = Number((metrics.weight * 0.035).toFixed(1));
   const percent = Math.min((metrics.water / targetWater) * 100, 100);

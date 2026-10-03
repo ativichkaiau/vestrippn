@@ -28,6 +28,9 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      - name: Lint
+        run: npm run lint
+
       - name: Validate clinical cases
         run: npm run validate:cases
 
@@ -39,3 +42,6 @@ jobs:
 
       - name: Validate 3D showroom model
         run: npm run validate:spatial
+
+      - name: Validate editable navigation
+        run: npm run validate:nav
