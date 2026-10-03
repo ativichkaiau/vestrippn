@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useHydrated } from './system/hooks';
+import { useStoredValue, writeStored } from './system/useStoredValue';
 
 const initialDomains = [
   { name: 'Academics', status: 'good' },
@@ -12,30 +13,26 @@ const initialDomains = [
   { name: 'Gaming', status: 'good' },
 ];
 
-export default function DomainHealth() {
-  const [domains, setDomains] = useState(initialDomains);
-  const [isMounted, setIsMounted] = useState(false);
+// Bumped to v3 to ensure a clean state with the new aesthetic.
+const DOMAIN_KEY = 'vestrippn-domain-health-v3';
+const DOMAIN_EVENT = 'vest:domain-health-change';
+function readDomains(): typeof initialDomains {
+  const saved = localStorage.getItem(DOMAIN_KEY);
+  if (!saved) return initialDomains;
+  const parsed: unknown = JSON.parse(saved);
+  return Array.isArray(parsed) ? (parsed as typeof initialDomains) : initialDomains;
+}
 
-  useEffect(() => {
-    setIsMounted(true);
-    try {
-      // Bumped to v3 to ensure a clean state with the new aesthetic
-      const savedData = localStorage.getItem('vestrippn-domain-health-v3');
-      if (savedData) {
-        setDomains(JSON.parse(savedData));
-      }
-    } catch (e) {
-      console.error("Failed to load domain health", e);
-    }
-  }, []);
+export default function DomainHealth() {
+  const domains = useStoredValue(readDomains, initialDomains, [DOMAIN_EVENT]);
+  const isMounted = useHydrated();
 
   const toggleStatus = (index: number) => {
     const currentStatus = domains[index].status;
     const nextStatus = currentStatus === 'good' ? 'warning' : currentStatus === 'warning' ? 'inactive' : 'good';
     const newDomains = domains.map((domain, i) => (i === index ? { ...domain, status: nextStatus } : domain));
 
-    setDomains(newDomains);
-    localStorage.setItem('vestrippn-domain-health-v3', JSON.stringify(newDomains));
+    writeStored(DOMAIN_KEY, newDomains, DOMAIN_EVENT);
   };
 
   // good → active, warning → attention, inactive → idle. Click cycles.

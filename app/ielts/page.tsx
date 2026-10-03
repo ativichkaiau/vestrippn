@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import IeltsClient from './IeltsClient';
+import MotionPolicy from '@/components/system/MotionPolicy';
 
 export const metadata: Metadata = {
   title: 'IELTS',
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function IeltsPage() {
-  return <IeltsClient />;
+  return (
+    <MotionPolicy>
+      <IeltsClient />
+    </MotionPolicy>
+  );
 }

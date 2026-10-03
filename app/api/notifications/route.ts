@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireOwnerId } from "@/lib/auth/owner";
 
 /**
  * Comms Intel — unified Gmail + Canvas feed.
@@ -136,6 +137,8 @@ async function fetchCanvas(): Promise<Alert[]> {
 const CANVAS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export async function GET() {
+  // The feed reads the owner's Gmail and Canvas: owner only.
+  if (!(await requireOwnerId())) return NextResponse.json([], { status: 401 });
   const [gmailAlerts, canvasAlerts] = await Promise.all([
     fetchGmail().catch((err) => {
       console.error("Gmail feed failed:", err);

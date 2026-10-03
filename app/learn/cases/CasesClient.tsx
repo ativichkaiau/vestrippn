@@ -46,6 +46,7 @@ export default function CasesClient() {
     setError(null);
     try {
       const res = await fetch(`/api/learn/cases/${id}`);
+      if (res.status === 401) throw new Error('Sign in to play cases. Your progress is saved to your account.');
       if (!res.ok) throw new Error(`Failed to open case (${res.status})`);
       const d = (await res.json()) as CaseDetail;
       setDetail(d);

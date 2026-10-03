@@ -42,7 +42,7 @@ export default function WorkspaceClient({ initialTab }: { initialTab: Tab }) {
       >
         <div className="sys-filter" role="tablist" aria-label="Workspace sections">
           {tabs.map((item) => (
-            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} aria-pressed={tab === item.id} onClick={() => selectTab(item.id)}>
+            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => selectTab(item.id)}>
               {item.label.toLowerCase()}
             </button>
           ))}

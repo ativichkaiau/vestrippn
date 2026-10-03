@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { CIRCUIT_META, CIRCUIT_COUNT } from '@/lib/circuits';
 import {
   readFocusLog,
+  readGradeLog,
   readPBs,
   readStreakLog,
   recordStreak,
@@ -17,6 +18,20 @@ import type { CanvasTelemetry } from '@/lib/canvas';
 import type { AnkiHistoryPoint } from '@/lib/anki';
 import { Skel, SkelGroup, SkelLabel } from '@/components/system/Skeleton';
 import { MetadataGrid, Page, PageHeader, Section } from '@/components/system/primitives';
+import { useHydrated } from '@/components/system/hooks';
+import { useStoredValue } from '@/components/system/useStoredValue';
+
+// Device-local study history. `day` (local midnight, ms) pins the 7- and
+// 14-day windows to the calendar day the data was read on.
+type LocalStudy = { pbs: CircuitPB[]; focusLog: FocusSession[]; streakLog: StreakSnap[]; gradeLog: GradeSnap[]; day: number };
+const STUDY_LOG_EVENT = 'vest:study-log-change';
+const LOCAL_EVENTS = [STUDY_LOG_EVENT, 'vest:focus-log-change', 'vest:focus-log-synced'];
+const EMPTY_STUDY: LocalStudy = { pbs: [], focusLog: [], streakLog: [], gradeLog: [], day: 0 };
+const readLocalStudy = (): LocalStudy => {
+  const midnight = new Date();
+  midnight.setHours(0, 0, 0, 0);
+  return { pbs: readPBs(), focusLog: readFocusLog(), streakLog: readStreakLog(), gradeLog: readGradeLog(), day: midnight.getTime() };
+};
 
 type Props = {
   canvas: CanvasTelemetry;
@@ -99,11 +114,8 @@ function Stat({ label, value, sub, accent }: { label: string; value: string; sub
 }
 
 export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Props) {
-  const [mounted, setMounted] = useState(false);
-  const [pbs, setPbs] = useState<CircuitPB[]>([]);
-  const [focusLog, setFocusLog] = useState<FocusSession[]>([]);
-  const [streakLog, setStreakLog] = useState<StreakSnap[]>([]);
-  const [gradeLog, setGradeLog] = useState<GradeSnap[]>([]);
+  const mounted = useHydrated();
+  const { pbs, focusLog, streakLog, gradeLog, day } = useStoredValue(readLocalStudy, EMPTY_STUDY, LOCAL_EVENTS);
 
   // Grades are server props; derive the current average once.
   const graded = useMemo(() => canvas.subjects.filter((s) => s.progress != null), [canvas.subjects]);
@@ -111,15 +123,12 @@ export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Prop
     ? Math.round(graded.reduce((a, s) => a + (s.progress as number), 0) / graded.length)
     : null;
 
-  // localStorage is client-only — read it (and record today's snapshots) on mount.
+  // Record today's grade and Anki snapshots on this device (client only).
   useEffect(() => {
-    setMounted(true);
-    setPbs(readPBs());
-    setFocusLog(readFocusLog());
-    setGradeLog(recordGrade(gradeAvg));
-    setStreakLog(anki ? recordStreak(anki.streak, anki.reviewedToday, anki.due) : readStreakLog());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    recordGrade(gradeAvg);
+    if (anki) recordStreak(anki.streak, anki.reviewedToday, anki.due);
+    window.dispatchEvent(new Event(STUDY_LOG_EVENT));
+  }, [gradeAvg, anki]);
 
   const standings = useMemo<StandingRow[]>(
     () =>
@@ -137,12 +146,11 @@ export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Prop
   const focus = useMemo(() => {
     const total = focusLog.length;
     const totalSec = focusLog.reduce((a, s) => a + s.durationSec, 0);
-    const weekAgo = Date.now() - 7 * 86_400_000;
+    const weekAgo = day - 6 * 86_400_000; // today and the six days before it
     const last7 = focusLog.filter((s) => s.ts >= weekAgo).length;
     const days: { label: string; count: number; min: number }[] = [];
     for (let i = 13; i >= 0; i--) {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
+      const start = new Date(day);
       start.setDate(start.getDate() - i);
       const ds = start.getTime();
       const de = ds + 86_400_000;
@@ -151,7 +159,7 @@ export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Prop
     }
     const recent = [...focusLog].sort((a, b) => b.ts - a.ts).slice(0, 6);
     return { total, totalSec, last7, days, recent };
-  }, [focusLog]);
+  }, [focusLog, day]);
 
   const gradeTrend = gradeLog.map((g) => g.avg).filter((v): v is number => v != null);
   const gradeDelta = gradeTrend.length >= 2 ? gradeTrend[gradeTrend.length - 1] - gradeTrend[0] : null;

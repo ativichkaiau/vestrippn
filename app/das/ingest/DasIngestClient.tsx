@@ -27,9 +27,10 @@ export default function DasIngestClient() {
       setLoading(false);
     }
   };
+  const loadSourcesRef = useRef(loadSources);
 
   useEffect(() => {
-    loadSources();
+    void loadSourcesRef.current();
   }, []);
 
   const submit = async () => {

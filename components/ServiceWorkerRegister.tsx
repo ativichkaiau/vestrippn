@@ -13,13 +13,18 @@ export default function ServiceWorkerRegister() {
     if (!('serviceWorker' in navigator)) return;
 
     let reloading = false;
-    // When the new worker takes control (after SKIP_WAITING), reload once so the
-    // page and its chunks come from the same version.
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloading) return;
+    // When a NEW worker takes control (after SKIP_WAITING), reload once so the
+    // page and its chunks come from the same version. The first install also
+    // fires controllerchange (clients.claim) — that one must not reload the
+    // page out from under a first-time visitor.
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let updateRequested = false;
+    const onControllerChange = () => {
+      if (reloading || !(hadController || updateRequested)) return;
       reloading = true;
       window.location.reload();
-    });
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
 
     const promptUpdate = (worker: ServiceWorker) => {
       toast({
@@ -28,7 +33,13 @@ export default function ServiceWorkerRegister() {
         message: 'Reload to get the latest build.',
         icon: '↻',
         duration: 0,
-        action: { label: 'Reload', run: () => worker.postMessage({ type: 'SKIP_WAITING' }) },
+        action: {
+          label: 'Reload',
+          run: () => {
+            updateRequested = true;
+            worker.postMessage({ type: 'SKIP_WAITING' });
+          },
+        },
       });
     };
 

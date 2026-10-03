@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Page-route auth gate. Runs on the edge, so it does a fast session-cookie
-// presence check (no DB / adapter) and redirects sessionless visitors to
-// sign-in. The cryptographic check still happens in the page/route via auth()
-// — this layer is the redirect + first gate so private hubs (dashboard,
-// academics, research, …) aren't reachable, and their owner data isn't
-// server-rendered, for an anonymous visitor.
+// Page-route auth gate (Next 16 `proxy`, formerly `middleware`; it runs on
+// the Node.js runtime). It does a fast session-cookie presence check (no DB
+// or adapter) and redirects sessionless visitors to sign-in. The
+// cryptographic check still happens in the page/route via auth(); this
+// layer is the redirect + first gate so private hubs (dashboard, academics,
+// research, …) aren't reachable, and their owner data isn't server-rendered,
+// for an anonymous visitor.
 //
 // Public prefixes stay open: the sign-in flow, the public clinical-case bank,
 // and legal pages. API routes self-gate (see requireUserId) and are excluded
@@ -19,7 +20,7 @@ function hasSessionCookie(req: NextRequest): boolean {
   return req.cookies.getAll().some((c) => c.name.includes("session-token"));
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {

@@ -41,7 +41,7 @@ const BRANCHES: { name: string; state: State; path: string; href: string }[] = [
 ];
 
 export default async function Root() {
-  // A real session only; middleware already redirected anonymous visitors.
+  // A real session only; the proxy already redirected anonymous visitors.
   const userId = await requireUserId();
 
   const tasks = userId

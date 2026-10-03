@@ -1,41 +1,92 @@
 'use client';
 
 import Link from 'next/link';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { ENVIRONMENT_NAV, RUNTIME_NAV, isCurrent, resolvePath, type NavItem } from '@/lib/system/navigation';
+import { SYNC_STATUS_EVENT, type SyncStatus } from '@/lib/device-sync';
+import { openTab } from '@/lib/system/editor-tabs';
+import { readTabs, saveTabs } from '@/lib/system/editor-tabs-store';
+import { resolvePath } from '@/lib/system/navigation';
+import { logOutput } from '@/lib/system/output-log';
 import { PROJECTS, SYSTEMS } from '@/lib/system/registry';
-import { MODE_LABEL, toggleMode } from '@/lib/theme';
-import { useClock, useLivery, useMode, useModifierLabel, useOnline, useRoutePathname } from './hooks';
+import { togglePanel } from '@/lib/system/workbench';
+import { COLOR_THEME_LABEL, MODE_LABEL, toggleMode, themeSnapshot } from '@/lib/theme';
+import { onToast } from '@/lib/toast-bus';
+import ActivityBar from './ActivityBar';
+import EditorTabs from './EditorTabs';
+import Icon from './Icon';
+import NavEditor from './NavEditor';
+import Panel from './Panel';
+import Shortcuts from './Shortcuts';
+import SideBar, { ExplorerTree, SessionBlock } from './SideViews';
+import { useClock, useColorTheme, useLivery, useMode, useModifierLabel, useOnline, useRoutePathname, useSyncStatus, useWorkbench } from './hooks';
+import { openPalette } from './shell-events';
 
 /* ════════════════════════════════════════════════════════════════════════
-   The application shell: persistent identity (masthead), structured
-   navigation (sidebar / drawer), system context (path bar, status bar).
-   Auth routes render bare — the gate is its own boundary.
+   The application shell, laid out like VS Code's workbench: title bar with
+   a command center, activity bar, side bar views, editor tabs and
+   breadcrumbs over the page, a toggleable panel (output and terminal), and
+   the status bar. Phones and tablets get the drawer instead of the activity
+   and side bars. Auth routes render bare — the gate is its own boundary.
    ════════════════════════════════════════════════════════════════════════ */
 
 export type BuildInfo = { sha: string | null; env: string };
 
 const REPO = 'https://github.com/ativichkaiau/vestrippn';
+const NOT_FOUND = '/_not-found';
 
-export function openPalette() {
-  window.dispatchEvent(new Event('sys:palette'));
-}
+export { openPalette };
 
 export default function Shell({ children, build }: { children: ReactNode; build: BuildInfo }) {
   const pathname = useRoutePathname();
+  const workbench = useWorkbench();
   const mainRef = useRef<HTMLElement>(null);
   const drawerRef = useRef<HTMLDialogElement>(null);
+  const previousPath = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     console.info('%cVESTRIPPN // root mounted.', 'font-family: ui-monospace, monospace');
+    logOutput('system', 'VESTRIPPN // root mounted');
+    // The Output panel records what the environment did this session.
+    let theme = themeSnapshot();
+    let sync = '';
+    const onTheme = () => {
+      const next = themeSnapshot();
+      if (next === theme) return;
+      theme = next;
+      const [livery, mode, , , colorTheme] = next.split('|');
+      logOutput('theme', `theme ${colorTheme} · livery ${livery} · appearance ${mode}`);
+    };
+    const onSync = (event: Event) => {
+      const status = (event as CustomEvent<SyncStatus>).detail;
+      if (!status || `${status.state}:${status.message}` === sync) return;
+      sync = `${status.state}:${status.message}`;
+      logOutput('sync', `${status.state} — ${status.message}`);
+    };
+    const offToast = onToast(
+      (toast) => logOutput('toast', [toast.title, toast.message].filter(Boolean).join(' — ')),
+      () => {},
+    );
+    window.addEventListener('vest:theme-change', onTheme);
+    window.addEventListener(SYNC_STATUS_EVENT, onSync);
+    return () => {
+      offToast();
+      window.removeEventListener('vest:theme-change', onTheme);
+      window.removeEventListener(SYNC_STATUS_EVENT, onSync);
+    };
   }, []);
 
   // A new route starts at the top of the main viewport (the page scrolls
-  // inside the shell, not the window) and closes the drawer.
+  // inside the shell, not the window), closes the drawer, and opens or
+  // focuses its editor tab.
   useEffect(() => {
     if (!window.location.hash) mainRef.current?.scrollTo({ top: 0 });
     drawerRef.current?.close();
+    if (pathname === NOT_FOUND || pathname.startsWith('/auth')) return;
+    // New tabs open to the right of the page you came from, as in VS Code.
+    saveTabs(openTab(readTabs(), `${pathname}${window.location.search}`, previousPath.current));
+    previousPath.current = pathname;
+    logOutput('nav', resolvePath(pathname).display);
   }, [pathname]);
 
   if (pathname.startsWith('/auth')) return <>{children}</>;
@@ -43,7 +94,7 @@ export default function Shell({ children, build }: { children: ReactNode; build:
   const path = resolvePath(pathname);
 
   return (
-    <div className="sys-shell">
+    <div className="sys-shell" data-sidebar={workbench.sidebar ? 'open' : 'closed'} data-panel={workbench.panel ? 'open' : 'closed'}>
       <a className="sys-skip" href="#main">
         skip to content
       </a>
@@ -61,18 +112,20 @@ export default function Shell({ children, build }: { children: ReactNode; build:
         <Link href="/" className="sys-brand" aria-label="VESTRIPPN — root">
           VESTRIPPN<span className="sys-cursor" aria-hidden="true">_</span>
         </Link>
-        <PathBar segments={path.segments} />
         <TopTools />
       </header>
 
-      <aside className="sys-sidebar" aria-label="Navigation">
-        <NavTree pathname={pathname} />
-        <SessionBlock />
-      </aside>
+      <ActivityBar />
+      {workbench.sidebar && <SideBar pathname={pathname} />}
 
-      <main id="main" ref={mainRef} className="sys-main sys-scroll" tabIndex={-1}>
-        {children}
-      </main>
+      <div className="sys-editor">
+        <EditorTabs activePath={pathname} />
+        <Breadcrumbs segments={path.segments} />
+        <main id="main" ref={mainRef} className="sys-main sys-scroll" tabIndex={-1}>
+          {children}
+        </main>
+        {workbench.panel && <Panel pathname={pathname} />}
+      </div>
 
       <StatusBar namespace={path.namespace} build={build} />
 
@@ -85,23 +138,26 @@ export default function Shell({ children, build }: { children: ReactNode; build:
         }}
       >
         <div className="sys-drawer-head">
-          <span className="sys-label">VESTRIPPN / navigation</span>
+          <span className="sys-label">VESTRIPPN / explorer</span>
           <button type="button" className="sys-icon-button" aria-label="Close navigation" onClick={() => drawerRef.current?.close()}>
             <CloseGlyph />
           </button>
         </div>
         <div className="sys-drawer-body">
-          <NavTree pathname={pathname} />
+          <ExplorerTree pathname={pathname} withRegistry={false} />
           <SessionBlock />
         </div>
       </dialog>
+
+      <NavEditor />
+      <Shortcuts activePath={pathname} />
     </div>
   );
 }
 
-function PathBar({ segments }: { segments: { label: string; href?: string }[] }) {
+function Breadcrumbs({ segments }: { segments: { label: string; href?: string }[] }) {
   return (
-    <nav className="sys-pathbar" aria-label="Path">
+    <nav className="sys-pathbar sys-breadcrumbs" aria-label="Breadcrumbs">
       <ol>
         {segments.map((segment, i) => {
           const last = i === segments.length - 1;
@@ -139,7 +195,7 @@ function TopTools() {
   const modifier = useModifierLabel();
   return (
     <div className="sys-topbar-tools">
-      <button type="button" className="sys-search-trigger" onClick={openPalette} aria-label="Search VESTRIPPN" aria-keyshortcuts="Meta+K Control+K">
+      <button type="button" className="sys-search-trigger" onClick={() => openPalette('')} aria-label="Search VESTRIPPN" aria-keyshortcuts="Meta+K Control+K">
         <SearchGlyph />
         <span>search VESTRIPPN…</span>
         <kbd>{modifier}K</kbd>
@@ -165,93 +221,40 @@ function TopTools() {
   );
 }
 
-function NavGroup({ title, items, pathname, indexed }: { title: string; items: NavItem[]; pathname: string; indexed: boolean }) {
-  const id = `nav-${title}`;
-  return (
-    <div className="sys-nav-group">
-      <h2 id={id} className="sys-label">
-        {title}
-      </h2>
-      <ul aria-labelledby={id}>
-        {items.map((item) => (
-          <li key={item.href}>
-            <Link href={item.href} className="sys-nav-link" aria-current={isCurrent(item, pathname) ? 'page' : undefined}>
-              <span className="sys-nav-index" aria-hidden="true">
-                {indexed ? item.index : '·'}
-              </span>
-              <span>{item.label}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function NavTree({ pathname }: { pathname: string }) {
-  return (
-    <nav aria-label="VESTRIPPN">
-      <NavGroup title="environment" items={ENVIRONMENT_NAV} pathname={pathname} indexed />
-      <NavGroup title="runtime" items={RUNTIME_NAV} pathname={pathname} indexed={false} />
-    </nav>
-  );
-}
-
-function SessionBlock() {
-  const { data, status } = useSession();
-  const mode = useMode();
-  const livery = useLivery();
-  const user = data?.user?.name || data?.user?.email?.split('@')[0];
-  return (
-    <div className="sys-session">
-      <div className="sys-session-row">
-        <span className="sys-label">session</span>
-        <span>{status === 'loading' ? 'resolving…' : status === 'authenticated' ? user || 'active' : 'none'}</span>
-      </div>
-      <div className="sys-session-row">
-        <span className="sys-label">livery</span>
-        <Link href="/garage#paints" title="Open the paint library">
-          <span className="sys-swatch" style={{ background: livery.definition.stripe }} aria-hidden="true" /> {livery.definition.name}
-        </Link>
-      </div>
-      <div className="sys-session-row">
-        <span className="sys-label">appearance</span>
-        <button type="button" onClick={toggleMode}>
-          {MODE_LABEL[mode]}
-        </button>
-      </div>
-      {status === 'authenticated' ? (
-        <button type="button" onClick={() => signOut({ callbackUrl: '/auth/signin' })}>
-          sign out →
-        </button>
-      ) : status === 'unauthenticated' ? (
-        <Link href="/auth/signin">sign in →</Link>
-      ) : null}
-      <Link href="/legal">legal</Link>
-    </div>
-  );
-}
-
 function StatusBar({ namespace, build }: { namespace: string; build: BuildInfo }) {
   const { status } = useSession();
   const online = useOnline();
   const livery = useLivery();
+  const colorTheme = useColorTheme();
+  const sync = useSyncStatus();
+  const workbench = useWorkbench();
   const short = build.sha?.slice(0, 7);
   return (
     <footer className="sys-statusbar" aria-label="System status">
+      <a className="sys-status-remote" href={REPO} target="_blank" rel="noopener noreferrer" title="Source on GitHub">
+        <span aria-hidden="true">⌁</span> VESTRIPPN
+      </a>
       <span>
-        <strong>VESTRIPPN</strong>{' // '}{namespace}
+        <strong>{namespace}</strong>
+      </span>
+      <span title={sync.message}>
+        <Icon name="sync" size={12} /> {sync.state}
       </span>
       <span>auth: {status === 'authenticated' ? 'active' : status === 'loading' ? '…' : 'none'}</span>
       <Link href="/systems">systems: {String(SYSTEMS.length).padStart(2, '0')}</Link>
       <Link href="/projects">projects: {String(PROJECTS.length).padStart(2, '0')}</Link>
       <span className="sys-status-spacer" />
+      <button type="button" onClick={() => togglePanel('terminal')} aria-pressed={workbench.panel} title="Toggle panel (Ctrl+`)">
+        <Icon name="terminal" size={12} /> terminal
+      </button>
+      <button type="button" onClick={() => openPalette('>Color Theme')} title="Change colour theme">
+        {COLOR_THEME_LABEL[colorTheme].toLowerCase()}
+      </button>
       <Link href="/garage#paints" className="sys-status-livery" title="Livery — open the paint library">
         <span className="sys-swatch" style={{ background: livery.definition.stripe }} aria-hidden="true" />
         livery {livery.definition.name.toLowerCase()}
         {livery.id !== 'system' ? ` · ${livery.definition.year}` : ''}
       </Link>
-      <Link href="/legal">legal</Link>
       <span>env {build.env}</span>
       {short ? (
         <a href={`${REPO}/commit/${build.sha}`} target="_blank" rel="noopener noreferrer">

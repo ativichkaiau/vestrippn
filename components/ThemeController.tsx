@@ -12,7 +12,7 @@ export default function ThemeController() {
     };
     const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
     const onStorage = (event: StorageEvent) => {
-      if (event.key === 'vest_livery' || event.key === 'vest_mode' || event.key === null) refresh();
+      if (event.key === 'vest_livery' || event.key === 'vest_mode' || event.key === 'vest_theme' || event.key === null) refresh();
     };
     refresh();
     const interval = window.setInterval(() => {

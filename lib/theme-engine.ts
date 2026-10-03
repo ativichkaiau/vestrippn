@@ -1,8 +1,9 @@
 import type { Livery, LiveryDefinition, Mode, ThemePalette, ThemePhase } from './liveries';
+import type { ColorTheme, ThemeDefinition } from './vscode-themes';
 
 type EngineConfig = {
   liveries: Record<Livery, LiveryDefinition>; legacy: Record<string, Livery>;
-  mercedes: Record<ThemePhase, ThemePalette>; location: { latitude: number; longitude: number; name: string };
+  mercedes: Record<ThemePhase, ThemePalette>; themes: Record<Exclude<ColorTheme, 'vestrippn'>, ThemeDefinition>; location: { latitude: number; longitude: number; name: string };
 };
 
 /** Self-contained factory: the exact same implementation runs before paint and after hydration. */
@@ -29,6 +30,9 @@ export function createThemeEngine(config: EngineConfig) {
     if (typeof value !== 'string') return null;
     if (Object.prototype.hasOwnProperty.call(config.liveries, value)) return value as Livery;
     return Object.prototype.hasOwnProperty.call(config.legacy, value) ? config.legacy[value] : null;
+  }
+  function colorTheme(value: unknown): ColorTheme {
+    return typeof value === 'string' && Object.prototype.hasOwnProperty.call(config.themes, value) ? (value as ColorTheme) : 'vestrippn';
   }
   // Dark first: with nothing stored, the environment opens dark.
   function mode(value: unknown): Mode {
@@ -94,9 +98,52 @@ export function createThemeEngine(config: EngineConfig) {
       '--hub-accent-rgb': rgb(accent).join(', '),
     } as Record<string, string>;
   }
+  // A VS Code colour theme replaces the environment wholesale; the livery no
+  // longer tints it. Text and accent are nudged to 4.5:1 on every surface.
+  function themeEnvironment(th: ColorTheme, appearanceValue: 'dark' | 'light') {
+    if (th === 'vestrippn') return null;
+    const v = config.themes[th][appearanceValue];
+    const dark = appearanceValue === 'dark';
+    const grounds = [v.root, v.b1, v.b2, v.b3];
+    const ink = dark ? '#ffffff' : '#000000';
+    const accent = legible(v.accent, grounds, ink);
+    return {
+      '--bg-root': v.root,
+      '--bg-01': v.b1,
+      '--bg-02': v.b2,
+      '--bg-03': v.b3,
+      '--text-strong': v.strong,
+      '--text-primary': legible(v.primary, grounds, ink),
+      '--text-secondary': legible(v.secondary, grounds, ink),
+      '--text-muted': legible(v.muted, grounds, ink),
+      '--text-faint': v.faint,
+      '--line-subtle': v.subtle,
+      '--line-default': v.line,
+      '--line-strong': v.lineStrong,
+      '--accent': accent,
+      '--accent-strong': mix(accent, ink, 0.2),
+      '--accent-soft': `rgb(${rgb(accent).join(' ')} / ${dark ? 0.14 : 0.1})`,
+      '--accent-line': `rgb(${rgb(accent).join(' ')} / 0.45)`,
+      '--on-accent': contrast('#ffffff', accent) >= 4.5 ? '#ffffff' : '#0b0b0b',
+      '--selection': `rgb(${rgb(v.selection).join(' ')} / ${dark ? 0.6 : 0.7})`,
+      '--hub-accent-rgb': rgb(accent).join(', '),
+      '--shell-title-bg': v.title,
+      '--shell-title-fg': legible(dark ? '#cccccc' : '#3b3b3b', [v.title], contrast('#ffffff', v.title) > contrast('#000000', v.title) ? '#ffffff' : '#000000'),
+      '--shell-activity-bg': v.activity,
+      '--shell-activity-fg': v.activityFg,
+      '--shell-activity-fg-active': v.activityFgActive,
+      '--shell-indicator': v.indicator,
+      '--shell-status-bg': v.status,
+      '--shell-status-fg': legible(v.statusFg, [v.status], contrast('#ffffff', v.status) > contrast('#000000', v.status) ? '#ffffff' : '#000000'),
+      '--shell-tab-bg': v.tab,
+      '--shell-tab-active-bg': v.tabActive,
+      '--shell-panel-bg': v.panel,
+    } as Record<string, string>;
+  }
+  const THEME_ONLY_KEYS = ['--text-strong', '--text-primary', '--text-faint', '--shell-title-bg', '--shell-title-fg', '--shell-activity-bg', '--shell-activity-fg', '--shell-activity-fg-active', '--shell-indicator', '--shell-status-bg', '--shell-status-fg', '--shell-tab-bg', '--shell-tab-active-bg', '--shell-panel-bg'];
   const ENVIRONMENT_KEYS = ['--bg-root', '--bg-01', '--bg-02', '--bg-03', '--line-subtle', '--line-default', '--line-strong', '--text-secondary', '--text-muted', '--accent', '--accent-strong', '--accent-soft', '--accent-line', '--on-accent', '--selection', '--hub-accent-rgb'];
 
-  function resolve(lv: Livery, md: Mode, date = new Date()) {
+  function resolve(lv: Livery, md: Mode, date = new Date(), th: ColorTheme = 'vestrippn') {
     const definition = config.liveries[lv];
     const elevation = solarElevation(date);
     const progress = md === 'auto' ? clamp((6 - elevation) / 12) : md === 'day' ? 0 : md === 'twilight' ? 0.5 : 1;
@@ -121,23 +168,25 @@ export function createThemeEngine(config: EngineConfig) {
       palette.accent = legible(dark ? '#00d2be' : '#006e64', safeGrounds, fallback);
     }
     const look = appearance(md, phase);
-    return { livery: lv, mode: md, phase, dark, appearance: look, progress, palette, definition, environment: environment(lv, look, palette, definition.tone) };
+    const environmentTokens = th === 'vestrippn' ? environment(lv, look, palette, definition.tone) : themeEnvironment(th, look);
+    return { livery: lv, mode: md, colorTheme: th, phase, dark, appearance: look, progress, palette, definition, environment: environmentTokens };
   }
 
-  function apply(root: HTMLElement, lv: Livery, md: Mode, date = new Date()) {
-    const theme = resolve(lv, md, date);
+  function apply(root: HTMLElement, lv: Livery, md: Mode, date = new Date(), th: ColorTheme = 'vestrippn') {
+    const theme = resolve(lv, md, date, th);
     const { palette, definition, dark } = theme;
     const environmentDark = theme.appearance === 'dark';
     const oldClasses = [...Object.keys(config.legacy), ...Object.keys(config.liveries)];
     root.classList.remove(...oldClasses, ...oldClasses.map(id => `w09-${id}`));
     root.classList.toggle('dark', environmentDark);
     // The livery's environment tokens; the system paint falls back to the stylesheet.
-    for (const key of ENVIRONMENT_KEYS) {
+    for (const key of [...ENVIRONMENT_KEYS, ...THEME_ONLY_KEYS]) {
       const value = theme.environment?.[key];
       if (value) root.style.setProperty(key, value);
       else root.style.removeProperty(key);
     }
     root.dataset.livery = lv;
+    root.dataset.theme = th;
     root.dataset.mode = md;
     root.dataset.phase = theme.phase;
     root.dataset.tone = environmentDark ? 'dark' : 'light';
@@ -154,5 +203,5 @@ export function createThemeEngine(config: EngineConfig) {
     root.style.colorScheme = environmentDark ? 'dark' : 'light';
     return theme;
   }
-  return { livery, mode, resolve, apply, solarElevation, contrast };
+  return { livery, mode, colorTheme, resolve, apply, solarElevation, contrast };
 }
