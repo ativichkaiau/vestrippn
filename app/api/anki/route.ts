@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { resolveOwnerByEmail } from '@/lib/auth/owner';
@@ -14,6 +15,12 @@ export const dynamic = 'force-dynamic';
  * fallback stops resolving, so without the primary-owner fallback the add-on's
  * pushes 404 and sync silently dies.
  */
+// Constant-time comparison (hashing first keeps the lengths equal).
+function sameSecret(a: string, b: string): boolean {
+  const digest = (value: string) => createHash('sha256').update(value).digest();
+  return timingSafeEqual(digest(a), digest(b));
+}
+
 async function resolveOwnerId(ownerEmail?: string | null): Promise<string | null> {
   const byEmail = await resolveOwnerByEmail(ownerEmail);
   if (byEmail) return byEmail;
@@ -47,7 +54,7 @@ export async function POST(req: Request) {
 
   const header = req.headers.get('authorization') || '';
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-  if (!token || token !== secret) {
+  if (!token || !sameSecret(token, secret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

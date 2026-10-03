@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
+import { auth } from "@/auth";
+import { PRIMARY_EMAIL } from "@/lib/auth/allow-list";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PRIMARY_EMAIL = "ativichkaiau2549@gmail.com";
 
 function canRegister(email: string) {
   if (process.env.LOCAL_SIGNUP_OPEN === "true") return true;
@@ -14,6 +15,10 @@ function canRegister(email: string) {
 }
 
 export async function POST(req: Request) {
+  const limit = rateLimit(`register:${clientIp(req.headers)}`, 5, 60 * 60_000);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Too many sign-up attempts. Try again later." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } });
+  }
   const body = (await req.json().catch(() => null)) as {
     name?: unknown;
     email?: unknown;
@@ -45,6 +50,18 @@ export async function POST(req: Request) {
 
   if (existing?.passwordHash) {
     return NextResponse.json({ error: "Account already exists" }, { status: 409 });
+  }
+  // An account created through Google or LINE has no password. Only its own
+  // signed-in owner may add one; otherwise anyone who knows the address could
+  // set a password on it and sign in as them.
+  if (existing) {
+    const session = await auth().catch(() => null);
+    if (session?.user?.id !== existing.id) {
+      return NextResponse.json(
+        { error: "This email already signs in with Google or LINE. Use that button instead." },
+        { status: 409 },
+      );
+    }
   }
 
   if (existing) {

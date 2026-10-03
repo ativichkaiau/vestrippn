@@ -13,5 +13,6 @@ export const dynamic = 'force-dynamic';
 // data" rather than SERVER_OFFLINE.
 export async function GET() {
   const userId = await requireUserId();
-  return NextResponse.json(await fetchCanvasTelemetry(userId ?? undefined));
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return NextResponse.json(await fetchCanvasTelemetry(userId));
 }

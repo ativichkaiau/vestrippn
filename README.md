@@ -29,10 +29,10 @@ Only two variables are critical: `AUTH_SECRET` and `VESTRIPPN_PRISMA_DATABASE_UR
 
 | Integration | Variables |
 | --- | --- |
-| Sign-in providers | `GOOGLE_CLIENT_ID/SECRET`, `LINE_CLIENT_ID/SECRET`, `OWNER_EMAIL` |
+| Sign-in providers and access | `GOOGLE_CLIENT_ID/SECRET`, `LINE_CLIENT_ID/SECRET`, `OWNER_EMAIL`, `AUTH_ALLOWED_EMAILS` |
 | Canvas grades and deadlines | `CANVAS_TOKEN`, `CANVAS_BASE_URL`, `CANVAS_COURSES` |
 | Assistant and research search | `OPENAI_API_KEY`, `OPENAI_MODEL`, `NCBI_API_KEY`, `ELSEVIER_API_KEY`, `ELSEVIER_INSTTOKEN` |
-| Notion tasks, Gmail | `NOTION_API_KEY`, `NOTION_DATABASE_ID`, `GMAIL_QUERY` |
+| Gmail feed (owner only) | `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `GMAIL_QUERY` |
 | Anki add-on | `ANKI_SYNC_EMAIL`, `ANKI_SYNC_SECRET` |
 | Exam reminders (web push) | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET` |
 
@@ -80,7 +80,12 @@ The sidebar tabs can be edited from **customize tabs** at the bottom of the side
 
 ## Auth
 
-`proxy.ts` sends anyone without a session to `/auth/signin`, except on `/auth`, `/learn` and `/legal`. Pages and API routes still verify the session with `auth()` / `requireUserId()`.
+`proxy.ts` sends anyone without a session to `/auth/signin`, except on `/auth`, `/learn` and `/legal`. Pages and API routes still verify the session themselves with `auth()` / `requireUserId()`; API routes are not behind the proxy, so every one must.
+
+- Google and LINE sign-in follow `AUTH_ALLOWED_EMAILS` (default: the owner plus any `@gmail.com` account). Every account gets its own data.
+- Integrations that run on the owner's credentials (Canvas grades, the Gmail and Canvas feed) are served to the owner only (`requireOwnerId` / `isOwner` in `lib/auth/owner.ts`).
+- Email/password sign-in and sign-up are rate-limited per address. A password can't be added to an existing Google/LINE account except by that account, signed in.
+- Security headers (frame blocking, nosniff, referrer and permissions policies, HSTS) are set in `next.config.ts`.
 
 ## Anki add-on
 

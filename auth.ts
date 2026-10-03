@@ -5,15 +5,8 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
-
-const PRIMARY_EMAIL = "ativichkaiau2549@gmail.com";
-
-function isAllowedEmail(email?: string | null) {
-  if (!email) return false;
-  const normalized = email.trim().toLowerCase();
-  const ownerEmail = process.env.OWNER_EMAIL?.trim().toLowerCase() || PRIMARY_EMAIL;
-  return normalized === ownerEmail || normalized.endsWith("@gmail.com");
-}
+import { isAllowedEmail } from "@/lib/auth/allow-list";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // 1. DATABASE UPLINK
@@ -35,10 +28,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const email = String(credentials?.email ?? "").trim().toLowerCase();
         const password = String(credentials?.password ?? "");
         if (!email || !password) return null;
+        // Blunt password guessing: per address+account, and per address overall.
+        const ip = request instanceof Request ? clientIp(request.headers) : "unknown";
+        if (!rateLimit(`signin:${ip}:${email}`, 8, 15 * 60_000).ok || !rateLimit(`signin:${ip}`, 30, 15 * 60_000).ok) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;
@@ -80,8 +76,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     /**
      * Access lock.
      * - Credentials users are validated in authorize().
-     * - Google remains Gmail/owner-locked for continuity.
-     * - LINE requires an email claim and follows the same allow-list.
+     * - Google and LINE follow the allow-list (lib/auth/allow-list,
+     *   AUTH_ALLOWED_EMAILS); LINE needs an email claim.
      */
     async signIn({ user, account }) {
       if (account?.provider === "credentials") return true;
@@ -89,32 +85,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     /**
-     * JWT TELEMETRY PIPE
-     * Passes the OAuth access token from the account into the session.
+     * Only the user id travels in the JWT. Provider access tokens stay in the
+     * Account table (the Gmail feed refreshes its own); they are never copied
+     * into the session, which the browser can read from /api/auth/session.
      */
-    async jwt({ token, account, user }) {
-      // Initial login
-      if (user && account) {
-        return {
-          ...token,
-          id: user.id,
-          accessToken: account.access_token,
-          // Store the refresh token in the DB via Prisma, but keep the current AT in the JWT
-          accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0,
-        };
-      }
+    async jwt({ token, user }) {
+      if (user?.id) return { ...token, id: user.id };
       return token;
     },
 
-    /**
-     * SESSION UPLINK
-     * Makes the provider token and User ID available to the Dashboard components.
-     */
     async session({ session, token }) {
-      if (token) {
-        Object.assign(session, { accessToken: token.accessToken });
-        if (typeof token.id === "string") session.user.id = token.id;
-      }
+      if (typeof token?.id === "string") session.user.id = token.id;
       return session;
     },
   },

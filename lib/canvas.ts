@@ -4,6 +4,7 @@
 // existing callers without an id retain the established course set.
 
 import { getActiveCourses } from '@/lib/curriculum';
+import { isOwner } from '@/lib/auth/owner';
 
 // All tracked Canvas course ids (dashboard card + Academics hub read the same
 // list, so both show the same courses — full parity).
@@ -91,7 +92,9 @@ export async function fetchCanvasTelemetry(userId?: string): Promise<CanvasTelem
   const token = process.env.CANVAS_TOKEN;
   const base = process.env.CANVAS_BASE_URL || 'https://mango-cmu.instructure.com';
 
-  if (!token) return EMPTY;
+  // The token is the owner's: other accounts (and anonymous callers) get
+  // nothing, whatever courses they configure.
+  if (!token || !(await isOwner(userId))) return EMPTY;
 
   let configuredCourses = TARGET_COURSES;
   let configuredLabels: Record<string, string> = { ...COURSE_LABEL };
