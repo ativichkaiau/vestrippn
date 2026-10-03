@@ -16,7 +16,7 @@ See [`docs/system.md`](docs/system.md) for the design system, the registry and t
 
 ## Getting started
 
-Requires Node.js 20.9 or newer, plus a PostgreSQL database.
+Requires Node.js 22 or newer, plus a PostgreSQL database.
 
 ```bash
 npm ci
