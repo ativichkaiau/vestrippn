@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import ResearchClient, { type VaultItem } from "./ResearchClient";
+import MotionPolicy from '@/components/system/MotionPolicy';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -36,7 +37,9 @@ export default async function ResearchPage() {
 
   return (
     <div className="relative h-full w-full">
-      <ResearchClient cloudExtractions={savedExtractions} />
+      <MotionPolicy>
+        <ResearchClient cloudExtractions={savedExtractions} />
+      </MotionPolicy>
     </div>
   );
 }

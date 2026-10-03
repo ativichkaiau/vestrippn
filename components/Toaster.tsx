@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { onToast, type Toast } from '@/lib/toast-bus';
-import { useLowPower } from './useLowPower';
 import { useHydrated } from './system/hooks';
 
 // Semantic accents. `default` / `success` ride the livery --hub-accent so toasts
@@ -19,9 +17,6 @@ const VARIANT: Record<NonNullable<Toast['variant']>, { bar: string; chip: string
 export default function Toaster() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const mounted = useHydrated();
-  const reduce = useReducedMotion();
-  const lowPower = useLowPower();
-  const motionOff = Boolean(reduce || lowPower);
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
@@ -70,18 +65,12 @@ export default function Toaster() {
       aria-live="polite"
       aria-relevant="additions"
     >
-      <AnimatePresence initial={!motionOff}>
         {toasts.map((t) => {
           const v = VARIANT[t.variant ?? 'default'];
           return (
-            <motion.div
+            <div
               key={t.id}
-              layout={!motionOff}
-              initial={motionOff ? false : { opacity: 0, y: 16, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={motionOff ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.96, transition: { duration: 0.18 } }}
-              transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-              className="pointer-events-auto relative w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-black/10 bg-white/85 dark:border-white/10 dark:bg-[#0d0f12]/90"
+              className="sys-pop-in pointer-events-auto relative w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-black/10 bg-white/85 dark:border-white/10 dark:bg-[#0d0f12]/90"
               role="status"
             >
               <span className="absolute inset-y-0 left-0 w-1" style={{ background: v.bar }} />
@@ -123,10 +112,9 @@ export default function Toaster() {
                   <span className="text-[13px] leading-none">✕</span>
                 </button>
               </div>
-            </motion.div>
+            </div>
           );
         })}
-      </AnimatePresence>
     </div>,
     document.body,
   );

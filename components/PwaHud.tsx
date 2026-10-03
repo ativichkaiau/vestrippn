@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { toast } from '@/lib/toast-bus';
-import { useLowPower } from './useLowPower';
 import { useHydrated } from './system/hooks';
 
 // Minimal beforeinstallprompt typing (not in the standard DOM lib).
@@ -20,9 +18,6 @@ export default function PwaHud() {
   const [installEvt, setInstallEvt] = useState<BeforeInstallPromptEvent | null>(null);
   const [offline, setOffline] = useState(false);
   const mounted = useHydrated();
-  const reduce = useReducedMotion();
-  const lowPower = useLowPower();
-  const motionOff = Boolean(reduce || lowPower);
 
   useEffect(() => {
     let dismissed = false;
@@ -78,39 +73,27 @@ export default function PwaHud() {
   };
 
   if (!mounted) return null;
-  const t = motionOff ? { duration: 0 } : { type: 'spring' as const, stiffness: 380, damping: 30 };
 
   return (
     <>
       {/* Offline pill — slim banner under the header */}
-      <AnimatePresence>
         {offline && (
-          <motion.div
+          <div
             key="offline"
-            initial={motionOff ? false : { opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={motionOff ? { opacity: 0 } : { opacity: 0, y: -10 }}
-            transition={t}
-            className="pointer-events-none fixed inset-x-0 top-[84px] z-[190] flex justify-center px-4"
+            className="sys-pop-in pointer-events-none fixed inset-x-0 top-[84px] z-[190] flex justify-center px-4"
           >
             <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-widest text-amber-600 shadow-sm dark:text-amber-300">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               Offline · showing cached data
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* Install chip — bottom-left, livery-accented */}
-      <AnimatePresence>
         {installEvt && (
-          <motion.div
+          <div
             key="install"
-            initial={motionOff ? false : { opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={motionOff ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 }}
-            transition={t}
-            className="fixed bottom-24 left-4 z-[190] sm:bottom-6 sm:left-6"
+            className="sys-pop-in fixed bottom-24 left-4 z-[190] sm:bottom-6 sm:left-6"
           >
             <div
               className="flex items-center gap-2.5 rounded-2xl border border-black/10 bg-white/85 py-2 pl-2.5 pr-2 dark:border-white/10 dark:bg-[#0d0f12]/90"
@@ -146,9 +129,8 @@ export default function PwaHud() {
                 <span className="text-[12px] leading-none">✕</span>
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </>
   );
 }

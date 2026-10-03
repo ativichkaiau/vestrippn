@@ -40,7 +40,7 @@ The study hubs (academics, workspace, cases, analytics, fitness, IELTS, assistan
 
 ## Motion
 
-Motion uses CSS only, at 120–220 ms: page fade-in, the drawer and palette reveal, and the blinking cursor in the masthead. Framer-motion components in the hubs run under `MotionPolicy` (`reducedMotion="always"`), so they fade but never spring or travel. The garage viewer is the one thing that moves on its own. It sleeps between frames at 30 fps and pauses when hidden, under reduced motion and in low power.
+Motion uses CSS only, at 120–220 ms: page fade-in, the drawer and palette reveal, and the blinking cursor in the masthead. Framer-motion is loaded only by the four hubs that use it (academics, fitness, IELTS, research), whose route pages wrap them in `MotionPolicy` (`reducedMotion="always"`), so they fade but never spring or travel. Toasts and notices use CSS (`.sys-pop-in`). Focus mode loads on first request (`FocusModeLoader`). The garage viewer is the one thing that moves on its own. It sleeps between frames at 30 fps and pauses when hidden, under reduced motion and in low power.
 
 ## Garage
 

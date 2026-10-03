@@ -1011,6 +1011,25 @@ button.sys-tool:hover {
   color: var(--text-secondary);
 }
 
+/* Toasts and notices enter with a short rise; nothing springs. */
+.sys-pop-in {
+  animation: sys-pop-in var(--duration-ui) var(--ease-out) both;
+}
+@keyframes sys-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sys-pop-in {
+    animation: none;
+  }
+}
+html.low-power .sys-pop-in {
+  animation: none;
+}
+
 /* ── Shell: responsive ──────────────────────────────────────────────────── */
 
 @media (max-width: 1023px) {

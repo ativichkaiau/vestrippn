@@ -633,11 +633,12 @@ const emptyHudView = (plan: number[]): HudView => ({
   lapSum: 0,
 });
 
-type FocusLaunchDetail = { title?: string; minutes?: number; agendaItemId?: string };
+export type FocusLaunchDetail = { title?: string; minutes?: number; agendaItemId?: string };
 
-export default function FocusMode({ showTrigger = true }: { showTrigger?: boolean } = {}) {
+export default function FocusMode({ showTrigger = true, launch: initialLaunch }: { showTrigger?: boolean; launch?: FocusLaunchDetail | true } = {}) {
   const [open, setOpen] = useState(false);
   const mounted = useHydrated();
+  const launchRef = useRef(initialLaunch);
   const [phase, setPhase] = useState<Phase>('setup');
   const [selected, setSelected] = useState<Track | null>(null);
   const [targetType, setTargetType] = useState<TargetType>('min');
@@ -728,6 +729,10 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
       if (sessionStorage.getItem('vest_focus_open') === '1') {
         sessionStorage.removeItem('vest_focus_open');
         openTimer = window.setTimeout(() => setOpen(true), 0);
+      } else if (launchRef.current) {
+        // Loaded lazily by FocusModeLoader: replay the request that loaded it.
+        const detail = launchRef.current === true ? undefined : launchRef.current;
+        openTimer = window.setTimeout(() => openFocus(new CustomEvent('vest:focus-open', { detail })), 0);
       }
     } catch {
       /* ignore */
@@ -832,6 +837,18 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
     lightTimers.current = [];
     if (flashTimer.current) clearTimeout(flashTimer.current);
   }, []);
+
+  // Escape closes the overlay from setup or the results screen. A running
+  // session ends only through its own controls (hold to stop), so a stray
+  // key can't throw away a lap.
+  useEffect(() => {
+    if (!open || phase === 'running') return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [open, phase, close]);
 
   // Build the speed/length profile once the running SVG is mounted
   useEffect(() => {
@@ -1105,7 +1122,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
       </button>}
 
       {open && mounted && createPortal(
-        <div className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
+        <div role="dialog" aria-modal="true" aria-label="Focus mode" className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
           <style>{`@keyframes fmFade{0%{opacity:0;transform:translate(-50%,6px) scale(0.96)}15%{opacity:1;transform:translate(-50%,0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px) scale(1)}}@keyframes fmPop{0%{opacity:0;transform:scale(0.7)}30%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
           {/* W85 — the carbon weave + twin accent bloom is retired; focus mode
               is a flat ground so the timer is the only thing on screen. */}

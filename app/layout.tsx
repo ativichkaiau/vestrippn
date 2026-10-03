@@ -8,11 +8,10 @@ import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
 import Toaster from "../components/Toaster";
 import PwaHud from "../components/PwaHud";
 import DeviceSync from "../components/DeviceSync";
-import FocusMode from "../components/FocusMode";
+import FocusModeLoader from "../components/FocusModeLoader";
 import ThemeController from "../components/ThemeController";
 import Shell, { type BuildInfo } from "../components/system/Shell";
 import CommandPalette from "../components/system/CommandPalette";
-import MotionPolicy from "../components/system/MotionPolicy";
 import { THEME_BOOT_SCRIPT } from "../lib/theme-config";
 
 const geistSans = Geist({
@@ -91,16 +90,14 @@ export default function RootLayout({
           }}
         />
         <AuthProvider>
-          <MotionPolicy>
-            <ThemeController />
-            <CommandPalette build={BUILD} />
-            <ServiceWorkerRegister />
-            <Toaster />
-            <PwaHud />
-            <DeviceSync />
-            <FocusMode showTrigger={false} />
-            <Shell build={BUILD}>{children}</Shell>
-          </MotionPolicy>
+          <ThemeController />
+          <CommandPalette build={BUILD} />
+          <ServiceWorkerRegister />
+          <Toaster />
+          <PwaHud />
+          <DeviceSync />
+          <FocusModeLoader />
+          <Shell build={BUILD}>{children}</Shell>
         </AuthProvider>
       </body>
     </html>
