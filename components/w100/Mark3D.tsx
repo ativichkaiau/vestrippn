@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LIVERY_CATALOG, type Livery } from '@/lib/liveries';
 import { carbonPaint, liveryPaint } from '@/lib/w100/livery-paint';
 import { MarkRenderer } from '@/lib/w100/mark-renderer';
-import { motionAllowed } from '@/lib/view-transition';
+import { motionAllowed } from '@/lib/motion';
 
 /**
  * The W100 mark: the VESTRIPPN "3" in real 3D, painted in a livery.
@@ -36,7 +36,7 @@ const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t 
 
 function activeLivery(): Livery {
   const value = document.documentElement.dataset.livery;
-  return value && Object.prototype.hasOwnProperty.call(LIVERY_CATALOG, value) ? (value as Livery) : 'normal';
+  return value && Object.prototype.hasOwnProperty.call(LIVERY_CATALOG, value) ? (value as Livery) : 'system';
 }
 
 export default function Mark3D({

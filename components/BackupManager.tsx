@@ -96,7 +96,7 @@ export default function BackupManager() {
 
   return (
     <div className="space-y-6">
-      <section className="w85-panel-accent rounded-2xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:p-7">
+      <section className="rounded-2xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div><h2 className="text-2xl font-black">Backup & device sync</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500 dark:text-neutral-400">Your account is the source of truth for courses, tasks, notes, saved papers, plan budgets, and focus history. This browser keeps an offline copy of the latest focus sessions so a connection drop does not erase a run.</p></div>
           <div className="rounded-xl border border-black/10 px-3 py-2 text-right text-xs dark:border-white/10"><p className="font-black uppercase tracking-widest text-neutral-400">Sync status</p><p className="mt-1 font-bold">{status.message}</p>{status.lastSync && <p className="mt-1 text-neutral-500">Last sync {status.lastSync}</p>}</div>

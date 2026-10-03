@@ -1,23 +1,37 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useId, useState } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
-import LiveryScene from "../../../components/LiveryScene";
-import Mark3D from "../../../components/w100/Mark3D";
+import { resolvePath } from "@/lib/system/navigation";
 
 type Mode = "signin" | "register";
+type Phase = "idle" | "authenticating" | "mounting" | "google" | "line";
 
+const PHASE_LABEL: Record<Exclude<Phase, "idle">, string> = {
+  authenticating: "resolving identity…",
+  mounting: "mounting environment…",
+  google: "redirecting to Google…",
+  line: "redirecting to LINE…",
+};
+
+/* The entry boundary into VESTRIPPN. Providers and logic are unchanged:
+   Google and LINE through Auth.js, local email/password through the
+   credentials provider (with registration at /api/auth/register). */
 export default function SignInClient({ callbackUrl }: { callbackUrl: string }) {
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const ids = { name: useId(), email: useId(), password: useId(), status: useId() };
+  const busy = phase !== "idle";
+  const requested = resolvePath(safePath(callbackUrl)).display;
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setBusy(true);
+    setPhase("authenticating");
     setError("");
 
     try {
@@ -41,129 +55,152 @@ export default function SignInClient({ callbackUrl }: { callbackUrl: string }) {
       });
       if (result?.error) throw new Error("Invalid email or password");
 
+      setPhase("mounting");
       window.location.href = result?.url || callbackUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
-    } finally {
-      setBusy(false);
+      setPhase("idle");
     }
   };
 
+  const provider = (id: "google" | "line") => {
+    setError("");
+    setPhase(id);
+    void signIn(id, { callbackUrl });
+  };
+
   return (
-    <main className="flex h-full flex-col items-center overflow-y-auto bg-[var(--w09-bg)] px-5 py-10 text-[color:var(--w09-text)]">
-      <div className="spatial-auth-layout">
-        <aside className="spatial-auth-showcase" aria-label="Your W100 workspace">
-          <p className="livery-eyebrow">W100 · Third dimension</p>
-          <h2>Your world.<br />A new dimension.</h2>
-          <p>Clinical learning. Research. Everyday progress.</p>
-          <LiveryScene />
-        </aside>
-      <div className="w85-panel-accent spatial-auth-panel w-full max-w-md shrink-0 rounded-[32px] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-2xl backdrop-blur-xl">
-        <Mark3D interactive={false} className="spatial-auth-mark" label="" />
-        <div className="mb-7">
-          <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#00A598]">
-            VESTRIPPN W100 · Auth
-          </div>
-          <h1 className="mt-3 text-3xl font-black tracking-tight">
-            {mode === "signin" ? "Sign in" : "Create local account"}
-          </h1>
-          <p className="mt-2 text-sm text-[color:var(--w09-text-muted)]">
-            Google stays online. LINE and local email/password are now available.
+    <main className="sys-auth">
+      <section className="sys-auth-boundary" aria-label="VESTRIPPN">
+        <div>
+          <p className="sys-label">VESTRIPPN / auth_gate</p>
+          <p className="sys-auth-brand" style={{ marginTop: "var(--space-5)" }}>
+            VESTRIPPN<span className="sys-cursor" aria-hidden="true">_</span>
           </p>
+          <p className="sys-label" style={{ marginTop: "var(--space-6)" }}>
+            root environment
+          </p>
+          <ul className="sys-auth-branches">
+            <li>medicine</li>
+            <li>research</li>
+            <li>software</li>
+            <li>archives</li>
+          </ul>
         </div>
+        <dl className="sys-meta sys-auth-detail" data-compact data-bare>
+          <div>
+            <dt>session</dt>
+            <dd data-mono>not authenticated</dd>
+          </div>
+          <div>
+            <dt>status</dt>
+            <dd data-mono>restricted session</dd>
+          </div>
+          <div>
+            <dt>requested</dt>
+            <dd data-mono>{requested}</dd>
+          </div>
+        </dl>
+      </section>
 
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl })}
-            className="rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm font-black transition hover:bg-[var(--w09-bg)]"
-          >
-            Google
-          </button>
-          <button
-            type="button"
-            onClick={() => signIn("line", { callbackUrl })}
-            className="rounded-2xl border border-[#06C755]/30 bg-[#06C755]/20 px-4 py-3 text-sm font-black text-[#066b2e] transition hover:bg-[#06C755]/30 dark:text-[#8cffb0]"
-          >
-            LINE
-          </button>
-        </div>
+      <section className="sys-auth-form-area">
+        <div className="sys-auth-form">
+          <div>
+            <p className="sys-label">{mode === "signin" ? "authenticate" : "local_auth / register"}</p>
+            <h1>{mode === "signin" ? "Sign in" : "Create local account"}</h1>
+          </div>
 
-        <div className="my-6 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[color:var(--w09-text-muted)]">
-          <span className="h-px flex-1 bg-[var(--w09-border)]" />
-          Local
-          <span className="h-px flex-1 bg-[var(--w09-border)]" />
-        </div>
+          <div className="sys-auth-providers" role="group" aria-label="Sign in with a provider">
+            <button type="button" className="sys-auth-provider" onClick={() => provider("google")} disabled={busy}>
+              <span>Google</span>
+              <span>oauth</span>
+            </button>
+            <button type="button" className="sys-auth-provider" onClick={() => provider("line")} disabled={busy}>
+              <span>LINE</span>
+              <span>oauth</span>
+            </button>
+          </div>
 
-        <form onSubmit={submit} className="space-y-3">
-          {mode === "register" && (
-            <label className="block">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
-                Name
-              </span>
+          <div className="sys-auth-divider">
+            <span className="sys-label">local_auth</span>
+          </div>
+
+          <form onSubmit={submit} className="sys-auth-fields" aria-describedby={ids.status}>
+            {mode === "register" && (
+              <div className="sys-field">
+                <label htmlFor={ids.name}>name</label>
+                <input id={ids.name} className="sys-input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+              </div>
+            )}
+            <div className="sys-field">
+              <label htmlFor={ids.email}>email</label>
               <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm outline-none transition placeholder:text-[color:var(--w09-text-muted)] focus:border-[#00A598]"
-                placeholder="Operator"
+                id={ids.email}
+                className="sys-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
               />
-            </label>
-          )}
-          <label className="block">
-            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
-              Email
-            </span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm outline-none transition placeholder:text-[color:var(--w09-text-muted)] focus:border-[#00A598]"
-              placeholder="you@example.com"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
-              Password
-            </span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={8}
-              required
-              className="w-full rounded-2xl border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] px-4 py-3 text-sm outline-none transition placeholder:text-[color:var(--w09-text-muted)] focus:border-[#00A598]"
-              placeholder="8+ characters"
-            />
-          </label>
-
-          {error && (
-            <div role="alert" className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-200">
-              {error}
             </div>
-          )}
+            <div className="sys-field">
+              <label htmlFor={ids.password}>password</label>
+              <input
+                id={ids.password}
+                className="sys-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={8}
+                required
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                placeholder="8+ characters"
+              />
+            </div>
+
+            {error && (
+              <div role="alert" className="sys-alert">
+                {error}
+              </div>
+            )}
+
+            <button type="submit" className="sys-action sys-auth-submit" data-variant="primary" disabled={busy}>
+              {mode === "signin" ? "authenticate" : "create + sign in"}
+            </button>
+          </form>
+
+          <p id={ids.status} role="status" className="sys-auth-status">
+            {phase === "idle" ? "" : PHASE_LABEL[phase]}
+          </p>
 
           <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-2xl bg-[#00A598] px-4 py-3 text-sm font-black text-black transition hover:bg-[#12c7b8] disabled:cursor-wait disabled:opacity-60"
+            type="button"
+            className="sys-auth-switch"
+            onClick={() => {
+              setError("");
+              setMode(mode === "signin" ? "register" : "signin");
+            }}
           >
-            {busy ? "Working..." : mode === "signin" ? "Sign in locally" : "Create + sign in"}
+            {mode === "signin" ? "need a local account? register →" : "have a local account? sign in →"}
           </button>
-        </form>
 
-        <button
-          type="button"
-          onClick={() => {
-            setError("");
-            setMode(mode === "signin" ? "register" : "signin");
-          }}
-          className="mt-5 w-full text-center text-xs font-bold text-[color:var(--w09-text-muted)] transition hover:text-[color:var(--w09-text)]"
-        >
-          {mode === "signin" ? "Need a local account?" : "Already have a local account?"}
-        </button>
-      </div>
-      </div>
+          <Link className="sys-auth-switch" href="/legal">
+            privacy, terms & disclaimers
+          </Link>
+        </div>
+      </section>
     </main>
   );
+}
+
+/** Only same-origin paths are shown as the requested location. */
+function safePath(url: string): string {
+  try {
+    const parsed = new URL(url, "https://vestrippn.local");
+    return parsed.origin === "https://vestrippn.local" ? parsed.pathname : "/";
+  } catch {
+    return "/";
+  }
 }

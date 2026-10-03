@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
+import { Skel, SkelGroup, SkelLabel } from '@/components/system/Skeleton';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface AcademicsData {
@@ -54,7 +54,7 @@ export default function AcademicsCard() {
     ? Math.round(graded.reduce((sum, sub) => sum + (sub.progress ?? 0), 0) / graded.length)
     : 0;
 
-  // W100 skeleton: livery-lit carbon (components/w100/Skeleton).
+  // Loading placeholder (components/system/Skeleton).
   if (!isMounted) return (
     <SkelGroup label="academic progress" className="flex w-full flex-col gap-4">
       <SkelLabel label="Sync · Academics" />
@@ -134,7 +134,7 @@ export default function AcademicsCard() {
             </div>
           )) : (
             <div className="text-[12px] font-medium text-neutral-400 dark:text-neutral-500 italic py-4 text-center sm:text-left">
-              Establishing Uplink...
+              Loading Canvas…
             </div>
           )}
         </div>

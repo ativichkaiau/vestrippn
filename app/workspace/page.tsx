@@ -1,4 +1,10 @@
 import WorkspaceClient from './WorkspaceClient';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Workspace',
+  description: 'Daily plan, exam coverage, courses and backup.',
+};
 
 export const dynamic = 'force-dynamic';
 

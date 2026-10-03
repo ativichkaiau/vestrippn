@@ -1,11 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import ThemeToggle from '@/components/ThemeToggle';
-import ArcDate from '@/components/ArcDate';
-import TopNavProfile from '@/components/TopNavProfile';
-import BrandMark from '@/components/BrandMark';
-import { NavRail, MobileHubNav } from '@/components/HubNav';
 import { CIRCUIT_META, CIRCUIT_COUNT } from '@/lib/circuits';
 import {
   readFocusLog,
@@ -20,7 +15,8 @@ import {
 } from '@/lib/study-log';
 import type { CanvasTelemetry } from '@/lib/canvas';
 import type { AnkiHistoryPoint } from '@/lib/anki';
-import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
+import { Skel, SkelGroup, SkelLabel } from '@/components/system/Skeleton';
+import { MetadataGrid, Page, PageHeader, Section } from '@/components/system/primitives';
 
 type Props = {
   canvas: CanvasTelemetry;
@@ -75,7 +71,7 @@ function Panel({ id, accent, eyebrow, title, note, children }: { id?: string; ac
   return (
     <section
       id={id}
-      className="relative overflow-hidden rounded-[28px] border border-black/5 bg-white/60 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-colors duration-700 dark:border-white/5 dark:bg-white/5 lg:rounded-[32px] lg:p-7"
+      className="relative overflow-hidden rounded-md border border-black/5 bg-white/60 p-5 transition-colors duration-700 dark:border-white/5 dark:bg-white/5 lg:p-7"
     >
       <div className="mb-5 flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -103,7 +99,6 @@ function Stat({ label, value, sub, accent }: { label: string; value: string; sub
 }
 
 export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Props) {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [pbs, setPbs] = useState<CircuitPB[]>([]);
   const [focusLog, setFocusLog] = useState<FocusSession[]>([]);
@@ -171,53 +166,22 @@ export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Prop
   const totalReviews = ankiHistory.reduce((a, d) => a + d.reviewedToday, 0);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#FAFAFA] font-sans text-neutral-900 transition-colors duration-700 dark:bg-[#050505] dark:text-neutral-100">
-      {/* atmosphere */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-[12%] right-[8%] h-[60%] w-[60%] rounded-full bg-gradient-to-br from-emerald-400/25 via-teal-400/20 to-cyan-400/20 opacity-80 blur-[120px] mix-blend-multiply transition-all duration-1000 dark:from-emerald-600/15 dark:via-teal-600/10 dark:to-cyan-800/15 dark:opacity-70 dark:mix-blend-screen" />
-        <div className="absolute -bottom-[12%] left-[3%] h-[55%] w-[55%] rounded-full bg-gradient-to-tr from-teal-400/20 via-emerald-400/15 to-sky-300/20 opacity-70 blur-[120px] mix-blend-multiply transition-all duration-1000 dark:from-teal-600/12 dark:via-emerald-600/8 dark:to-sky-700/12 dark:opacity-60 dark:mix-blend-screen" />
-      </div>
-
-      {/* header */}
-      <header className="z-50 flex h-[72px] shrink-0 items-center justify-between border-b border-black/5 bg-white/60 px-4 backdrop-blur-2xl transition-colors duration-700 dark:border-white/5 dark:bg-black/40 lg:px-8">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <button onClick={() => setIsSidebarExpanded((v) => !v)} className="hidden items-center justify-center rounded-xl p-2 text-neutral-500 transition-colors hover:bg-black/5 active:scale-95 dark:text-neutral-400 dark:hover:bg-white/10 lg:flex">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="18" x2="14" y2="18" /></svg>
-          </button>
-          <BrandMark />
-        </div>
-        <div className="flex items-center gap-4 lg:gap-6">
-          <div className="hidden text-[12px] font-medium tracking-tight text-neutral-400 transition-colors duration-700 dark:text-neutral-500 sm:block"><ArcDate /></div>
-          <div className="hidden h-5 w-px bg-black/10 transition-colors duration-700 dark:bg-white/10 sm:block" />
-          <TopNavProfile />
-          <ThemeToggle />
-        </div>
-      </header>
-
-      <div className="relative z-10 flex flex-1 overflow-hidden">
-        <NavRail active="Analytics" expanded={isSidebarExpanded} onToggle={() => setIsSidebarExpanded((v) => !v)} />
-
-        <main className="custom-scrollbar flex-1 overflow-y-auto p-4 pb-32 transition-all duration-500 sm:p-6 lg:p-10 lg:pb-10">
-          <div className="mx-auto max-w-[1400px] space-y-6 lg:space-y-8">
-            {/* HERO */}
-            <section className="relative overflow-hidden rounded-[32px] border border-black/5 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-colors duration-700 dark:border-white/5 dark:bg-white/5 lg:rounded-[40px] lg:p-9">
-              <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-emerald-500/15 blur-3xl" />
-              <div className="relative z-10">
-                <div className="mb-2 inline-flex rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-300">Study Telemetry</div>
-                <h1 className="text-[28px] font-black leading-tight tracking-tight text-neutral-900 dark:text-white lg:text-[40px]">
-                  Season <span className="text-emerald-500">standings</span> & study trends
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-neutral-500 dark:text-neutral-400">
-                  Lap PBs, focus history, review streak and grade projection — one telemetry board. Trends build day over day from each visit.
-                </p>
-                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Stat label="Focus sessions" value={mounted ? String(focus.total) : '—'} sub={mounted ? `${focus.last7} this week` : undefined} accent="text-emerald-500" />
-                  <Stat label="Circuits driven" value={mounted ? `${standings.length}/${CIRCUIT_COUNT}` : '—'} sub="qualifying PBs" />
-                  <Stat label="Review streak" value={anki ? `${anki.streak}d` : '—'} sub={anki ? `${anki.reviewedToday} today` : 'no Anki sync'} accent="text-orange-500" />
-                  <Stat label="Grade average" value={gradeAvg != null ? `${gradeAvg}%` : '—'} sub={`${graded.length} graded`} />
-                </div>
-              </div>
-            </section>
+    <Page wide hub>
+      <PageHeader
+        label="runtime / personal"
+        title="Analytics"
+        lede="Study telemetry read live from Canvas and Anki, with lap and focus history stored on this device."
+      />
+            <Section id="summary" title="summary">
+              <MetadataGrid
+                rows={[
+                  { key: 'focus sessions', value: mounted ? `${focus.total} · ${focus.last7} this week` : '—', mono: true },
+                  { key: 'circuits driven', value: mounted ? `${standings.length}/${CIRCUIT_COUNT} · qualifying PBs` : '—', mono: true },
+                  { key: 'review streak', value: anki ? `${anki.streak}d · ${anki.reviewedToday} today` : 'no Anki sync', mono: true },
+                  { key: 'grade average', value: gradeAvg != null ? `${gradeAvg}% · ${graded.length} graded` : `— · ${graded.length} graded`, mono: true },
+                ]}
+              />
+            </Section>
 
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
               {/* SEASON STANDINGS */}
@@ -395,11 +359,6 @@ export default function AnalyticsClient({ canvas, anki, ankiHistory = [] }: Prop
             <p className="px-2 pb-2 text-center text-[11px] font-medium text-neutral-400 dark:text-neutral-600">
               Grades, streak &amp; review history read live from Canvas + Anki. Lap PBs and focus history are stored on this device.
             </p>
-          </div>
-        </main>
-
-        <MobileHubNav active="Analytics" />
-      </div>
-    </div>
+    </Page>
   );
 }

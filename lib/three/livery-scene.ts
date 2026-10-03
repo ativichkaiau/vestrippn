@@ -9,11 +9,16 @@ import { createRaceCar, type LiverySceneTheme } from './livery-model';
 
 export type { LiverySceneTheme } from './livery-model';
 export type SceneView = 'three-quarter' | 'side' | 'front';
+export type SceneStats = { meshes: number; triangles: number };
 export type SceneController = {
   updateTheme: (theme: LiverySceneTheme) => void;
   setMotionAllowed: (allowed: boolean) => void;
+  /** Continuous turntable rotation (only while motion is allowed). */
+  setRotating: (rotating: boolean) => void;
   setView: (view: SceneView) => void;
   reset: () => void;
+  /** Geometry of the object itself (the turntable excluded). */
+  stats: () => SceneStats;
   dispose: () => void;
 };
 type Options = {
@@ -22,6 +27,8 @@ type Options = {
   onReady: () => void;
   onFallback: () => void;
   onInteraction: () => void;
+  /** Called after each rendered frame with the camera angles, in degrees. */
+  onCamera?: (yaw: number, pitch: number) => void;
 };
 
 /** Owns one canvas and its complete GPU / observer lifecycle. Imported only in the browser. */
@@ -35,10 +42,10 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   renderer.shadowMap.needsUpdate = true;
   renderer.setClearColor(0, 0);
   const canvas = renderer.domElement;
-  canvas.className = 'w85-showroom-canvas';
+  canvas.className = 'sys-viewer-canvas';
   canvas.tabIndex = 0;
   canvas.setAttribute('role', 'img');
-  canvas.setAttribute('aria-label', 'Interactive three-dimensional W100 concept car. Drag to turn, use arrow keys to rotate, or use the view buttons.');
+  canvas.setAttribute('aria-label', 'Silver Arrow, an interactive three-dimensional open-wheel concept car. Drag to turn, use arrow keys to rotate, or use the view buttons.');
   host.appendChild(canvas);
 
   const scene = new Scene();
@@ -74,12 +81,12 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
 
   const podium = new Group();
   podium.name = 'Machined turntable';
-  const platformMaterial = new MeshStandardMaterial({ color: '#263240', metalness: 0.72, roughness: 0.32 });
+  const platformMaterial = new MeshStandardMaterial({ color: '#1b1e22', metalness: 0.6, roughness: 0.4 });
   const platform = new Mesh(new CylinderGeometry(3.2, 3.29, 0.13, 96), platformMaterial);
   platform.position.y = -0.074;
   platform.receiveShadow = true;
   podium.add(platform);
-  const trimMaterial = new MeshStandardMaterial({ color: '#687581', metalness: 0.9, roughness: 0.24 });
+  const trimMaterial = new MeshStandardMaterial({ color: '#3b4148', metalness: 0.85, roughness: 0.3 });
   const trim = new Mesh(new CylinderGeometry(3.28, 3.28, 0.026, 96), trimMaterial);
   trim.position.y = -0.115;
   podium.add(trim);
@@ -88,7 +95,7 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   lightRing.rotation.x = -Math.PI / 2;
   lightRing.position.y = -0.006;
   podium.add(lightRing);
-  const lineMaterial = new MeshBasicMaterial({ color: '#97a9bb', transparent: true, opacity: 0.14 });
+  const lineMaterial = new MeshBasicMaterial({ color: '#9aa0a8', transparent: true, opacity: 0.14 });
   for (const radius of [2.65, 2.8, 2.95]) {
     const circle = new Mesh(new RingGeometry(radius, radius + 0.006, 96), lineMaterial);
     circle.rotation.x = -Math.PI / 2;
@@ -131,11 +138,11 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   let intersects = true;
   let occluded = false;
   let motionAllowed = options.motionAllowed;
-  let interacted = false;
+  let rotating = false;
+  let lastSpin = 0;
   let yaw = -0.82;
   let pitch = 0.44;
   let aspect = 1;
-  let idleStart = performance.now();
   let activePointer: number | null = null;
   let previousX = 0;
   let previousY = 0;
@@ -143,15 +150,17 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   let previousHeight = 0;
 
   const visible = () => intersects && !occluded && document.visibilityState !== 'hidden';
-  const canOrbit = () => motionAllowed && !interacted && visible();
+  const canOrbit = () => motionAllowed && rotating && activePointer === null && visible();
   const stopFrame = () => {
     if (frame) cancelAnimationFrame(frame);
     if (idleTimer) window.clearTimeout(idleTimer);
     frame = idleTimer = 0;
   };
-  // The idle sway sleeps between frames on a timer; a rAF that skips most
-  // vsyncs still wakes the whole page 60 times a second.
-  const IDLE_FRAME_MS = 1000 / 15;
+  // The turntable sleeps between frames on a timer; a rAF that skips most
+  // vsyncs still wakes the whole page 60 times a second. One revolution takes
+  // ~25 s, so 30 fps is smooth.
+  const IDLE_FRAME_MS = 1000 / 30;
+  const SPIN_RAD_PER_S = 0.25;
   const sleepThenDraw = () => { idleTimer = window.setTimeout(() => { idleTimer = 0; if (!frame) frame = requestAnimationFrame(draw); }, IDLE_FRAME_MS); };
   function draw(time: number) {
     frame = 0;
@@ -159,7 +168,6 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
     const orbit = canOrbit();
     const motion = orbit ? 'orbit' : 'still';
     if (host.dataset.sceneMotion !== motion) host.dataset.sceneMotion = motion;
-    // The idle sway is a few degrees over ~90s: 15fps is visually identical.
     if (orbit && time - lastFrame < IDLE_FRAME_MS - 4) {
       sleepThenDraw();
       return;
@@ -175,14 +183,17 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
     }
-    const idleOffset = orbit ? Math.sin((time - idleStart) / 14000) * 0.15 : 0;
-    const angle = yaw + idleOffset;
-    const distance = 7 * Math.max(1, 1.75 / aspect);
+    if (orbit) yaw -= Math.min(time - (lastSpin || time), 100) / 1000 * SPIN_RAD_PER_S;
+    lastSpin = orbit ? time : 0;
+    const angle = yaw;
+    // Framed for the garage stage: the whole turntable stays in view.
+    const distance = 9.4 * Math.max(1, 1.75 / aspect);
     camera.position.set(Math.sin(angle) * Math.cos(pitch) * distance, Math.sin(pitch) * distance + 0.38, Math.cos(angle) * Math.cos(pitch) * distance);
     camera.lookAt(-0.12, 0.38, 0);
     try {
       renderer.render(scene, camera);
       if (!ready) { ready = true; options.onReady(); }
+      options.onCamera?.(((-angle * 180 / Math.PI) % 360 + 360) % 360, pitch * 180 / Math.PI);
     } catch {
       failed = true;
       options.onFallback();
@@ -198,8 +209,9 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   function updateTheme(theme: LiverySceneTheme) {
     car.update(theme);
     lightMaterial.color.set(theme.accent);
-    platformMaterial.color.set(theme.isLight ? '#697783' : '#263240');
-    trimMaterial.color.set(theme.isLight ? '#a5b4c0' : '#687581');
+    // The turntable is neutral: it belongs to the viewer, not the paint.
+    platformMaterial.color.set(theme.isLight ? '#b9bbb6' : '#1b1e22');
+    trimMaterial.color.set(theme.isLight ? '#d2d3cd' : '#3b4148');
     lineMaterial.opacity = theme.isLight ? 0.25 : 0.14;
     rim.color.copy(new Color(theme.accent).lerp(new Color('#ffffff'), 0.6));
     invalidate();
@@ -212,11 +224,17 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
     invalidate();
   }
   function interaction() {
-    interacted = true;
+    rotating = false;
     options.onInteraction();
   }
+  function setRotating(next: boolean) {
+    rotating = next;
+    lastSpin = 0;
+    stopFrame();
+    invalidate();
+  }
   function setView(view: SceneView) {
-    interacted = true;
+    rotating = false;
     yaw = view === 'front' ? -Math.PI / 2 : view === 'side' ? 0 : -0.82;
     pitch = view === 'front' ? 0.18 : view === 'side' ? 0.22 : 0.44;
     invalidate();
@@ -224,9 +242,18 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
   function reset() {
     yaw = -0.82;
     pitch = 0.44;
-    interacted = false;
-    idleStart = performance.now();
     invalidate();
+  }
+  function stats(): SceneStats {
+    let meshes = 0;
+    let triangles = 0;
+    car.group.traverse(object => {
+      if (!(object instanceof Mesh)) return;
+      meshes += 1;
+      const geometry = object.geometry;
+      triangles += (geometry.index ? geometry.index.count : geometry.attributes.position.count) / 3;
+    });
+    return { meshes, triangles: Math.round(triangles) };
   }
   function pointerDown(event: PointerEvent) {
     if (event.button !== 0 || activePointer !== null) return;
@@ -335,5 +362,5 @@ export function createLiveryScene(host: HTMLElement, options: Options): SceneCon
     delete host.dataset.sceneMotion;
     scene.clear();
   }
-  return { updateTheme, setMotionAllowed, setView, reset, dispose };
+  return { updateTheme, setMotionAllowed, setRotating, setView, reset, stats, dispose };
 }

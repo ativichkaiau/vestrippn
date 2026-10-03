@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import SignInClient from "./SignInClient";
 
-export const metadata: Metadata = { title: "Sign in · VESTRIPPN W100" };
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Authentication boundary for VESTRIPPN.",
+};
 
 export default async function SignInPage({
   searchParams,

@@ -3,6 +3,7 @@
 import { Fragment, useState } from 'react';
 import ChatPane, { type ChatMessage } from '@/components/w09/ChatPane';
 import CitationPopover, { type Citation } from '@/components/w09/CitationPopover';
+import { Action, Page, PageHeader } from '@/components/system/primitives';
 
 type Msg = { id: string; role: 'user' | 'assistant'; content: string; citations?: Citation[] };
 
@@ -99,25 +100,25 @@ export default function DasChatClient() {
   const view: ChatMessage[] = msgs.map((m) => ({ id: m.id, role: m.role, content: renderContent(m) }));
 
   return (
-    <main className="flex h-screen flex-col bg-[var(--w09-bg)] text-[color:var(--w09-text)]">
-      <header className="border-b border-[color:var(--w09-border)] px-5 py-4">
-        <h1 className="text-lg font-bold [font-family:var(--w09-font-display)]">DAS · Chat</h1>
-        <p className="text-sm text-[color:var(--w09-text-muted)]">
-          Ask questions grounded in your ingested sources.
-        </p>
-      </header>
+    <Page>
+      <PageHeader
+        label="runtime / research"
+        title="Assistant"
+        lede="Ask questions grounded in your ingested sources. Answers cite them inline."
+        actions={<Action href="/das/ingest">ingest sources</Action>}
+      />
 
       {error && (
-        <div className="mx-auto mt-3 w-full max-w-3xl px-4">
+        <div className="sys-section" style={{ marginTop: 24 }}>
           <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-danger)] bg-[var(--w09-surface)] px-4 py-2 text-sm text-[color:var(--w09-danger)]">
             {error}
           </div>
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-3xl flex-1 min-h-0 p-4">
-        <ChatPane messages={view} isStreaming={isStreaming} onSend={onSend} placeholder="Ask DAS…" />
+      <div className="sys-chat-frame">
+        <ChatPane messages={view} isStreaming={isStreaming} onSend={onSend} placeholder="ask a question…" />
       </div>
-    </main>
+    </Page>
   );
 }

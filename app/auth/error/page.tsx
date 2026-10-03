@@ -1,23 +1,53 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
-export default function AuthErrorPage() {
+export const metadata: Metadata = { title: "Auth error" };
+
+// Auth.js error codes, in plain language. Unknown codes fall back to the
+// generic reason and are still shown as-is.
+const REASONS: Record<string, string> = {
+  AccessDenied: "The account was not allowed to enter.",
+  Configuration: "The server's authentication configuration is incomplete.",
+  Verification: "The sign-in link has expired or was already used.",
+  OAuthAccountNotLinked: "This email is already linked to a different sign-in method.",
+};
+
+export default async function AuthErrorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>;
+}) {
+  const { error } = await searchParams;
+  const code = (Array.isArray(error) ? error[0] : error) || "AccessDenied";
+  const reason = REASONS[code] ?? "The account was not allowed, or the provider did not return a usable email.";
+
   return (
-    <main className="flex h-full flex-col items-center overflow-y-auto bg-[var(--w09-bg)] px-5 py-10 text-[color:var(--w09-text)]">
-      <div className="w85-panel-accent my-auto w-full max-w-md shrink-0 rounded-[32px] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 text-center shadow-2xl backdrop-blur-xl">
-        <div className="text-[10px] font-black uppercase tracking-[0.28em] text-red-700 dark:text-red-300">
-          Auth error
+    <main className="sys-auth" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+      <section className="sys-auth-form-area">
+        <div className="sys-auth-form">
+          <div>
+            <p className="sys-label">VESTRIPPN / auth_gate</p>
+            <h1>Sign-in failed</h1>
+          </div>
+          <dl className="sys-meta" data-compact>
+            <div>
+              <dt>status</dt>
+              <dd data-mono>AUTH_REJECTED</dd>
+            </div>
+            <div>
+              <dt>error</dt>
+              <dd data-mono>{code.slice(0, 64)}</dd>
+            </div>
+            <div>
+              <dt>reason</dt>
+              <dd>{reason}</dd>
+            </div>
+          </dl>
+          <Link href="/auth/signin" className="sys-action" data-variant="primary">
+            try again
+          </Link>
         </div>
-        <h1 className="mt-3 text-3xl font-black tracking-tight">Access denied</h1>
-        <p className="mt-3 text-sm leading-relaxed text-[color:var(--w09-text-muted)]">
-          The account was not allowed or the provider did not return a usable email.
-        </p>
-        <Link
-          href="/auth/signin"
-          className="mt-6 inline-flex rounded-2xl bg-[#00A598] px-5 py-3 text-sm font-black text-black transition hover:bg-[#12c7b8]"
-        >
-          Try again
-        </Link>
-      </div>
+      </section>
     </main>
   );
 }

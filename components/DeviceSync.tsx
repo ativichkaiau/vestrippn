@@ -68,7 +68,7 @@ export default function DeviceSync() {
       migratePreferences = !previousOwner;
       if (previousOwner && previousOwner !== userId) {
         for (const storageKey of ['vest_livery', 'vest_mode', 'vest_lowpower']) localStorage.removeItem(storageKey);
-        applyPreferences({ livery: 'normal', mode: 'auto', lowPower: false });
+        applyPreferences({ livery: 'system', mode: 'night', lowPower: false });
       }
       localStorage.setItem('vest_preferences_owner', userId);
     } catch { /* continue online when browser storage is unavailable */ }

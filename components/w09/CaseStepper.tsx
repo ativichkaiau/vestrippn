@@ -52,19 +52,19 @@ export default function CaseStepper({
             >
               <span
                 className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xs font-bold transition-colors duration-[var(--w09-motion-duration)] ${
-                  isActive
-                    ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
-                    : done
-                    ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-accent-primary)]'
-                    : 'border-[color:var(--w09-border)] bg-[var(--w09-bg)] text-[color:var(--w09-text-muted)]'
-                }`}
+ isActive
+ ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
+ : done
+ ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-accent-primary)]'
+ : 'border-[color:var(--w09-border)] bg-[var(--w09-bg)] text-[color:var(--w09-text-muted)]'
+ }`}
               >
                 {done ? '✓' : i + 1}
               </span>
               <span
                 className={`whitespace-nowrap text-sm font-medium ${
-                  isActive ? 'text-[color:var(--w09-text)]' : 'text-[color:var(--w09-text-muted)]'
-                }`}
+ isActive ? 'text-[color:var(--w09-text)]' : 'text-[color:var(--w09-text-muted)]'
+ }`}
               >
                 {step.label}
               </span>
@@ -74,8 +74,8 @@ export default function CaseStepper({
               <span
                 aria-hidden
                 className={`block bg-[color:var(--w09-border)] ${isVertical ? 'ml-4 h-4 w-px' : 'h-px min-w-4 flex-1'} ${
-                  done ? 'opacity-100' : 'opacity-50'
-                }`}
+ done ? 'opacity-100' : 'opacity-50'
+ }`}
               />
             )}
           </li>

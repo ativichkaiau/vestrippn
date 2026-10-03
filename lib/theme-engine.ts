@@ -30,8 +30,15 @@ export function createThemeEngine(config: EngineConfig) {
     if (Object.prototype.hasOwnProperty.call(config.liveries, value)) return value as Livery;
     return Object.prototype.hasOwnProperty.call(config.legacy, value) ? config.legacy[value] : null;
   }
+  // Dark first: with nothing stored, the environment opens dark.
   function mode(value: unknown): Mode {
-    return value === 'day' || value === 'twilight' || value === 'night' ? value : 'auto';
+    return value === 'day' || value === 'twilight' || value === 'auto' ? value : 'night';
+  }
+
+  // The environment's appearance follows the mode alone — a livery paints the
+  // garage object, never the interface. Auto follows the sun over Chiang Mai.
+  function appearance(md: Mode, phase: ThemePhase): 'dark' | 'light' {
+    return md === 'day' || (md === 'auto' && phase === 'day') ? 'light' : 'dark';
   }
 
   // NOAA fractional-year solar position. UTC + longitude keeps this independent
@@ -49,6 +56,45 @@ export function createThemeEngine(config: EngineConfig) {
     const lat = config.location.latitude * Math.PI / 180;
     return Math.asin(clamp(Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(angle), -1, 1)) * 180 / Math.PI;
   }
+
+  // Neutral VESTRIPPN surfaces and text (mirrors app/globals.css). A livery
+  // tints the surfaces toward its own colour and supplies the accent; the
+  // system paint keeps these exactly.
+  const BASE = {
+    dark: { root: '#08090a', b1: '#0d0f11', b2: '#121417', b3: '#181b1f', subtle: '#16191d', line: '#22262b', strong: '#353b43', secondary: '#9a9fa6', muted: '#7a8089' },
+    light: { root: '#f4f4f1', b1: '#ebebe7', b2: '#e4e4df', b3: '#dadad4', subtle: '#e1e1dc', line: '#d2d3cd', strong: '#b9bbb6', secondary: '#50565e', muted: '#5f656d' },
+  };
+
+  function environment(lv: Livery, appearanceValue: 'dark' | 'light', palette: ThemePalette, tone: 'light' | 'dark') {
+    const dark = appearanceValue === 'dark';
+    const base = dark ? BASE.dark : BASE.light;
+    if (lv === 'system') return null;
+    const tint = dark ? palette.hero : tone === 'light' ? palette.canvas : mix(palette.hero, '#ffffff', 0.86);
+    const [r0, r1, r2, r3, rl] = dark ? [0.3, 0.34, 0.36, 0.38, 0.3] : [0.5, 0.55, 0.58, 0.6, 0.4];
+    const bg = { root: mix(base.root, tint, r0), b1: mix(base.b1, tint, r1), b2: mix(base.b2, tint, r2), b3: mix(base.b3, tint, r3) };
+    const grounds = [bg.root, bg.b1, bg.b2, bg.b3];
+    const ink = dark ? '#ffffff' : '#000000';
+    const accent = legible(dark ? palette.heroAccent : palette.accent, grounds, ink);
+    return {
+      '--bg-root': bg.root,
+      '--bg-01': bg.b1,
+      '--bg-02': bg.b2,
+      '--bg-03': bg.b3,
+      '--line-subtle': mix(base.subtle, tint, rl),
+      '--line-default': mix(base.line, tint, rl),
+      '--line-strong': mix(base.strong, tint, rl),
+      '--text-secondary': legible(base.secondary, grounds, ink),
+      '--text-muted': legible(base.muted, grounds, ink),
+      '--accent': accent,
+      '--accent-strong': mix(accent, ink, 0.2),
+      '--accent-soft': `rgb(${rgb(accent).join(' ')} / ${dark ? 0.14 : 0.1})`,
+      '--accent-line': `rgb(${rgb(accent).join(' ')} / 0.45)`,
+      '--on-accent': contrast('#ffffff', accent) >= 4.5 ? '#ffffff' : '#07090c',
+      '--selection': `rgb(${rgb(accent).join(' ')} / ${dark ? 0.3 : 0.2})`,
+      '--hub-accent-rgb': rgb(accent).join(', '),
+    } as Record<string, string>;
+  }
+  const ENVIRONMENT_KEYS = ['--bg-root', '--bg-01', '--bg-02', '--bg-03', '--line-subtle', '--line-default', '--line-strong', '--text-secondary', '--text-muted', '--accent', '--accent-strong', '--accent-soft', '--accent-line', '--on-accent', '--selection', '--hub-accent-rgb'];
 
   function resolve(lv: Livery, md: Mode, date = new Date()) {
     const definition = config.liveries[lv];
@@ -74,20 +120,27 @@ export function createThemeEngine(config: EngineConfig) {
       palette.muted = legible(dark ? '#a3adb7' : '#44535e', safeGrounds, fallback);
       palette.accent = legible(dark ? '#00d2be' : '#006e64', safeGrounds, fallback);
     }
-    return { livery: lv, mode: md, phase, dark, progress, palette, definition };
+    const look = appearance(md, phase);
+    return { livery: lv, mode: md, phase, dark, appearance: look, progress, palette, definition, environment: environment(lv, look, palette, definition.tone) };
   }
 
   function apply(root: HTMLElement, lv: Livery, md: Mode, date = new Date()) {
     const theme = resolve(lv, md, date);
     const { palette, definition, dark } = theme;
+    const environmentDark = theme.appearance === 'dark';
     const oldClasses = [...Object.keys(config.legacy), ...Object.keys(config.liveries)];
     root.classList.remove(...oldClasses, ...oldClasses.map(id => `w09-${id}`));
-    root.classList.toggle('dark', dark);
-    root.classList.add('w10-eq-power');
+    root.classList.toggle('dark', environmentDark);
+    // The livery's environment tokens; the system paint falls back to the stylesheet.
+    for (const key of ENVIRONMENT_KEYS) {
+      const value = theme.environment?.[key];
+      if (value) root.style.setProperty(key, value);
+      else root.style.removeProperty(key);
+    }
     root.dataset.livery = lv;
     root.dataset.mode = md;
     root.dataset.phase = theme.phase;
-    root.dataset.tone = dark ? 'dark' : 'light';
+    root.dataset.tone = environmentDark ? 'dark' : 'light';
     root.dataset.liveryTeam = definition.team;
     for (const [name, value] of Object.entries(palette)) root.style.setProperty(`--livery-${name}`, value);
     root.style.setProperty('--livery-accent-rgb', rgb(palette.accent).join(', '));
@@ -98,7 +151,7 @@ export function createThemeEngine(config: EngineConfig) {
     root.style.setProperty('--livery-line', dark ? 'rgba(230, 239, 250, 0.16)' : 'rgba(18, 37, 57, 0.18)');
     root.style.setProperty('--livery-line-strong', dark ? 'rgba(230, 239, 250, 0.26)' : 'rgba(18, 37, 57, 0.3)');
     root.style.setProperty('--livery-grid', dark ? 'rgba(230, 239, 250, 0.04)' : 'rgba(18, 37, 57, 0.05)');
-    root.style.colorScheme = dark ? 'dark' : 'light';
+    root.style.colorScheme = environmentDark ? 'dark' : 'light';
     return theme;
   }
   return { livery, mode, resolve, apply, solarElevation, contrast };

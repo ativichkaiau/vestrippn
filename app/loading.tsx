@@ -1,16 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import Mark3D from '../components/w100/Mark3D';
-import { SkelLabel } from '../components/w100/Skeleton';
+import RequestedPath from '@/components/system/RequestedPath';
 
 /* ════════════════════════════════════════════════════════════════════════
-   W100 ROUTE LOADER — shown by Next while a hub route streams.
+   Route loader — shown by Next only while a route is genuinely streaming.
+   No artificial delay: if the route is ready in 100 ms, this is visible for
+   100 ms. The shell stays in place; only the main viewport waits.
 
-   The 3D mark on a turntable in the active livery, a run bar painted in the
-   livery's own stripe, and a pit-wall channel label ticking through its
-   sectors. The fun fact stays: it is content, not chrome — one of 67,
-   drawn at random.
+   The fact stays: it is content, not chrome — one of 67, drawn at random.
    ════════════════════════════════════════════════════════════════════════ */
 
 const FACTS = [
@@ -93,30 +91,21 @@ export default function Loading() {
   const [fact] = useState(() => FACTS[Math.floor(Math.random() * FACTS.length)]);
 
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      className="fixed left-0 top-0 z-[300] flex h-[100dvh] w-screen flex-col items-center justify-center overflow-hidden px-8"
-      style={{ background: 'var(--livery-canvas, var(--w85-canvas))', color: 'var(--livery-text)' }}
-    >
-      <span className="sr-only">Loading…</span>
-
-      <div className="w100-loader-track lp-keep" aria-hidden="true"><span className="lp-keep" /></div>
-
-      <Mark3D mode="spin" interactive={false} className="w100-loader-stage" label="" />
-
-      <div className="mt-4 text-[clamp(18px,3.2vw,26px)] font-semibold tracking-[0.28em]" aria-hidden="true">
-        VESTRIPPN
-      </div>
-      <SkelLabel label="W100 · Spooling route" className="mt-3" />
-
-      <div className="mt-9 max-w-[440px] text-center">
-        <div className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.3em]" style={{ color: 'var(--livery-muted)' }}>
-          Fun fact
-        </div>
+    <div className="sys-page" role="status" aria-busy="true">
+      <div className="sys-loader">
+        <p className="sys-label">VESTRIPPN / loading</p>
+        <p className="sys-mono" style={{ color: 'var(--text-strong)', fontSize: 'var(--text-sm)', margin: 0 }}>
+          loading environment… <span className="sys-muted"><RequestedPath /></span>
+        </p>
+        <span className="sys-loader-bar" aria-hidden="true" />
         {/* Random per render: when this streams from the server, hydration keeps
             the server's pick rather than flagging the client's as a mismatch. */}
-        <p className="text-[13px] leading-relaxed" style={{ color: 'var(--livery-muted)' }} suppressHydrationWarning>{fact}</p>
+        <p className="sys-loader-fact" suppressHydrationWarning>
+          <span className="sys-label" style={{ display: 'block', marginBottom: 6 }}>
+            fact
+          </span>
+          {fact}
+        </p>
       </div>
     </div>
   );

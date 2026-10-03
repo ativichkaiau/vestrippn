@@ -1,6 +1,12 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import FitnessClient from "./FitnessClient";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Fitness',
+  description: 'Training cadence, nutrition log and streaks.',
+};
 
 export default async function FitnessPage() {
   const session = await auth();

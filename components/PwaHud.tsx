@@ -94,7 +94,7 @@ export default function PwaHud() {
             transition={t}
             className="pointer-events-none fixed inset-x-0 top-[84px] z-[190] flex justify-center px-4"
           >
-            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-widest text-amber-600 shadow-sm backdrop-blur-xl dark:text-amber-300">
+            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-widest text-amber-600 shadow-sm dark:text-amber-300">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               Offline · showing cached data
             </div>
@@ -114,7 +114,7 @@ export default function PwaHud() {
             className="fixed bottom-24 left-4 z-[190] sm:bottom-6 sm:left-6"
           >
             <div
-              className="flex items-center gap-2.5 rounded-2xl border border-black/10 bg-white/85 py-2 pl-2.5 pr-2 shadow-[0_18px_44px_-18px_rgba(0,0,0,0.4)] backdrop-blur-xl dark:border-white/10 dark:bg-[#0d0f12]/90"
+              className="flex items-center gap-2.5 rounded-2xl border border-black/10 bg-white/85 py-2 pl-2.5 pr-2 dark:border-white/10 dark:bg-[#0d0f12]/90"
               style={{ boxShadow: '0 0 0 1px rgba(var(--hub-accent-rgb), 0.18), 0 18px 44px -18px rgba(0,0,0,0.4)' }}
             >
               <span

@@ -56,7 +56,7 @@ export default function CitationPopover({ label = 1, citation }: CitationPopover
           role="tooltip"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
-          className="absolute left-0 top-full z-50 mt-1.5 block w-64 p-3 text-left rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] shadow-[var(--w09-shadow)] [font-family:var(--w09-font-display)]"
+          className="absolute left-0 top-full z-50 mt-1.5 block w-64 p-3 text-left rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] [font-family:var(--w09-font-display)]"
         >
           <span className="block text-sm font-semibold text-[color:var(--w09-text)]">{citation.title}</span>
           {citation.source && (

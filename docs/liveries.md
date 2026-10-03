@@ -1,6 +1,8 @@
-# W85 livery collection
+# Livery collection
 
-The picker groups liveries by Mercedes, Williams, Red Bull, and driver tributes. Palette data, preview stripes, display names, and historical metadata live in `lib/liveries.ts`. The CSS in `app/liveries.css` maps those palettes onto the W85, W10, W09, and hub tokens used throughout the app.
+> Since the root-environment redesign, a livery sets the interface accent, tints its surfaces and paints the garage objects. Light or dark is a separate appearance setting. The `system` entry is the plain VESTRIPPN design. See `docs/system.md`.
+
+The collection groups liveries by Mercedes, Williams, Red Bull, and driver tributes. Palette data, preview stripes, display names, and historical metadata live in `lib/liveries.ts`.
 
 ## Mercedes lighting
 

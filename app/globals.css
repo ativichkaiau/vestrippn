@@ -1,1611 +1,364 @@
 @import "tailwindcss";
 
-/* 
-  CRITICAL V4 FIX: This is the official stable syntax for manual dark mode in Tailwind v4.
-  This tells Tailwind to activate 'dark:' classes whenever the <html> has class="dark".
-*/
+/* ════════════════════════════════════════════════════════════════════════
+   VESTRIPPN — design tokens
+
+   The single source of visual values. Components read these tokens; nothing
+   else in the codebase should introduce a colour, radius, shadow or duration.
+
+   Dark first. `html.dark` is the default (set in the root layout and by the
+   boot script); light is the opt-in variant.
+   ════════════════════════════════════════════════════════════════════════ */
+
 @variant dark (&:where(.dark, .dark *));
 
-/* Glassier surfaces app-wide — saturate any backdrop-blurred element so glass
-   panels pick up the colorful atmosphere behind them. Zero specificity (:where)
-   means explicit backdrop-saturate-* utilities still win where set. */
-*:where([class*="backdrop-blur"]) {
-  --tw-backdrop-saturate: saturate(1.4);
+:root,
+.dark {
+  /* surfaces: root → raised */
+  --bg-root: #08090a;
+  --bg-01: #0d0f11;
+  --bg-02: #121417;
+  --bg-03: #181b1f;
+
+  /* text: every level meets 4.5:1 on --bg-02 */
+  --text-strong: #f0f1ed;
+  --text-primary: #d7d9d6;
+  --text-secondary: #9a9fa6;
+  --text-muted: #7a8089;
+  /* decoration only (rules, glyphs) — never body text */
+  --text-faint: #4a5058;
+
+  --line-subtle: #16191d;
+  --line-default: #22262b;
+  --line-strong: #353b43;
+
+  --accent: #6a8bff;
+  --accent-strong: #8aa4ff;
+  --accent-soft: rgb(82 119 255 / 0.12);
+  --accent-line: rgb(106 139 255 / 0.45);
+  --on-accent: #070a14;
+
+  --status-ok: #4cc690;
+  --status-warn: #e5a94f;
+  --status-error: #f0695f;
+  --status-idle: #7a8089;
+
+  --scrim: rgb(4 5 6 / 0.72);
+  --selection: rgb(82 119 255 / 0.32);
+
+  color-scheme: dark;
 }
 
+:root:not(.dark) {
+  --bg-root: #f4f4f1;
+  --bg-01: #ebebe7;
+  --bg-02: #e4e4df;
+  --bg-03: #dadad4;
+
+  --text-strong: #0c0e10;
+  --text-primary: #24272b;
+  --text-secondary: #50565e;
+  --text-muted: #5f656d;
+  --text-faint: #b4b7b6;
+
+  --line-subtle: #e1e1dc;
+  --line-default: #d2d3cd;
+  --line-strong: #b9bbb6;
+
+  --accent: #2f52e0;
+  --accent-strong: #2441b8;
+  --accent-soft: rgb(47 82 224 / 0.09);
+  --accent-line: rgb(47 82 224 / 0.4);
+  --on-accent: #ffffff;
+
+  --status-ok: #1e8a5a;
+  --status-warn: #a8670f;
+  --status-error: #c93a31;
+  --status-idle: #5f656d;
+
+  --scrim: rgb(20 22 24 / 0.32);
+  --selection: rgb(47 82 224 / 0.18);
+
+  color-scheme: light;
+}
+
+:root {
+  /* type */
+  --font-ui: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-code: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --text-2xs: 10.5px;
+  --text-xs: 11.5px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 44px;
+  --text-4xl: clamp(44px, 7vw, 76px);
+
+  --tracking-label: 0.08em;
+  --tracking-display: -0.025em;
+
+  /* geometry */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  --shell-topbar: 44px;
+  --shell-statusbar: 28px;
+  --shell-sidebar: 232px;
+  --content-max: 1120px;
+
+  /* motion: engineered, short, never springy */
+  --duration-fast: 120ms;
+  --duration-ui: 180ms;
+  --duration-panel: 220ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Bridge for the mounted hubs ──────────────────────────────────────
+     The study hubs (academics, workspace, cases, …) were written against the
+     W09 theme contract. They read these names; the values are the tokens
+     above, so the hubs render in the VESTRIPPN system without per-page CSS. */
+  --w09-bg: var(--bg-root);
+  --w09-surface: var(--bg-01);
+  --w09-surface-raised: var(--bg-02);
+  --w09-text: var(--text-strong);
+  --w09-text-muted: var(--text-secondary);
+  --w09-border: var(--line-default);
+  --w09-radius: var(--radius-md);
+  --w09-shadow: 0 0 #0000;
+  --w09-accent-primary: var(--accent);
+  --w09-accent-secondary: var(--accent-strong);
+  --w09-accent-tertiary: var(--status-error);
+  --w09-accent-contrast: var(--on-accent);
+  --w09-danger: var(--status-error);
+  --w09-success: var(--status-ok);
+  --w09-font-display: var(--font-ui);
+  --w09-focus-ring: 0 0 0 2px var(--accent);
+  --w09-motion-duration: var(--duration-ui);
+  --w09-motion-ease: var(--ease-out);
+  --hub-accent: var(--accent);
+  --hub-accent-rgb: 106, 139, 255;
+  --hub-accent-on-dark: var(--accent);
+  --hub-bg: var(--bg-01);
+  --hub-text-soft: var(--text-secondary);
+  --hub-text-soft-2: var(--text-secondary);
+  --accent-primary: var(--accent);
+}
+
+:root:not(.dark) {
+  --hub-accent-rgb: 47, 82, 224;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Tailwind scale, remapped onto the tokens.
+
+   The hubs use Tailwind's default palette and scales. Rather than patching
+   each page, the scales themselves become the VESTRIPPN system: four hue
+   families (accent, ok, warn, error) and a cool neutral, a 2–6 px radius
+   ceiling, no shadows or blur, no decorative pulses, and a weight ceiling
+   that keeps uppercase labels from shouting.
+   ════════════════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+}
+
+@theme {
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+  --radius-2xl: 6px;
+  --radius-3xl: 6px;
+  --radius-4xl: 6px;
+
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+  --inset-shadow-2xs: 0 0 #0000;
+  --inset-shadow-xs: 0 0 #0000;
+  --inset-shadow-sm: 0 0 #0000;
+  --drop-shadow-xs: 0 0 #0000;
+  --drop-shadow-sm: 0 0 #0000;
+  --drop-shadow-md: 0 0 #0000;
+  --drop-shadow-lg: 0 0 #0000;
+  --drop-shadow-xl: 0 0 #0000;
+  --drop-shadow-2xl: 0 0 #0000;
+
+  --blur-xs: 0px;
+  --blur-sm: 0px;
+  --blur-md: 0px;
+  --blur-lg: 0px;
+  --blur-xl: 0px;
+  --blur-2xl: 0px;
+  --blur-3xl: 0px;
+
+  --animate-pulse: none;
+  --animate-ping: none;
+  --animate-bounce: none;
+
+  --font-weight-black: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-bold: 600;
+
+  /* neutral */
+  --color-neutral-50: #f5f5f2;
+  --color-neutral-100: #ebebe7;
+  --color-neutral-200: #dcdcd7;
+  --color-neutral-300: #c2c4c4;
+  --color-neutral-400: #9a9fa6;
+  --color-neutral-500: #7a8089;
+  --color-neutral-600: #5e646d;
+  --color-neutral-700: #3f454d;
+  --color-neutral-800: #262a30;
+  --color-neutral-900: #15181b;
+  --color-neutral-950: #0b0c0e;
+  --color-gray-50: #f5f5f2; --color-gray-100: #ebebe7; --color-gray-200: #dcdcd7; --color-gray-300: #c2c4c4; --color-gray-400: #9a9fa6; --color-gray-500: #7a8089; --color-gray-600: #5e646d; --color-gray-700: #3f454d; --color-gray-800: #262a30; --color-gray-900: #15181b; --color-gray-950: #0b0c0e;
+  --color-slate-50: #f5f5f2; --color-slate-100: #ebebe7; --color-slate-200: #dcdcd7; --color-slate-300: #c2c4c4; --color-slate-400: #9a9fa6; --color-slate-500: #7a8089; --color-slate-600: #5e646d; --color-slate-700: #3f454d; --color-slate-800: #262a30; --color-slate-900: #15181b; --color-slate-950: #0b0c0e;
+  --color-zinc-50: #f5f5f2; --color-zinc-100: #ebebe7; --color-zinc-200: #dcdcd7; --color-zinc-300: #c2c4c4; --color-zinc-400: #9a9fa6; --color-zinc-500: #7a8089; --color-zinc-600: #5e646d; --color-zinc-700: #3f454d; --color-zinc-800: #262a30; --color-zinc-900: #15181b; --color-zinc-950: #0b0c0e;
+  --color-stone-50: #f5f5f2; --color-stone-100: #ebebe7; --color-stone-200: #dcdcd7; --color-stone-300: #c2c4c4; --color-stone-400: #9a9fa6; --color-stone-500: #7a8089; --color-stone-600: #5e646d; --color-stone-700: #3f454d; --color-stone-800: #262a30; --color-stone-900: #15181b; --color-stone-950: #0b0c0e;
+
+  /* accent — every cool hue collapses onto the accent, so a livery repaints
+     the hubs too (the accent itself comes from the theme engine). */
+  --color-blue-50: color-mix(in oklab, var(--accent) 10%, white); --color-blue-100: color-mix(in oklab, var(--accent) 18%, white); --color-blue-200: color-mix(in oklab, var(--accent) 35%, white); --color-blue-300: color-mix(in oklab, var(--accent) 55%, white); --color-blue-400: color-mix(in oklab, var(--accent) 78%, white); --color-blue-500: var(--accent); --color-blue-600: color-mix(in oklab, var(--accent) 84%, black); --color-blue-700: color-mix(in oklab, var(--accent) 68%, black); --color-blue-800: color-mix(in oklab, var(--accent) 52%, black); --color-blue-900: color-mix(in oklab, var(--accent) 40%, black); --color-blue-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-sky-50: color-mix(in oklab, var(--accent) 10%, white); --color-sky-100: color-mix(in oklab, var(--accent) 18%, white); --color-sky-200: color-mix(in oklab, var(--accent) 35%, white); --color-sky-300: color-mix(in oklab, var(--accent) 55%, white); --color-sky-400: color-mix(in oklab, var(--accent) 78%, white); --color-sky-500: var(--accent); --color-sky-600: color-mix(in oklab, var(--accent) 84%, black); --color-sky-700: color-mix(in oklab, var(--accent) 68%, black); --color-sky-800: color-mix(in oklab, var(--accent) 52%, black); --color-sky-900: color-mix(in oklab, var(--accent) 40%, black); --color-sky-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-cyan-50: color-mix(in oklab, var(--accent) 10%, white); --color-cyan-100: color-mix(in oklab, var(--accent) 18%, white); --color-cyan-200: color-mix(in oklab, var(--accent) 35%, white); --color-cyan-300: color-mix(in oklab, var(--accent) 55%, white); --color-cyan-400: color-mix(in oklab, var(--accent) 78%, white); --color-cyan-500: var(--accent); --color-cyan-600: color-mix(in oklab, var(--accent) 84%, black); --color-cyan-700: color-mix(in oklab, var(--accent) 68%, black); --color-cyan-800: color-mix(in oklab, var(--accent) 52%, black); --color-cyan-900: color-mix(in oklab, var(--accent) 40%, black); --color-cyan-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-teal-50: color-mix(in oklab, var(--accent) 10%, white); --color-teal-100: color-mix(in oklab, var(--accent) 18%, white); --color-teal-200: color-mix(in oklab, var(--accent) 35%, white); --color-teal-300: color-mix(in oklab, var(--accent) 55%, white); --color-teal-400: color-mix(in oklab, var(--accent) 78%, white); --color-teal-500: var(--accent); --color-teal-600: color-mix(in oklab, var(--accent) 84%, black); --color-teal-700: color-mix(in oklab, var(--accent) 68%, black); --color-teal-800: color-mix(in oklab, var(--accent) 52%, black); --color-teal-900: color-mix(in oklab, var(--accent) 40%, black); --color-teal-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-indigo-50: color-mix(in oklab, var(--accent) 10%, white); --color-indigo-100: color-mix(in oklab, var(--accent) 18%, white); --color-indigo-200: color-mix(in oklab, var(--accent) 35%, white); --color-indigo-300: color-mix(in oklab, var(--accent) 55%, white); --color-indigo-400: color-mix(in oklab, var(--accent) 78%, white); --color-indigo-500: var(--accent); --color-indigo-600: color-mix(in oklab, var(--accent) 84%, black); --color-indigo-700: color-mix(in oklab, var(--accent) 68%, black); --color-indigo-800: color-mix(in oklab, var(--accent) 52%, black); --color-indigo-900: color-mix(in oklab, var(--accent) 40%, black); --color-indigo-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-violet-50: color-mix(in oklab, var(--accent) 10%, white); --color-violet-100: color-mix(in oklab, var(--accent) 18%, white); --color-violet-200: color-mix(in oklab, var(--accent) 35%, white); --color-violet-300: color-mix(in oklab, var(--accent) 55%, white); --color-violet-400: color-mix(in oklab, var(--accent) 78%, white); --color-violet-500: var(--accent); --color-violet-600: color-mix(in oklab, var(--accent) 84%, black); --color-violet-700: color-mix(in oklab, var(--accent) 68%, black); --color-violet-800: color-mix(in oklab, var(--accent) 52%, black); --color-violet-900: color-mix(in oklab, var(--accent) 40%, black); --color-violet-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-purple-50: color-mix(in oklab, var(--accent) 10%, white); --color-purple-100: color-mix(in oklab, var(--accent) 18%, white); --color-purple-200: color-mix(in oklab, var(--accent) 35%, white); --color-purple-300: color-mix(in oklab, var(--accent) 55%, white); --color-purple-400: color-mix(in oklab, var(--accent) 78%, white); --color-purple-500: var(--accent); --color-purple-600: color-mix(in oklab, var(--accent) 84%, black); --color-purple-700: color-mix(in oklab, var(--accent) 68%, black); --color-purple-800: color-mix(in oklab, var(--accent) 52%, black); --color-purple-900: color-mix(in oklab, var(--accent) 40%, black); --color-purple-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-fuchsia-50: color-mix(in oklab, var(--accent) 10%, white); --color-fuchsia-100: color-mix(in oklab, var(--accent) 18%, white); --color-fuchsia-200: color-mix(in oklab, var(--accent) 35%, white); --color-fuchsia-300: color-mix(in oklab, var(--accent) 55%, white); --color-fuchsia-400: color-mix(in oklab, var(--accent) 78%, white); --color-fuchsia-500: var(--accent); --color-fuchsia-600: color-mix(in oklab, var(--accent) 84%, black); --color-fuchsia-700: color-mix(in oklab, var(--accent) 68%, black); --color-fuchsia-800: color-mix(in oklab, var(--accent) 52%, black); --color-fuchsia-900: color-mix(in oklab, var(--accent) 40%, black); --color-fuchsia-950: color-mix(in oklab, var(--accent) 26%, black);
+  --color-pink-50: color-mix(in oklab, var(--accent) 10%, white); --color-pink-100: color-mix(in oklab, var(--accent) 18%, white); --color-pink-200: color-mix(in oklab, var(--accent) 35%, white); --color-pink-300: color-mix(in oklab, var(--accent) 55%, white); --color-pink-400: color-mix(in oklab, var(--accent) 78%, white); --color-pink-500: var(--accent); --color-pink-600: color-mix(in oklab, var(--accent) 84%, black); --color-pink-700: color-mix(in oklab, var(--accent) 68%, black); --color-pink-800: color-mix(in oklab, var(--accent) 52%, black); --color-pink-900: color-mix(in oklab, var(--accent) 40%, black); --color-pink-950: color-mix(in oklab, var(--accent) 26%, black);
+
+  /* status: ok */
+  --color-emerald-50: #effaf4; --color-emerald-100: #d8f3e5; --color-emerald-200: #b2e6cc; --color-emerald-300: #84d4ae; --color-emerald-400: #5dc596; --color-emerald-500: #3fb07f; --color-emerald-600: #2f9068; --color-emerald-700: #277355; --color-emerald-800: #225b45; --color-emerald-900: #1d4b3a; --color-emerald-950: #0f2a20;
+  --color-green-50: #effaf4; --color-green-100: #d8f3e5; --color-green-200: #b2e6cc; --color-green-300: #84d4ae; --color-green-400: #5dc596; --color-green-500: #3fb07f; --color-green-600: #2f9068; --color-green-700: #277355; --color-green-800: #225b45; --color-green-900: #1d4b3a; --color-green-950: #0f2a20;
+  --color-lime-50: #effaf4; --color-lime-100: #d8f3e5; --color-lime-200: #b2e6cc; --color-lime-300: #84d4ae; --color-lime-400: #5dc596; --color-lime-500: #3fb07f; --color-lime-600: #2f9068; --color-lime-700: #277355; --color-lime-800: #225b45; --color-lime-900: #1d4b3a; --color-lime-950: #0f2a20;
+
+  /* status: warn */
+  --color-amber-50: #fdf7ec; --color-amber-100: #faebcf; --color-amber-200: #f4d59e; --color-amber-300: #ecbc6a; --color-amber-400: #e5a646; --color-amber-500: #d18f2f; --color-amber-600: #b07225; --color-amber-700: #8c5821; --color-amber-800: #714720; --color-amber-900: #5d3b1d; --color-amber-950: #34200e;
+  --color-yellow-50: #fdf7ec; --color-yellow-100: #faebcf; --color-yellow-200: #f4d59e; --color-yellow-300: #ecbc6a; --color-yellow-400: #e5a646; --color-yellow-500: #d18f2f; --color-yellow-600: #b07225; --color-yellow-700: #8c5821; --color-yellow-800: #714720; --color-yellow-900: #5d3b1d; --color-yellow-950: #34200e;
+  --color-orange-50: #fdf7ec; --color-orange-100: #faebcf; --color-orange-200: #f4d59e; --color-orange-300: #ecbc6a; --color-orange-400: #e5a646; --color-orange-500: #d18f2f; --color-orange-600: #b07225; --color-orange-700: #8c5821; --color-orange-800: #714720; --color-orange-900: #5d3b1d; --color-orange-950: #34200e;
+
+  /* status: error */
+  --color-red-50: #fef3f2; --color-red-100: #fde3e1; --color-red-200: #fbcbc7; --color-red-300: #f6a49e; --color-red-400: #f07a72; --color-red-500: #e55a50; --color-red-600: #cf4037; --color-red-700: #ad332b; --color-red-800: #8f2d27; --color-red-900: #772a25; --color-red-950: #40120f;
+  --color-rose-50: #fef3f2; --color-rose-100: #fde3e1; --color-rose-200: #fbcbc7; --color-rose-300: #f6a49e; --color-rose-400: #f07a72; --color-rose-500: #e55a50; --color-rose-600: #cf4037; --color-rose-700: #ad332b; --color-rose-800: #8f2d27; --color-rose-900: #772a25; --color-rose-950: #40120f;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════════════════ */
+
 @layer base {
-  :root {
-    /* LIGHT MODE (Pristine White) */
-    --background: 240 10% 98%;    /* #FAFAFA */
-    --foreground: 240 10% 3.9%;
-    --border: 240 5.9% 90%;
-  }
-
-  .dark {
-    /* DARK MODE (Deep Carbon) */
-    --background: 0 0% 2%;        /* #050505 */
-    --foreground: 0 0% 98%;
-    --border: 0 0% 10%;           /* #1A1A1A */
-  }
-
-  * {
-    border-color: hsl(var(--border));
+  html {
+    background: var(--bg-root);
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    transition-property: color, background-color, border-color;
-    transition-duration: 700ms;
+    background: var(--bg-root);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: var(--text-md);
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    border-color: var(--line-default);
+  }
+
+  ::selection {
+    background: var(--selection);
+    color: var(--text-strong);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--text-strong);
+    letter-spacing: -0.015em;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-code);
   }
 }
 
-/* --- REFINED HUD ANIMATIONS --- */
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(-1deg); }
-}
-
-.animate-float {
-  animation: float 8s ease-in-out infinite;
-}
-
-@keyframes scanline {
-  0% { transform: translateY(-20%); opacity: 0; }
-  50% { opacity: 0.05; }
-  100% { transform: translateY(120%); opacity: 0; }
-}
-
-.animate-scanline {
-  animation: scanline 10s linear infinite;
-  pointer-events: none;
-}
-
-/* --- ULTRA-MINIMAL SCROLLBAR --- */
-.custom-scrollbar {
+/* Scrollbars: thin, neutral, no colour. */
+.custom-scrollbar,
+.sys-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 165, 152, 0.2) transparent;
+  scrollbar-color: var(--line-strong) transparent;
 }
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 3px;
+.custom-scrollbar::-webkit-scrollbar,
+.sys-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-
-.custom-scrollbar::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.sys-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track,
+.sys-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(163, 163, 163, 0.5);
-  border-radius: 9999px;
-  transition: all 0.3s;
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(38, 38, 38, 0.5);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 165, 152, 0.5);
-}
-
-/* HIDE SCROLLBARS BUT ALLOW SCROLLING */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
-/* --- TYPOGRAPHY OPTIMIZATION --- */
-h1, h2, h3, .font-orbitron {
-  letter-spacing: -0.02em;
-  text-rendering: optimizeLegibility;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-/* --- ANIMATE GLOW PULSE (status dots) --- */
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 4px  currentColor; opacity: 0.8; }
-  50%       { box-shadow: 0 0 14px currentColor; opacity: 1;   }
-}
-.animate-glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
-
-/* --- ROUTE LOADING SCREEN --- */
-@keyframes loaderSweep {
-  0%   { transform: translateX(-130%); }
-  100% { transform: translateX(420%);  }
-}
-@keyframes loaderPulse {
-  0%, 100% { opacity: 0.55; transform: scale(0.97); }
-  50%      { opacity: 1;    transform: scale(1);    }
-}
-.animate-loader-sweep { animation: loaderSweep 1.1s ease-in-out infinite; }
-.animate-loader-pulse { animation: loaderPulse 1.4s ease-in-out infinite; }
-
-.w09-boot-ring {
-  border: 1px solid rgba(var(--hub-accent-rgb), 0.34);
-  border-radius: 18px;
-  inset: -5px;
-  opacity: 0.9;
-  position: absolute;
-}
-
-.w09-boot-step {
-  animation: w09BootStep 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .w09-boot-ring {
-    animation: w09BootRing 1.25s ease-in-out infinite;
-  }
-}
-
+/* Low power and reduced motion stop everything that moves on its own. */
 @media (prefers-reduced-motion: reduce) {
-  .w09-boot-ring,
-  .w09-boot-step,
-  .animate-loader-sweep,
-  .animate-loader-pulse {
+  *,
+  *::before,
+  *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
-  }
-}
-
-@keyframes w09BootRing {
-  0%, 100% { opacity: 0.42; transform: scale(0.96); }
-  50% { opacity: 1; transform: scale(1.04); }
-}
-
-@keyframes w09BootStep {
-  0% { opacity: 0; transform: translateY(6px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-/* --- SITE-WIDE MOTION SYSTEM ---
-   Root route transitions live in components/SiteMotion.tsx. These global
-   primitives add a soft, livery-aware pulse to the whole interface while
-   preserving explicit page and component animations. */
-.motion-route-shell {
-  --motion-accent-rgb: var(--hub-accent-rgb);
-  --motion-secondary-rgb: var(--hub-secondary-rgb);
-  flex: 1 1 auto;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  position: relative;
-  transform-origin: 50% 42%;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Standalone learning, chat, ingest and auth pages need a bounded scroll pane
-   just like the hub layouts. Content always uses the browser's native scroll. */
-.motion-route-shell > main {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.motion-route-shell::before {
-  animation: siteAuraDrift 18s ease-in-out infinite;
-  background:
-    radial-gradient(circle at 18% 16%, rgba(var(--motion-accent-rgb), 0.15), transparent 28%),
-    radial-gradient(circle at 82% 24%, rgba(var(--motion-secondary-rgb), 0.12), transparent 30%),
-    radial-gradient(circle at 50% 104%, rgba(var(--motion-accent-rgb), 0.08), transparent 36%);
-  content: "";
-  inset: -18%;
-  opacity: 0.58;
-  pointer-events: none;
-  position: fixed;
-  z-index: 0;
-}
-
-.motion-route-shell > * {
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes siteAuraDrift {
-  0%, 100% {
-    scale: 1;
-    translate: 0 0;
-  }
-  45% {
-    scale: 1.06;
-    translate: 2.5% -1.5%;
-  }
-  72% {
-    scale: 1.03;
-    translate: -1.5% 2%;
-  }
-}
-
-@keyframes siteSurfaceBreath {
-  0%, 100% {
-    filter: saturate(1.02);
-    translate: 0 0;
-  }
-  50% {
-    filter: saturate(1.12);
-    translate: 0 -1px;
-  }
-}
-
-@keyframes siteGradientFlow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-@keyframes siteContentReveal {
-  0% {
-    opacity: 0;
-    translate: 0 8px;
-  }
-  100% {
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-
-@keyframes typewriterCaretBlink {
-  0%, 45% { opacity: 0.9; }
-  46%, 100% { opacity: 0; }
-}
-
-.typewriter-text-active::after {
-  animation: typewriterCaretBlink 720ms steps(1, end) infinite;
-  background: currentColor;
-  border-radius: 1px;
-  content: "";
-  display: inline-block;
-  height: 0.95em;
-  margin-left: 0.08em;
-  opacity: 0.9;
-  vertical-align: -0.12em;
-  width: 0.48ch;
-}
-
-@keyframes siteBlobDriftA {
-  0%, 100% {
-    opacity: 0.72;
-    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
-  }
-  35% {
-    opacity: 0.92;
-    transform: translate3d(-7vw, 5vh, 0) scale(1.08) rotate(-7deg);
-  }
-  70% {
-    opacity: 0.78;
-    transform: translate3d(4vw, -4vh, 0) scale(0.96) rotate(5deg);
-  }
-}
-
-@keyframes siteBlobDriftB {
-  0%, 100% {
-    opacity: 0.66;
-    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
-  }
-  42% {
-    opacity: 0.88;
-    transform: translate3d(7vw, -6vh, 0) scale(1.1) rotate(8deg);
-  }
-  74% {
-    opacity: 0.72;
-    transform: translate3d(-5vw, 4vh, 0) scale(0.98) rotate(-5deg);
-  }
-}
-
-@keyframes siteBlobDriftC {
-  0%, 100% {
-    opacity: 0.62;
-    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
-  }
-  38% {
-    opacity: 0.82;
-    transform: translate3d(5vw, 6vh, 0) scale(1.12) rotate(10deg);
-  }
-  78% {
-    opacity: 0.7;
-    transform: translate3d(-7vw, -3vh, 0) scale(0.94) rotate(-8deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .motion-route-shell :where(header, aside, main, footer) {
-    animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .motion-route-shell .pointer-events-none > [class*="rounded-full"][class*="blur-"] {
-    animation: siteBlobDriftA 18s ease-in-out infinite;
-    transform-origin: 50% 50%;
-    will-change: opacity, transform;
-  }
-
-  .motion-route-shell .pointer-events-none > [class*="rounded-full"][class*="blur-"]:nth-child(2) {
-    animation-delay: -6s;
-    animation-duration: 23s;
-    animation-name: siteBlobDriftB;
-  }
-
-  .motion-route-shell .pointer-events-none > [class*="rounded-full"][class*="blur-"]:nth-child(3) {
-    animation-delay: -11s;
-    animation-duration: 27s;
-    animation-name: siteBlobDriftC;
-  }
-
-  .motion-route-shell :where(main) {
-    animation-delay: 80ms;
-  }
-
-  .motion-route-shell :where(aside, footer) {
-    animation-delay: 130ms;
-  }
-
-  .motion-route-shell :where(a, button, [role="button"], input, textarea, select) {
-    transition-duration: 220ms;
-    transition-property: translate, scale, opacity, filter, box-shadow, border-color, background-color, color;
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .motion-route-shell :where(a, button, [role="button"]):where(:hover, :focus-visible) {
-    scale: 1.006;
-    translate: 0 -1px;
-  }
-
-  .motion-route-shell :where(input, textarea, select):where(:focus, :focus-visible) {
-    scale: 1.003;
-    translate: 0 -1px;
-  }
-
-  /* (The hero's saturate() "breath" is retired: a filter animation on the
-     largest surface re-rendered everything inside it every frame.) */
-
-  /* W100 perf: gradients no longer flow — background-position loops repaint
-     every frame on the main thread. */
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .motion-route-shell,
-  .motion-route-shell *,
-  .motion-route-shell::before,
-  .motion-route-shell *::before,
-  .motion-route-shell *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
     transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }
-
-/* ════════════════════════════════════════════════════════════════════════
-   LOW-POWER MODE — `html.low-power` kills ambient CSS animation + transitions
-   for battery. Intro/boot overlays use framer-motion (JS) so they're
-   unaffected; route loaders and anything tagged `.lp-keep` stay animated.
-   JS-driven loops (e.g. components/FocusMode, F1Idle) opt out via useLowPower.
-   ════════════════════════════════════════════════════════════════════════ */
-html.low-power *:not(.lp-keep):not(.animate-loader-sweep):not(.animate-loader-pulse),
-html.low-power *:not(.lp-keep)::before,
-html.low-power *:not(.lp-keep)::after {
-  animation: none !important;
-  transition: none !important;
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   GLOBAL UI/UX POLISH — consistent, accessible interaction primitives
-   applied app-wide (focus ring, tap feedback, smooth anchors, disabled).
-   ════════════════════════════════════════════════════════════════════════ */
-
-/* No grey flash on mobile taps */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Consistent, livery-aware keyboard focus ring (keyboard nav only) */
-:where(a, button, [role="button"], input, textarea, select, summary, [tabindex]):focus-visible {
-  outline: 2px solid var(--hub-accent, #00d2be);
-  outline-offset: 2px;
-}
-
-/* Smooth in-page anchor scrolling inside scroll panes (TOCs, hub CTAs) */
-.custom-scrollbar {
-  scroll-behavior: smooth;
-}
-@media (prefers-reduced-motion: reduce) {
-  .custom-scrollbar {
-    scroll-behavior: auto;
-  }
-}
-html.low-power .custom-scrollbar {
-  scroll-behavior: auto;
-}
-
-/* Uniform disabled affordance everywhere */
-:where(button, input, select, textarea):disabled,
-:where(a, button, [role="button"])[aria-disabled="true"] {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   W09 — typographic rhythm + hub animation signatures.
-   Signatures are tiny per-hub motion motifs (components/HubSignature.tsx):
-   precise, slow, and quiet. Reduced-motion users get the static motif;
-   low-power mode freezes them via the global animation kill above.
-   ════════════════════════════════════════════════════════════════════════ */
-
-/* Balanced headings, no orphaned words in paragraphs */
-h1, h2 { text-wrap: balance; }
-p { text-wrap: pretty; }
-
-/* Controlled motion: status-dot pulses breathe slowly instead of blinking */
-.motion-route-shell .animate-pulse {
-  animation-duration: 2.8s;
-}
-
-.w09-sig {
-  position: relative;
-  display: inline-block;
-  width: 58px;
-  height: 18px;
-  overflow: hidden;
-  opacity: 0.9;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .w09-sig-sweep { animation: w09SigSweep 2.8s ease-in-out infinite; }
-  .w09-sig-beam { animation: w09SigBeam 2.4s ease-in-out infinite; }
-  .w09-sig-ecg { stroke-dasharray: 30 70; animation: w09SigEcg 2.2s linear infinite; }
-  .w09-sig-launch > span:not(:first-child) { animation: w09SigLaunch 1.9s ease-in-out infinite; }
-  .w09-sig-launch > span:nth-child(3) { animation-delay: 0.25s; }
-  .w09-sig-launch > span:nth-child(4) { animation-delay: 0.5s; }
-  .w09-sig-scan { animation: w09SigScan 2.6s ease-in-out infinite; }
-  .w09-sig-radar { animation: w09SigRadar 3.2s linear infinite; }
-  .w09-sig-cards > span { animation: w09SigCards 2.4s ease-in-out infinite; }
-  .w09-sig-cards > span:nth-child(2) { animation-delay: 0.2s; }
-  .w09-sig-cards > span:nth-child(3) { animation-delay: 0.4s; }
-}
-
-@keyframes w09SigSweep { 0% { transform: translateX(-18px); } 55%, 100% { transform: translateX(62px); } }
-@keyframes w09SigBeam { 0% { transform: translateX(0); } 55%, 100% { transform: translateX(50px); } }
-@keyframes w09SigEcg { to { stroke-dashoffset: -100; } }
-@keyframes w09SigLaunch { 0% { transform: translateY(0); opacity: 0; } 35% { opacity: 1; } 80%, 100% { transform: translateY(-9px); opacity: 0; } }
-@keyframes w09SigScan { 0% { transform: translateY(0); } 55%, 100% { transform: translateY(14px); } }
-@keyframes w09SigRadar { to { transform: rotate(360deg); } }
-@keyframes w09SigCards { 0%, 100% { transform: translateY(0); opacity: 0.55; } 50% { transform: translateY(-3px); opacity: 1; } }
-
-/* ════════════════════════════════════════════════════════════════════════
-   W09 F2 MOTION PRIMITIVES — precise, shared cockpit interactions.
-   These are deliberately small: transform/opacity only, and all are covered
-   by the reduced-motion + low-power guards above.
-   ════════════════════════════════════════════════════════════════════════ */
-
-.w09-route-sweep {
-  background: linear-gradient(90deg, transparent, rgba(var(--motion-accent-rgb), 0.72), transparent);
-  height: 1px;
-  inset: 72px 0 auto;
-  pointer-events: none;
-  position: fixed;
-  transform-origin: 0 50%;
-  z-index: 120;
-}
-
-[data-motion-card],
-.w09-nav-link,
-.w09-nav-chip,
-.w09-magnetic {
-  transform: translateZ(0);
-}
-
-[data-motion-card] {
-  transition-property: translate, opacity, filter, box-shadow, border-color, background-color, color;
-  transition-duration: 220ms;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: translate, filter;
-}
-
-.w09-nav-link,
-.w09-nav-chip {
-  overflow: hidden;
-}
-
-.w09-nav-link::after,
-.w09-nav-chip::after,
-.w09-launch-button::after,
-[data-motion-card]::after {
-  background: linear-gradient(90deg, transparent, rgba(var(--hub-accent-rgb), 0.22), transparent);
-  border-radius: inherit;
-  content: "";
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  transform: translateX(-115%);
-}
-
-.w09-nav-link,
-.w09-nav-chip,
-.w09-launch-button,
-[data-motion-card] {
-  overflow: hidden;
-  position: relative;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .w09-magnetic:hover,
-  .w09-magnetic:focus-visible {
-    filter: saturate(1.08);
-    translate: 0 -1px;
-  }
-
-  .motion-route-shell [data-motion-card]:where(:hover, :focus-within) {
-    filter: saturate(1.05);
-    translate: 0 -2px;
-  }
-
-  .w09-nav-link:hover::after,
-  .w09-nav-link:focus-visible::after,
-  .w09-nav-chip:hover::after,
-  .w09-nav-chip:focus-visible::after,
-  .w09-launch-button:hover::after,
-  .w09-launch-button:focus-visible::after,
-  [data-motion-card]:hover::after,
-  [data-motion-card]:focus-visible::after {
-    animation: w09InteractionSweep 620ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .w09-active-bar,
-  .w09-nav-link[data-state="active"] > span:first-child,
-  .w09-nav-chip[data-state="active"] > span:first-child {
-    animation: w09ActiveChipPulse 2.7s ease-in-out infinite;
-  }
-
-  [data-motion="mission"] {
-    animation-delay: 110ms;
-  }
-
-  [data-motion="mission"] .w09-mission-scan {
-    animation: w09MissionScan 2.9s ease-in-out 340ms 2;
-  }
-
-  .w09-state[data-state="online"],
-  .w09-state[data-state="active"] {
-    animation: w09StateBreath 2.8s ease-in-out infinite;
-  }
-
-  .w09-state[data-state="syncing"] {
-    animation: w09StateSync 1.35s ease-in-out infinite;
-  }
-
-  .w09-state[data-state="completed"] {
-    animation: w09StateComplete 780ms cubic-bezier(0.16, 1, 0.3, 1) 1;
-  }
-
-  .w09-state[data-state="critical"] {
-    animation: w09StateCritical 1.8s ease-in-out infinite;
-  }
-}
-
-.w09-mission-scan {
-  background: linear-gradient(90deg, transparent, rgba(var(--hub-accent-rgb), 0.42), transparent);
-  height: 1px;
-  inset: 0 0 auto;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  transform: translateX(-100%);
-}
-
-.w09-state[data-state="online"] {
-  box-shadow: 0 0 0 1px rgba(var(--hub-accent-rgb), 0.12), 0 0 20px rgba(var(--hub-accent-rgb), 0.12);
-}
-
-.w09-state[data-state="active"] {
-  text-shadow: 0 0 14px rgba(var(--hub-accent-rgb), 0.16);
-}
-
-.w09-state[data-state="locked"] {
-  opacity: 0.82;
-  box-shadow: inset 0 0 0 1px rgba(115, 115, 115, 0.18);
-}
-
-.w09-state[data-state="critical"] {
-  color: rgb(239, 68, 68);
-}
-
-[data-motion-card][data-state="online"] {
-  box-shadow: inset 0 0 0 1px rgba(var(--hub-accent-rgb), 0.06);
-}
-
-[data-motion-card][data-state="locked"] {
-  filter: saturate(0.82);
-  opacity: 0.78;
-}
-
-[data-motion-card][data-state="critical"] {
-  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
-}
-
-@keyframes w09InteractionSweep {
-  0% { opacity: 0; transform: translateX(-115%); }
-  20% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(115%); }
-}
-
-/* Pulses animate opacity/transform only, so they run on the compositor —
-   a filter keyframe kept the main thread ticking every frame (W100 perf). */
-@keyframes w09ActiveChipPulse {
-  0%, 100% { opacity: 0.78; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.12); }
-}
-
-@keyframes w09MissionScan {
-  0% { opacity: 0; transform: translateX(-100%); }
-  22% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(100%); }
-}
-
-@keyframes w09StateBreath {
-  0%, 100% { opacity: 0.78; }
-  50% { opacity: 1; }
-}
-
-@keyframes w09StateSync {
-  0%, 100% { opacity: 0.54; translate: -1px 0; }
-  50% { opacity: 1; translate: 1px 0; }
-}
-
-@keyframes w09StateComplete {
-  0% { filter: brightness(1); }
-  35% { filter: brightness(1.35); }
-  100% { filter: brightness(1); }
-}
-
-@keyframes w09StateCritical {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-/* Shared structural surfaces. Palette values live in liveries.css. */
-/* Existing token-native modules inherit the W10 materials automatically. */
-:root {
-  --w09-bg: var(--w10-canvas);
-  --w09-surface: var(--w10-clay);
-  --w09-surface-raised: var(--w10-clay-raised);
-  --w09-border: var(--w10-clay-edge);
-  --w09-radius: var(--w10-radius-control);
-  --w09-shadow: var(--w10-clay-shadow-soft);
-}
-
-.w10-clay-shell {
-  background-color: var(--w10-canvas);
-  background-image: var(--w11-atmosphere, none);
-  background-attachment: fixed;
-}
-
-.w10-clay-shell > :where([class*="h-screen"]) {
-  background-color: var(--w10-canvas) !important;
-  background-image: var(--w11-atmosphere, none) !important;
-  background-attachment: fixed !important;
-}
-
-.w10-clay-shell > :where([class*="h-screen"]) > header {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--w10-clay-raised) 94%, transparent), color-mix(in srgb, var(--w10-clay) 90%, transparent)) !important;
-  border-color: var(--w10-clay-edge) !important;
-  box-shadow:
-    0 10px 24px var(--w10-clay-shadow),
-    inset 0 1px 0 var(--w10-clay-edge),
-    inset 0 -1px 0 rgba(var(--hub-accent-rgb), 0.16);
-}
-
-.w10-clay-surface,
-.w10-clay-shell main :where(
-  [class*="bg-white/40"][class*="rounded-"],
-  [class*="bg-white/45"][class*="rounded-"],
-  [class*="bg-white/55"][class*="rounded-"],
-  [class*="bg-white/60"][class*="rounded-"],
-  [class*="bg-white/65"][class*="rounded-"],
-  [class*="bg-white/70"][class*="rounded-"]
-):not([class*="rounded-full"]):not([data-w10-tone="dark"]) {
-  background:
-    linear-gradient(145deg, var(--w10-clay-raised) 0%, var(--w10-clay) 58%, var(--w10-clay-inset) 118%) !important;
-  border-color: var(--w10-clay-edge) !important;
-  box-shadow: var(--w10-clay-shadow-raised) !important;
-}
-
-.w10-clay-control {
-  background:
-    linear-gradient(145deg, var(--w10-clay-raised), var(--w10-clay)) !important;
-  border: 1px solid var(--w10-clay-edge) !important;
-  box-shadow: var(--w10-clay-shadow-soft) !important;
-}
-
-.w10-clay-inset {
-  background: var(--w10-clay-inset) !important;
-  border-color: color-mix(in srgb, var(--w10-clay-edge) 72%, transparent) !important;
-  box-shadow: var(--w10-clay-shadow-pressed) !important;
-}
-
-.w10-clay-hero {
-  border-color: rgba(var(--hub-accent-rgb), 0.24) !important;
-  /* No diffuse white highlight glow — it read as a white light-leak on the
-     dark cockpit hero (most visible in Day mode). Keep a soft drop + subtle
-     top sheen + bottom depth. */
-  box-shadow:
-    18px 20px 46px var(--w10-hero-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.34) !important;
-}
-
-.w10-clay-dark-panel {
-  border-color: rgba(var(--hub-accent-rgb), 0.18) !important;
-  background:
-    linear-gradient(145deg, rgba(21, 28, 36, 0.97), rgba(3, 7, 12, 0.96)) !important;
-  /* Centered elevation — the old 14px/16px offset shadow read as a smeared
-     blotch when a dark panel (e.g. the ChatGPT response card) sits on a
-     light clay surface. */
-  box-shadow:
-    0 18px 40px -12px var(--w10-hero-shadow),
-    inset 1px 1px 0 rgba(255, 255, 255, 0.09),
-    inset -2px -2px 0 rgba(0, 0, 0, 0.34) !important;
-}
-
-.w10-clay-rail {
-  background:
-    linear-gradient(150deg, color-mix(in srgb, var(--w10-clay-raised) 94%, transparent), color-mix(in srgb, var(--w10-clay) 90%, transparent)) !important;
-  border-color: var(--w10-clay-edge) !important;
-  box-shadow:
-    10px 0 28px var(--w10-clay-shadow),
-    inset -1px 0 0 rgba(var(--hub-accent-rgb), 0.08),
-    inset 1px 0 0 var(--w10-clay-edge);
-}
-
-.w10-clay-tab {
-  border: 1px solid transparent;
-  box-shadow: none;
-}
-
-.w10-clay-tab:not([data-state="active"]):hover,
-.w10-clay-tab:not([data-state="active"]):focus-visible {
-  background: var(--w10-clay-raised) !important;
-  border-color: var(--w10-clay-edge);
-  box-shadow: var(--w10-clay-shadow-soft);
-}
-
-.w10-clay-tab[data-state="active"] {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--hub-accent) 16%, var(--w10-clay-inset)), var(--w10-clay-inset)) !important;
-  border-color: rgba(var(--hub-accent-rgb), 0.22);
-  /* Soft, natural raised shadow for the selected item (the old pressed
-     double-inset read as harsh/artificial on a light pill). */
-  box-shadow:
-    0 5px 14px -5px var(--w10-clay-shadow),
-    0 2px 5px -3px var(--w10-clay-shadow),
-    inset 0 1px 0 var(--w10-clay-highlight) !important;
-  color: var(--w09-text) !important;
-}
-
-.w10-clay-dock {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--w10-clay-raised) 94%, transparent), color-mix(in srgb, var(--w10-clay) 92%, transparent)) !important;
-  border-color: var(--w10-clay-edge) !important;
-  box-shadow:
-    12px 16px 34px var(--w10-clay-shadow-deep),
-    -7px -7px 18px var(--w10-clay-highlight),
-    inset 1px 1px 0 var(--w10-clay-edge) !important;
-}
-
-.w10-clay-shell :where(input, textarea, select):not([type="checkbox"]):not([type="radio"]) {
-  background: var(--w10-clay-inset);
-  border-color: color-mix(in srgb, var(--w10-clay-edge) 78%, transparent);
-  box-shadow: var(--w10-clay-shadow-pressed);
-}
-
-.w10-clay-shell :where(input, textarea, select):where(:focus, :focus-visible) {
-  box-shadow:
-    var(--w10-clay-shadow-pressed),
-    0 0 0 3px rgba(var(--hub-accent-rgb), 0.14);
-}
-
-/* "Revolut" wordmark — geometric sans approximating the brand font. */
-.font-revolut {
-  font-family: var(--font-revolut), "Futura", "Avenir Next", "Century Gothic", system-ui, sans-serif;
-  letter-spacing: -0.03em;
-}
-
-/* Brand logo tile — teal claymorphic pillow with the V glyph (fixed teal,
-   not livery-tinted, so the mark stays constant across liveries). */
-.w10-brand-mark > span:first-child {
-  background:
-    linear-gradient(145deg, #3fe9da 0%, #00bdae 52%, #00a094 120%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
-  box-shadow:
-    5px 6px 14px rgba(0, 66, 62, 0.45),
-    -4px -4px 11px rgba(150, 255, 248, 0.40),
-    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.70),
-    inset -2px -3px 6px rgba(0, 84, 78, 0.55) !important;
-  color: #ffffff !important;
-  text-shadow: 0 1px 1px rgba(0, 60, 56, 0.45);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .w10-clay-surface,
-  .w10-clay-control,
-  .w10-clay-tab {
-    transition:
-      translate 220ms cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
-      background-color 220ms ease,
-      border-color 220ms ease;
-  }
-
-  .w10-clay-control:hover,
-  .w10-clay-control:focus-visible {
-    translate: 0 -2px;
-  }
-
-  .w10-clay-control:active,
-  .w10-clay-tab:active {
-    box-shadow: var(--w10-clay-shadow-pressed) !important;
-    translate: 0 1px;
-  }
-}
-
-/* ── W10 coverage extension ───────────────────────────────────────────────
-   The explicit .w10-clay-* classes + the bg-white/40–70 auto-net above cover
-   the structural surfaces, but the app still has ~100+ glass cards that use
-   `bg-black/5 dark:bg-white/5` (hub/content grids) or a bare `dark:bg-white/*`
-   with no light-white sibling. Those slipped through and stayed glassy. Give
-   them the SAME clay material (same tokens + raised shadow) so coverage is
-   complete and consistent. Anything already handled explicitly is excluded
-   via :not([class*="w10-clay-"]) and :not([data-w10-tone="dark"]); pills via
-   :not([class*="rounded-full"]). Token match (~=) avoids bg-black/5 matching
-   bg-black/50. */
-
-/* (a) light + dark: cards whose surface base is bg-black/5|10 paired with a
-   dark surface class — the canonical content-grid card. Mode-aware tokens
-   make it clay in both themes (mirrors the bg-white auto-net). */
-.w10-clay-shell main :where([class~="bg-black/5"], [class~="bg-black/10"]):where([class~="dark:bg-white/5"], [class~="dark:bg-white/10"]):not([class*="rounded-full"]):not([class*="w10-clay-"]):not([data-w10-tone="dark"]) {
-  background:
-    linear-gradient(145deg, var(--w10-clay-raised) 0%, var(--w10-clay) 58%, var(--w10-clay-inset) 118%) !important;
-  border-color: var(--w10-clay-edge) !important;
-  box-shadow: var(--w10-clay-shadow-raised) !important;
-}
-
-/* (b) dark mode only: bare glass-card signatures with no light-white base. */
-.dark .w10-clay-shell main :where([class~="dark:bg-white/5"], [class~="dark:bg-white/10"], [class~="dark:bg-white/15"]):not([class*="rounded-full"]):not([class*="w10-clay-"]):not([data-w10-tone="dark"]) {
-  background:
-    linear-gradient(145deg, var(--w10-clay-raised) 0%, var(--w10-clay) 58%, var(--w10-clay-inset) 118%) !important;
-  border-color: var(--w10-clay-edge) !important;
-  box-shadow: var(--w10-clay-shadow-raised) !important;
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   CROSS-HUB VIEW TRANSITIONS (native View Transitions API)
-   The brand mark + nav rail hold steady and the hub hero morphs while page
-   content crossfades between hubs. Driven by components/ViewTransitions.tsx;
-   SiteMotion stands down its JS route animation while this is active. Named
-   elements are singletons per page (required — a duplicate name aborts the
-   whole transition). Gated off for reduced-motion + low-power.
-   ════════════════════════════════════════════════════════════════════════ */
-@media (prefers-reduced-motion: no-preference) {
-  :root:not(.low-power) .w10-brand-mark {
-    view-transition-name: vt-brandmark;
-  }
-  :root:not(.low-power) [data-motion="nav-rail"] {
-    view-transition-name: vt-navrail;
-  }
-  :root:not(.low-power) .w10-clay-hero {
-    view-transition-name: vt-hero;
-  }
-}
-
-::view-transition-group(vt-hero),
-::view-transition-group(vt-brandmark),
-::view-transition-group(vt-navrail) {
-  animation-duration: 0.42s;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.34s;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-}
-
-/* ████████████████████████████████████████████████████████████████████████
-   W85 — FINAL EDITION
-   Matte surfaces and precise corners, with livery stripes and technical
-   details across the shell. Legacy clay tokens keep existing pages consistent;
-   the decoration layer below uses the selected livery without ambient blur.
-   ████████████████████████████████████████████████████████████████████████ */
-
-:root {
-  /* hairlines + matte surfaces (light) */
-  --w85-line: rgba(16, 18, 21, 0.10);
-  --w85-line-strong: rgba(16, 18, 21, 0.16);
-  --w85-canvas: #f7f7f8;
-  --w85-surface: #ffffff;
-  --w85-grid: rgba(16, 18, 21, 0.075);
-  --w85-radius: 12px;
-  --w85-radius-sm: 8px;
-
-  /* ── flatten the clay engine ── */
-  --w10-canvas: var(--w85-canvas);
-  --w10-clay: var(--w85-surface);
-  --w10-clay-raised: var(--w85-surface);
-  --w10-clay-inset: var(--w85-surface);
-  --w10-clay-edge: var(--w85-line);
-  --w10-clay-highlight: transparent;
-  --w10-clay-shadow: transparent;
-  --w10-clay-shadow-deep: transparent;
-  --w10-clay-shadow-soft: none;
-  --w10-clay-shadow-raised: none;
-  --w10-clay-shadow-pressed: none;
-  --w10-hero-shadow: transparent;
-  --w10-radius-panel: var(--w85-radius);
-  --w10-radius-control: var(--w85-radius-sm);
-  /* Atmosphere is painted by the shared livery layer. */
-  --w11-atmosphere: none !important;
-}
-
-.dark {
-  --w85-line: rgba(255, 255, 255, 0.09);
-  --w85-line-strong: rgba(255, 255, 255, 0.15);
-  --w85-canvas: #08090a;
-  --w85-surface: #101113;
-  --w85-grid: rgba(255, 255, 255, 0.075);
-
-  --w10-canvas: var(--w85-canvas);
-  --w10-clay: var(--w85-surface);
-  --w10-clay-raised: var(--w85-surface);
-  --w10-clay-inset: var(--w85-surface);
-  --w10-clay-edge: var(--w85-line);
-  --w10-clay-highlight: transparent;
-  --w10-clay-shadow: transparent;
-  --w10-clay-shadow-deep: transparent;
-  --w10-clay-shadow-soft: none;
-  --w10-clay-shadow-raised: none;
-  --w10-clay-shadow-pressed: none;
-  --w10-hero-shadow: transparent;
-}
-
-/* Matte page ground; the scrollable main carries the technical grid. */
-.w10-clay-shell > :where([class*="h-screen"]) {
-  background-color: var(--w85-canvas) !important;
-  background-image: none !important;
-}
-
-/* Every clay surface becomes a flat card with a hairline. */
-.w10-clay-surface,
-.w10-clay-control,
-.w10-clay-inset,
-.w10-clay-rail,
-.w10-clay-dock,
-.w10-clay-tab,
-.w10-clay-shell main :where(
-  [class*="bg-white/40"][class*="rounded-"],
-  [class*="bg-white/45"][class*="rounded-"],
-  [class*="bg-white/55"][class*="rounded-"],
-  [class*="bg-white/60"][class*="rounded-"],
-  [class*="bg-white/65"][class*="rounded-"],
-  [class*="bg-white/70"][class*="rounded-"]
-) {
-  background: var(--w85-surface) !important;
-  background-image: none !important;
-  border-color: var(--w85-line) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Header + rail materials. Their livery trim is painted below. */
-.w10-clay-shell > :where([class*="h-screen"]) > header,
-.w10-clay-rail {
-  background: var(--w85-surface) !important;
-  background-image: none !important;
-  border-color: var(--w85-line) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Kill blur + heavy ambient shadow everywhere inside the shell. */
-.w10-clay-shell [class*="backdrop-blur"] {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-.w10-clay-shell main [class*="shadow-["] {
-  box-shadow: none !important;
-}
-
-/* Pillow radii → tight, precise corners (leave rounded-full pills alone). */
-.w10-clay-shell :where(
-  [class*="rounded-[18px]"], [class*="rounded-[20px]"], [class*="rounded-[22px]"],
-  [class*="rounded-[24px]"], [class*="rounded-[26px]"], [class*="rounded-[28px]"],
-  [class*="rounded-[32px]"], [class*="rounded-[36px]"], [class*="rounded-[40px]"],
-  [class*="rounded-[44px]"]
-) {
-  border-radius: var(--w85-radius) !important;
-}
-
-/* The hub hero: a dark, readable ground beneath the shared livery artwork. */
-.w10-clay-hero {
-  background: var(--w85-surface) !important;
-  background-image: none !important;
-  border-color: var(--w85-line) !important;
-  box-shadow: none !important;
-}
-.dark .w10-clay-hero,
-.w10-clay-hero.dark {
-  background: #0d0e10 !important;
-}
-
-/* Ambient decoration retired: the big blurred colour blobs behind each hub.
-   Guarded with :not([class*="backdrop-blur"]) — Tailwind's backdrop utilities
-   share the "blur-*" substring, and matching those would hide real chrome
-   (the header and mobile dock both use backdrop-blur). */
-.w10-clay-shell [class*="blur-["]:not([class*="backdrop-blur"]),
-.w10-clay-shell [class*="blur-3xl"]:not([class*="backdrop-blur"]),
-.w10-clay-shell [class*="blur-2xl"]:not([class*="backdrop-blur"]) {
-  display: none !important;
-}
-
-/* Quieter typography: dial back the shouty tracking/weight of the cockpit era. */
-.w10-clay-shell main :where(h1, h2, h3) {
-  letter-spacing: -0.02em;
-}
-.w10-clay-shell [class*="tracking-[0.3em]"],
-.w10-clay-shell [class*="tracking-[0.42em]"],
-.w10-clay-shell [class*="tracking-[0.34em]"] {
-  letter-spacing: 0.16em !important;
-}
-
-/* W85 livery artwork never intercepts interactions. The final-edition motion
-   layer below animates these details only when motion is enabled. */
-.w10-clay-shell main {
-  background-image:
-    linear-gradient(118deg, transparent 62%, rgba(var(--hub-accent-rgb), 0.055) 62% 69%, transparent 69% 71%, rgba(var(--hub-secondary-rgb), 0.055) 71% 73%, transparent 73%),
-    radial-gradient(circle, rgba(var(--hub-accent-rgb), 0.2) 0.7px, transparent 0.9px),
-    linear-gradient(var(--w85-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--w85-grid) 1px, transparent 1px);
-  background-size: 720px 560px, 48px 48px, 48px 48px, 48px 48px;
-  background-position: right top, 24px 24px, 0 0, 0 0;
-  background-repeat: no-repeat, repeat, repeat, repeat;
-}
-
-.w10-clay-shell > :where([class*="h-screen"]) > header {
-  position: relative;
-}
-
-.w10-clay-shell > :where([class*="h-screen"]) > header::after,
-.w85-livery-cap {
-  content: "";
-  position: absolute;
-  inset: auto 0 -1px;
-  height: 4px;
-  pointer-events: none;
-  background: linear-gradient(110deg,
-    var(--hub-accent) 0% 28%,
-    var(--w85-surface) 28% 29%,
-    rgb(var(--hub-secondary-rgb)) 29% 35%,
-    var(--w85-surface) 35% 36%,
-    var(--hub-accent) 36% 38%,
-    var(--w85-line) 38% 100%);
-}
-
-.w10-clay-rail {
-  position: relative;
-}
-
-.w10-clay-rail::before {
-  content: "";
-  position: absolute;
-  top: 28px;
-  right: 0;
-  bottom: 28px;
-  width: 4px;
-  pointer-events: none;
-  background:
-    linear-gradient(var(--hub-accent) 0% 20%, transparent 20% 21%, rgb(var(--hub-secondary-rgb)) 21% 28%, transparent 28% 100%),
-    repeating-linear-gradient(-35deg, var(--w85-line-strong) 0 3px, transparent 3px 8px);
-}
-
-.w10-clay-dock {
-  border-top-color: rgba(var(--hub-accent-rgb), 0.55) !important;
-}
-
-.w85-panel-accent {
-  position: relative;
-}
-
-.w85-panel-accent::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 20px;
-  width: 76px;
-  height: 3px;
-  pointer-events: none;
-  background: linear-gradient(110deg,
-    var(--hub-accent) 0% 58%, transparent 58% 65%,
-    rgb(var(--hub-secondary-rgb)) 65% 84%, transparent 84% 91%,
-    var(--hub-accent) 91%);
-}
-
-.w85-livery-decoration {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-  pointer-events: none;
-  user-select: none;
-  background:
-    linear-gradient(90deg, transparent 55%, rgba(var(--hub-accent-rgb), 0.065)),
-    radial-gradient(circle, rgba(255, 255, 255, 0.09) 0.7px, transparent 0.9px) right bottom / 24px 24px;
-}
-
-.w85-livery-cap {
-  inset: 0 0 auto;
-  height: 5px;
-}
-
-.w85-livery-art {
-  position: absolute;
-  top: 0;
-  right: -60px;
-  width: min(58%, 560px);
-  height: 100%;
-  opacity: 0.65;
-}
-
-.w85-livery-primary { fill: rgba(var(--hub-accent-rgb), 0.22); }
-.w85-livery-secondary { fill: rgba(var(--hub-secondary-rgb), 0.32); }
-.w85-livery-silver { fill: rgba(255, 255, 255, 0.14); }
-.w85-livery-outline { stroke: rgba(var(--hub-accent-rgb), 0.28); stroke-width: 1; }
-.w85-livery-number {
-  font-family: var(--font-sans), sans-serif;
-  font-size: 230px;
-  font-weight: 900;
-  font-style: italic;
-  letter-spacing: -18px;
-  stroke: rgba(255, 255, 255, 0.16);
-  stroke-width: 1;
-}
-
-.w85-livery-corner {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  width: 22px;
-  height: 22px;
-  border-left: 2px solid rgba(var(--hub-accent-rgb), 0.6);
-  border-bottom: 2px solid rgba(var(--hub-accent-rgb), 0.6);
-}
-
-.w85-livery-ticks {
-  position: absolute;
-  right: 18px;
-  bottom: 16px;
-  width: 112px;
-  height: 7px;
-  background: repeating-linear-gradient(110deg, rgba(var(--hub-accent-rgb), 0.55) 0 2px, transparent 2px 8px);
-}
-
-@media (max-width: 639px) {
-  .w10-clay-shell main { background-size: 440px 420px, 48px 48px, 48px 48px, 48px 48px; }
-  .w85-livery-art { top: 0; right: -110px; width: 360px; height: 420px; opacity: 0.4; }
-  .w85-livery-corner { left: 9px; bottom: 9px; width: 14px; height: 14px; }
-  .w85-livery-ticks { right: 12px; bottom: 11px; width: 72px; height: 5px; }
-}
-
-/* W85 FINAL EDITION — scroll reveals live in usePageMotion. Only decoration
-   loops at rest; text, form controls and layout stay still. */
-.motion-route-shell > .w85-motion-chrome {
-  position: absolute;
-  inset: 0;
-  z-index: 110;
-  overflow: hidden;
-  pointer-events: none;
-  user-select: none;
-}
-
-.w85-final-scan {
-  position: absolute;
-  top: 0;
-  left: -35%;
-  width: 35%;
-  height: 3px;
-  opacity: 0;
-  background: linear-gradient(90deg, transparent, var(--hub-accent), rgba(255, 255, 255, 0.8), transparent);
-}
-
-.w85-scroll-track {
-  position: absolute;
-  inset: auto 0 0;
-  height: 3px;
-  opacity: 0;
-  background: var(--w85-line);
-}
-
-[data-w85-active][data-w85-scrollable] .w85-scroll-track { opacity: 1; }
-.w85-scroll-fill {
-  display: block;
-  height: 100%;
-  transform: scaleX(0);
-  transform-origin: left;
-  background: linear-gradient(90deg, rgb(var(--hub-secondary-rgb)), var(--hub-accent));
-}
-
-@keyframes w85FinalScan {
-  0%, 12% { transform: translateX(0); opacity: 0; }
-  20% { opacity: 0.7; }
-  68% { opacity: 0.7; }
-  82%, 100% { transform: translateX(390%); opacity: 0; }
-}
-
-@keyframes w85LiveryDrift {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 12px -24px; }
-}
-
-@keyframes w85TelemetryTicks {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-@keyframes w85MarkSheen {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .w85-final-scan { animation: w85FinalScan 7s ease-in-out infinite paused; }
-  /* (.w85-livery-art no longer drifts: Chrome repaints an animated <svg>
-     every frame, which kept the whole page repainting at rest. W100 perf.) */
-  .w85-livery-ticks { animation: w85TelemetryTicks 5s ease-in-out infinite paused; }
-  .w10-brand-mark img { animation: w85MarkSheen 6s ease-in-out infinite paused, w85IconFloat 7s ease-in-out infinite paused; }
-
-  [data-w85-active] > .w85-motion-chrome .w85-final-scan,
-  [data-w85-active] [data-w85-in-view] .w85-livery-ticks,
-  [data-w85-active] .w10-brand-mark[data-w85-in-view] img { animation-play-state: running; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .w85-motion-chrome { display: none; }
-}
-html.low-power .w85-motion-chrome { display: none; }
-
-/* Ambient W85 detail: small edge trails, illuminated livery and card caps.
-   Reuse the visibility observer so offscreen decorations stop working. */
-.w85-motion-chrome::before,
-.w85-motion-chrome::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 24%;
-  opacity: 0;
-  background: linear-gradient(transparent, var(--hub-accent), transparent);
-}
-.w85-motion-chrome::after {
-  left: auto;
-  right: 0;
-  background: linear-gradient(transparent, rgb(var(--hub-secondary-rgb)), transparent);
-}
-
-.w85-livery-decoration::before {
-  content: "";
-  position: absolute;
-  top: 5%;
-  right: -90px;
-  width: 620px;
-  height: 520px;
-  opacity: 0;
-  background: radial-gradient(ellipse, rgba(var(--hub-accent-rgb), 0.32), transparent 68%);
-}
-.w85-livery-cap::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -28%;
-  width: 28%;
-  height: 100%;
-  opacity: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
-}
-.w85-livery-flow {
-  stroke: var(--hub-accent-on-dark);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 14 86;
-  opacity: 0;
-}
-.w85-livery-flow-secondary { stroke: rgb(var(--hub-secondary-rgb)); }
-
-@keyframes w85EdgeTrail {
-  0% { transform: translateY(-100%); opacity: 0; }
-  18%, 75% { opacity: 0.75; }
-  100% { transform: translateY(420%); opacity: 0; }
-}
-@keyframes w85LiveryGlow {
-  0%, 100% { transform: translate(0, 0) scale(0.9); opacity: 0.45; }
-  50% { transform: translate(-70px, 40px) scale(1.16); opacity: 1; }
-}
-@keyframes w85LiveryFlow {
-  from { stroke-dashoffset: 100; opacity: 0.9; }
-  to { stroke-dashoffset: 0; opacity: 0.9; }
-}
-@keyframes w85AccentGlide {
-  0%, 100% { transform: translateX(0) scaleX(0.85); opacity: 0.5; }
-  50% { transform: translateX(22px) scaleX(1); opacity: 1; }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .w85-motion-chrome::before { animation: w85EdgeTrail 10s linear infinite paused; }
-  .w85-motion-chrome::after { animation: w85EdgeTrail 12s linear -6s infinite reverse paused; }
-  .w85-livery-decoration::before { animation: w85LiveryGlow 9s ease-in-out infinite paused; }
-  .w85-livery-cap::after { animation: w85FinalScan 6s ease-in-out -2s infinite paused; }
-  .w85-panel-accent::before { animation: w85AccentGlide 9s ease-in-out infinite paused; transform-origin: left; }
-  .w10-clay-rail::before { animation: w85TelemetryTicks 7s ease-in-out -3s infinite paused; }
-
-  [data-w85-active] > .w85-motion-chrome::before,
-  [data-w85-active] > .w85-motion-chrome::after,
-  [data-w85-active] .w85-livery-decoration[data-w85-in-view]::before,
-  [data-w85-active] [data-w85-in-view] .w85-livery-cap::after,
-  [data-w85-active] .w85-panel-accent[data-w85-in-view]::before,
-  [data-w85-active] .w10-clay-rail[data-w85-in-view]::before { animation-play-state: running; }
-}
-
-/* The fuller W85 motion treatment keeps every label and input stationary.
-   Rings, beams, borders and symbols carry the motion around the content. */
-@property --w85-border-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
-.w85-livery-orbits {
-  position: absolute;
-  width: min(48%, 460px);
-  height: auto;
-  top: -80px;
-  right: -24px;
-  stroke: var(--hub-accent-on-dark);
-  stroke-width: 1.6;
-  opacity: 0.6;
-}
-.w85-orbit-outer,
-.w85-orbit-inner { transform-origin: 180px 180px; }
-.w85-orbit-inner { stroke: rgb(var(--hub-secondary-rgb)); stroke-width: 2.5; }
-.w85-orbit-node { fill: var(--hub-accent-on-dark); stroke: none; }
-
-.w85-livery-decoration::after {
-  content: "";
-  position: absolute;
-  inset: -30% auto -30% -35%;
-  width: 28%;
-  background: linear-gradient(90deg, transparent, rgba(var(--hub-accent-rgb), 0.22), rgba(255, 255, 255, 0.12), transparent);
-  opacity: 0;
-}
-.w85-livery-equalizer {
-  position: absolute;
-  left: 52px;
-  bottom: 15px;
-  height: 22px;
-  display: flex;
-  align-items: end;
-  gap: 4px;
-}
-.w85-livery-equalizer > span {
-  width: 3px;
-  height: 100%;
-  background: var(--hub-accent-on-dark);
-  opacity: 0.65;
-  transform: scaleY(0.3);
-  transform-origin: bottom;
-}
-
-.w10-clay-shell [data-w85-ambient-card] { position: relative; }
-@supports (mask-composite: exclude) {
-  .w10-clay-shell [data-w85-ambient-card]::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1.5px;
-    border-radius: inherit;
-    background: conic-gradient(from var(--w85-border-angle), transparent 12%, var(--hub-accent) 28%, transparent 42% 62%, rgb(var(--hub-secondary-rgb)) 78%, transparent 92%);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    transform: none;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 2;
-  }
-}
-
-@keyframes w85OrbitSpin { to { transform: rotate(360deg); } }
-@keyframes w85BorderOrbit { to { --w85-border-angle: 360deg; } }
-@keyframes w85HeroBeam {
-  0% { transform: translateX(0) skewX(-18deg); opacity: 0; }
-  18%, 65% { opacity: 1; }
-  100% { transform: translateX(510%) skewX(-18deg); opacity: 0; }
-}
-@keyframes w85Equalizer {
-  0%, 100% { transform: scaleY(0.2); }
-  35% { transform: scaleY(0.9); }
-  65% { transform: scaleY(0.45); }
-  85% { transform: scaleY(1); }
-}
-@keyframes w85IconFloat {
-  0%, 100% { translate: 0 0; rotate: -2deg; }
-  50% { translate: 0 -2px; rotate: 2deg; }
-}
-@keyframes w85GridTravel {
-  from { background-position: right top, 24px 24px, 0 0, 0 0; }
-  to { background-position: right top, 72px 72px, 48px 48px, 48px 48px; }
-}
-
-@media (max-width: 639px) {
-  .w85-livery-orbits { width: 290px; top: -58px; right: -95px; opacity: 0.42; }
-  .w85-livery-equalizer { left: 36px; height: 16px; bottom: 10px; gap: 3px; }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .w85-livery-decoration::after { animation: w85HeroBeam 9s ease-in-out -1s infinite paused; }
-  .w85-livery-equalizer > span { animation-name: w85Equalizer; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
-  .w85-nav-icon { animation: w85IconFloat 6s ease-in-out infinite paused; }
-  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 1) .w85-nav-icon { animation-delay: -2s; }
-  :is(.w09-nav-link, .w09-nav-chip):nth-of-type(3n + 2) .w85-nav-icon { animation-delay: -4s; }
-
-  /* The grid stays put (W100 perf): travelling it repainted the whole
-     scroll container every frame. */
-  .motion-route-shell main {
-    animation: siteContentReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
-  }
-
-  @supports (mask-composite: exclude) {
-    /* Accent arcs hold still, each card at its own angle (W100 perf: the
-       orbiting conic repainted every visible card every frame). */
-    .w10-clay-shell [data-w85-ambient-card]::after { opacity: 0.55; }
-    .w10-clay-shell [data-w85-ambient-card="1"]::after { --w85-border-angle: 90deg; }
-    .w10-clay-shell [data-w85-ambient-card="2"]::after { --w85-border-angle: 180deg; }
-    .w10-clay-shell [data-w85-ambient-card="3"]::after { --w85-border-angle: 270deg; }
-    .w10-clay-shell [data-w85-ambient-card]:focus-within::after { opacity: 0.35; }
-  }
-
-  [data-w85-active] .w85-livery-decoration[data-w85-in-view]::after,
-  [data-w85-active] [data-w85-in-view] .w85-nav-icon,
-  [data-w85-active] [data-w85-in-view] .w85-livery-equalizer > span { animation-play-state: running; }
-}
-
-/* Persistent motion beyond the hero: circuit currents frame every route,
-   while headings and visible content cards carry their own ambient accents. */
-.w85-ambient-circuit { position: absolute; inset: 0; overflow: hidden; }
-.w85-ambient-circuit > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.w85-ambient-circuit path { vector-effect: non-scaling-stroke; }
-.w85-circuit-rail { stroke: rgba(var(--hub-accent-rgb), 0.14); stroke-width: 1; }
-.w85-circuit-current {
-  stroke: var(--hub-accent);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 9 91;
-  opacity: 0.65;
-}
-.w85-ambient-circuit g:nth-child(even) .w85-circuit-current { stroke: rgb(var(--hub-secondary-rgb)); }
-.w85-circuit-beacons { fill: var(--hub-accent); opacity: 0.45; }
-.w85-circuit-aura {
-  position: absolute;
-  width: min(48vw, 620px);
-  height: min(70vh, 620px);
-  border-radius: 50%;
-  opacity: 0.65;
-}
-.w85-circuit-aura-primary {
-  right: -20%;
-  top: 6%;
-  background: radial-gradient(ellipse, rgba(var(--hub-accent-rgb), 0.16), transparent 68%);
-}
-.w85-circuit-aura-secondary {
-  left: -20%;
-  bottom: 0;
-  background: radial-gradient(ellipse, rgba(var(--hub-secondary-rgb), 0.14), transparent 68%);
-}
-.w85-circuit-ribbon {
-  position: absolute;
-  width: clamp(100px, 18vw, 240px);
-  height: 9px;
-  background: repeating-linear-gradient(115deg, var(--hub-accent) 0 3px, transparent 3px 12px);
-  opacity: 0.32;
-  mask-image: linear-gradient(90deg, transparent, #000 20% 80%, transparent);
-}
-.w85-circuit-ribbon-top { top: 8px; right: 8%; }
-.w85-circuit-ribbon-bottom { bottom: 8px; left: 10%; }
-
-.w10-clay-shell [data-w85-heading] { position: relative; }
-.w10-clay-shell [data-w85-heading]::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -6px;
-  width: min(35%, 104px);
-  height: 2px;
-  border-radius: 2px;
-  pointer-events: none;
-  background: linear-gradient(90deg, var(--hub-accent), transparent 40% 52%, rgb(var(--hub-secondary-rgb)) 66%, transparent 90%);
-  background-size: 220% 100%;
-  transform-origin: left;
-  opacity: 0.7;
-}
-
-.w10-clay-shell [data-w85-card-wash]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: auto;
-  height: auto;
-  border-radius: inherit;
-  pointer-events: none;
-  transform: none;
-  background-image:
-    linear-gradient(110deg, var(--hub-accent) 58%, transparent 58% 65%, rgb(var(--hub-secondary-rgb)) 65% 84%, transparent 84% 91%, var(--hub-accent) 91%),
-    linear-gradient(110deg, transparent 20%, rgba(var(--hub-accent-rgb), 0.11) 45%, rgba(var(--hub-secondary-rgb), 0.07) 55%, transparent 80%);
-  background-size: 76px 3px, 240% 100%;
-  background-position: 20px 0, 100% 0;
-  background-repeat: no-repeat;
-  opacity: 0.8;
-}
-
-@keyframes w85CircuitCurrent { to { stroke-dashoffset: -100; } }
-@keyframes w85CircuitBeacon { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.8; } }
-@keyframes w85CircuitAura {
-  0%, 100% { transform: translate(0, 0) scale(0.85); opacity: 0.45; }
-  50% { transform: translate(-36px, 56px) scale(1.18); opacity: 1; }
-}
-@keyframes w85RibbonTravel { to { background-position: 48px 0; } }
-@keyframes w85HeadingSignal {
-  0%, 100% { background-position: 100% 0; transform: scaleX(0.65); }
-  50% { background-position: 0 0; transform: scaleX(1); }
-}
-@keyframes w85CardWash {
-  0%, 100% { background-position: 20px 0, 100% 0; }
-  50% { background-position: 48px 0, 0 0; }
-}
-@keyframes w85HeaderLivery {
-  0%, 100% { background-position: 0 0; }
-  50% { background-position: 100% 0; }
-}
-
-@media (max-width: 639px) {
-  .w85-circuit-current { stroke-width: 1.5; opacity: 0.45; }
-  .w85-circuit-rail { opacity: 0.5; }
-  .w85-circuit-aura { width: 90vw; height: 50vh; }
-  .w85-circuit-aura-primary { right: -65%; }
-  .w85-circuit-aura-secondary { left: -65%; }
-  .w85-circuit-ribbon { height: 6px; }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  /* W100 perf: only the auras move (transform/opacity, on the compositor);
-     the SVG currents, beacons and ribbons are static — animating them
-     repainted a full-screen SVG every frame. */
-  .w85-circuit-aura { animation: w85CircuitAura 9s ease-in-out infinite paused; }
-  .w85-circuit-aura-secondary { animation-delay: -4.5s; animation-direction: reverse; }
-  [data-w85-active] .w85-ambient-circuit .w85-circuit-aura { animation-play-state: running; }
-
-  /* Heading signals, card washes and the header stripe hold still (W100
-     perf: each was a background-position loop, repainted every frame). */
-  .w10-clay-shell [data-w85-card-wash]:focus-within::before { opacity: 0.3; }
+html.low-power *,
+html.low-power *::before,
+html.low-power *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
 }

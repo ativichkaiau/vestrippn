@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Action, Page, PageHeader } from '@/components/system/primitives';
 
 type Source = { id: string; name: string; status: string; pages?: number; addedAt: string };
 
@@ -69,12 +70,9 @@ export default function DasIngestClient() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--w09-bg)] px-5 py-8 text-[color:var(--w09-text)]">
-      <div className="mx-auto w-full max-w-3xl">
-        <h1 className="text-lg font-bold [font-family:var(--w09-font-display)]">DAS · Ingestion</h1>
-        <p className="mt-1 text-sm text-[color:var(--w09-text-muted)]">
-          Add a PDF or DOCX (or paste text) to ground DAS chat answers.
-        </p>
+    <Page>
+      <PageHeader label="runtime / assistant / ingest" title="Ingest sources" lede="Add a PDF or DOCX (or paste text) to ground the assistant's answers." actions={<Action href="/das">open assistant</Action>} />
+      <div className="sys-section" style={{ maxWidth: 760 }}>
 
         {/* Upload form */}
         <div className="mt-6 space-y-3 rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)]">
@@ -138,6 +136,6 @@ export default function DasIngestClient() {
           </ul>
         )}
       </div>
-    </main>
+    </Page>
   );
 }

@@ -5,6 +5,12 @@ import { prisma } from '@/lib/prisma';
 import { fetchCanvasTelemetry } from '@/lib/canvas';
 import { getAnkiHistory, type AnkiHistoryPoint } from '@/lib/anki';
 import AnalyticsClient from './AnalyticsClient';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Analytics',
+  description: 'Study telemetry from Canvas and Anki.',
+};
 
 // Study telemetry hub. Canvas grades + Anki streak come from the server (same
 // sources the dashboard/academics use); focus-session history, lap PBs and the

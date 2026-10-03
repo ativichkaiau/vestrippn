@@ -16,7 +16,7 @@ export default function ThemeController() {
     };
     refresh();
     const interval = window.setInterval(() => {
-      if (document.visibilityState === 'visible' && getMode() === 'auto' && getLivery() === 'normal') refresh();
+      if (document.visibilityState === 'visible' && getMode() === 'auto') refresh();
     }, 30_000);
     document.addEventListener('visibilitychange', onVisible);
     window.addEventListener('storage', onStorage);

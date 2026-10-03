@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import QuestionCard from '@/components/w09/QuestionCard';
-import { Skel, SkelGroup } from '@/components/w100/Skeleton';
+import { Skel, SkelGroup } from '@/components/system/Skeleton';
+import { Action, Page, PageHeader } from '@/components/system/primitives';
 
 type Question = { id: string; number: number; prompt: string; options: { id: string; label: string }[] };
 type AnswerState = { selectedId?: string; status: 'idle' | 'answered'; correctId?: string };
@@ -71,10 +72,9 @@ export default function IeltsPracticeClient() {
   const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
 
   return (
-    <main className="flex-1 min-h-0 overflow-y-auto bg-[var(--w09-bg)] text-[color:var(--w09-text)]">
-      <div className="mx-auto w-full max-w-2xl px-5 py-8">
-        <h1 className="text-2xl font-black tracking-tight [font-family:var(--w09-font-display)]">IELTS Practice</h1>
-        <p className="mt-1 text-sm text-[color:var(--w09-text-muted)]">Pick a section and answer — each choice is graded instantly.</p>
+    <Page>
+      <PageHeader label="runtime / ielts / practice" title="IELTS practice" lede="Pick a section and answer — each choice is graded instantly." actions={<Action href="/ielts">ielts hub</Action>} />
+      <div className="sys-section" style={{ maxWidth: 720 }}>
 
         {/* Section filter */}
         <div className="mt-5 flex flex-wrap gap-2">
@@ -83,10 +83,10 @@ export default function IeltsPracticeClient() {
               key={s.id}
               onClick={() => setSection(s.id)}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors duration-[var(--w09-motion-duration)] ${
-                section === s.id
-                  ? 'bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
-                  : 'border border-[color:var(--w09-border)] bg-[var(--w09-surface)] text-[color:var(--w09-text-muted)] hover:bg-[var(--w09-surface-raised)]'
-              }`}
+ section === s.id
+ ? 'bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
+ : 'border border-[color:var(--w09-border)] bg-[var(--w09-surface)] text-[color:var(--w09-text-muted)] hover:bg-[var(--w09-surface-raised)]'
+ }`}
             >
               {s.label}
             </button>
@@ -143,7 +143,7 @@ export default function IeltsPracticeClient() {
 
         {/* Results summary */}
         {allDone && (
-          <div className="mt-6 rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 text-center shadow-[var(--w09-shadow)]">
+          <div className="mt-6 rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 text-center">
             <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">Session complete</div>
             <div className="mt-1 text-3xl font-black text-[color:var(--w09-accent-primary)]">
               {correct}/{total}
@@ -158,6 +158,6 @@ export default function IeltsPracticeClient() {
           </div>
         )}
       </div>
-    </main>
+    </Page>
   );
 }

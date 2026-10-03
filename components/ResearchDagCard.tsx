@@ -33,9 +33,7 @@ export default function ResearchDagCard() {
   const [graphOpen, setGraphOpen] = useState(false);
 
   return (
-    // data-no-typewriter: this is a static data surface — keep the axis chips
-    // and labels from being emptied by the hover-typewriter effect.
-    <div className="flex-1 flex flex-col" data-no-typewriter>
+    <div className="flex-1 flex flex-col">
       {graphOpen && <BrugadaDag onClose={() => setGraphOpen(false)} />}
       {/* project identity */}
       <div

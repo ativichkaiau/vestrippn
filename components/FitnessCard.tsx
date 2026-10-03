@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { updateFitnessData } from '@/app/actions';
-import { Skel, SkelGroup, SkelLabel } from '@/components/w100/Skeleton';
+import { Skel, SkelGroup, SkelLabel } from '@/components/system/Skeleton';
 
 interface FitnessCardProps {
   initialWorkoutDays?: boolean[];
@@ -13,7 +13,7 @@ interface FitnessCardProps {
 export default function FitnessCard({
   // Defaulting to absolute zero / 0% state
   initialWorkoutDays = [false, false, false, false, false, false, false],
-  initialLastWorkout = "Awaiting Log...",
+  initialLastWorkout = "No workout logged yet",
   initialStreak = 0
 }: FitnessCardProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -115,7 +115,7 @@ export default function FitnessCard({
   if (!isMounted) return (
     <SkelGroup label="training" className="flex w-full items-center justify-between gap-6">
       <div className="flex w-1/2 flex-col gap-3">
-        <SkelLabel label="Telemetry · Training" />
+        <SkelLabel label="training" />
         <Skel className="h-10 w-full rounded-xl" />
       </div>
       <Skel className="h-24 w-[200px] rounded-xl" />
@@ -151,12 +151,12 @@ export default function FitnessCard({
               onClick={() => toggleDay(idx)}
               title={`Module ${idx + 1}`}
               className={`flex-1 rounded-full transition-all duration-300 ${
-                isDone 
-                  ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] opacity-100 active:scale-95' 
-                  : isUnlocked
-                      ? 'bg-transparent border border-blue-500 animate-pulse'
-                      : 'bg-black/5 dark:bg-white/10 opacity-60 cursor-not-allowed'
-              }`}
+ isDone 
+ ? 'bg-emerald-500 opacity-100 active:scale-95' 
+ : isUnlocked
+ ? 'bg-transparent border border-blue-500 animate-pulse'
+ : 'bg-black/5 dark:bg-white/10 opacity-60 cursor-not-allowed'
+ }`}
             />
           ))}
         </div>
@@ -173,10 +173,10 @@ export default function FitnessCard({
           <button
             onClick={handleSyncCalendar}
             className={`p-2 rounded-lg transition-all duration-300 flex items-center gap-2 font-bold text-[11px] uppercase tracking-wider ${
-              isUnlocked 
-                ? 'bg-blue-500 text-white shadow-md hover:bg-blue-600' 
-                : 'bg-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
-            }`}
+ isUnlocked 
+ ? 'bg-blue-500 text-white shadow-md hover:bg-blue-600' 
+ : 'bg-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+ }`}
             title="Sync to Google Calendar"
           >
             <span className="hidden sm:block">{isUnlocked ? 'Ready' : 'Sync'}</span>
@@ -192,10 +192,10 @@ export default function FitnessCard({
       <div className="shrink-0 flex items-center gap-3 xl:px-8 xl:border-x border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="flex flex-col items-end xl:items-center">
           <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1 transition-colors duration-700">
-            Bio Streak
+            streak
           </div>
           <div className="flex items-baseline text-[42px] font-black leading-none tracking-tighter">
-            <span className={`transition-colors duration-700 ${streak === 0 ? 'text-red-500 animate-pulse' : 'text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]'}`}>
+            <span className={`transition-colors duration-700 ${streak === 0 ? 'text-red-500 animate-pulse' : 'text-emerald-500 dark:text-emerald-400 '}`}>
               {streak}
             </span>
             <span className={`text-[28px] ml-1 transition-all ${streak === 0 ? 'grayscale opacity-30' : 'drop-shadow-md'}`}>🔥</span>
@@ -228,12 +228,12 @@ export default function FitnessCard({
             <div 
               key={idx} 
               className={`w-full aspect-square flex items-center justify-center text-[11px] font-bold rounded-full transition-all duration-300 ${
-                day === todayDate 
-                  ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)] scale-110' 
-                  : day 
-                    ? 'text-neutral-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/10 cursor-default' 
-                    : 'bg-transparent'
-              }`}
+ day === todayDate 
+ ? 'bg-emerald-500 text-white scale-110' 
+ : day 
+ ? 'text-neutral-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/10 cursor-default' 
+ : 'bg-transparent'
+ }`}
             >
               {day || ''}
             </div>

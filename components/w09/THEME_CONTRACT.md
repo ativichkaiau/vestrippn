@@ -1,5 +1,7 @@
 # W09 Theme Contract
 
+> The `--w09-*` names are now bridged to the VESTRIPPN system tokens in `app/globals.css`; a livery no longer restyles them. New components use the `sys-*` primitives (`docs/system.md`).
+
 Every W09 primitive in `components/w09/` renders **only** through the CSS custom
 properties below. This is a hard rule:
 

@@ -138,7 +138,7 @@ export default function BrugadaDag({ onClose }: { onClose: () => void }) {
     : [];
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000] flex flex-col bg-[#07090c]/95 text-white backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Brugada knowledge graph">
+    <div className="fixed inset-0 z-[1000] flex flex-col bg-[#07090c]/95 text-white" role="dialog" aria-modal="true" aria-label="Brugada knowledge graph">
       {/* header */}
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-8">
         <div className="min-w-0">

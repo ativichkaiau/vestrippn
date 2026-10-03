@@ -1068,7 +1068,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
           setPhase('setup');
           setOpen(true);
         }}
-        className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-widest text-neutral-700 shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-neutral-200 dark:hover:bg-white/10"
+        className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-widest text-neutral-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-neutral-200 dark:hover:bg-white/10"
         title="Lock the page and run a focus lap"
       >
         <span className="text-[14px] leading-none">🏁</span>
@@ -1076,7 +1076,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
       </button>}
 
       {open && mounted && createPortal(
-        <div data-no-typewriter className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
+        <div className="fixed inset-0 z-[999] overflow-hidden text-white" style={{ backgroundColor: '#070b16' }}>
           <style>{`@keyframes fmFade{0%{opacity:0;transform:translate(-50%,6px) scale(0.96)}15%{opacity:1;transform:translate(-50%,0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px) scale(1)}}@keyframes fmPop{0%{opacity:0;transform:scale(0.7)}30%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
           {/* W85 — the carbon weave + twin accent bloom is retired; focus mode
               is a flat ground so the timer is the only thing on screen. */}
@@ -1175,7 +1175,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
                     <button
                       key={t.id}
                       onClick={() => launch(t)}
-                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.015] p-3 text-left shadow-[0_10px_26px_-14px_rgba(0,0,0,0.7)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[color:rgba(var(--hub-accent-rgb),0.5)] hover:from-white/[0.1] hover:shadow-[0_18px_40px_-16px_rgba(var(--hub-accent-rgb),0.42)]"
+                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.015] p-3 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-[color:rgba(var(--hub-accent-rgb),0.5)] hover:from-white/[0.1]"
                     >
                       <span
                         aria-hidden
@@ -1183,7 +1183,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
                         style={{ background: 'radial-gradient(60% 100% at 50% 0%, rgba(var(--hub-accent-rgb),0.20), transparent 70%)' }}
                       />
                       {t.street && (
-                        <span className="absolute right-2 top-2 z-10 rounded-md bg-black/40 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-neutral-200 backdrop-blur-sm">
+                        <span className="absolute right-2 top-2 z-10 rounded-md bg-black/40 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-neutral-200">
                           Street
                         </span>
                       )}
@@ -1300,7 +1300,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
                 <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" style={{ color: 'var(--hub-accent)' }} />
 
                 {/* shift-light RPM strip */}
-                <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/45 px-2.5 py-1.5 backdrop-blur-md">
+                <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/45 px-2.5 py-1.5">
                   {Array.from({ length: 15 }).map((_, k) => {
                     const on = k < litLeds;
                     const col = k < 8 ? '#22c55e' : k < 13 ? '#ef4444' : '#3b82f6';
@@ -1316,14 +1316,14 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
 
                 {/* current sector tag + conditions */}
                 <div className="absolute left-4 top-4 flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur-md">
+                  <div className="flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5">
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--hub-accent)' }} />
                     <span className="font-mono text-[12px] font-black tabular-nums" style={{ color: 'var(--hub-accent)' }}>
                       S{sector}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">Sector {sector} / 3</span>
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-neutral-300 backdrop-blur-md">
+                  <div className="flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-neutral-300">
                     <span>{tod === 'day' ? '☀ Day' : tod === 'dusk' ? '🌇 Dusk' : '🌙 Night'}</span>
                     <span className="text-neutral-600">·</span>
                     <span style={wet ? { color: '#7cc4ff' } : undefined}>{wet ? '🌧 Wet' : '◓ Dry'}</span>
@@ -1347,7 +1347,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
 
                 {/* lights-out start sequence */}
                 {lights >= 0 && (
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/35 backdrop-blur-[2px]">
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/35">
                     {lights < 6 ? (
                       <>
                         <div className="flex gap-2">
@@ -1370,7 +1370,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
                 )}
 
                 {/* track-map inset (whole circuit + position) */}
-                <div className="absolute right-3 top-3 w-32 rounded-2xl border border-white/10 bg-black/40 p-2 backdrop-blur-md sm:w-44">
+                <div className="absolute right-3 top-3 w-32 rounded-2xl border border-white/10 bg-black/40 p-2 sm:w-44">
                   <svg viewBox="0 0 220 140" className="h-full w-full">
                     <path
                       ref={pathRef}
@@ -1399,7 +1399,7 @@ export default function FocusMode({ showTrigger = true }: { showTrigger?: boolea
                 </div>
 
                 {paused && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                     <div className="text-center">
                       <div className="text-[11px] font-black uppercase tracking-[0.4em] text-neutral-400">Paused</div>
                       <div className="mt-2 text-2xl font-black">Press ▶ or Space to resume</div>

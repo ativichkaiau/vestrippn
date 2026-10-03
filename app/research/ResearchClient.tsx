@@ -2,14 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import ThemeToggle from "../../components/ThemeToggle"; 
-import ArcDate from '../../components/ArcDate';
-import TopNavProfile from '../../components/TopNavProfile';
-import MissionBlock from '../../components/MissionBlock';
-import { NavRail, MobileHubNav } from '../../components/HubNav';
-import HubIntro from '../../components/HubIntro';
-import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
-import BrandMark from '../../components/BrandMark';
+import { Page, PageHeader } from '@/components/system/primitives';
+import ResearchDocs from '@/components/system/ResearchDocs';
+import ResearchDagCard from '@/components/ResearchDagCard';
 
 /* ── Research Hub: multi-source contract types (see app/api/research/*) ── */
 type ResearchSource = 'pubmed' | 'europepmc' | 'crossref' | 'cochrane' | 'scopus' | 'sciencedirect';
@@ -122,7 +117,6 @@ const QUICK_LINKS: { id: QuickLinkId; icon: string; label: string }[] = [
 ];
 
 export default function ResearchClient({ cloudResearch, cloudExtractions = [] }: ResearchProps) {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   /* ── Multi-source search state ── */
   const [searchQuery, setSearchQuery] = useState('');
@@ -263,97 +257,28 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
-        @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
-        .animate-float-slow { animation: floatSlow 6s ease-in-out infinite; }
-        .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
-      `}} />
-
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
-        <div className="absolute top-[-12%] right-[8%] w-[62%] h-[62%] bg-gradient-to-br from-amber-400/30 via-orange-400/25 to-rose-400/20 dark:from-amber-600/20 dark:via-orange-600/15 dark:to-[#00A598]/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-70 transition-all duration-1000"></div>
-        <div className="absolute bottom-[-12%] left-[3%] w-[55%] h-[55%] bg-gradient-to-tr from-blue-400/25 via-cyan-400/20 to-teal-300/25 dark:from-blue-600/15 dark:via-cyan-600/10 dark:to-teal-600/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-60 transition-all duration-1000"></div>
-        <div className="absolute top-[30%] left-[38%] w-[42%] h-[42%] bg-gradient-to-br from-amber-300/20 to-cyan-300/20 dark:from-amber-500/10 dark:to-cyan-500/10 rounded-full blur-[130px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
-      </div>
-
-      <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <button 
-            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} 
-            className="hidden lg:flex items-center justify-center p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-neutral-500 dark:text-neutral-400 active:scale-95"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="12" x2="20" y2="12"></line>
-              <line x1="4" y1="6" x2="20" y2="6"></line>
-              <line x1="4" y1="18" x2="14" y2="18"></line>
-            </svg>
-          </button>
-          <BrandMark />
-        </div>
-        <div className="flex gap-4 lg:gap-6 items-center">
-          <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
-          <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
-          <TopNavProfile />
-          <ThemeToggle />
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden relative z-10">
-        
-        <NavRail active="Research" expanded={isSidebarExpanded} onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)} />
-
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
-          <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-14">
+    <Page wide hub>
+      <PageHeader
+        index="05"
+        label="research"
+        title="Research"
+        lede="Systematic review infrastructure, documented as a system: what exists, how the pipeline runs, and the tools mounted here."
+        meta={[
+          { key: 'search sources', value: String(RESULT_SOURCES.length).padStart(2, '0') },
+          { key: 'vault', value: `${vault.length} saved` },
+        ]}
+      />
+      <ResearchDocs />
             
-            <HubIntro
-              eyebrow="Multi-Source Research Engine"
-              title="Search, save, and screen"
-              titleAccent="faster"
-              description="The Research Hub federates literature discovery, deep links, saved extractions, and review workflow telemetry into one SRMA-ready cockpit."
-              primaryHref="#literature-search"
-              primaryLabel="Search Literature"
-              secondaryHref="https://vestrippn-srma-telemetry.vercel.app"
-              secondaryLabel="SRMA Engine ↗"
-              chips={['PubMed', 'Europe PMC', 'Scopus', 'ScienceDirect']}
-              panelTitle="Research Ops"
-              panelSubtitle="Research pipeline: SRMA extraction"
-              contextLabel="Pipeline: Brugada SRMA"
-              metrics={[
-                { label: 'Sources', value: '7' },
-                { label: 'Vault', value: `${cloudExtractions.length}` },
-                { label: 'Mode', value: 'SRMA' },
-              ]}
-              capabilities={[
-                { icon: '🔎', title: 'Federated Discovery', desc: 'Search biomedical sources and deep-link tools without breaking your flow.' },
-                { icon: '📦', title: 'Extraction Vault', desc: 'Save rich paper metadata into the research vault for review continuity.' },
-              ]}
-              hub="research"
-            />
 
-            <MissionBlock
-              accent="cyan"
-              title="Brugada SRMA · Extraction Pipeline"
-              detail="Screening and extraction are live — keep the pipeline moving."
-              cta={{ label: 'Launch SRMA ↗', href: 'https://vestrippn-srma-telemetry.vercel.app', external: true }}
-            />
 
-            <CockpitIntelligencePanel
-              hub="research"
-              contextItems={[
-                { label: 'Current pipeline', value: 'Brugada SRMA' },
-                { label: 'Saved papers', value: `${cloudExtractions.length}` },
-                { label: 'Sources', value: `${RESULT_SOURCES.length} APIs` },
-              ]}
-            />
 
             {/* SECTOR 1: MULTI-SOURCE LITERATURE SEARCH */}
             <motion.section
               id="literature-search"
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
-              className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] shadow-[var(--w09-shadow)] overflow-hidden text-[color:var(--w09-text)] relative"
+              className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] overflow-hidden text-[color:var(--w09-text)] relative"
             >
               {/* Header */}
               <div className="flex items-center gap-2 px-6 lg:px-8 pt-6">
@@ -367,7 +292,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               </div>
 
               {/* Sticky search bar */}
-              <div className="sticky top-0 z-30 px-6 lg:px-8 py-4 bg-[var(--w09-surface)] border-b border-[color:var(--w09-border)] mt-4 backdrop-blur-md backdrop-saturate-150">
+              <div className="sticky top-0 z-30 px-6 lg:px-8 py-4 bg-[var(--w09-surface)] border-b border-[color:var(--w09-border)] mt-4">
                 <div className="relative">
                   <input
                     type="text"
@@ -429,12 +354,12 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                       aria-pressed={active}
                       title={!available ? meta?.reason : `Toggle ${SOURCE_LABEL[s]}`}
                       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition ${
-                        !available
-                          ? 'border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-text-muted)] opacity-60 cursor-not-allowed'
-                          : active
-                            ? ''
-                            : 'border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-text-muted)] hover:bg-[var(--w09-surface)]'
-                      }`}
+ !available
+ ? 'border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-text-muted)] opacity-60 cursor-not-allowed'
+ : active
+ ? ''
+ : 'border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] text-[color:var(--w09-text-muted)] hover:bg-[var(--w09-surface)]'
+ }`}
                       style={
                         active && available
                           ? {
@@ -535,7 +460,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                     return (
                       <article
                         key={key}
-                        className="group rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] p-4 lg:p-5 transition hover:shadow-[var(--w09-shadow)]"
+                        className="group rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface-raised)] p-4 lg:p-5 transition"
                       >
                         <div className="flex items-start gap-3">
                           {/* Source pill */}
@@ -608,7 +533,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
             <motion.section
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] shadow-[var(--w09-shadow)] p-6 lg:p-8 text-[color:var(--w09-text)]"
+              className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 lg:p-8 text-[color:var(--w09-text)]"
             >
               <div className="flex items-center gap-2 mb-5">
                 <span className="w-1.5 h-4 rounded-full" style={{ backgroundColor: 'var(--w09-accent-tertiary)' }} />
@@ -676,64 +601,12 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               )}
             </motion.section>
 
-            {/* SECTOR 3: WILLIAMS GRADE — the research engine, in place of the
-                retired Covidence review board. Same heritage livery as the
-                Academics hub. Links to the WilliamsLab platform. */}
-            <motion.section
-              data-no-typewriter
-              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              className="relative overflow-hidden rounded-[12px] border border-[#c59955]/25 p-6 text-white sm:p-8 lg:p-12"
-              style={{ background: '#120733' }}
-            >
-              {/* W85 — flat ground, one gold hairline. The Williams pinstripes,
-                  gold/red glows and wing-band trim are retired; the heritage
-                  tier reads through its gold accent instead. */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute left-0 top-0 h-px w-20"
-                style={{ background: '#c59955' }}
-              />
-
-              <div className="relative">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="h-4 w-1.5 rounded-full" style={{ background: '#c59955' }} />
-                  <h3 className="text-[13px] font-bold uppercase tracking-widest" style={{ color: '#e8cd97' }}>Williams Grade</h3>
-                  <span className="rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ background: 'rgba(197,153,85,0.16)', color: '#e8cd97' }}>Research Engine</span>
-                </div>
-                <h2 className="text-[28px] font-black leading-[0.95] tracking-tight sm:text-[34px] lg:text-[42px]">
-                  Williams <span style={{ color: '#c59955' }}>Grade</span>
-                </h2>
-                <p className="mt-3 max-w-2xl text-[13px] font-medium leading-relaxed text-white/65 sm:text-[14px]">
-                  The flagship research tier — a Williams-grade engine and knowledge-graph backbone, purpose-built for this work. Replaces the retired review board.
-                </p>
-
-                <div className="mt-8 grid grid-cols-1 gap-4">
-                  {[
-                    { href: 'https://williamslab.vercel.app', icon: '🔬', title: 'WilliamsLab', tag: 'Research Engine', desc: 'Literature intelligence, extraction, and SRMA workflow — the Williams-grade research engine.' },
-                  ].map((w) => (
-                    <motion.a
-                      key={w.title}
-                      href={w.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                      whileTap={{ scale: 0.98 }}
-                      className="group/wg relative overflow-hidden rounded-[22px] border border-white/[0.12] bg-white/[0.06] p-5 backdrop-blur-sm transition-colors hover:border-[#c59955]/60 hover:bg-white/[0.1]"
-                    >
-                      <div className="flex items-start justify-between">
-                        <span className="grid h-12 w-12 place-items-center rounded-2xl text-2xl" style={{ background: 'rgba(197,153,85,0.14)' }}>{w.icon}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest transition-transform duration-300 group-hover/wg:translate-x-1" style={{ color: '#e8cd97' }}>Launch ↗</span>
-                      </div>
-                      <h4 className="mt-4 text-[19px] font-black tracking-tight text-white">{w.title}</h4>
-                      <div className="mt-0.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#c59955' }}>{w.tag}</div>
-                      <p className="mt-2 text-[12.5px] font-medium leading-relaxed text-white/55">{w.desc}</p>
-                    </motion.a>
-                  ))}
-                </div>
+            {/* Knowledge graph — the WilliamsLab Brugada DAG, moved here from the former dashboard. */}
+            <section className="sys-panel" aria-label="Brugada knowledge graph">
+              <div className="sys-panel-body">
+                <ResearchDagCard />
               </div>
-            </motion.section>
+            </section>
 
             {/* 📋 SECTOR 4: CLINICAL SIMULATION GUIDE (BRUGADA SYNDROME) */}
             <motion.section
@@ -741,8 +614,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default"
+              className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 relative overflow-hidden cursor-default"
             >
               <div className="flex items-center gap-2 mb-6 px-2">
                 <span className="w-1.5 h-4 bg-pink-500 rounded-full animate-pulse"></span>
@@ -804,7 +676,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
                   
                   {/* Recommended Engine */}
                   <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-500/20 flex flex-wrap gap-2 items-center">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Target Uplink:</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Source:</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-blue-100 dark:border-blue-500/10 text-neutral-700 dark:text-neutral-300">🩺 UpToDate</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-blue-100 dark:border-blue-500/10 text-neutral-700 dark:text-neutral-300">🔑 ClinicalKey</span>
                   </div>
@@ -833,7 +705,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
 
                   {/* Recommended Engine */}
                   <div className="mt-4 pt-3 border-t border-amber-200 dark:border-amber-500/20 flex flex-wrap gap-2 items-center">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Target Uplink:</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Source:</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-amber-100 dark:border-amber-500/10 text-neutral-700 dark:text-neutral-300">🧬 ScienceDirect</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-amber-100 dark:border-amber-500/10 text-neutral-700 dark:text-neutral-300">🏛️ Scopus</span>
                   </div>
@@ -853,7 +725,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
 
                   {/* Recommended Engine */}
                   <div className="mt-4 pt-3 border-t border-emerald-200 dark:border-emerald-500/20 flex flex-wrap gap-2 items-center">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Target Uplink:</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Source:</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-emerald-100 dark:border-emerald-500/10 text-neutral-700 dark:text-neutral-300">📚 Cochrane</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-emerald-100 dark:border-emerald-500/10 text-neutral-700 dark:text-neutral-300">🩺 UpToDate</span>
                   </div>
@@ -876,7 +748,7 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
 
                   {/* Recommended Engine */}
                   <div className="mt-4 pt-3 border-t border-purple-200 dark:border-purple-500/20 flex flex-wrap gap-2 items-center">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400">Target Uplink:</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400">Source:</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-purple-100 dark:border-purple-500/10 text-neutral-700 dark:text-neutral-300">🏥 Embase</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-purple-100 dark:border-purple-500/10 text-neutral-700 dark:text-neutral-300">📘 SpringerLink</span>
                     <span className="px-2.5 py-1 bg-white dark:bg-black/20 rounded-md text-[10px] font-bold shadow-sm border border-purple-100 dark:border-purple-500/10 text-neutral-700 dark:text-neutral-300">🏛️ Cambridge</span>
@@ -886,12 +758,6 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
               </div>
             </motion.section>
 
-          </div>
-        </main>
-
-        <MobileHubNav active="Research" />
-
-      </div>
-    </div>
+    </Page>
   );
 }

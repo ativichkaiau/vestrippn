@@ -5,7 +5,7 @@ export type ThemePalette = {
   hero: string; heroAccent: string;
 };
 export type LiveryDefinition = {
-  name: string; year: string; chassis: string; team: 'mercedes' | 'williams' | 'redbull' | 'drivers';
+  name: string; year: string; chassis: string; team: 'vestrippn' | 'mercedes' | 'williams' | 'redbull' | 'drivers';
   description: string; finish: string; special?: boolean; tone: 'light' | 'dark';
   colors: readonly string[]; stripe: string; palette: ThemePalette;
 };
@@ -18,6 +18,15 @@ export const MERCEDES_PALETTES: Record<'day' | 'twilight' | 'night', ThemePalett
 };
 
 export const LIVERY_CATALOG = {
+  // The environment as designed: graphite and the one blue. First visits open
+  // here; every other entry is a livery that repaints it.
+  system: {
+    name: 'VESTRIPPN', year: 'root', chassis: 'system paint', team: 'vestrippn',
+    description: 'Graphite, warm white, and the precise blue.', finish: 'Matte graphite', tone: 'dark',
+    colors: ['#2a2f36', '#6a8bff', '#d7d9d6', '#0b0c0e'],
+    stripe: 'linear-gradient(114deg, #0b0c0e 0% 38%, #6a8bff 38% 46%, #d7d9d6 46% 49%, #2a2f36 49% 100%)',
+    palette: { canvas: '#08090a', surface: '#121417', raised: '#181b1f', inset: '#0d0f11', text: '#f0f1ed', muted: '#9a9fa6', accent: '#6a8bff', secondary: '#9aa0a8', hero: '#0d0f11', heroAccent: '#8aa4ff' },
+  },
   normal: {
     name: 'Silver Arrow', year: '2014', chassis: 'W05', team: 'mercedes',
     description: 'Brushed silver, PETRONAS teal, carbon edges.', finish: 'Brushed metal', tone: 'light',
@@ -117,7 +126,7 @@ export type ThemePhase = Exclude<Mode, 'auto'>;
 export const LIVERIES = Object.keys(LIVERY_CATALOG) as Livery[];
 export const MODES: Mode[] = ['auto', 'day', 'twilight', 'night'];
 export const LIVERY_TEAMS = [
-  { id: 'mercedes', name: 'Mercedes' }, { id: 'williams', name: 'Williams' },
+  { id: 'vestrippn', name: 'VESTRIPPN' }, { id: 'mercedes', name: 'Mercedes' }, { id: 'williams', name: 'Williams' },
   { id: 'redbull', name: 'Red Bull' }, { id: 'drivers', name: 'Drivers' },
 ] as const;
 export const LEGACY_LIVERIES: Record<string, Livery> = {

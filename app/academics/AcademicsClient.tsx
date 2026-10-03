@@ -3,19 +3,14 @@
 import Link from 'next/link';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import ThemeToggle from "../../components/ThemeToggle"; 
-import ArcDate from '../../components/ArcDate';
-import TopNavProfile from '../../components/TopNavProfile';
-import MissionBlock from '../../components/MissionBlock';
-import { NavRail, MobileHubNav } from '../../components/HubNav';
-import HubIntro from '../../components/HubIntro';
-import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
-import BrandMark from '../../components/BrandMark';
 import AnkiTrend from '../../components/AnkiTrend';
 import { syncAnkiData } from '@/app/actions';
 import { HCVS_EXAM_TARGET, HGB_EXAM_TARGET, HRS_EXAM_TARGET } from '@/lib/exams';
 import type { ActiveExamData, CourseData } from '@/lib/curriculum-types';
-import { Skel } from '@/components/w100/Skeleton';
+import { Skel } from '@/components/system/Skeleton';
+import { Page, PageHeader, Section, StatusIndicator } from '@/components/system/primitives';
+import AcademicsCard from '@/components/AcademicsCard';
+import LinkedSystems from '@/components/system/LinkedSystems';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface Exam { name: string; date: Date; color: string; }
@@ -60,7 +55,6 @@ function isCompletedCanvasSubject(subject: Subject) {
 }
 
 export default function AcademicsClient({ initialCanvasData, ankiData, ankiHistory = [], curriculumCourses = [], curriculumExams = [] }: AcademicsProps) {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
   const [nowMs, setNowMs] = useState(0);
   const secretExamPodBuffer = useRef('');
@@ -312,137 +306,52 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
   }, [examSchedule]);
 
   return (
-    <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
-        @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
-        .animate-float-slow { animation: floatSlow 6s ease-in-out infinite; }
-        .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
-      `}} />
-
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
-        <div className="absolute top-[-12%] right-[8%] w-[62%] h-[62%] bg-gradient-to-br from-pink-400/30 via-fuchsia-400/25 to-purple-400/25 dark:from-pink-600/20 dark:via-fuchsia-600/15 dark:to-[#00A598]/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-70 transition-all duration-1000"></div>
-        <div className="absolute bottom-[-12%] left-[3%] w-[55%] h-[55%] bg-gradient-to-tr from-blue-400/25 via-indigo-400/20 to-teal-300/25 dark:from-purple-600/15 dark:via-indigo-600/10 dark:to-teal-600/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-60 transition-all duration-1000"></div>
-        <div className="absolute top-[30%] left-[38%] w-[42%] h-[42%] bg-gradient-to-br from-purple-300/20 to-cyan-300/20 dark:from-purple-500/10 dark:to-cyan-500/10 rounded-full blur-[130px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
-      </div>
-
-      <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <button 
-            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} 
-            className="hidden lg:flex items-center justify-center p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-neutral-500 dark:text-neutral-400 active:scale-95"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="12" x2="20" y2="12"></line>
-              <line x1="4" y1="6" x2="20" y2="6"></line>
-              <line x1="4" y1="18" x2="14" y2="18"></line>
-            </svg>
-          </button>
-          <BrandMark />
-        </div>
-        <div className="flex gap-4 lg:gap-6 items-center">
-          <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
-          <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event('vest:focus-open'))}
-            className="hidden rounded-full border border-black/10 bg-white/70 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-widest text-neutral-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-neutral-200 dark:hover:bg-white/10 sm:inline-flex"
-            title="Open Focus Mode"
-          >
-            <span className="mr-2 text-sm">🏁</span> Focus
-          </button>
-          <TopNavProfile />
-          <ThemeToggle />
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden relative z-10">
-        
-        <NavRail active="Academics" expanded={isSidebarExpanded} onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)} />
-
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
-          <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-14">
+    <Page wide hub>
+      <PageHeader
+        label="runtime / medicine"
+        title="Academics"
+        lede="Courses, exam milestones, clinical cases and the Anki trend."
+      />
+      <Section id="canvas" title="canvas" intro="Subjects and pending work, read live from Canvas.">
+        <AcademicsCard />
+      </Section>
             
-            <HubIntro
-              eyebrow="Academic Operating Layer"
-              title="Command your"
-              titleAccent="medical training"
-              description="The Academics Hub organizes exams, Canvas telemetry, Anki rhythm, clinical case practice, and study milestones into one high-signal cockpit."
-              primaryHref="/learn/cases"
-              primaryLabel="Open Cases"
-              secondaryHref="/archive"
-              secondaryLabel="Study Vault ↗"
-              chips={['Exam Countdown', 'Canvas Sync', 'Clinical Cases', 'Anki Pulse']}
-              panelTitle="Academic Ops"
-              panelSubtitle="Block exams cleared · HCVS-2 · HGB-2 · HRS-2"
-              contextLabel="Study focus: consolidation"
-              metrics={[
-                { label: 'Exams', value: '6' },
-                { label: 'Mode', value: 'Live' },
-                { label: 'Cases', value: 'Branching' },
-              ]}
-              capabilities={[
-                { icon: '📚', title: 'Milestone Awareness', desc: 'Countdowns and live subject telemetry keep the immediate academic picture visible.' },
-                { icon: '🩺', title: 'Clinical Simulation', desc: 'Interactive cases connect theory to decision-making under pressure.' },
-              ]}
-              hub="academics"
-            />
 
-            <MissionBlock
-              accent="emerald"
-              title="Block 2 exams cleared ✓"
-              detail={<>HCVS-2 · HGB-2 · HRS-2 all complete — <span className="font-black text-neutral-900 dark:text-white">milestones cleared</span>.</>}
-              cta={{ label: 'View milestones', href: '#milestones' }}
-            />
 
-            <CockpitIntelligencePanel
-              hub="academics"
-              contextItems={[
-                { label: 'Current mission', value: 'Post-exam consolidation' },
-                { label: 'Completed modules', value: 'HMS-2 · HNS-2 · HCVS-2 · HGB-2 · HRS-2' },
-                { label: 'Canvas courses', value: `${curriculumCourses.length || canvasSubjects.length} tracked` },
-                { label: 'Anki due', value: `${liveAnki.due} cards` },
-              ]}
-            />
 
-            {/* SECTOR 1: EXAMINATION COUNTDOWNS */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 px-2">
-                <span className="h-4 w-1.5 animate-pulse rounded-full bg-rose-500"></span>
-                <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Critical Milestones</h3>
+            {/* Exam milestones: live countdowns, completed exams stay as records. */}
+            <Section id="milestones" title="milestones" count={String(examSchedule.length).padStart(2, '0')}>
+              <div className="sys-registry-wrap">
+                <table className="sys-registry">
+                  <caption className="sys-visually-hidden">Exam milestones</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">exam</th>
+                      <th scope="col">date · ICT</th>
+                      <th scope="col">countdown</th>
+                      <th scope="col">state</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {examSchedule.map((exam) => {
+                      const done = nowMs > 0 && exam.date.getTime() <= nowMs;
+                      const dateLabel = exam.date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' });
+                      const timeLabel = exam.date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' });
+                      return (
+                        <tr key={exam.name}>
+                          <td className="sys-cell-name">{exam.name}</td>
+                          <td className="sys-cell-mono">{dateLabel} · {timeLabel}</td>
+                          <td className="sys-cell-mono">{done ? '—' : timers[exam.name] || '--d --h --m'}</td>
+                          <td>
+                            <StatusIndicator state={done ? 'archived' : 'active'} label={done ? 'completed' : 'scheduled'} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-              <motion.section
-                id="milestones"
-                className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8"
-                initial="hidden" animate="visible"
-                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
-              >
-                {examSchedule.map(exam => {
-                  const done = nowMs > 0 && exam.date.getTime() <= nowMs;
-                  const dateLabel = exam.date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'Asia/Bangkok' }).toUpperCase();
-                  const timeLabel = exam.date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' });
-                  return (
-                  <motion.div
-                    key={exam.name}
-                    variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 24 } } }}
-                    whileHover={done ? undefined : { y: -8, scale: 1.03, boxShadow: '0 24px 56px rgb(0,0,0,0.12)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                    whileTap={done ? undefined : { scale: 0.97 }}
-                    className={`bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden cursor-default transition-all duration-500 ${done ? 'grayscale opacity-50' : ''}`}
-                  >
-                    <div className="flex justify-between items-start mb-6 relative z-10">
-                      <span className={`font-black tracking-tight text-[20px] lg:text-[22px] transition-colors duration-700 ${done ? 'text-neutral-400 dark:text-neutral-500' : exam.color}`}>{exam.name}</span>
-                      <span className="font-bold text-[10px] lg:text-[11px] text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors duration-700 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">{`${dateLabel} // ${timeLabel}`}</span>
-                    </div>
-                    <div className={`text-[28px] lg:text-[32px] font-black tabular-nums tracking-tighter transition-colors duration-700 relative z-10 ${done ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
-                      {done ? 'COMPLETED' : (timers[exam.name] || "--D --H --M")}
-                    </div>
-                    <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 uppercase tracking-widest opacity-80 transition-colors duration-700">{done ? 'Milestone Cleared ✓' : 'T-Minus Terminal'}</div>
-                  </motion.div>
-                  );
-                })}
-              </motion.section>
-            </div>
+            </Section>
 
             {/* SECTOR 2: CANVAS TELEMETRY & CLINICAL HUB */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
@@ -451,14 +360,13 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
               <motion.div
                 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.2 }}
-                whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.09)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                className="lg:col-span-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col cursor-default"
+                className="lg:col-span-8 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 flex flex-col cursor-default"
               >
                 <div className="flex justify-between items-center mb-8 px-2">
-                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Canvas Telemetry</h3>
+                  <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Canvas</h3>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                     <span className="text-[10px] font-bold uppercase tracking-widest">Uplink</span>
+                     <span className="text-[10px] font-bold uppercase tracking-widest">live</span>
                   </div>
                 </div>
                 
@@ -551,11 +459,9 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                   href="https://accessmedicine.mhmedical.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                  className="flex-1 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-500/30 transition-colors duration-300 group"
                 >
-                  <div className="w-14 h-14 bg-rose-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">⚕️</div>
+                  <div className="w-14 h-14 bg-rose-500/10 rounded-md flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">⚕️</div>
                   <div>
                     <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">AccessMedicine</div>
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Clinical Library</div>
@@ -566,11 +472,9 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                   href="https://www.osmosis.org/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-teal-50 dark:hover:bg-teal-500/10 hover:border-teal-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                  className="flex-1 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-teal-50 dark:hover:bg-teal-500/10 hover:border-teal-500/30 transition-colors duration-300 group"
                 >
-                  <div className="w-14 h-14 bg-teal-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">🧠</div>
+                  <div className="w-14 h-14 bg-teal-500/10 rounded-md flex items-center justify-center text-2xl group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">🧠</div>
                   <div>
                     <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">Osmosis</div>
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Visual Medicine</div>
@@ -581,11 +485,9 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                   href="https://drive.google.com/drive/folders/1tfZ8mT6WLWOjRezS9wkdwiltd2Ov4wuB"
                   target="_blank"
                   rel="noopener noreferrer"
-                  whileHover={{ y: -5, scale: 1.02, boxShadow: '0 16px 40px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-500/30 transition-colors duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                  className="flex-1 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex items-center gap-4 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-500/30 transition-colors duration-300 group"
                 >
-                  <div className="w-14 h-14 bg-blue-500/10 rounded-[18px] flex items-center justify-center text-2xl group-hover:scale-110 transition-all duration-300">📂</div>
+                  <div className="w-14 h-14 bg-blue-500/10 rounded-md flex items-center justify-center text-2xl group-hover:scale-110 transition-all duration-300">📂</div>
                   <div>
                     <div className="font-black text-[16px] text-neutral-900 dark:text-white leading-tight">Textbook Hub</div>
                     <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">Shared Vault</div>
@@ -613,7 +515,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                 {clinicalLoading ? (
                   <>
                     <span role="status" className="sr-only">Loading clinical cases…</span>
-                    {[1, 2, 3].map((n) => <Skel key={n} className="h-[92px] rounded-[24px]" />)}
+                    {[1, 2, 3].map((n) => <Skel key={n} className="h-[92px] rounded-md" />)}
                   </>
                 ) : featuredClinicalCases.length > 0 ? (
                   featuredClinicalCases.map((c) => {
@@ -623,7 +525,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                     <Link
                       key={c.id}
                       href="/learn/cases"
-                      className="group bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
+                      className="group bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-5 transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex min-w-0 gap-3">
@@ -640,12 +542,12 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         {c.difficulty && (
                           <span className={`rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${
-                            c.difficulty.toLowerCase() === 'hard'
-                              ? 'bg-red-500/15 text-red-600 dark:text-red-400'
-                              : c.difficulty.toLowerCase() === 'medium'
-                                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                                : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                          }`}>
+ c.difficulty.toLowerCase() === 'hard'
+ ? 'bg-red-500/15 text-red-600 dark:text-red-400'
+ : c.difficulty.toLowerCase() === 'medium'
+ ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+ : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+ }`}>
                             {c.difficulty}
                           </span>
                         )}
@@ -661,7 +563,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                 ) : (
                   <Link
                     href="/learn/cases"
-                    className="group sm:col-span-2 lg:col-span-3 flex items-center justify-between gap-3 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
+                    className="group sm:col-span-2 lg:col-span-3 flex items-center justify-between gap-3 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-5 transition-all duration-300 hover:-translate-y-1 hover:border-rose-500/30 active:scale-[0.99]"
                   >
                     <div>
                       <div className="text-[15px] font-bold text-neutral-900 dark:text-white tracking-tight">Browse Clinical Cases</div>
@@ -673,153 +575,21 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
               </div>
             </div>
 
-            {/* SECTOR 2.5: FLAGSHIP GRADE — SELF-BUILT hero hub */}
-            <motion.section
-              data-no-typewriter
-              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              className="relative overflow-hidden rounded-[12px] border border-[#a855f7]/25 p-6 text-white sm:p-8 lg:p-12"
-              style={{ background: '#160a33' }}
-            >
-              {/* W85 — flat ground, one accent hairline. The blueprint grid,
-                  twin accent glows and spec-bar trim are retired; the tier
-                  keeps its identity through colour alone. */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute left-0 top-0 h-px w-20"
-                style={{ background: '#a855f7' }}
-              />
-
-              <div className="relative">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="h-4 w-1.5 rounded-full bg-purple-400 animate-pulse" />
-                  <h3 className="text-[13px] font-bold uppercase tracking-widest" style={{ color: '#d8b4fe' }}>Flagship Grade</h3>
-                  <span className="rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ background: 'rgba(168,85,247,0.18)', color: '#e9d5ff' }}>Self-Built</span>
-                </div>
-                <h2 className="text-[28px] font-black leading-[0.95] tracking-tight sm:text-[34px] lg:text-[42px]">
-                  Flagship <span style={{ color: '#c084fc' }}>Grade</span>
-                </h2>
-                <p className="mt-3 max-w-2xl text-[13px] font-medium leading-relaxed text-white/65 sm:text-[14px]">
-                  Self-built study engines — pathogen codices, pathway maps, and physiology atlases, engineered from scratch.
-                </p>
-
-                <motion.div
-                  className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2"
-                  initial="hidden" whileInView="visible"
-                  viewport={{ once: true, margin: '-60px' }}
-                  variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
-                >
-                  {[
-                    { href: 'https://vestrippn-pokedex.vercel.app', icon: '🦠', title: 'Microbiology Pokédex', desc: 'Searchable pathogen codex — bacteria, viruses, fungi & parasites with high-yield clinical profiles.', tag: 'Pathogen Codex', accent: 'purple' },
-                    { href: 'https://vestrippn-biochem-pathway.vercel.app', icon: '🧬', title: 'Biochem Pathway Engine', desc: 'Interactive metabolic map — trace glycolysis, TCA, and enzyme cascades node by node.', tag: 'Metabolic Map', accent: 'amber' },
-                    { href: 'https://vestrippn-neuro-pathway.vercel.app', icon: '🧠', title: 'Neuro Pathway', desc: 'Interactive nervous-system pathway engine — map neuroanatomy, lesions, reflexes, and signal flow.', tag: 'Neuro Map', accent: 'purple' },
-                    { href: 'https://vestrippn-physiohub.vercel.app', icon: '🫀', title: 'PhysioHub', desc: 'Body-systems physiology hub — explore organ-system mechanics, homeostatic loops, and integrated regulation.', tag: 'Systems Atlas', accent: 'amber' },
-                    { href: 'https://vestrippn-immunopath.vercel.app', icon: '🛡️', title: 'Immunopath', desc: 'Interactive immunology pathway — map immune cascades, cell lineages, and hypersensitivity mechanisms node by node.', tag: 'Immune Map', accent: 'purple' },
-                  ].map((app) => {
-                    const A = app.accent === 'purple'
-                      ? { tile: 'rgba(168,85,247,0.16)', text: '#d8b4fe', border: 'rgba(168,85,247,0.6)', glow: '0 24px 56px rgba(168,85,247,0.26)' }
-                      : { tile: 'rgba(245,158,11,0.16)', text: '#fcd34d', border: 'rgba(245,158,11,0.6)', glow: '0 24px 56px rgba(245,158,11,0.22)' };
-                    return (
-                      <motion.a
-                        key={app.href}
-                        href={app.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variants={{ hidden: { opacity: 0, y: 24, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
-                        whileHover={{ y: -6, borderColor: A.border, boxShadow: A.glow, transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                        whileTap={{ scale: 0.98 }}
-                        className="group/fg relative overflow-hidden rounded-[22px] bg-white/[0.06] p-5 backdrop-blur-sm"
-                        style={{ border: '1px solid rgba(255,255,255,0.12)' }}
-                      >
-                        <div className="flex items-start justify-between">
-                          <span className="grid h-12 w-12 place-items-center rounded-2xl text-2xl transition-transform duration-300 group-hover/fg:scale-110 group-hover/fg:rotate-6" style={{ background: A.tile }}>{app.icon}</span>
-                          <span className="text-[10px] font-black uppercase tracking-widest transition-transform duration-300 group-hover/fg:translate-x-1" style={{ color: A.text }}>Launch ↗</span>
-                        </div>
-                        <h4 className="mt-4 text-[19px] font-black tracking-tight text-white">{app.title}</h4>
-                        <div className="mt-0.5 flex items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: A.text }}>{app.tag}</span>
-                          <span className="rounded px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-white/60" style={{ background: 'rgba(255,255,255,0.08)' }}>Beta</span>
-                        </div>
-                        <p className="mt-2 text-[12.5px] font-medium leading-relaxed text-white/55">{app.desc}</p>
-                      </motion.a>
-                    );
-                  })}
-                </motion.div>
-              </div>
-            </motion.section>
-
-            {/* SECTOR 2.6: WILLIAMS GRADE — special heritage hero block */}
-            <motion.section
-              data-no-typewriter
-              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              className="relative overflow-hidden rounded-[12px] border border-[#c59955]/25 p-6 text-white sm:p-8 lg:p-12"
-              style={{ background: '#120733' }}
-            >
-              {/* W85 — flat ground, one gold hairline. The Williams pinstripes,
-                  gold/red glows and wing-band trim are retired; the heritage
-                  tier reads through its gold accent instead. */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute left-0 top-0 h-px w-20"
-                style={{ background: '#c59955' }}
-              />
-
-              <div className="relative">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="h-4 w-1.5 rounded-full" style={{ background: '#c59955' }} />
-                  <h3 className="text-[13px] font-bold uppercase tracking-widest" style={{ color: '#e8cd97' }}>Williams Grade</h3>
-                  <span className="rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest" style={{ background: 'rgba(197,153,85,0.16)', color: '#e8cd97' }}>Heritage</span>
-                </div>
-                <h2 className="text-[28px] font-black leading-[0.95] tracking-tight sm:text-[34px] lg:text-[42px]">
-                  Williams <span style={{ color: '#c59955' }}>Grade</span>
-                </h2>
-                <p className="mt-3 max-w-2xl text-[13px] font-medium leading-relaxed text-white/65 sm:text-[14px]">
-                  The flagship heritage tier — Williams-grade companion apps, built to the highest spec.
-                </p>
-
-                <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {[
-                    { href: 'https://williamspod.vercel.app', icon: '📝', title: 'WilliamsPod', tag: 'Mock Exam Pod', desc: 'Sit timed mock exams under real exam conditions.' },
-                    { href: 'https://williamshub.vercel.app', icon: '🏁', title: 'WilliamsHub', tag: 'Command Hub', desc: 'The Williams operations & study hub.' },
-                  ].map((w) => (
-                    <motion.a
-                      key={w.href}
-                      href={w.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                      whileTap={{ scale: 0.98 }}
-                      className="group/wg relative overflow-hidden rounded-[22px] border border-white/[0.12] bg-white/[0.06] p-5 backdrop-blur-sm transition-colors hover:border-[#c59955]/60 hover:bg-white/[0.1]"
-                    >
-                      <div className="flex items-start justify-between">
-                        <span className="grid h-12 w-12 place-items-center rounded-2xl text-2xl" style={{ background: 'rgba(197,153,85,0.14)' }}>{w.icon}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest transition-transform duration-300 group-hover/wg:translate-x-1" style={{ color: '#e8cd97' }}>Launch ↗</span>
-                      </div>
-                      <h4 className="mt-4 text-[19px] font-black tracking-tight text-white">{w.title}</h4>
-                      <div className="mt-0.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#c59955' }}>{w.tag}</div>
-                      <p className="mt-2 text-[12.5px] font-medium leading-relaxed text-white/55">{w.desc}</p>
-                    </motion.a>
-                  ))}
-                </div>
-              </div>
-            </motion.section>
+            {/* Self-built study apps and the Williams companions, from the registry. */}
+            <LinkedSystems />
 
             {/* 🚀 UPGRADE: SECTOR 3: ANKIWEB TELEMETRY (NOW EDITABLE) */}
             <motion.section
               initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              whileHover={{ y: -4, boxShadow: '0 24px 56px rgb(0,0,0,0.08)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden cursor-default"
+              className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 transition-colors duration-700 relative overflow-hidden cursor-default"
             >
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-2">
                  <div className="flex items-center gap-3 flex-wrap">
                    <div className="flex items-center gap-2">
                      <span className="w-1.5 h-4 bg-sky-500 rounded-full animate-pulse"></span>
-                     <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Spaced Repetition Telemetry</h3>
+                     <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Anki</h3>
                    </div>
                    {/* Status pill */}
                    {isSafari ? (
@@ -829,16 +599,16 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                      </span>
                    ) : (
                      <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors ${
-                       bridge === 'online' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                       : bridge === 'syncing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
-                       : bridge === 'offline' ? 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
-                       : 'bg-neutral-500/10 text-neutral-400'
-                     }`}>
+ bridge === 'online' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+ : bridge === 'syncing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+ : bridge === 'offline' ? 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
+ : 'bg-neutral-500/10 text-neutral-400'
+ }`}>
                        <span className={`w-1.5 h-1.5 rounded-full ${
-                         bridge === 'online' ? 'bg-emerald-500 animate-pulse'
-                         : bridge === 'syncing' ? 'bg-sky-500 animate-pulse'
-                         : 'bg-neutral-400'
-                       }`}></span>
+ bridge === 'online' ? 'bg-emerald-500 animate-pulse'
+ : bridge === 'syncing' ? 'bg-sky-500 animate-pulse'
+ : 'bg-neutral-400'
+ }`}></span>
                        {bridge === 'online' ? `Live${lastSync ? ` · ${lastSync}` : ''}`
                          : bridge === 'syncing' ? 'Syncing…'
                          : bridge === 'offline' ? 'Bridge Offline'
@@ -928,8 +698,7 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
               initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              whileHover={{ y: -4, boxShadow: '0 24px 56px rgb(0,0,0,0.08)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors duration-700 relative overflow-hidden cursor-default"
+              className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 transition-colors duration-700 relative overflow-hidden cursor-default"
             >
                <div className="flex items-center gap-2 mb-8 px-2">
                  <span className="w-1.5 h-4 bg-pink-500 rounded-full animate-pulse"></span>
@@ -1020,13 +789,6 @@ export default function AcademicsClient({ initialCanvasData, ankiData, ankiHisto
                </div>
             </motion.section>
 
-          </div>
-        </main>
-
-        {/* --- MOBILE-ONLY FLOATING NAVIGATION HUD --- */}
-        <MobileHubNav active="Academics" />
-
-      </div>
-    </div>
+    </Page>
   );
 }

@@ -6,14 +6,16 @@ import { themeEngine } from './theme-config';
 export type { Livery, Mode } from './liveries';
 export const LIVERY_CYCLE = LIVERIES;
 export const LIVERY_LABEL = Object.fromEntries(LIVERIES.map(id => [id, LIVERY_CATALOG[id].name])) as Record<Livery, string>;
-export const MODE_LABEL: Record<Mode, string> = { auto: 'Auto', day: 'Silver day', twilight: 'Twilight', night: 'Carbon night' };
+/** Environment appearance. Twilight is a legacy value and renders dark. */
+export const MODE_LABEL: Record<Mode, string> = { auto: 'auto', day: 'light', twilight: 'dark', night: 'dark' };
 
 export function applyLivery(livery: Livery, mode: Mode): void {
-  const theme = themeEngine.apply(document.documentElement, themeEngine.livery(livery) ?? 'normal', themeEngine.mode(mode));
-  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach(meta => { meta.content = theme.palette.canvas; });
+  const theme = themeEngine.apply(document.documentElement, themeEngine.livery(livery) ?? 'system', themeEngine.mode(mode));
+  const canvas = getComputedStyle(document.documentElement).getPropertyValue('--bg-root').trim();
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach(meta => { meta.content = canvas || (theme.appearance === 'dark' ? '#08090a' : '#f4f4f1'); });
 }
 export function getLivery(): Livery {
-  try { return themeEngine.livery(localStorage.getItem('vest_livery')) ?? 'normal'; } catch { return themeEngine.livery(document.documentElement.dataset.livery) ?? 'normal'; }
+  try { return themeEngine.livery(localStorage.getItem('vest_livery')) ?? 'system'; } catch { return themeEngine.livery(document.documentElement.dataset.livery) ?? 'system'; }
 }
 export function getMode(): Mode {
   try { return themeEngine.mode(localStorage.getItem('vest_mode')); } catch { return themeEngine.mode(document.documentElement.dataset.mode); }
@@ -33,11 +35,15 @@ export function cycleLivery(): Livery {
   setTheme(next);
   return next;
 }
+/** dark → light → auto. Keeps the selected livery: appearance and paint are independent. */
 export function toggleMode(): Mode {
-  const modes: Mode[] = ['day', 'twilight', 'night', 'auto'];
-  const next = modes[(modes.indexOf(getMode()) + 1) % modes.length];
-  setTheme('normal', next);
+  const current = getMode();
+  const next: Mode = current === 'day' ? 'auto' : current === 'auto' ? 'night' : 'day';
+  setTheme(getLivery(), next);
   return next;
+}
+export function getAppearance(): 'dark' | 'light' {
+  return typeof document !== 'undefined' && !document.documentElement.classList.contains('dark') ? 'light' : 'dark';
 }
 export function subscribeTheme(listener: () => void) {
   window.addEventListener('vest:theme-change', listener);
@@ -51,7 +57,7 @@ export function themeSnapshot() {
   const el = document.documentElement;
   return `${getLivery()}|${getMode()}|${el.dataset.phase ?? 'day'}|${isLowPower() ? '1' : '0'}`;
 }
-export const serverThemeSnapshot = () => 'normal|auto|day|0';
+export const serverThemeSnapshot = () => 'system|night|night|0';
 export function isLowPower(): boolean {
   return typeof document !== 'undefined' && document.documentElement.classList.contains('low-power');
 }

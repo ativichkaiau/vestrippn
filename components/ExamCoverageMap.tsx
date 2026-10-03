@@ -185,7 +185,7 @@ export default function ExamCoverageMap() {
 function CoverageOverview({ course }: { course: CoverageCourse }) {
   const counts = course.counts;
   const covered = counts.reviewed + counts.tested;
-  return <section className="w85-panel-accent rounded-2xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:p-7">
+  return <section className="rounded-2xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:p-7">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0 flex-1"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--hub-accent)]">{course.code} · {course.catalogCode ? 'WilliamsHub topics' : 'Your learning objectives'}</p><h3 className="mt-2 text-xl font-black sm:text-2xl">{course.name}</h3><p className="mt-2 text-xs text-neutral-500">{course.nextExam ? `${course.nextExam.title} · ${dateLabel(course.nextExam.scheduledAt)} (Bangkok)` : 'No upcoming exam set'}{course.archived ? ' · Archived semester · View only' : ''}</p></div>
       <div className="text-right"><p className="text-3xl font-black tabular-nums">{counts.total ? Math.round(covered / counts.total * 100) : 0}%</p><p className="mt-1 text-xs text-neutral-500">reviewed or tested</p></div>

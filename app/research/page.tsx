@@ -4,6 +4,12 @@ export const dynamic = 'force-dynamic';
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import ResearchClient from "./ResearchClient";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Research',
+  description: 'Systematic review infrastructure: systems, pipeline and tools.',
+};
 
 export default async function ResearchPage() {
   const session = await auth();

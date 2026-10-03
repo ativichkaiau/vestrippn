@@ -1,48 +1,59 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "./liveries.css";
-import "./depth.css";
-import "./showroom.css";
-import "./spatial-layout.css";
-import "./w100.css";
+import "./system.css";
+import "./garage.css";
 import AuthProvider from "../components/AuthProvider";
-import HoverTypewriter from "../components/HoverTypewriter";
-import CommandPalette from "../components/CommandPalette";
 import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
 import Toaster from "../components/Toaster";
 import PwaHud from "../components/PwaHud";
-import ViewTransitions from "../components/ViewTransitions";
-import SiteMotion from "../components/SiteMotion";
 import DeviceSync from "../components/DeviceSync";
 import FocusMode from "../components/FocusMode";
 import ThemeController from "../components/ThemeController";
+import Shell, { type BuildInfo } from "../components/system/Shell";
+import CommandPalette from "../components/system/CommandPalette";
+import MotionPolicy from "../components/system/MotionPolicy";
 import { THEME_BOOT_SCRIPT } from "../lib/theme-config";
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ["latin"],
-  variable: '--font-sans',
-  display: 'swap',
+  variable: "--font-geist-sans",
+  display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: '--font-mono',
-  display: 'swap',
+  variable: "--font-geist-mono",
+  display: "swap",
 });
 
-// Geometric sans for the "Revolut" wordmark lockup (approximates the brand font).
-const revolut = Poppins({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: '--font-revolut',
-  display: 'swap',
-});
+const DESCRIPTION =
+  "VESTRIPPN — the root environment for Kaiau's medicine, research, software and experiments.";
 
 export const metadata: Metadata = {
-  title: "VESTRIPPN — W100",
-  description: "Personal telemetry, mission control, and Claude-ready command surfaces.",
-  // 🚨 THE FIX: This injects the Google site verification tag into your <head>
+  metadataBase: new URL("https://vestrippn.vercel.app"),
+  title: {
+    default: "VESTRIPPN // Personal Systems",
+    template: "%s // VESTRIPPN",
+  },
+  description: DESCRIPTION,
+  applicationName: "VESTRIPPN",
+  authors: [{ name: "Kaiau", url: "https://github.com/ativichkaiau" }],
+  openGraph: {
+    type: "website",
+    siteName: "VESTRIPPN",
+    title: "VESTRIPPN // Personal Systems",
+    description: DESCRIPTION,
+    url: "/",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "VESTRIPPN // Personal Systems",
+    description: DESCRIPTION,
+  },
+  appleWebApp: { capable: true, title: "VESTRIPPN", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
   verification: {
     google: "googlecd69efda792e89e4",
   },
@@ -50,12 +61,18 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#bac2c9' },
-    { media: '(prefers-color-scheme: dark)', color: '#050505' },
+    { media: "(prefers-color-scheme: dark)", color: "#08090a" },
+    { media: "(prefers-color-scheme: light)", color: "#08090a" },
   ],
-  width: 'device-width',
+  colorScheme: "dark light",
+  width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  viewportFit: "cover",
+};
+
+const BUILD: BuildInfo = {
+  sha: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+  env: process.env.VERCEL_ENV ?? (process.env.NODE_ENV === "production" ? "production" : "development"),
 };
 
 export default function RootLayout({
@@ -64,34 +81,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // suppressHydrationWarning is CRITICAL here so Next.js doesn't throw errors 
-    // when your ThemeToggle flips the HTML class from light to dark on load.
-    <html lang="en" suppressHydrationWarning>
-      <body 
-        className={`
-          ${inter.variable} ${jetbrainsMono.variable} ${revolut.variable} font-sans
-          bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 
-          antialiased h-screen flex flex-col overflow-hidden 
-          transition-colors duration-700 
-          selection:bg-[#00A598]/30 selection:text-[#00A598] dark:selection:text-white
-        `}
-      >
+    // Dark first: `dark` is the server default; the boot script below applies
+    // the stored appearance before paint. suppressHydrationWarning covers that.
+    <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body>
         <script
           dangerouslySetInnerHTML={{
             __html: THEME_BOOT_SCRIPT,
           }}
         />
         <AuthProvider>
-          <ThemeController />
-          <HoverTypewriter />
-          <CommandPalette />
-          <ServiceWorkerRegister />
-          <Toaster />
-          <PwaHud />
-          <DeviceSync />
-          <FocusMode showTrigger={false} />
-          <ViewTransitions />
-          <SiteMotion>{children}</SiteMotion>
+          <MotionPolicy>
+            <ThemeController />
+            <CommandPalette build={BUILD} />
+            <ServiceWorkerRegister />
+            <Toaster />
+            <PwaHud />
+            <DeviceSync />
+            <FocusMode showTrigger={false} />
+            <Shell build={BUILD}>{children}</Shell>
+          </MotionPolicy>
         </AuthProvider>
       </body>
     </html>

@@ -44,7 +44,7 @@ export default function QuestionCard({
   };
 
   return (
-    <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)] [font-family:var(--w09-font-display)]">
+    <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 [font-family:var(--w09-font-display)]">
       <div className="mb-4 flex items-start gap-3">
         {number != null && (
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--w09-accent-primary)] text-xs font-bold text-[color:var(--w09-accent-contrast)]">
@@ -76,15 +76,15 @@ export default function QuestionCard({
               aria-pressed={isSel}
               disabled={disabled || answered}
               className={`flex w-full items-center gap-3 rounded-[var(--w09-radius)] border px-4 py-3 text-left transition-[background-color,border-color,transform] duration-[var(--w09-motion-duration)] ease-[var(--w09-motion-ease)] active:scale-[0.99] ${stateBorder} ${
-                isSel ? 'bg-[var(--w09-surface-raised)]' : 'bg-[var(--w09-bg)] hover:bg-[var(--w09-surface-raised)]'
-              }`}
+ isSel ? 'bg-[var(--w09-surface-raised)]' : 'bg-[var(--w09-bg)] hover:bg-[var(--w09-surface-raised)]'
+ }`}
             >
               <span
                 className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border ${
-                  isSel
-                    ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-accent-primary)]'
-                    : 'border-[color:var(--w09-border)]'
-                }`}
+ isSel
+ ? 'border-[color:var(--w09-accent-primary)] bg-[var(--w09-accent-primary)]'
+ : 'border-[color:var(--w09-border)]'
+ }`}
               />
               <span className="text-sm text-[color:var(--w09-text)]">{opt.label}</span>
               {isCorrect && <span className="ml-auto text-xs font-bold text-[color:var(--w09-success)]">✓</span>}

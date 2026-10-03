@@ -89,7 +89,7 @@ export default function DailyStudyPlan() {
     const scheduled = sessions.filter(session => session.itemId === item.id);
     const plannedMinutes = scheduled.reduce((sum, session) => sum + session.minutes, 0);
     return (
-      <article key={item.id} className="w85-panel-accent rounded-2xl border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:p-5">
+      <article key={item.id} className="rounded-2xl border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:p-5">
         <div className="flex items-start gap-3">
           {!item.completed && <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={event => setSelection(event.target.checked ? [...selectedIds, item.id] : selectedIds.filter(id => id !== item.id))} aria-label={`Include ${item.title} in today's schedule`} className="mt-1 h-4 w-4 shrink-0 accent-[var(--hub-accent)]" />}
           <div className="min-w-0 flex-1">
@@ -120,7 +120,7 @@ export default function DailyStudyPlan() {
   };
 
   return <div className="space-y-6">
-    <section className="w85-panel-accent rounded-2xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:p-6">
+    <section className="rounded-2xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Today in Bangkok · {plan?.day ?? 'Loading'}</p><h2 className="mt-2 text-2xl font-black">Make time for what matters.</h2><p className="mt-2 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">Deadlines, due reviews, personal tasks, and research in one agenda. Select your work, then give it a time budget.</p></div>
         <button type="button" disabled={busy !== null} className={buttonClass} onClick={() => void perform('refresh', () => refresh(true))}>{busy === 'refresh' ? 'Refreshing…' : 'Refresh sources'}</button>
@@ -173,8 +173,8 @@ function AgendaEditor({ item, onClose, onSaved }: { item: AgendaItem | 'new-task
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  return <div className="fixed inset-0 z-[200] overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-8" role="dialog" aria-modal="true" aria-labelledby="agenda-editor-title" data-w85-reveal="off">
-    <form className="w100-pop mx-auto my-8 max-w-xl space-y-4 rounded-2xl border border-black/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-neutral-900" onSubmit={async event => {
+  return <div className="fixed inset-0 z-[200] overflow-y-auto bg-black/60 p-4 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="agenda-editor-title">
+    <form className="mx-auto my-8 max-w-xl space-y-4 rounded-2xl border border-black/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-neutral-900" onSubmit={async event => {
       event.preventDefault(); setSaving(true); setError('');
       try {
         await requestJson('/api/study-plan/items', existing ? 'PATCH' : 'POST', { kind, id: existing?.sourceId, title, dueAt: dueAt ? `${dueAt}T23:59:00+07:00` : null, estimatedMinutes: Number(estimate), priority: Number(priority) });

@@ -108,7 +108,7 @@ export default function BranchingPlayer({
       {/* ───────── Sidebar ───────── */}
       <aside className="space-y-4">
         {/* Status */}
-        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4 text-center shadow-[var(--w09-shadow)]">
+        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4 text-center">
           <div className="text-4xl leading-none">{sv.emoji}</div>
           <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: sv.color }}>
             <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: sv.color }} />
@@ -145,7 +145,7 @@ export default function BranchingPlayer({
             ))}
           </div>
         ) : (
-          <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4 shadow-[var(--w09-shadow)]">
+          <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4">
             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">
               <span>Patient Stability</span>
               <span style={{ color: sv.color }}>{d.score}</span>
@@ -158,7 +158,7 @@ export default function BranchingPlayer({
 
         {/* Decision path — scales to 4–6 stages (wraps + scrolls if tall). */}
         {d.stages && d.stages.length > 0 && (
-          <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4 shadow-[var(--w09-shadow)]">
+          <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-4">
             <div className="mb-3 flex items-baseline justify-between gap-2">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">Decision Path</h4>
               {stageIndex > -1 && (
@@ -211,7 +211,7 @@ export default function BranchingPlayer({
       {/* ───────── Main ───────── */}
       <div className="space-y-5">
         {/* Patient header */}
-        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5 shadow-[var(--w09-shadow)]">
+        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-5">
           <div className="flex items-center gap-4">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--w09-surface-raised)] text-xl">👤</div>
             <div className="min-w-0">
@@ -225,7 +225,7 @@ export default function BranchingPlayer({
         </div>
 
         {/* Stage / situation */}
-        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 shadow-[var(--w09-shadow)]">
+        <div className="rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6">
           {d.node.stageLabel && (
             <div className="mb-3 text-[11px] font-black uppercase tracking-[0.15em] text-[color:var(--w09-text-muted)]">{d.node.stageLabel}</div>
           )}
@@ -247,8 +247,8 @@ export default function BranchingPlayer({
                       onClick={() => setSelected(ch.id)}
                       disabled={busy}
                       className={`group flex flex-col rounded-2xl border bg-[var(--w09-bg)] p-5 text-left transition-all duration-[var(--w09-motion-duration)] hover:-translate-y-0.5 active:scale-[0.99] disabled:opacity-60 ${
-                        sel ? 'border-[color:var(--w09-accent-primary)] ring-2 ring-[color:var(--w09-focus-ring)]' : 'border-[color:var(--w09-border)] hover:bg-[var(--w09-surface-raised)]'
-                      }`}
+ sel ? 'border-[color:var(--w09-accent-primary)] ring-2 ring-[color:var(--w09-focus-ring)]' : 'border-[color:var(--w09-border)] hover:bg-[var(--w09-surface-raised)]'
+ }`}
                     >
                       <div className="mb-4 flex items-start justify-between">
                         <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--w09-surface-raised)] text-xl">{ch.icon || key}</span>
@@ -263,7 +263,7 @@ export default function BranchingPlayer({
                 <button
                   onClick={submit}
                   disabled={!selected || busy}
-                  className="rounded-full bg-[var(--w09-accent-primary)] px-8 py-2.5 text-sm font-semibold text-[color:var(--w09-accent-contrast)] shadow-[var(--w09-shadow)] transition-transform active:scale-95 disabled:opacity-40"
+                  className="rounded-full bg-[var(--w09-accent-primary)] px-8 py-2.5 text-sm font-semibold text-[color:var(--w09-accent-contrast)] transition-transform active:scale-95 disabled:opacity-40"
                 >
                   {busy ? 'Submitting…' : '✓ Submit Answer'}
                 </button>

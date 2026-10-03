@@ -49,10 +49,10 @@ export default function ChatPane({
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
               className={`max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed rounded-[var(--w09-radius)] ${
-                m.role === 'user'
-                  ? 'bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
-                  : 'bg-[var(--w09-surface-raised)] text-[color:var(--w09-text)] border border-[color:var(--w09-border)]'
-              }`}
+ m.role === 'user'
+ ? 'bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
+ : 'bg-[var(--w09-surface-raised)] text-[color:var(--w09-text)] border border-[color:var(--w09-border)]'
+ }`}
             >
               {m.content}
             </div>

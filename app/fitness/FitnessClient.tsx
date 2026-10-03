@@ -2,16 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import ThemeToggle from "../../components/ThemeToggle"; 
-import ArcDate from '../../components/ArcDate';
 import FitnessCard from '../../components/FitnessCard';
-import TopNavProfile from '../../components/TopNavProfile';
-import MissionBlock from '../../components/MissionBlock';
-import { NavRail, MobileHubNav } from '../../components/HubNav';
-import HubIntro from '../../components/HubIntro';
-import CockpitIntelligencePanel from '../../components/CockpitIntelligencePanel';
-import BrandMark from '../../components/BrandMark';
 import { syncFitnessHubData } from '@/app/actions';
+import { Page, PageHeader } from '@/components/system/primitives';
 
 export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
   const targets = { protein: 160, carbs: 300, fats: 70, calories: 2470 };
@@ -61,101 +54,26 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
     calories: meals.reduce((s, m) => s + m.calories, 0),
   };
 
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   if (!isMounted) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-700 font-sans selection:bg-[#00A598]/30">
-      
-      {/* --- CUSTOM ANIMATION STYLES --- */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes floatSlow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-2deg); } }
-        @keyframes floatFast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
-        .animate-float-slow { animation: floatSlow 6s ease-in-out infinite; }
-        .animate-float-fast { animation: floatFast 4s ease-in-out infinite; }
-      `}} />
-
-      {/* --- DAY/NIGHT ATMOSPHERE --- */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-1000">
-        <div className="absolute top-[-12%] right-[8%] w-[62%] h-[62%] bg-gradient-to-br from-emerald-400/30 via-teal-400/25 to-cyan-400/25 dark:from-emerald-600/20 dark:via-teal-600/15 dark:to-[#00A598]/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-70 transition-all duration-1000"></div>
-        <div className="absolute bottom-[-12%] left-[3%] w-[55%] h-[55%] bg-gradient-to-tr from-blue-400/25 via-cyan-400/20 to-emerald-300/25 dark:from-blue-600/15 dark:via-cyan-600/10 dark:to-teal-600/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-80 dark:opacity-60 transition-all duration-1000"></div>
-        <div className="absolute top-[30%] left-[38%] w-[42%] h-[42%] bg-gradient-to-br from-sky-300/20 to-teal-300/20 dark:from-sky-500/10 dark:to-teal-500/10 rounded-full blur-[130px] mix-blend-multiply dark:mix-blend-screen opacity-70 dark:opacity-50 transition-all duration-1000"></div>
-      </div>
-
-      {/* --- MINIMALIST HEADER --- */}
-      <header className="h-[72px] flex items-center justify-between px-4 lg:px-8 shrink-0 bg-white/60 dark:bg-black/40 backdrop-blur-2xl z-50 border-b border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <button onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} className="hidden lg:flex items-center justify-center p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-neutral-500 dark:text-neutral-400 active:scale-95">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="14" y2="18"></line></svg>
-          </button>
-          <BrandMark />
-        </div>
-        <div className="flex gap-4 lg:gap-6 items-center">
-          <div className="hidden sm:block font-medium text-[12px] tracking-tight text-neutral-400 dark:text-neutral-500 transition-colors duration-700"><ArcDate /></div>
-          <div className="h-5 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block transition-colors duration-700"></div>
-          <TopNavProfile />
-          <ThemeToggle />
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden relative z-10">
-        
-        {/* --- RETRACTABLE DESKTOP SIDEBAR --- */}
-        <NavRail active="Fitness" expanded={isSidebarExpanded} onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)} />
-
-        {/* --- MAIN WORKSPACE --- */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-10 pb-32 lg:pb-10 transition-all duration-500">
-          <div className="max-w-[1400px] mx-auto space-y-10 lg:space-y-14">
+    <Page wide hub>
+      <PageHeader
+        label="runtime / personal"
+        title="Fitness"
+        lede="Training cadence, nutrition log and streaks."
+      />
             
-            <HubIntro
-              eyebrow="Body System Telemetry"
-              title="Train with"
-              titleAccent="operational discipline"
-              description="The Fitness Hub turns workouts, nutrition, macros, and recovery cues into a dashboard for consistency rather than guesswork."
-              primaryHref="#vitality-monitor"
-              primaryLabel="View Metrics"
-              secondaryHref="https://vestrippn-food-screener.vercel.app"
-              secondaryLabel="Food Screener ↗"
-              chips={['Workout Streak', 'Macro Protocol', 'Nutrition Log', 'Recovery']}
-              panelTitle="Fitness Ops"
-              panelSubtitle="Current focus: protect the streak"
-              contextLabel="Training target: log today's session"
-              metrics={[
-                { label: 'Streak', value: `${cloudFitness?.streak ?? 0}` },
-                { label: 'Mode', value: 'Train' },
-                { label: 'Kcal', value: '2200' },
-              ]}
-              capabilities={[
-                { icon: '🏃', title: 'Training Rhythm', desc: 'Workout days, streaks, and body-system consistency stay visible.' },
-                { icon: '🍳', title: 'Nutrition Control', desc: 'Macro targets and food screening support better day-to-day execution.' },
-              ]}
-              hub="fitness"
-            />
 
-            <MissionBlock
-              accent="rose"
-              title="Today's Session · Protect the Streak"
-              detail="Log training to keep cadence and streak telemetry alive."
-              cta={{ label: 'Open monitor', href: '#vitality-monitor' }}
-            />
 
-            <CockpitIntelligencePanel
-              hub="fitness"
-              contextItems={[
-                { label: 'Current focus', value: 'Protect the streak' },
-                { label: 'Streak', value: `${cloudFitness?.streak ?? 0} days` },
-                { label: 'Calories', value: `${targets.calories} target` },
-              ]}
-            />
 
             {/* SECTOR 1: VITALITY MONITOR (3-PANE) */}
             <motion.div
               id="vitality-monitor"
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
-              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full w-full cursor-default"
+              className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 h-full w-full cursor-default"
             >
               <FitnessCard
                 initialWorkoutDays={cloudFitness?.workoutDays ? JSON.parse(cloudFitness.workoutDays) : undefined}
@@ -168,13 +86,12 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
             <motion.div
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.2 }}
-              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] cursor-default"
+              className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 cursor-default"
             >
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Nutritional Protocol</h3>
+                    <h3 className="text-[13px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 transition-colors duration-700">Nutrition</h3>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-[32px] lg:text-[42px] font-black tabular-nums tracking-tighter text-neutral-900 dark:text-white transition-colors duration-700 leading-none">{current.calories}</span>
@@ -195,8 +112,6 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
                       href="https://vestrippn-food-screener.vercel.app"
                       target="_blank"
                       rel="noopener noreferrer"
-                      whileHover={{ y: -3, scale: 1.03, boxShadow: '0 14px 32px rgba(16,185,129,0.28)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                      whileTap={{ scale: 0.96 }}
                       className="flex items-center gap-2 px-6 py-3 bg-black/5 dark:bg-white/5 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-500/10 transition-colors"
                     >
                       <span className="text-[14px] leading-none">🍳</span>
@@ -204,7 +119,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
                       <span className="text-[12px] leading-none">↗</span>
                     </motion.a>
                   </div>
-                  <button onClick={() => setMeals([])} className="text-[10px] font-bold text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 transition-colors uppercase tracking-widest px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 self-end sm:self-auto">Flush Buffer</button>
+                  <button onClick={() => setMeals([])} className="text-[10px] font-bold text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 transition-colors uppercase tracking-widest px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 self-end sm:self-auto">Clear log</button>
                </div>
             </motion.div>
 
@@ -212,8 +127,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
             <motion.section
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.3 }}
-              whileHover={{ y: -6, boxShadow: '0 24px 56px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] lg:rounded-[40px] p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden cursor-default"
+              className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 overflow-hidden cursor-default"
             >
                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
                   <div className="flex items-center gap-2">
@@ -256,26 +170,17 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
                 <motion.div
                   key={i}
                   variants={{ hidden: { opacity: 0, y: 30, scale: 0.96 }, visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } } }}
-                  whileHover={{ y: -6, scale: 1.02, boxShadow: '0 20px 48px rgb(0,0,0,0.10)', transition: { type: 'spring', stiffness: 400, damping: 28 } }}
-                  whileTap={{ scale: 0.97 }}
                 >
                   {card}
                 </motion.div>
               ))}
             </motion.div>
 
-          </div>
-        </main>
-
-        {/* --- MOBILE-ONLY FLOATING NAVIGATION HUD --- */}
-        <MobileHubNav active="Fitness" />
-
-      </div>
 
       {/* MOBILE OPTIMIZED LOGGING MODAL */}
       {isLogging && (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-white/60 dark:bg-black/60 backdrop-blur-md p-4 transition-all duration-500">
-           <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-[32px] p-6 lg:p-8 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 transition-colors">
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-white/60 dark:bg-black/60 p-4 transition-all duration-500">
+           <div className="bg-white dark:bg-[#111111] border border-black/10 dark:border-white/10 rounded-md p-6 lg:p-8 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 transition-colors">
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-[18px] lg:text-[20px] font-black text-neutral-900 dark:text-white tracking-tight">Intake Logging</h2>
                 <button onClick={() => setIsLogging(false)} className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white text-[11px] uppercase font-bold tracking-widest transition-colors px-3 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95">Abort</button>
@@ -302,7 +207,7 @@ export default function FitnessClient({ cloudFitness }: { cloudFitness: any }) {
            </div>
         </div>
       )}
-    </div>
+    </Page>
   );
 }
 
@@ -320,7 +225,7 @@ function SleepCard({ metrics, setMetrics }: any) {
   const color = "bg-purple-500";
 
   return (
-    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 transition-all duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
+    <div className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 transition-all duration-300 group relative">
       <div className="flex justify-between items-center mb-3">
         <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors">Sleep Architecture</div>
         <button onClick={() => setIsEditing(!isEditing)} className="text-[16px] opacity-0 group-hover:opacity-100 transition-opacity">⚙️</button>
@@ -358,7 +263,7 @@ function WeightCard({ metrics, setMetrics }: any) {
   const color = "bg-blue-500";
 
   return (
-    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 transition-all duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
+    <div className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 transition-all duration-300 group relative">
       <div className="flex justify-between items-center mb-3">
         <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors">Biometrics & BMI</div>
         <button onClick={() => setIsEditing(!isEditing)} className="text-[16px] opacity-0 group-hover:opacity-100 transition-opacity">⚙️</button>
@@ -399,7 +304,7 @@ function WaterCard({ metrics, setMetrics }: any) {
   };
 
   return (
-    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/5 rounded-[32px] p-6 lg:p-8 transition-all duration-300 group shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
+    <div className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-md p-6 lg:p-8 transition-all duration-300 group relative">
       <div className="flex justify-between items-center mb-3">
         <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest transition-colors">Metabolic Hydration</div>
         

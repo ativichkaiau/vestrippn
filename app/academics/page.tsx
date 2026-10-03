@@ -7,6 +7,12 @@ import { getActiveCourses, getActiveExams } from "@/lib/curriculum";
 import type { ActiveExamData, CourseData } from "@/lib/curriculum-types";
 import { getAnkiHistory, type AnkiHistoryPoint } from "@/lib/anki";
 import AcademicsClient from "./AcademicsClient";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Academics',
+  description: 'Courses, exam milestones, clinical cases and the Anki trend.',
+};
 
 export default async function AcademicsPage() {
   const userId = await requireUserId();

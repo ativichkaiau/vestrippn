@@ -81,7 +81,7 @@ export default function Toaster() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={motionOff ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.96, transition: { duration: 0.18 } }}
               transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-              className="pointer-events-auto relative w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-black/10 bg-white/85 shadow-[0_18px_44px_-18px_rgba(0,0,0,0.4)] backdrop-blur-xl dark:border-white/10 dark:bg-[#0d0f12]/90"
+              className="pointer-events-auto relative w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-black/10 bg-white/85 dark:border-white/10 dark:bg-[#0d0f12]/90"
               role="status"
             >
               <span className="absolute inset-y-0 left-0 w-1" style={{ background: v.bar }} />
