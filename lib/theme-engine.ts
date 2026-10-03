@@ -35,8 +35,8 @@ export function createThemeEngine(config: EngineConfig) {
     return value === 'day' || value === 'twilight' || value === 'auto' ? value : 'night';
   }
 
-  // The environment's appearance follows the mode alone — a livery paints the
-  // garage object, never the interface. Auto follows the sun over Chiang Mai.
+  // Dark or light follows the mode alone — a livery tints the environment (see
+  // environment()) but never flips it. Auto follows the sun over Chiang Mai.
   function appearance(md: Mode, phase: ThemePhase): 'dark' | 'light' {
     return md === 'day' || (md === 'auto' && phase === 'day') ? 'light' : 'dark';
   }
