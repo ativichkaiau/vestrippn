@@ -1,9 +1,11 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { usePathname, useSelectedLayoutSegment } from 'next/navigation';
 import { serverThemeSnapshot, subscribeTheme, themeSnapshot } from '@/lib/theme';
 import { LIVERY_CATALOG, type Livery, type Mode } from '@/lib/liveries';
+import { readNavLayout, resolveNav, type ResolvedNav } from '@/lib/system/nav-layout';
+import { getNavSnapshot, serverNavSnapshot, subscribeNav } from '@/lib/system/nav-store';
 
 /* Small external-store hooks for real runtime state shown in the shell:
    wall clock, network, appearance. Each has a stable server snapshot so the
@@ -78,4 +80,10 @@ export function useModifierLabel(): string {
     () => (/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'),
     () => '⌘',
   );
+}
+
+/** The operator's navigation layout; the default until hydration is done. */
+export function useNav(): ResolvedNav {
+  const stored = useSyncExternalStore(subscribeNav, getNavSnapshot, serverNavSnapshot);
+  return useMemo(() => resolveNav(readNavLayout(stored)), [stored]);
 }

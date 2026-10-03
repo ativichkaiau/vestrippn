@@ -3,10 +3,13 @@
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { ENVIRONMENT_NAV, RUNTIME_NAV, isCurrent, resolvePath, type NavItem } from '@/lib/system/navigation';
+import { isCurrent, resolvePath } from '@/lib/system/navigation';
+import type { ResolvedNavItem } from '@/lib/system/nav-layout';
+import { openNavEditor } from '@/lib/system/nav-store';
 import { PROJECTS, SYSTEMS } from '@/lib/system/registry';
 import { MODE_LABEL, toggleMode } from '@/lib/theme';
-import { useClock, useLivery, useMode, useModifierLabel, useOnline, useRoutePathname } from './hooks';
+import { useClock, useLivery, useMode, useModifierLabel, useNav, useOnline, useRoutePathname } from './hooks';
+import NavEditor from './NavEditor';
 
 /* ════════════════════════════════════════════════════════════════════════
    The application shell: persistent identity (masthead), structured
@@ -95,6 +98,8 @@ export default function Shell({ children, build }: { children: ReactNode; build:
           <SessionBlock />
         </div>
       </dialog>
+
+      <NavEditor />
     </div>
   );
 }
@@ -165,34 +170,58 @@ function TopTools() {
   );
 }
 
-function NavGroup({ title, items, pathname, indexed }: { title: string; items: NavItem[]; pathname: string; indexed: boolean }) {
+function NavGroup({ title, items, pathname, indexed }: { title: string; items: ResolvedNavItem[]; pathname: string; indexed: boolean }) {
   const id = `nav-${title}`;
+  const visible = items.filter((item) => !item.hidden);
+  if (!visible.length) return null;
   return (
     <div className="sys-nav-group">
       <h2 id={id} className="sys-label">
         {title}
       </h2>
       <ul aria-labelledby={id}>
-        {items.map((item) => (
-          <li key={item.href}>
-            <Link href={item.href} className="sys-nav-link" aria-current={isCurrent(item, pathname) ? 'page' : undefined}>
+        {visible.map((item) => {
+          const content = (
+            <>
               <span className="sys-nav-index" aria-hidden="true">
-                {indexed ? item.index : '·'}
+                {indexed && item.index ? item.index : '·'}
               </span>
-              <span>{item.label}</span>
-            </Link>
-          </li>
-        ))}
+              <span className="sys-nav-text">{item.label}</span>
+              {item.external && (
+                <span className="sys-nav-external" aria-label="(opens in a new tab)">
+                  ↗
+                </span>
+              )}
+            </>
+          );
+          return (
+            <li key={item.id}>
+              {item.external ? (
+                <a href={item.href} className="sys-nav-link" target="_blank" rel="noopener noreferrer">
+                  {content}
+                </a>
+              ) : (
+                <Link href={item.href} className="sys-nav-link" aria-current={isCurrent(item, pathname) ? 'page' : undefined}>
+                  {content}
+                </Link>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
 }
 
 function NavTree({ pathname }: { pathname: string }) {
+  const nav = useNav();
   return (
     <nav aria-label="VESTRIPPN">
-      <NavGroup title="environment" items={ENVIRONMENT_NAV} pathname={pathname} indexed />
-      <NavGroup title="runtime" items={RUNTIME_NAV} pathname={pathname} indexed={false} />
+      <NavGroup title="environment" items={nav.environment} pathname={pathname} indexed />
+      <NavGroup title="runtime" items={nav.runtime} pathname={pathname} indexed={false} />
+      <button type="button" className="sys-nav-customize" onClick={openNavEditor} aria-haspopup="dialog">
+        <span aria-hidden="true">✎</span> customize tabs
+      </button>
     </nav>
   );
 }

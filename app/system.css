@@ -1385,6 +1385,225 @@ button.sys-command {
   background: var(--bg-root);
 }
 
+/* ── Navigation: editable tabs ──────────────────────────────────────────── */
+
+.sys-nav-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sys-nav-link:has(.sys-nav-external) {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+}
+.sys-nav-external {
+  color: var(--text-muted);
+  font: 400 var(--text-2xs) / 1 var(--font-code);
+}
+.sys-nav-customize {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--space-3);
+  padding: 6px var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  font: 400 var(--text-xs) / 1.4 var(--font-code);
+  cursor: pointer;
+}
+.sys-nav-customize:hover {
+  background: var(--bg-02);
+  color: var(--accent);
+}
+
+.sys-nav-editor {
+  width: min(720px, calc(100vw - 24px));
+  max-height: min(760px, calc(100dvh - 48px));
+  margin: 4vh auto auto;
+}
+.sys-nav-editor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-2) var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--line-default);
+}
+.sys-nav-editor-head h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font: 500 var(--text-md) / 1.3 var(--font-code);
+}
+.sys-nav-editor-head p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.sys-nav-editor-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+.sys-nav-editor-group + .sys-nav-editor-group,
+.sys-nav-editor-add {
+  margin-top: var(--space-5);
+}
+.sys-nav-editor-group h3,
+.sys-nav-editor-add h3 {
+  margin: 0 0 var(--space-2);
+}
+.sys-nav-editor-group ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+}
+.sys-nav-editor-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 6px 4px 6px 8px;
+}
+.sys-nav-editor-row + .sys-nav-editor-row {
+  border-top: 1px solid var(--line-subtle);
+}
+.sys-nav-editor-row[data-hidden] .sys-nav-editor-fields {
+  opacity: 0.55;
+}
+.sys-nav-editor-handle {
+  color: var(--text-faint);
+  font: 400 var(--text-sm) / 1 var(--font-code);
+  letter-spacing: -0.2em;
+  text-align: center;
+  cursor: grab;
+  user-select: none;
+}
+.sys-nav-editor-handle:active {
+  cursor: grabbing;
+}
+.sys-nav-editor-fields {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.sys-nav-editor-fields .sys-input {
+  min-height: 34px;
+  font-size: var(--text-sm);
+}
+.sys-nav-editor-fields .sys-nav-editor-href {
+  font: 400 var(--text-xs) / 1.4 var(--font-code);
+}
+.sys-nav-editor-fields small {
+  overflow: hidden;
+  color: var(--text-muted);
+  font: 400 var(--text-2xs) / 1.4 var(--font-code);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sys-nav-editor-fields .sys-input[aria-invalid='true'] {
+  border-color: var(--status-error);
+}
+.sys-nav-editor-error,
+.sys-nav-editor-fields small.sys-nav-editor-error {
+  margin: 0;
+  color: var(--status-error);
+  font: 400 var(--text-2xs) / 1.4 var(--font-code);
+  white-space: normal;
+}
+.sys-nav-editor-controls {
+  display: flex;
+  align-items: center;
+}
+.sys-nav-editor-controls .sys-icon-button {
+  width: 32px;
+  height: 32px;
+  font: 400 var(--text-sm) / 1 var(--font-code);
+}
+.sys-nav-editor-controls .sys-icon-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.sys-nav-editor-controls .sys-icon-button:disabled:hover {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.sys-nav-editor-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 78px;
+  margin-right: var(--space-2);
+  color: var(--text-secondary);
+  font: 400 var(--text-2xs) / 1 var(--font-code);
+  cursor: pointer;
+}
+.sys-nav-editor-toggle input {
+  accent-color: var(--accent);
+}
+.sys-nav-editor-toggle:has(input:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
+.sys-nav-editor-add-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto auto;
+  align-items: end;
+  gap: var(--space-3);
+}
+.sys-nav-editor-add-fields label {
+  display: grid;
+  gap: 4px;
+  color: var(--text-secondary);
+  font: 400 var(--text-2xs) / 1.4 var(--font-code);
+}
+.sys-nav-editor-add-fields .sys-input {
+  min-height: 34px;
+  font-size: var(--text-sm);
+}
+.sys-nav-editor-add .sys-nav-editor-error {
+  margin-top: var(--space-2);
+}
+.sys-nav-editor-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--line-default);
+}
+.sys-nav-editor-spacer {
+  flex: 1;
+}
+@media (max-width: 639px) {
+  .sys-nav-editor {
+    width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+  .sys-nav-editor-row {
+    grid-template-columns: 20px minmax(0, 1fr);
+  }
+  .sys-nav-editor-controls {
+    grid-column: 2;
+    flex-wrap: wrap;
+  }
+  .sys-nav-editor-add-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sys-nav-editor-foot {
+    padding-bottom: max(var(--space-3), env(safe-area-inset-bottom));
+  }
+  .sys-nav-editor-foot > .sys-action:first-child {
+    flex-basis: 100%;
+  }
+}
+
 /* ── Auth gate ──────────────────────────────────────────────────────────── */
 
 .sys-auth {

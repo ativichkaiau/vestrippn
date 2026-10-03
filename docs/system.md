@@ -15,6 +15,7 @@ VESTRIPPN is the root environment: a personal website, study runtime, research e
 | Archive records and university summaries | `lib/system/archive.ts` |
 | Identity | `lib/system/identity.ts` |
 | Navigation and the path system (`/academics` → `~/medicine/academics`) | `lib/system/navigation.ts` |
+| Editable tabs: layout model, device store, editor dialog | `lib/system/nav-layout.ts`, `lib/system/nav-store.ts`, `components/system/NavEditor.tsx` |
 
 ## Registry rule
 

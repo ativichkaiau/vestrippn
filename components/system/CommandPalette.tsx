@@ -4,13 +4,15 @@ import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { ARCHIVE } from '@/lib/system/archive';
-import { ENVIRONMENT_NAV } from '@/lib/system/navigation';
+import type { ResolvedNav } from '@/lib/system/nav-layout';
+import { openNavEditor } from '@/lib/system/nav-store';
 import { LOGS, NODES, OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from '@/lib/system/registry';
 import { enableReminders } from '@/lib/reminders';
 import { LIVERY_LABEL, MODE_LABEL, cycleLivery, getMode, isLowPower, toggleMode } from '@/lib/theme';
 import { toast } from '@/lib/toast-bus';
 import { setLowPowerMode } from '../useLowPower';
 import type { BuildInfo } from './Shell';
+import { useNav } from './hooks';
 
 /* ════════════════════════════════════════════════════════════════════════
    ⌘K / Ctrl+K — search VESTRIPPN.
@@ -34,23 +36,33 @@ type Entry = {
   run?: () => void | Promise<void>;
 };
 
+/** Pages and runtime modules, named and ordered the way the operator set the tabs. */
+function navEntries(nav: ResolvedNav): Entry[] {
+  const runtime = new Map(RUNTIME.map((module) => [`rt:${module.slug}`, module]));
+  return [
+    ...nav.environment.map((item) => ({
+      id: `page:${item.id}`,
+      category: 'PAGE' as const,
+      label: item.id === 'env:root' && item.label === 'root' ? 'Go to root' : `Open ${item.label}`,
+      detail: item.external ? `${item.href} ↗` : item.href === '/' ? '~' : `~${item.href}`,
+      keywords: `${item.label} ${item.defaultLabel ?? ''}${item.hidden ? ' hidden' : ''}`,
+      href: item.href,
+    })),
+    ...nav.runtime.map((item) => {
+      const mounted = runtime.get(item.id);
+      return {
+        id: `runtime:${item.id}`,
+        category: 'RUNTIME' as const,
+        label: item.label,
+        detail: mounted ? mounted.path : item.external ? `${item.href} ↗` : `~${item.href}`,
+        keywords: `${item.defaultLabel ?? ''} ${mounted ? `${mounted.summary} ${mounted.keywords ?? ''}` : ''}${item.hidden ? ' hidden' : ''}`,
+        href: item.href,
+      };
+    }),
+  ];
+}
+
 const STATIC_ENTRIES: Entry[] = [
-  ...ENVIRONMENT_NAV.map((item) => ({
-    id: `page:${item.href}`,
-    category: 'PAGE' as const,
-    label: item.label === 'root' ? 'Go to root' : `Open ${item.label}`,
-    detail: item.href === '/' ? '~' : `~${item.href}`,
-    keywords: item.label,
-    href: item.href,
-  })),
-  ...RUNTIME.map((module) => ({
-    id: `runtime:${module.slug}`,
-    category: 'RUNTIME' as const,
-    label: module.name,
-    detail: module.path,
-    keywords: `${module.summary} ${module.keywords ?? ''}`,
-    href: module.href,
-  })),
   ...SYSTEMS.map((node) => ({
     id: `system:${node.slug}`,
     category: 'SYSTEM' as const,
@@ -122,6 +134,7 @@ function score(query: string, text: string): number | null {
 export default function CommandPalette({ build }: { build: BuildInfo }) {
   const router = useRouter();
   const { status } = useSession();
+  const nav = useNav();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -178,6 +191,14 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           const next = toggleMode();
           toast({ id: 'appearance', title: `appearance: ${MODE_LABEL[next]}`, message: next === 'auto' ? 'Follows the sun over Chiang Mai.' : undefined, variant: 'success' });
         },
+      },
+      {
+        id: 'act:nav',
+        category: 'ACTION',
+        label: 'Customize tabs',
+        detail: 'rename, reorder, hide or add sidebar tabs',
+        keywords: 'navigation sidebar menu edit rename reorder hide add link tabs',
+        run: openNavEditor,
       },
       {
         id: 'act:livery',
@@ -244,7 +265,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
   const verbose = /^about\s+--verbose$/.test(query.trim());
 
   const results = useMemo(() => {
-    const all = [...STATIC_ENTRIES, ...actions];
+    const all = [...navEntries(nav), ...STATIC_ENTRIES, ...actions];
     const q = query.trim();
     if (verbose) return [];
     if (!q) return all.filter((entry) => entry.category === 'PAGE' || entry.category === 'ACTION');
@@ -264,7 +285,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
       .sort((a, b) => b.best - a.best)
       .slice(0, 40)
       .map((item) => item.entry);
-  }, [query, actions, verbose]);
+  }, [query, actions, verbose, nav]);
 
   // Group in a stable category order; `flat` is the keyboard order.
   const groups = useMemo(() => {
@@ -284,6 +305,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
       if (!entry) return;
       close();
       if (entry.run) void entry.run();
+      else if (entry.href && /^https?:\/\//i.test(entry.href)) window.open(entry.href, '_blank', 'noopener,noreferrer');
       else if (entry.href) router.push(entry.href);
     },
     [close, router],
