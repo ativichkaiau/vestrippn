@@ -14,7 +14,7 @@ export default function NotFound() {
           <div>
             <dt>requested</dt>
             <dd data-mono>
-              <RequestedPath />
+              <RequestedPath deferred />
             </dd>
           </div>
           <div>

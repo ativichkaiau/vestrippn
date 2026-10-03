@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { ENVIRONMENT_NAV, RUNTIME_NAV, isCurrent, resolvePath, type NavItem } from '@/lib/system/navigation';
 import { PROJECTS, SYSTEMS } from '@/lib/system/registry';
 import { MODE_LABEL, toggleMode } from '@/lib/theme';
-import { useClock, useLivery, useMode, useModifierLabel, useOnline } from './hooks';
+import { useClock, useLivery, useMode, useModifierLabel, useOnline, useRoutePathname } from './hooks';
 
 /* ════════════════════════════════════════════════════════════════════════
    The application shell: persistent identity (masthead), structured
@@ -24,7 +23,7 @@ export function openPalette() {
 }
 
 export default function Shell({ children, build }: { children: ReactNode; build: BuildInfo }) {
-  const pathname = usePathname() ?? '/';
+  const pathname = useRoutePathname();
   const mainRef = useRef<HTMLElement>(null);
   const drawerRef = useRef<HTMLDialogElement>(null);
 
