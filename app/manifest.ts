@@ -5,13 +5,14 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'VESTRIPPN',
     short_name: 'VESTRIPPN',
-    description: 'Personal telemetry, mission control, and Claude-ready command surfaces.',
+    description: "The root environment for Kaiau's medicine, research, software and experiments.",
     start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait-primary',
-    background_color: '#07090c',
-    theme_color: '#07090c',
+    // Matches the dark-first shell (--bg-root) and the layout's theme-color.
+    background_color: '#08090a',
+    theme_color: '#08090a',
     categories: ['education', 'productivity'],
     icons: [
       { src: '/vestrippn-logo.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   turbopack: {
     // Claude worktrees live inside the main checkout (.claude/worktrees/…),
     // which also has a lockfile, so Next would infer the parent as the root
@@ -21,7 +20,5 @@ const nextConfig = {
     ],
   },
 };
-
-module.exports = nextConfig;
 
 export default nextConfig;

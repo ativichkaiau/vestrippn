@@ -31,7 +31,7 @@ export const NODES: Node[] = [
     created: '2026-05-03',
     url: 'https://vestrippn.vercel.app',
     source: REPO,
-    files: ['app/', 'components/', 'lib/', 'prisma/', 'scripts/', 'anki-addon/', 'docs/', 'auth.ts', 'middleware.ts', 'package.json'],
+    files: ['app/', 'components/', 'lib/', 'prisma/', 'scripts/', 'anki-addon/', 'docs/', 'auth.ts', 'proxy.ts', 'package.json'],
     excerpt: {
       file: 'lib/theme-engine.ts',
       language: 'ts',
