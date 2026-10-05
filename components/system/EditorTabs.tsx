@@ -29,6 +29,7 @@ const KIND_ICON: Record<TabKind, IconName> = {
   link: 'link',
   auth: 'auth',
   settings: 'json',
+  drug: 'pill',
 };
 
 type Menu = { path: string; x: number; y: number };

@@ -51,3 +51,12 @@ test('watermark shows its state and sets on/off', () => {
   assert.deepEqual(run('watermark ON', ctx({ watermark: false })).effect, { type: 'watermark', value: true });
   assert.equal(run('watermark maybe', ctx()).error, true);
 });
+
+test('drug opens a card by name or alias, and lists cards with no name', () => {
+  assert.deepEqual(run('drug noradrenaline', ctx()).effect, { type: 'navigate', href: '/drugs/noradrenaline' });
+  assert.deepEqual(run('drug Norepinephrine', ctx()).effect, { type: 'navigate', href: '/drugs/noradrenaline' });
+  assert.deepEqual(run('drug sux', ctx()).effect, { type: 'navigate', href: '/drugs/suxamethonium' });
+  assert.deepEqual(run('drug TXA', ctx()).effect, { type: 'navigate', href: '/drugs/tranexamic-acid' });
+  assert.match(run('drug', ctx()).output[0], /drug cards/);
+  assert.equal(run('drug unobtainium', ctx()).error, true);
+});

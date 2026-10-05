@@ -1,0 +1,585 @@
+{
+  "basis": "Typical adult doses as used in UK practice (BNF, Resuscitation Council UK, JBDS, AAGBI/Association of Anaesthetists guidance). A study aid: check your local formulary, protocols and the patient in front of you before giving anything.",
+  "drugs": [
+    {
+      "slug": "dexmedetomidine",
+      "name": "Dexmedetomidine",
+      "aliases": ["Dexdor", "Precedex"],
+      "class": "Selective α2-adrenoceptor agonist (sedative)",
+      "mechanism": "Central α2A agonism in the locus coeruleus reduces noradrenergic output: sedation that resembles natural sleep (rousable, cooperative), sympatholysis and an opioid-sparing effect, with little respiratory depression.",
+      "dose": [
+        { "use": "ICU sedation", "dose": "0.2–1.4 micrograms/kg/h IV infusion, titrated; a 1 microgram/kg loading dose over 10 min is often omitted" }
+      ],
+      "onset": "IV: ~15 min to effect; elimination half-life ~2 h",
+      "pitfalls": [
+        "Bradycardia and hypotension; transient hypertension with the loading dose (peripheral α2B vasoconstriction)",
+        "Not enough on its own for deep sedation or for paralysed patients",
+        "Reduce in hepatic impairment; withdrawal (agitation, hypertension) after prolonged infusion"
+      ],
+      "cid": 5311068,
+      "smiles": "CC1=C(C(=CC=C1)[C@H](C)C2=CN=CN2)C"
+    },
+    {
+      "slug": "propofol",
+      "name": "Propofol",
+      "aliases": ["Diprivan", "2,6-diisopropylphenol"],
+      "class": "IV general anaesthetic (alkylphenol)",
+      "mechanism": "Positive allosteric modulator of the GABA-A receptor, prolonging chloride channel opening; rapid redistribution gives quick, clear-headed recovery.",
+      "dose": [
+        { "use": "Induction", "dose": "1.5–2.5 mg/kg IV, titrated (less in the elderly or haemodynamically unstable)" },
+        { "use": "Maintenance (TIVA)", "dose": "4–12 mg/kg/h IV, or by target-controlled infusion" },
+        { "use": "ICU sedation", "dose": "0.3–4 mg/kg/h IV" }
+      ],
+      "onset": "One arm–brain circulation (~30 s); offset 5–10 min after a bolus",
+      "pitfalls": [
+        "Dose-dependent hypotension and apnoea",
+        "Propofol infusion syndrome with prolonged high-dose infusion (> 4 mg/kg/h for > 48 h): metabolic acidosis, rhabdomyolysis, hyperkalaemia, arrhythmia",
+        "Lipid emulsion: supports bacterial growth (aseptic handling), raises triglycerides with long infusions",
+        "Pain on injection"
+      ],
+      "cid": 4943,
+      "smiles": "CC(C)C1=C(C(=CC=C1)C(C)C)O"
+    },
+    {
+      "slug": "ketamine",
+      "name": "Ketamine",
+      "aliases": ["Ketalar"],
+      "class": "Dissociative anaesthetic (NMDA receptor antagonist)",
+      "mechanism": "Non-competitive NMDA receptor antagonism produces dissociative anaesthesia and strong analgesia; indirect sympathomimetic effects usually maintain blood pressure.",
+      "dose": [
+        { "use": "Induction", "dose": "1–2 mg/kg IV (4–10 mg/kg IM)" },
+        { "use": "Analgesia (sub-dissociative)", "dose": "0.1–0.3 mg/kg IV, titrated" }
+      ],
+      "onset": "IV ~30–60 s, lasting 10–15 min",
+      "pitfalls": [
+        "Emergence phenomena (vivid dreams, agitation); a small benzodiazepine dose reduces them",
+        "Raises heart rate and blood pressure, but is a direct myocardial depressant when catecholamines are exhausted",
+        "Increased secretions; airway reflexes are relatively preserved, not guaranteed"
+      ],
+      "cid": 3821,
+      "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2Cl"
+    },
+    {
+      "slug": "etomidate",
+      "name": "Etomidate",
+      "aliases": ["Hypnomidate"],
+      "class": "IV general anaesthetic (carboxylated imidazole)",
+      "mechanism": "GABA-A positive allosteric modulator with minimal effect on sympathetic tone or myocardial contractility, so it is haemodynamically stable.",
+      "dose": [{ "use": "Induction", "dose": "0.2–0.3 mg/kg IV" }],
+      "onset": "IV ~30 s, lasting 5–10 min",
+      "pitfalls": [
+        "Adrenocortical suppression (11β-hydroxylase inhibition) for 24 h or more after a single dose; contested in sepsis",
+        "Myoclonus, pain on injection, nausea and vomiting"
+      ],
+      "cid": 667484,
+      "smiles": "CCOC(=O)C1=CN=CN1[C@H](C)C2=CC=CC=C2"
+    },
+    {
+      "slug": "midazolam",
+      "name": "Midazolam",
+      "aliases": ["Hypnovel", "Buccolam"],
+      "class": "Benzodiazepine (short-acting)",
+      "mechanism": "Binds the benzodiazepine site of the GABA-A receptor, increasing the frequency of chloride channel opening: anxiolysis, sedation, amnesia, anticonvulsant effect.",
+      "dose": [
+        { "use": "Procedural sedation", "dose": "1–2.5 mg IV, then 1 mg increments to effect (0.5–1 mg in the elderly); usually ≤ 3.5–7.5 mg in total" },
+        { "use": "Status epilepticus (pre-hospital / no IV)", "dose": "10 mg buccal or IM" }
+      ],
+      "onset": "IV 2–3 min",
+      "pitfalls": [
+        "Respiratory depression, especially combined with opioids",
+        "The elderly are much more sensitive; titrate slowly",
+        "Active metabolite (α-hydroxymidazolam) accumulates in renal failure; CYP3A4 interactions",
+        "Reversal: flumazenil"
+      ],
+      "cid": 4192,
+      "smiles": "CC1=NC=C2N1C3=C(C=C(C=C3)Cl)C(=NC2)C4=CC=CC=C4F"
+    },
+    {
+      "slug": "fentanyl",
+      "name": "Fentanyl",
+      "aliases": ["Sublimaze"],
+      "class": "Synthetic opioid (phenylpiperidine), μ agonist",
+      "mechanism": "μ-opioid receptor agonist about 100 times as potent as morphine; highly lipid soluble, so fast onset and, after single doses, short action by redistribution.",
+      "dose": [
+        { "use": "Analgesia", "dose": "25–50 micrograms IV, titrated (1–2 micrograms/kg)" },
+        { "use": "Intra-operative", "dose": "1–3 micrograms/kg IV at induction" }
+      ],
+      "onset": "IV 2–5 min; single dose lasts 30–60 min",
+      "pitfalls": [
+        "Respiratory depression; chest wall rigidity with rapid large doses",
+        "Context-sensitive half-time grows with infusion length",
+        "CYP3A4 interactions; serotonin toxicity with serotonergic drugs",
+        "Reversal: naloxone"
+      ],
+      "cid": 3345,
+      "smiles": "CCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3"
+    },
+    {
+      "slug": "morphine",
+      "name": "Morphine",
+      "aliases": ["Oramorph", "MST"],
+      "class": "Opioid (phenanthrene), μ agonist",
+      "mechanism": "μ-opioid receptor agonist: supraspinal and spinal analgesia, sedation, respiratory depression, miosis, reduced gut motility.",
+      "dose": [
+        { "use": "Acute pain (IV titration)", "dose": "1–2 mg IV every 5 min to effect, with monitoring" },
+        { "use": "Oral, opioid-naive", "dose": "5–10 mg immediate-release every 4 h as needed" }
+      ],
+      "onset": "IV 5–10 min, peak ~20 min; lasts 3–4 h",
+      "pitfalls": [
+        "Morphine-6-glucuronide (active) accumulates in renal impairment: sedation, respiratory depression",
+        "Histamine release: hypotension, itch, bronchospasm",
+        "Nausea, vomiting, constipation (prescribe a laxative)",
+        "Reversal: naloxone"
+      ],
+      "cid": 5288826,
+      "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O"
+    },
+    {
+      "slug": "naloxone",
+      "name": "Naloxone",
+      "aliases": ["Narcan"],
+      "class": "Opioid receptor antagonist",
+      "mechanism": "Competitive antagonist at μ (and κ, δ) opioid receptors; displaces opioid agonists.",
+      "dose": [
+        { "use": "Opioid toxicity", "dose": "400 micrograms IV/IM, repeated every 2–3 min as needed (larger doses for synthetic opioids)" },
+        { "use": "Therapeutic over-sedation (post-op, palliative)", "dose": "Titrate 20–100 micrograms IV to restore breathing without reversing analgesia" }
+      ],
+      "onset": "IV 1–2 min; lasts 30–90 min",
+      "pitfalls": [
+        "Shorter-acting than many opioids: re-narcotisation, so observe or infuse",
+        "Precipitates acute withdrawal in dependent patients",
+        "Sympathetic surge: hypertension, arrhythmia, pulmonary oedema"
+      ],
+      "cid": 5284596,
+      "smiles": "C=CCN1CC[C@]23[C@@H]4C(=O)CC[C@]2([C@H]1CC5=C3C(=C(C=C5)O)O4)O"
+    },
+    {
+      "slug": "flumazenil",
+      "name": "Flumazenil",
+      "aliases": ["Anexate"],
+      "class": "Benzodiazepine receptor antagonist",
+      "mechanism": "Competitive antagonist at the benzodiazepine site of the GABA-A receptor.",
+      "dose": [{ "use": "Reversal of benzodiazepine sedation", "dose": "200 micrograms IV over 15 s, then 100 micrograms every 60 s as needed; usually ≤ 1 mg in total" }],
+      "onset": "IV 1–2 min; lasts ~1 h",
+      "pitfalls": [
+        "Seizures in benzodiazepine-dependent patients or mixed overdoses (e.g. tricyclics); not for undifferentiated coma",
+        "Shorter-acting than most benzodiazepines: re-sedation"
+      ],
+      "cid": 3373,
+      "smiles": "CCOC(=O)C1=C2CN(C(=O)C3=C(N2C=N1)C=CC(=C3)F)C"
+    },
+    {
+      "slug": "rocuronium",
+      "name": "Rocuronium",
+      "aliases": ["Esmeron"],
+      "class": "Non-depolarising neuromuscular blocker (aminosteroid)",
+      "mechanism": "Competitive antagonist at post-junctional nicotinic acetylcholine receptors.",
+      "dose": [
+        { "use": "Intubation", "dose": "0.6 mg/kg IV" },
+        { "use": "Rapid sequence induction", "dose": "1–1.2 mg/kg IV" },
+        { "use": "Maintenance", "dose": "0.15 mg/kg IV as needed" }
+      ],
+      "onset": "60–90 s at 0.6 mg/kg (faster at RSI doses); lasts 30–45 min",
+      "pitfalls": [
+        "A leading cause of peri-operative anaphylaxis",
+        "No sedation or analgesia: risk of awareness",
+        "Prolonged in hepatic impairment and the elderly; monitor with train-of-four",
+        "Reversal: sugammadex, or neostigmine with glycopyrronium once recovering"
+      ],
+      "cid": 441290,
+      "smiles": "CC(=O)O[C@H]1[C@H](C[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC[C@@H]4[C@@]3(C[C@@H]([C@H](C4)O)N5CCOCC5)C)C)[N+]6(CCCC6)CC=C"
+    },
+    {
+      "slug": "suxamethonium",
+      "name": "Suxamethonium",
+      "aliases": ["Succinylcholine", "Anectine"],
+      "class": "Depolarising neuromuscular blocker",
+      "mechanism": "Two linked acetylcholine molecules: agonist at nicotinic receptors causing persistent depolarisation (fasciculation, then phase I block); hydrolysed by plasma cholinesterase.",
+      "dose": [{ "use": "Rapid sequence induction", "dose": "1–1.5 mg/kg IV" }],
+      "onset": "30–60 s; lasts 5–10 min",
+      "pitfalls": [
+        "Hyperkalaemia (~0.5 mmol/L rise); dangerous after burns, denervation, crush injury or prolonged immobility (from ~24 h onwards)",
+        "Triggers malignant hyperthermia",
+        "Bradycardia, especially with repeat doses and in children",
+        "Prolonged block with plasma cholinesterase deficiency (suxamethonium apnoea)",
+        "Myalgia; raises intra-ocular, intragastric and intracranial pressure"
+      ],
+      "cid": 5314,
+      "smiles": "C[N+](C)(C)CCOC(=O)CCC(=O)OCC[N+](C)(C)C"
+    },
+    {
+      "slug": "sugammadex",
+      "name": "Sugammadex",
+      "aliases": ["Bridion"],
+      "class": "Selective relaxant binding agent (modified γ-cyclodextrin)",
+      "mechanism": "Encapsulates rocuronium (and vecuronium) one-to-one in plasma, so the drug leaves the neuromuscular junction down its concentration gradient.",
+      "dose": [
+        { "use": "Moderate block (T2 has reappeared)", "dose": "2 mg/kg IV" },
+        { "use": "Deep block (1–2 post-tetanic counts)", "dose": "4 mg/kg IV" },
+        { "use": "Immediate reversal after 1.2 mg/kg rocuronium", "dose": "16 mg/kg IV" }
+      ],
+      "onset": "Recovery usually within 2–3 min",
+      "pitfalls": [
+        "Anaphylaxis; bradycardia",
+        "Binds hormonal contraceptives: treat as a missed pill (extra contraception for 7 days)",
+        "Does not reverse benzylisoquinoliniums (atracurium, cisatracurium)",
+        "Renally excreted; avoid in severe renal impairment"
+      ],
+      "structureNote": "A cyclodextrin ring of eight sugar units: too large for a skeletal card."
+    },
+    {
+      "slug": "neostigmine",
+      "name": "Neostigmine",
+      "aliases": [],
+      "class": "Anticholinesterase (reversible, carbamate)",
+      "mechanism": "Inhibits acetylcholinesterase, raising acetylcholine at the neuromuscular junction to out-compete a non-depolarising blocker; quaternary, so it does not cross the blood–brain barrier.",
+      "dose": [{ "use": "Reversal of non-depolarising block", "dose": "50 micrograms/kg IV (max 5 mg) with glycopyrronium 10 micrograms/kg, once there is spontaneous recovery (train-of-four count ≥ 2–4)" }],
+      "onset": "Peak effect ~10 min",
+      "pitfalls": [
+        "Muscarinic effects (bradycardia to asystole, bronchospasm, secretions, gut motility): always give with an antimuscarinic",
+        "Ceiling effect: cannot reverse deep block; excess can itself weaken muscles"
+      ],
+      "cid": 4456,
+      "smiles": "CN(C)C(=O)OC1=CC=CC(=C1)[N+](C)(C)C"
+    },
+    {
+      "slug": "glycopyrronium",
+      "name": "Glycopyrronium",
+      "aliases": ["Glycopyrrolate", "Robinul"],
+      "class": "Antimuscarinic (quaternary ammonium)",
+      "mechanism": "Competitive muscarinic antagonist that does not cross the blood–brain barrier: no central effects.",
+      "dose": [
+        { "use": "Bradycardia / antisialagogue", "dose": "200–400 micrograms IV" },
+        { "use": "With neostigmine", "dose": "10 micrograms/kg IV (e.g. 0.5 mg with 2.5 mg neostigmine)" }
+      ],
+      "onset": "IV 2–3 min (slower than atropine)",
+      "pitfalls": ["Tachycardia, urinary retention, dry mouth", "Slower onset than atropine for urgent bradycardia"],
+      "cid": 3494,
+      "smiles": "C[N+]1(CCC(C1)OC(=O)C(C2CCCC2)(C3=CC=CC=C3)O)C"
+    },
+    {
+      "slug": "atropine",
+      "name": "Atropine",
+      "aliases": [],
+      "class": "Antimuscarinic (tertiary amine)",
+      "mechanism": "Competitive muscarinic antagonist; crosses the blood–brain barrier.",
+      "dose": [
+        { "use": "Symptomatic bradycardia", "dose": "500 micrograms IV, repeated every 3–5 min to a maximum of 3 mg" },
+        { "use": "Organophosphate poisoning", "dose": "Much larger doses: 1–2 mg IV, doubling every 5 min until the chest is dry" }
+      ],
+      "onset": "IV ~1 min",
+      "pitfalls": [
+        "Small doses (< 500 micrograms) can cause paradoxical bradycardia",
+        "Central anticholinergic syndrome (confusion, agitation), especially in the elderly",
+        "No effect on a denervated (transplanted) heart"
+      ],
+      "cid": 174174,
+      "smiles": "CN1[C@@H]2CC[C@H]1CC(C2)OC(=O)C(CO)C3=CC=CC=C3"
+    },
+    {
+      "slug": "noradrenaline",
+      "name": "Noradrenaline",
+      "aliases": ["Norepinephrine", "Levophed"],
+      "class": "Catecholamine vasopressor",
+      "mechanism": "α1 agonism (vasoconstriction) much greater than β1; raises systemic vascular resistance and MAP.",
+      "dose": [{ "use": "Vasodilatory shock", "dose": "0.01–0.5 micrograms/kg/min IV infusion (often higher in refractory shock), titrated to MAP ≥ 65 mmHg" }],
+      "onset": "Within 1–2 min; stops within minutes",
+      "pitfalls": [
+        "Extravasation causes tissue necrosis (phentolamine); central line preferred, short-term peripheral use only with close monitoring",
+        "Reflex bradycardia; peripheral and splanchnic ischaemia",
+        "Correct hypovolaemia; concentrations differ between units, so check micrograms/mL"
+      ],
+      "cid": 439260,
+      "smiles": "C1=CC(=C(C=C1[C@H](CN)O)O)O"
+    },
+    {
+      "slug": "adrenaline",
+      "name": "Adrenaline",
+      "aliases": ["Epinephrine"],
+      "class": "Catecholamine (α and β agonist)",
+      "mechanism": "β1 (inotropy, chronotropy), β2 (bronchodilation, mast cell stabilisation) and α1 (vasoconstriction) agonist.",
+      "dose": [
+        { "use": "Anaphylaxis", "dose": "500 micrograms IM (0.5 mL of 1 mg/mL, 1:1000) into the anterolateral thigh; repeat after 5 min if no improvement" },
+        { "use": "Cardiac arrest", "dose": "1 mg IV (10 mL of 0.1 mg/mL, 1:10 000) every 3–5 min" },
+        { "use": "Infusion", "dose": "0.01–0.5 micrograms/kg/min IV, titrated" }
+      ],
+      "onset": "IV immediate; IM 5–10 min",
+      "pitfalls": [
+        "Concentration errors: never give 1 mg/mL (1:1000) as an IV bolus",
+        "Tachyarrhythmias, myocardial ischaemia, hyperglycaemia, raised lactate",
+        "Anaphylaxis: IM, not subcutaneous"
+      ],
+      "cid": 5816,
+      "smiles": "CNC[C@@H](C1=CC(=C(C=C1)O)O)O"
+    },
+    {
+      "slug": "phenylephrine",
+      "name": "Phenylephrine",
+      "aliases": [],
+      "class": "Direct α1-adrenoceptor agonist",
+      "mechanism": "Selective α1 agonist: arterial and venous constriction with reflex slowing of the heart.",
+      "dose": [
+        { "use": "Hypotension", "dose": "50–100 micrograms IV bolus" },
+        { "use": "Infusion (e.g. spinal anaesthesia for caesarean section)", "dose": "25–100 micrograms/min IV, titrated" }
+      ],
+      "onset": "IV < 1 min; bolus lasts 5–10 min",
+      "pitfalls": ["Reflex bradycardia; may lower cardiac output in poor LV function", "Dilution errors: 10 mg/mL ampoules must be diluted (e.g. to 100 micrograms/mL)"],
+      "cid": 6041,
+      "smiles": "CNC[C@@H](C1=CC(=CC=C1)O)O"
+    },
+    {
+      "slug": "ephedrine",
+      "name": "Ephedrine",
+      "aliases": [],
+      "class": "Mixed-acting sympathomimetic",
+      "mechanism": "Mainly indirect (releases noradrenaline from nerve terminals) with some direct α and β agonism: raises heart rate, contractility and blood pressure.",
+      "dose": [{ "use": "Hypotension (e.g. under anaesthesia)", "dose": "3–6 mg IV every 3–4 min; usually ≤ 30 mg in total" }],
+      "onset": "IV ~1 min; lasts 10–15 min",
+      "pitfalls": [
+        "Tachyphylaxis as noradrenaline stores deplete",
+        "Tachycardia; hypertensive crisis with MAO inhibitors",
+        "In obstetric spinal hypotension phenylephrine is preferred (less fetal acidosis)"
+      ],
+      "cid": 9294,
+      "smiles": "C[C@@H]([C@@H](C1=CC=CC=C1)O)NC"
+    },
+    {
+      "slug": "dobutamine",
+      "name": "Dobutamine",
+      "aliases": [],
+      "class": "Synthetic catecholamine inotrope",
+      "mechanism": "Racemic: mainly β1 agonism (inotropy) with balanced β2 vasodilation and α1 constriction; raises cardiac output and lowers afterload.",
+      "dose": [{ "use": "Low cardiac output", "dose": "2.5–10 micrograms/kg/min IV infusion (up to 20), titrated" }],
+      "onset": "1–2 min; half-life ~2 min",
+      "pitfalls": ["Tachyarrhythmias and raised myocardial oxygen demand", "Hypotension from β2 vasodilation", "Tolerance after ~72 h"],
+      "cid": 36811,
+      "smiles": "CC(CCC1=CC=C(C=C1)O)NCCC2=CC(=C(C=C2)O)O"
+    },
+    {
+      "slug": "vasopressin",
+      "name": "Vasopressin",
+      "aliases": ["Argipressin", "ADH"],
+      "class": "Peptide vasopressor (V1 agonist)",
+      "mechanism": "V1 receptor agonism causes catecholamine-independent vasoconstriction; V2 effects on the collecting duct (antidiuresis).",
+      "dose": [{ "use": "Septic shock (added to noradrenaline)", "dose": "0.01–0.03 units/min IV infusion" }],
+      "onset": "Minutes",
+      "pitfalls": ["Digital, mesenteric and myocardial ischaemia", "Hyponatraemia; central line preferred"],
+      "structureNote": "A nine-amino-acid peptide: shown by name, not structure."
+    },
+    {
+      "slug": "amiodarone",
+      "name": "Amiodarone",
+      "aliases": ["Cordarone"],
+      "class": "Class III antiarrhythmic (with class I, II and IV actions)",
+      "mechanism": "Blocks potassium channels (prolongs repolarisation and refractoriness) and also sodium and calcium channels and β-adrenoceptors.",
+      "dose": [
+        { "use": "Cardiac arrest (shockable)", "dose": "300 mg IV after the third shock; 150 mg after the fifth" },
+        { "use": "AF / stable VT", "dose": "300 mg IV over 20–60 min, then 900 mg over 24 h (via a central or large vein)" }
+      ],
+      "onset": "IV within hours; elimination half-life ~50 days",
+      "pitfalls": [
+        "Hypotension and bradycardia with IV loading; QT prolongation",
+        "Thrombophlebitis peripherally: central line preferred",
+        "Long-term: thyroid dysfunction (iodine), pulmonary fibrosis, liver injury, photosensitivity, corneal deposits",
+        "Interactions: warfarin, digoxin, simvastatin"
+      ],
+      "cid": 2157,
+      "smiles": "CCCCC1=C(C2=CC=CC=C2O1)C(=O)C3=CC(=C(C(=C3)I)OCCN(CC)CC)I"
+    },
+    {
+      "slug": "adenosine",
+      "name": "Adenosine",
+      "aliases": ["Adenocor"],
+      "class": "Purine nucleoside antiarrhythmic",
+      "mechanism": "A1 receptor agonism at the AV node opens potassium channels and transiently blocks conduction, terminating re-entrant SVT or unmasking atrial activity.",
+      "dose": [{ "use": "Regular narrow-complex SVT", "dose": "6 mg rapid IV bolus with a saline flush into a large proximal vein; then 12 mg; a further 12–18 mg per local protocol" }],
+      "onset": "Seconds; half-life < 10 s",
+      "pitfalls": [
+        "Warn the patient: transient asystole, flushing, chest tightness, a sense of doom",
+        "Bronchospasm: avoid in asthma",
+        "Dangerous in pre-excited AF (WPW)",
+        "Start with 3 mg if on dipyridamole, via a central line, or after heart transplant; theophylline and caffeine blunt it"
+      ],
+      "cid": 60961,
+      "smiles": "C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO)O)O)N"
+    },
+    {
+      "slug": "lidocaine",
+      "name": "Lidocaine",
+      "aliases": ["Lignocaine", "Xylocaine"],
+      "class": "Amide local anaesthetic; class Ib antiarrhythmic",
+      "mechanism": "Blocks voltage-gated sodium channels from inside the cell (use-dependent), stopping action potential propagation.",
+      "dose": [
+        { "use": "Maximum for infiltration", "dose": "3 mg/kg plain (max 200 mg); 7 mg/kg with adrenaline (max 500 mg)" },
+        { "use": "Refractory VF/pVT (if amiodarone unavailable)", "dose": "1–1.5 mg/kg IV" }
+      ],
+      "onset": "Infiltration 2–5 min, lasts 1–2 h (longer with adrenaline)",
+      "pitfalls": [
+        "Local anaesthetic systemic toxicity: perioral tingling, tinnitus, seizures, arrhythmia, arrest; treat with 20% lipid emulsion (1.5 mL/kg bolus)",
+        "Aspirate before injecting; count every source towards the maximum dose"
+      ],
+      "cid": 3676,
+      "smiles": "CCN(CC)CC(=O)NC1=C(C=CC=C1C)C"
+    },
+    {
+      "slug": "bupivacaine",
+      "name": "Bupivacaine",
+      "aliases": ["Marcain"],
+      "class": "Long-acting amide local anaesthetic",
+      "mechanism": "Sodium channel blockade, highly protein-bound and lipid-soluble: slow onset, long duration.",
+      "dose": [
+        { "use": "Maximum dose", "dose": "2 mg/kg (max 150 mg), with or without adrenaline" },
+        { "use": "Spinal (0.5% heavy)", "dose": "Typically 2–3 mL (10–15 mg)" }
+      ],
+      "onset": "Nerve block 15–30 min, lasting 4–12 h",
+      "pitfalls": [
+        "The most cardiotoxic local anaesthetic: slow dissociation from cardiac sodium channels, VF resistant to treatment; lipid emulsion",
+        "Never for IV regional anaesthesia (Bier's block)"
+      ],
+      "cid": 2474,
+      "smiles": "CCCCN1CCCCC1C(=O)NC2=C(C=CC=C2C)C"
+    },
+    {
+      "slug": "tranexamic-acid",
+      "name": "Tranexamic acid",
+      "aliases": ["TXA", "Cyklokapron"],
+      "class": "Antifibrinolytic (lysine analogue)",
+      "mechanism": "Blocks the lysine-binding sites on plasminogen, so plasmin cannot bind and break down fibrin. The drug is the trans isomer.",
+      "dose": [
+        { "use": "Major trauma (CRASH-2)", "dose": "1 g IV over 10 min within 3 h of injury, then 1 g over 8 h" },
+        { "use": "Postpartum haemorrhage (WOMAN)", "dose": "1 g IV over 10 min; a second 1 g if bleeding continues after 30 min" }
+      ],
+      "onset": "Minutes",
+      "pitfalls": [
+        "In trauma, no benefit (possible harm) after 3 h",
+        "Never intrathecal: wrong-route injection causes seizures and death",
+        "Reduce in renal impairment; seizures with very high doses"
+      ],
+      "cid": 5526,
+      "smiles": "C1CC(CCC1CN)C(=O)O"
+    },
+    {
+      "slug": "heparin",
+      "name": "Heparin (unfractionated)",
+      "aliases": ["UFH"],
+      "class": "Anticoagulant (indirect thrombin and Xa inhibitor)",
+      "mechanism": "Binds antithrombin and accelerates its inactivation of thrombin (IIa) and factor Xa.",
+      "dose": [
+        { "use": "VTE treatment (IV)", "dose": "80 units/kg bolus, then 18 units/kg/h, adjusted to APTT ratio or anti-Xa" },
+        { "use": "Prophylaxis", "dose": "5000 units SC every 8–12 h" }
+      ],
+      "onset": "IV immediate; half-life ~1–2 h",
+      "pitfalls": [
+        "Heparin-induced thrombocytopenia (5–10 days): check platelets; stop all heparin and use a non-heparin anticoagulant",
+        "Bleeding; reversal with protamine (1 mg per 100 units, max 50 mg)",
+        "Hyperkalaemia (aldosterone suppression)"
+      ],
+      "structureNote": "A mixture of sulphated polysaccharide chains: shown by name, not structure."
+    },
+    {
+      "slug": "insulin",
+      "name": "Insulin (soluble)",
+      "aliases": ["Actrapid", "Humulin S", "regular insulin"],
+      "class": "Peptide hormone",
+      "mechanism": "Activates the insulin receptor tyrosine kinase: GLUT4 glucose uptake, glycogen synthesis, suppressed gluconeogenesis and lipolysis, and potassium shift into cells (Na⁺/K⁺-ATPase).",
+      "dose": [
+        { "use": "DKA (fixed-rate IV infusion, JBDS)", "dose": "0.1 units/kg/h" },
+        { "use": "Hyperkalaemia", "dose": "10 units soluble insulin IV with 25 g glucose; monitor glucose for at least 6 h" }
+      ],
+      "onset": "IV minutes; half-life ~5 min",
+      "pitfalls": [
+        "Never abbreviate 'units' (a 'U' read as '0' gives a ten-fold overdose); use an insulin syringe",
+        "Hypoglycaemia and hypokalaemia: monitor glucose and potassium"
+      ],
+      "structureNote": "A 51-amino-acid peptide in two chains: shown by name, not structure."
+    },
+    {
+      "slug": "ondansetron",
+      "name": "Ondansetron",
+      "aliases": ["Zofran"],
+      "class": "5-HT3 receptor antagonist (antiemetic)",
+      "mechanism": "Blocks 5-HT3 receptors on vagal afferents in the gut and in the chemoreceptor trigger zone.",
+      "dose": [{ "use": "PONV prophylaxis or treatment", "dose": "4 mg IV or oral (up to 8 mg); single IV doses no higher than 16 mg" }],
+      "onset": "IV ~30 min to full effect",
+      "pitfalls": ["Dose-dependent QT prolongation", "Constipation, headache; serotonin toxicity with serotonergic drugs"],
+      "cid": 4595,
+      "smiles": "CC1=NC=CN1CC2CCC3=C(C2=O)C4=CC=CC=C4N3C"
+    },
+    {
+      "slug": "dexamethasone",
+      "name": "Dexamethasone",
+      "aliases": [],
+      "class": "Glucocorticoid (fluorinated, long-acting)",
+      "mechanism": "Glucocorticoid receptor agonist with negligible mineralocorticoid activity: anti-inflammatory, immunosuppressive and antiemetic. 0.75 mg is roughly 5 mg prednisolone.",
+      "dose": [
+        { "use": "PONV prophylaxis", "dose": "4–8 mg IV at induction" },
+        { "use": "Bacterial meningitis", "dose": "10 mg IV every 6 h for 4 days, starting with or before the first antibiotic" },
+        { "use": "Cerebral oedema (tumour)", "dose": "10 mg IV, then 4 mg every 6 h" }
+      ],
+      "onset": "Hours (genomic effects)",
+      "pitfalls": [
+        "Hyperglycaemia; perineal burning or itching after a rapid IV bolus in an awake patient",
+        "Immunosuppression, mood change, adrenal suppression with longer courses"
+      ],
+      "cid": 5743,
+      "smiles": "C[C@@H]1C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@@]4([C@]3([C@H](C[C@@]2([C@]1(C(=O)CO)O)C)O)F)C"
+    },
+    {
+      "slug": "furosemide",
+      "name": "Furosemide",
+      "aliases": ["Frusemide", "Lasix"],
+      "class": "Loop diuretic",
+      "mechanism": "Inhibits the Na⁺/K⁺/2Cl⁻ co-transporter (NKCC2) in the thick ascending limb of the loop of Henle.",
+      "dose": [
+        { "use": "Acute pulmonary oedema", "dose": "40–80 mg IV slowly (no faster than 4 mg/min)" },
+        { "use": "Oedema (oral)", "dose": "20–80 mg once daily" }
+      ],
+      "onset": "IV 5 min, oral within 1 h; lasts ~6 h",
+      "pitfalls": [
+        "Hypokalaemia, hyponatraemia, hypomagnesaemia, dehydration, AKI",
+        "Ototoxicity with rapid high IV doses or aminoglycosides",
+        "Gout; sulphonamide sensitivity"
+      ],
+      "cid": 3440,
+      "smiles": "C1=COC(=C1)CNC2=CC(=C(C=C2C(=O)O)S(=O)(=O)N)Cl"
+    },
+    {
+      "slug": "paracetamol",
+      "name": "Paracetamol",
+      "aliases": ["Acetaminophen"],
+      "class": "Analgesic and antipyretic",
+      "mechanism": "Not fully understood: central COX inhibition where peroxide tone is low, plus serotonergic and cannabinoid (AM404) pathways; little peripheral anti-inflammatory effect.",
+      "dose": [
+        { "use": "Adults ≥ 50 kg", "dose": "1 g oral or IV every 4–6 h, maximum 4 g in 24 h" },
+        { "use": "IV, adults < 50 kg or at hepatotoxic risk", "dose": "15 mg/kg every 4–6 h, maximum 60 mg/kg in 24 h" }
+      ],
+      "onset": "Oral 30–60 min; IV 5–10 min (analgesia ~15 min)",
+      "pitfalls": [
+        "Overdose: NAPQI depletes glutathione, causing liver necrosis; treat with acetylcysteine by the nomogram",
+        "Reduce for low weight, malnutrition, alcohol excess or liver disease",
+        "IV dosing errors (mg vs mL), especially in children"
+      ],
+      "cid": 1983,
+      "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+    },
+    {
+      "slug": "magnesium-sulfate",
+      "name": "Magnesium sulfate",
+      "aliases": ["MgSO₄"],
+      "class": "Electrolyte; NMDA antagonist and calcium channel blocker",
+      "mechanism": "Calcium antagonism at voltage-gated channels and NMDA receptor block: anticonvulsant (eclampsia), bronchodilator, antiarrhythmic (torsades).",
+      "dose": [
+        { "use": "Eclampsia / severe pre-eclampsia", "dose": "4 g IV over 5–15 min, then 1 g/h for 24 h" },
+        { "use": "Acute severe asthma", "dose": "1.2–2 g IV over 20 min" },
+        { "use": "Torsades de pointes", "dose": "2 g IV over 10–15 min" }
+      ],
+      "onset": "Immediate IV",
+      "pitfalls": [
+        "Toxicity: loss of tendon reflexes, then respiratory depression and cardiac arrest; monitor reflexes, respiratory rate and urine output",
+        "Antidote: calcium gluconate 10 mL of 10% IV",
+        "Accumulates in renal impairment; potentiates neuromuscular blockers"
+      ],
+      "structureNote": "An inorganic salt: shown by name, not structure."
+    }
+  ]
+}

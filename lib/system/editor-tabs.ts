@@ -12,7 +12,7 @@ import type { ResolvedNav } from './nav-layout';
    ════════════════════════════════════════════════════════════════════════ */
 
 export type EditorTab = { path: string; href: string; pinned?: boolean };
-export type TabKind = 'page' | 'runtime' | 'system' | 'project' | 'log' | 'object' | 'archive' | 'link' | 'auth' | 'settings';
+export type TabKind = 'page' | 'runtime' | 'system' | 'project' | 'log' | 'object' | 'archive' | 'link' | 'auth' | 'settings' | 'drug';
 
 export const MAX_TABS = 16;
 const MAX_HREF = 500;
@@ -140,6 +140,7 @@ export function describeTab(path: string, nav: ResolvedNav): { label: string; ki
   const detail = resolved.display;
   const [head] = path.split('/').filter(Boolean);
   if (path === '/settings') return { label: 'settings.json', kind: 'settings', detail };
+  if (head === 'drugs' && path !== '/drugs') return { label: resolved.segments.at(-1)?.label ?? path, kind: 'drug', detail };
   for (const group of ['environment', 'runtime'] as const) {
     const item = nav[group].find((entry) => !entry.external && entry.match.includes(path));
     if (item) return { label: item.label, kind: group === 'runtime' ? 'runtime' : 'page', detail };

@@ -3083,3 +3083,155 @@ html.sys-embed .sys-split-sep,
 html.sys-embed .sys-split-pane {
   display: none !important;
 }
+
+/* ── Drug cards ─────────────────────────────────────────────────────────── */
+.sys-structure {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  color: var(--text-strong);
+}
+.sys-structure text {
+  fill: currentColor;
+  stroke: none;
+  font: 600 13px var(--font-code);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.sys-formula sub,
+.sys-formula sup {
+  font-size: 0.7em;
+  line-height: 0;
+}
+.sys-drug-card {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+.sys-drug-structure {
+  position: sticky;
+  top: var(--space-4);
+  margin: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-01);
+}
+.sys-drug-structure figcaption {
+  margin-top: var(--space-3);
+  color: var(--text-secondary);
+  font: 400 var(--text-xs) / 1.5 var(--font-code);
+}
+.sys-drug-structure figcaption a {
+  color: var(--accent);
+}
+.sys-drug-body .sys-section:first-child {
+  margin-top: 0;
+}
+.sys-drug-onset {
+  margin: var(--space-3) 0 0;
+  font: 400 var(--text-xs) / 1.5 var(--font-code);
+}
+.sys-drug-pitfalls {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 1.1em;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+.sys-drug-pitfalls li::marker {
+  color: var(--status-error);
+}
+.sys-drug-basis {
+  margin: var(--space-6) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 2px solid var(--accent);
+  background: var(--bg-01);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.55;
+}
+.sys-drug-basis b {
+  color: var(--text-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.sys-drug-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  font: 400 var(--text-xs) / 1 var(--font-code);
+}
+.sys-drug-pager a {
+  color: var(--text-secondary);
+}
+.sys-drug-pager a:hover {
+  color: var(--text-strong);
+}
+.sys-drug-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.sys-drug-filter .sys-input {
+  max-width: 420px;
+}
+.sys-drug-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sys-drug-tile {
+  display: grid;
+  gap: 4px;
+  height: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-01);
+  color: var(--text-strong);
+  text-decoration: none;
+}
+.sys-drug-tile:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.sys-drug-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.sys-drug-tile small {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+.sys-drug-thumb {
+  display: grid;
+  place-items: center;
+  height: 110px;
+  margin-bottom: var(--space-2);
+}
+.sys-drug-thumb .sys-structure {
+  max-height: 110px;
+  color: var(--text-secondary);
+}
+.sys-drug-thumb .sys-structure text {
+  font-size: 15px;
+}
+@media (max-width: 1023px) {
+  .sys-drug-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sys-drug-structure {
+    position: static;
+  }
+}

@@ -2,6 +2,7 @@ import type { ResolvedNav } from './nav-layout';
 import { resolvePath } from './navigation';
 import { OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
 import { COLOR_THEMES, COLOR_THEME_LABEL, type ColorTheme } from '../vscode-themes';
+import { DRUGS, findDrug } from '../drugs';
 
 /* ════════════════════════════════════════════════════════════════════════
    The panel's terminal: a tiny shell over the VESTRIPPN tree.
@@ -44,6 +45,7 @@ const HELP = [
   '  open <name|url>    open a page, a system/project, or an https link',
   '  pwd                print where you are',
   '  find <words>       search everything (opens ⌘K with the query)',
+  '  drug <name>        open a drug card (drug with no name lists them)',
   '  theme [name]       list or set the colour theme (vestrippn, modern, classic)',
   '  appearance <mode>  dark, light or auto',
   '  livery [id|next]   show, set or cycle the livery',
@@ -170,6 +172,13 @@ export function run(line: string, ctx: TerminalContext): TerminalResult {
       if (!value) return { output: [`watermark: ${ctx.watermark ? 'on' : 'off'}`] };
       if (value !== 'on' && value !== 'off') return { output: [`watermark: expected on or off, got '${rest}'`], error: true };
       return { output: [`watermark: ${value}`], effect: { type: 'watermark', value: value === 'on' } };
+    }
+    case 'drug':
+    case 'drugs': {
+      if (!rest) return { output: [`${DRUGS.length} drug cards:`, DRUGS.map((drug) => drug.slug).join('  ')] };
+      const drug = findDrug(rest);
+      if (!drug) return { output: [`drug: no card for '${rest}'. Type 'drug' for the list.`], error: true };
+      return { output: [`${drug.name} — ${drug.class}`], effect: { type: 'navigate', href: `/drugs/${drug.slug}` } };
     }
     case 'sudo':
       return { output: ['nice try. VESTRIPPN runs as you.'] };

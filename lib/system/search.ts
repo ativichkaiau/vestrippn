@@ -1,4 +1,5 @@
 import { ARCHIVE } from './archive';
+import { DRUGS } from '../drugs';
 import type { ResolvedNav } from './nav-layout';
 import { OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
 
@@ -10,8 +11,8 @@ import { OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
    archive records. Actions live in the palette, which adds its own.
    ════════════════════════════════════════════════════════════════════════ */
 
-export type Category = 'RECENT' | 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
-export const CATEGORY_ORDER: Category[] = ['RECENT', 'PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'OBJECT', 'ARCHIVE', 'ACTION'];
+export type Category = 'RECENT' | 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'DRUG' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
+export const CATEGORY_ORDER: Category[] = ['RECENT', 'PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'DRUG', 'OBJECT', 'ARCHIVE', 'ACTION'];
 
 export type Entry = {
   id: string;
@@ -67,6 +68,14 @@ export const STATIC_ENTRIES: Entry[] = [
     detail: `${node.summary}${node.language ? ` · ${node.language}` : ''}`,
     keywords: `${node.type} ${node.slug} ${node.domains.join(' ')}`,
     href: `/projects/${node.slug}`,
+  })),
+  ...DRUGS.map((drug) => ({
+    id: `drug:${drug.slug}`,
+    category: 'DRUG' as const,
+    label: drug.name,
+    detail: drug.class,
+    keywords: `drug card dose ${drug.aliases.join(' ')}`,
+    href: `/drugs/${drug.slug}`,
   })),
   ...OBJECTS.map((object) => ({
     id: `object:${object.slug}`,
