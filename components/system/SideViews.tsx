@@ -16,6 +16,8 @@ import Icon, { type IconName } from './Icon';
 import { useColorTheme, useLivery, useMode, useNav, useSyncStatus, useWorkbench } from './hooks';
 import { FOCUS_SEARCH_EVENT } from './shell-events';
 import { setWatermark, useWatermark } from '../useWatermark';
+import OutlineView from './OutlineView';
+import StudyView from './StudyView';
 
 /* ════════════════════════════════════════════════════════════════════════
    Side bar views (VS Code's primary side bar): Explorer, Search,
@@ -23,7 +25,7 @@ import { setWatermark, useWatermark } from '../useWatermark';
    the session details.
    ════════════════════════════════════════════════════════════════════════ */
 
-const VIEW_TITLE: Record<View, string> = { explorer: 'explorer', search: 'search', appearance: 'appearance', account: 'account' };
+const VIEW_TITLE: Record<View, string> = { explorer: 'explorer', search: 'search', outline: 'outline', study: 'study', appearance: 'appearance', account: 'account' };
 
 export default function SideBar({ pathname }: { pathname: string }) {
   const { view } = useWorkbench();
@@ -40,6 +42,8 @@ export default function SideBar({ pathname }: { pathname: string }) {
       <div className="sys-view-body">
         {view === 'explorer' && <ExplorerTree pathname={pathname} />}
         {view === 'search' && <SearchView />}
+        {view === 'outline' && <OutlineView pathname={pathname} />}
+        {view === 'study' && <StudyView />}
         {view === 'appearance' && <AppearanceView />}
         {view === 'account' && <AccountView />}
       </div>
@@ -152,6 +156,7 @@ export function ExplorerTree({ pathname, withRegistry = true }: { pathname: stri
 /* ── Search ─────────────────────────────────────────────────────────────── */
 
 const CATEGORY_ICON: Record<Category, IconName> = {
+  RECENT: 'history',
   PAGE: 'page',
   RUNTIME: 'runtime',
   SYSTEM: 'system',

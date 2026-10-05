@@ -25,7 +25,15 @@ export type IconName =
   | 'sidebar'
   | 'keyboard'
   | 'sync'
-  | 'edit';
+  | 'edit'
+  | 'history'
+  | 'outline'
+  | 'split'
+  | 'back'
+  | 'forward'
+  | 'study'
+  | 'pill'
+  | 'json';
 
 const PATHS: Record<IconName, string> = {
   files: 'M5 2.5h5l3 3V12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1ZM10 2.5V5.5h3M2.5 5v8.5a1 1 0 0 0 1 1H10',
@@ -52,6 +60,14 @@ const PATHS: Record<IconName, string> = {
   keyboard: 'M1.75 4.5h12.5v7H1.75ZM4 6.75h.01M6.5 6.75h.01M9 6.75h.01M11.5 6.75h.01M5 9.25h6',
   sync: 'M13 5.5A5.25 5.25 0 0 0 3.2 6M3 10.5a5.25 5.25 0 0 0 9.8-.5M13 2.75V5.5h-2.75M3 13.25V10.5h2.75',
   edit: 'M10.5 2.75l2.75 2.75L6 12.75H3.25V10l7.25-7.25Z',
+  history: 'M8 2.75a5.25 5.25 0 1 1-4.9 3.4M2.75 3v3.25H6M8 5.25V8l2 1.5',
+  outline: 'M2.75 4h.01M5.25 4h8M4.25 8h.01M6.75 8h6.5M4.25 12h.01M6.75 12h6.5',
+  split: 'M2.5 3.5h11v9h-11ZM8 3.5v9',
+  back: 'M13 8H3.5M7 4.5 3.5 8 7 11.5',
+  forward: 'M3 8h9.5M9 4.5l3.5 3.5L9 11.5',
+  study: 'M2.5 4c2-1 4-1 5.5.5 1.5-1.5 3.5-1.5 5.5-.5v8.5c-2-1-4-1-5.5.5-1.5-1.5-3.5-1.5-5.5-.5ZM8 4.5V13',
+  pill: 'M5.6 10.4l4.8-4.8M3.9 12.1a3 3 0 0 1 0-4.25l3.95-3.95a3 3 0 0 1 4.25 4.25L8.15 12.1a3 3 0 0 1-4.25 0Z',
+  json: 'M5.5 2.75c-1.5 0-2 .6-2 1.75v1.75c0 .9-.5 1.5-1.25 1.75.75.25 1.25.85 1.25 1.75v1.75c0 1.15.5 1.75 2 1.75M10.5 2.75c1.5 0 2 .6 2 1.75v1.75c0 .9.5 1.5 1.25 1.75-.75.25-1.25.85-1.25 1.75v1.75c0 1.15-.5 1.75-2 1.75',
 };
 
 export default function Icon({ name, size = 16, className }: { name: IconName; size?: number; className?: string }) {

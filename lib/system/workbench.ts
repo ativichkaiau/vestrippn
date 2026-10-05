@@ -2,16 +2,22 @@
 
 /* Workbench layout state for this device, like a VS Code window: which side
    view is open, whether the side bar and panel are shown, which panel tab,
-   and which Explorer folders are collapsed. */
+   which Explorer folders are collapsed, and the page in the right-hand
+   editor group when the editor is split. */
 
-export const VIEWS = ['explorer', 'search', 'appearance', 'account'] as const;
+export const VIEWS = ['explorer', 'search', 'outline', 'study', 'appearance', 'account'] as const;
 export type View = (typeof VIEWS)[number];
 export const PANEL_TABS = ['output', 'terminal'] as const;
 export type PanelTab = (typeof PANEL_TABS)[number];
 
-export type Workbench = { sidebar: boolean; view: View; panel: boolean; panelTab: PanelTab; collapsed: string[] };
+export type Workbench = { sidebar: boolean; view: View; panel: boolean; panelTab: PanelTab; collapsed: string[]; split: string | null; splitSize: number };
 
-export const DEFAULT_WORKBENCH: Workbench = { sidebar: true, view: 'explorer', panel: false, panelTab: 'terminal', collapsed: [] };
+export const DEFAULT_WORKBENCH: Workbench = { sidebar: true, view: 'explorer', panel: false, panelTab: 'terminal', collapsed: [], split: null, splitSize: 0.5 };
+/** The left group's share of the editor width when split. */
+export const SPLIT_MIN = 0.25;
+export const SPLIT_MAX = 0.75;
+const validSplit = (href: unknown): href is string =>
+  typeof href === 'string' && href.startsWith('/') && !href.startsWith('//') && href.length <= 500 && !/\s/.test(href) && !href.startsWith('/auth');
 const KEY = 'vest_workbench';
 export const WORKBENCH_EVENT = 'sys:workbench';
 const DEFAULT_STRING = JSON.stringify(DEFAULT_WORKBENCH);
@@ -26,6 +32,8 @@ export function parseWorkbench(raw: string | null): Workbench {
       panel: typeof data.panel === 'boolean' ? data.panel : DEFAULT_WORKBENCH.panel,
       panelTab: PANEL_TABS.includes(data.panelTab as PanelTab) ? (data.panelTab as PanelTab) : DEFAULT_WORKBENCH.panelTab,
       collapsed: Array.isArray(data.collapsed) ? data.collapsed.filter((id): id is string => typeof id === 'string').slice(0, 20) : [],
+      split: validSplit(data.split) ? data.split : null,
+      splitSize: typeof data.splitSize === 'number' && Number.isFinite(data.splitSize) ? Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, data.splitSize)) : DEFAULT_WORKBENCH.splitSize,
     };
   } catch {
     return DEFAULT_WORKBENCH;
@@ -83,4 +91,17 @@ export function toggleFolder(id: string): void {
   updateWorkbench((current) => ({
     collapsed: current.collapsed.includes(id) ? current.collapsed.filter((item) => item !== id) : [...current.collapsed, id],
   }));
+}
+
+/** Open a page in the right-hand editor group (VS Code: Open to the Side). */
+export function openToSide(href: string): void {
+  if (validSplit(href)) updateWorkbench({ split: href });
+}
+
+export function closeSplit(): void {
+  updateWorkbench({ split: null });
+}
+
+export function setSplitSize(size: number): void {
+  updateWorkbench({ splitSize: Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, size)) });
 }

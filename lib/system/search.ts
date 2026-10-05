@@ -10,8 +10,8 @@ import { OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
    archive records. Actions live in the palette, which adds its own.
    ════════════════════════════════════════════════════════════════════════ */
 
-export type Category = 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
-export const CATEGORY_ORDER: Category[] = ['PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'OBJECT', 'ARCHIVE', 'ACTION'];
+export type Category = 'RECENT' | 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
+export const CATEGORY_ORDER: Category[] = ['RECENT', 'PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'OBJECT', 'ARCHIVE', 'ACTION'];
 
 export type Entry = {
   id: string;

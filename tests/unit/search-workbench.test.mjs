@@ -21,6 +21,13 @@ test('workbench state parses defensively', async () => {
   assert.deepEqual(parseWorkbench(null), DEFAULT_WORKBENCH);
   assert.deepEqual(parseWorkbench('{bad'), DEFAULT_WORKBENCH);
   const parsed = parseWorkbench(JSON.stringify({ sidebar: false, view: 'search', panel: true, panelTab: 'output', collapsed: ['systems', 4] }));
-  assert.deepEqual(parsed, { sidebar: false, view: 'search', panel: true, panelTab: 'output', collapsed: ['systems'] });
+  assert.deepEqual(parsed, { sidebar: false, view: 'search', panel: true, panelTab: 'output', collapsed: ['systems'], split: null, splitSize: 0.5 });
   assert.equal(parseWorkbench(JSON.stringify({ view: 'evil' })).view, 'explorer');
+  assert.equal(parseWorkbench(JSON.stringify({ view: 'outline' })).view, 'outline');
+  // The split group only ever holds an in-app page, and its width is clamped.
+  assert.equal(parseWorkbench(JSON.stringify({ split: '/research?x=1', splitSize: 0.9 })).split, '/research?x=1');
+  assert.equal(parseWorkbench(JSON.stringify({ splitSize: 0.9 })).splitSize, 0.75);
+  for (const bad of ['https://evil.example', '//evil.example', '/auth/signin', 'javascript:alert(1)', 7]) {
+    assert.equal(parseWorkbench(JSON.stringify({ split: bad })).split, null, String(bad));
+  }
 });

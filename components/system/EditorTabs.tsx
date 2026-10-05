@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type DragEvent, type MouseEvent as ReactMo
 import { closeAll, closeOthers, closeTab, closeToRight, describeTab, moveTab, togglePin, type EditorTab, type TabKind } from '@/lib/system/editor-tabs';
 import { readTabs, saveTabs } from '@/lib/system/editor-tabs-store';
 import { toast } from '@/lib/toast-bus';
+import { openToSide } from '@/lib/system/workbench';
 import Icon, { type IconName } from './Icon';
 import { useEditorTabs, useNav } from './hooks';
 
@@ -27,6 +28,7 @@ const KIND_ICON: Record<TabKind, IconName> = {
   archive: 'archive',
   link: 'link',
   auth: 'auth',
+  settings: 'json',
 };
 
 type Menu = { path: string; x: number; y: number };
@@ -183,6 +185,10 @@ export default function EditorTabs({ activePath }: { activePath: string }) {
           </button>
           <button type="button" role="menuitem" tabIndex={-1} onClick={runMenu(() => keep(closeAll(readTabs())))}>
             <span>Close All</span>
+          </button>
+          <button type="button" role="menuitem" tabIndex={-1} onClick={runMenu((tab) => openToSide(tab.href))}>
+            <span>Open to the Side</span>
+            <kbd>Ctrl+\</kbd>
           </button>
           <hr />
           <button type="button" role="menuitem" tabIndex={-1} onClick={runMenu((tab) => saveTabs(togglePin(readTabs(), tab.path)))}>

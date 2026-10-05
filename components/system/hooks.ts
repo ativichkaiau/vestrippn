@@ -12,6 +12,7 @@ import { parseTabs, type EditorTab } from '@/lib/system/editor-tabs';
 import { getOutputSnapshot, serverOutputSnapshot, subscribeOutput, type OutputLine } from '@/lib/system/output-log';
 import { SYNC_STATUS_EVENT, type SyncStatus } from '@/lib/device-sync';
 import { getSyncStatus } from '../DeviceSync';
+import { isEmbedded } from '@/lib/system/embed';
 
 /* Small external-store hooks for real runtime state shown in the shell:
    wall clock, network, appearance. Each has a stable server snapshot so the
@@ -19,6 +20,11 @@ import { getSyncStatus } from '../DeviceSync';
 
 const subscribeNever = () => () => {};
 const NOT_FOUND_PATH = '/_not-found';
+
+/** True inside the side editor's frame (after hydration). */
+export function useEmbedded(): boolean {
+  return useSyncExternalStore(subscribeNever, isEmbedded, () => false);
+}
 
 /** False during the server render and hydration, true afterwards. */
 export function useHydrated(): boolean {

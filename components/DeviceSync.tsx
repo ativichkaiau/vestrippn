@@ -6,6 +6,7 @@ import { applyLivery, getColorTheme, getLivery, getMode } from '@/lib/theme';
 import { mergeFocusSessions, setFocusLogOwner } from '@/lib/study-log';
 import { NAV_CHANGE_EVENT, NAV_STORAGE_KEY } from '@/lib/system/nav-store';
 import { WATERMARK_EVENT } from './useWatermark';
+import { isEmbedded } from '@/lib/system/embed';
 import { reconcilePreferences, SYNC_REQUEST_EVENT, SYNC_STATUS_EVENT, validatePreferences, type SyncedPreferences, type SyncSnapshot, type SyncStatus } from '@/lib/device-sync';
 
 type Cache = { revision: number; values: SyncedPreferences; pending: SyncedPreferences; base: SyncedPreferences; lastSync?: string };
@@ -61,7 +62,8 @@ export default function DeviceSync() {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
   useEffect(() => {
-    if (status === 'loading') return;
+    // The side editor's frame shares this browser's storage; the window that owns it syncs.
+    if (status === 'loading' || isEmbedded()) return;
     if (!userId) {
       setFocusLogOwner(null);
       publish({ state: 'signed-out', message: 'Sign in to sync this device.' });

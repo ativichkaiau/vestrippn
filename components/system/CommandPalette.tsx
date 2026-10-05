@@ -6,6 +6,10 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type Keyboard
 import { ARCHIVE } from '@/lib/system/archive';
 import { CATEGORY_ORDER as ORDER, STATIC_ENTRIES, isExternal, navEntries, rankEntries, type Category, type Entry } from '@/lib/system/search';
 import { openNavEditor } from '@/lib/system/nav-store';
+import { describeTab, tabPath } from '@/lib/system/editor-tabs';
+import { resolvePath } from '@/lib/system/navigation';
+import { clearRecent, readRecent } from '@/lib/system/recent';
+import { closeSplit, getWorkbenchSnapshot, openToSide, parseWorkbench } from '@/lib/system/workbench';
 import { NODES, OBJECTS, PROJECTS, SYSTEMS } from '@/lib/system/registry';
 import { enableReminders } from '@/lib/reminders';
 import { COLOR_THEMES, COLOR_THEME_LABEL, LIVERY_LABEL, MODE_LABEL, cycleLivery, getMode, isLowPower, setColorTheme, toggleMode } from '@/lib/theme';
@@ -36,12 +40,14 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
+  const [recent, setRecent] = useState<string[]>([]);
   const listId = useId();
 
   const show = useCallback((event?: Event) => {
     const initial = (event as CustomEvent<{ query?: string }> | undefined)?.detail?.query;
     setQuery(typeof initial === 'string' ? initial : '');
     setActive(0);
+    setRecent(readRecent());
     setOpen(true);
   }, []);
 
@@ -62,6 +68,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           if (!value) {
             setQuery('');
             setActive(0);
+            setRecent(readRecent());
           }
           return !value;
         });
@@ -99,6 +106,53 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           toast({ id: 'theme', title: `color theme: ${COLOR_THEME_LABEL[id]}`, variant: 'success' });
         },
       })),
+      {
+        id: 'act:settings',
+        category: 'ACTION',
+        label: 'Preferences: Open Settings (JSON)',
+        detail: `every synced setting as settings.json (${typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'}+,)`,
+        keywords: 'settings json preferences config configure',
+        href: '/settings',
+      },
+      {
+        id: 'act:split',
+        category: 'ACTION',
+        label: 'View: Split Editor',
+        detail: 'open this page to the side, or close the split (Ctrl+\\) · desktop',
+        keywords: 'split editor side by side group right two pages',
+        run: () => {
+          if (parseWorkbench(getWorkbenchSnapshot()).split) closeSplit();
+          else openToSide(`${window.location.pathname}${window.location.search}`);
+        },
+      },
+      {
+        id: 'act:back',
+        category: 'ACTION',
+        label: 'Go Back',
+        detail: 'the previous page (Alt+←)',
+        keywords: 'history previous navigate back',
+        run: () => window.history.back(),
+      },
+      {
+        id: 'act:forward',
+        category: 'ACTION',
+        label: 'Go Forward',
+        detail: 'the next page (Alt+→)',
+        keywords: 'history next navigate forward',
+        run: () => window.history.forward(),
+      },
+      {
+        id: 'act:recent-clear',
+        category: 'ACTION',
+        label: 'Clear Recently Opened',
+        detail: 'forget the recent pages on this device',
+        keywords: 'history recent clear forget',
+        run: () => {
+          clearRecent();
+          setRecent([]);
+          toast({ id: 'recent', title: 'recently opened: cleared', variant: 'success' });
+        },
+      },
       {
         id: 'act:nav',
         category: 'ACTION',
@@ -181,6 +235,21 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
     return list;
   }, [router, status, colorTheme]);
 
+  // Open Recent: the pages visited on this device, newest first, minus this one.
+  const recentEntries = useMemo<Entry[]>(() => {
+    const here = typeof window === 'undefined' ? '' : tabPath(window.location.pathname);
+    return recent
+      .filter((href) => tabPath(href) !== here)
+      .map((href) => ({
+        id: `recent:${href}`,
+        category: 'RECENT' as const,
+        label: describeTab(tabPath(href), nav).label,
+        detail: resolvePath(tabPath(href)).display,
+        keywords: 'recent history opened',
+        href,
+      }));
+  }, [recent, nav]);
+
   const verbose = /^about\s+--verbose$/.test(query.trim());
 
   // VS Code: a leading '>' searches commands only (what Ctrl+Shift+P opens).
@@ -190,9 +259,9 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
     if (commandMode) return rankEntries(actions, query.slice(1));
     const q = query.trim();
     const all = [...navEntries(nav), ...STATIC_ENTRIES, ...actions];
-    if (!q) return all.filter((entry) => entry.category === 'PAGE' || entry.category === 'ACTION');
+    if (!q) return [...recentEntries, ...all.filter((entry) => entry.category === 'PAGE' || entry.category === 'ACTION')];
     return rankEntries(all, q);
-  }, [query, actions, verbose, nav, commandMode]);
+  }, [query, actions, verbose, nav, commandMode, recentEntries]);
 
   // Group in a stable category order; `flat` is the keyboard order.
   const groups = useMemo(() => {

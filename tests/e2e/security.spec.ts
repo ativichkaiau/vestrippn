@@ -3,9 +3,9 @@ import { expect, test } from '@playwright/test';
 test('security headers on pages', async ({ request }) => {
   const response = await request.get('/legal');
   const headers = response.headers();
-  expect(headers['x-frame-options']).toBe('DENY');
+  expect(headers['x-frame-options']).toBe('SAMEORIGIN');
   expect(headers['x-content-type-options']).toBe('nosniff');
-  expect(headers['content-security-policy']).toContain("frame-ancestors 'none'");
+  expect(headers['content-security-policy']).toContain("frame-ancestors 'self'");
   expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
   expect(headers['x-powered-by']).toBeUndefined();
 });

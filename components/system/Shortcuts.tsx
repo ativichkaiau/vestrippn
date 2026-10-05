@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef } from 'react';
 import { readTabs } from '@/lib/system/editor-tabs-store';
-import { togglePanel, toggleSidebar, updateWorkbench } from '@/lib/system/workbench';
+import { isEmbedded } from '@/lib/system/embed';
+import { closeSplit, openToSide, parseWorkbench, getWorkbenchSnapshot, togglePanel, toggleSidebar, updateWorkbench } from '@/lib/system/workbench';
 import { closeEditorTab } from './EditorTabs';
 import { useModifierLabel } from './hooks';
 import { FOCUS_SEARCH_EVENT, SHORTCUTS_EVENT, openPalette, openShortcuts } from './shell-events';
@@ -42,7 +43,8 @@ export default function Shortcuts({ activePath }: { activePath: string }) {
   useEffect(() => {
     const showSheet = () => dialogRef.current?.showModal();
     const onKey = (event: KeyboardEvent) => {
-      if (event.defaultPrevented) return;
+      // The side editor's frame leaves workbench keys to the window that owns it.
+      if (event.defaultPrevented || isEmbedded()) return;
       const mod = event.metaKey || event.ctrlKey;
       const key = event.key.toLowerCase();
 
@@ -67,13 +69,25 @@ export default function Shortcuts({ activePath }: { activePath: string }) {
         event.preventDefault();
         updateWorkbench({ sidebar: true, view: 'search' });
         window.dispatchEvent(new Event(FOCUS_SEARCH_EVENT));
+      } else if (mod && !event.shiftKey && event.code === 'Backslash') {
+        event.preventDefault();
+        if (!isDesktop()) return;
+        if (parseWorkbench(getWorkbenchSnapshot()).split) closeSplit();
+        else openToSide(`${window.location.pathname}${window.location.search}`);
+      } else if (mod && !event.shiftKey && event.code === 'Comma') {
+        event.preventDefault();
+        router.push('/settings');
       } else if (mod && event.code === 'Slash') {
         event.preventDefault();
         openShortcuts();
       } else if (event.altKey && !mod && !isTyping(event.target)) {
         const tabs = readTabs();
         const index = tabs.findIndex((tab) => tab.path === pathRef.current);
-        if (event.code === 'KeyW') {
+        if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
+          event.preventDefault();
+          if (event.code === 'ArrowLeft') window.history.back();
+          else window.history.forward();
+        } else if (event.code === 'KeyW') {
           event.preventDefault();
           closeEditorTab(pathRef.current, pathRef.current, (href) => router.push(href));
         } else if ((event.code === 'BracketRight' || event.code === 'BracketLeft') && tabs.length) {
@@ -106,11 +120,15 @@ export default function Shortcuts({ activePath }: { activePath: string }) {
     [`${modifier}+Shift+E`, 'Explorer'],
     [`${modifier}+Shift+F`, 'Search view'],
     [`${modifier}+\``, 'Toggle the panel (terminal and output)'],
+    [`${modifier}+\\`, 'Split the editor (this page to the side) / close the split'],
+    ['Alt+←  /  Alt+→', 'Go back / forward'],
+    [`${modifier}+K, then the RECENT group`, 'Open a recently opened page'],
     ['Alt+W', 'Close the current tab'],
     ['Alt+[  /  Alt+]', 'Previous / next tab'],
     ['Alt+1 … Alt+8', 'Go to tab 1–8 (Alt+9: last tab)'],
     ['Middle-click a tab', 'Close it'],
-    ['Right-click a tab', 'Close others, close to the right, pin, copy link'],
+    ['Right-click a tab', 'Open to the side, close others, close to the right, pin, copy link'],
+    [`${modifier}+,`, 'settings.json (every synced setting)'],
     [`${modifier}+/`, 'This sheet'],
   ];
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
 import { openNavEditor } from '@/lib/system/nav-store';
 import { toggleView, togglePanel, toggleSidebar, type View } from '@/lib/system/workbench';
@@ -13,6 +14,8 @@ import { openPalette, openShortcuts } from './shell-events';
 const TOP: { view: View; icon: IconName; label: string; keys?: string }[] = [
   { view: 'explorer', icon: 'files', label: 'Explorer', keys: 'Shift+E' },
   { view: 'search', icon: 'search', label: 'Search', keys: 'Shift+F' },
+  { view: 'outline', icon: 'outline', label: 'Outline' },
+  { view: 'study', icon: 'study', label: 'Study' },
   { view: 'appearance', icon: 'paint', label: 'Appearance' },
 ];
 
@@ -23,6 +26,7 @@ export default function ActivityBar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
+  const router = useRouter();
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -59,6 +63,7 @@ export default function ActivityBar() {
   const MENU: { label: string; keys?: string; action: () => void }[] = [
     { label: 'Command Palette…', keys: `${modifier}+Shift+P`, action: () => openPalette('>') },
     { label: 'Quick Open…', keys: `${modifier}+P`, action: () => openPalette('') },
+    { label: 'Settings (JSON)', keys: `${modifier}+,`, action: () => router.push('/settings') },
     { label: 'Color Theme', action: () => openPalette('>Color Theme') },
     { label: 'Customize Tabs…', action: openNavEditor },
     { label: 'Toggle Side Bar', keys: `${modifier}+B`, action: toggleSidebar },

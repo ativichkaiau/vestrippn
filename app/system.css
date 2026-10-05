@@ -401,6 +401,19 @@ button.sys-tool:hover {
   width: min(460px, 38vw);
   margin: 0 auto;
 }
+/* Back / forward sit just left of the command center, as in VS Code. */
+.sys-history-nav {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+.sys-history-nav + .sys-search-trigger {
+  margin-left: var(--space-2);
+}
+.sys-history-nav .sys-icon-button {
+  width: 28px;
+  height: 28px;
+}
 
 /* Activity bar */
 .sys-activitybar {
@@ -620,6 +633,41 @@ button.sys-tool:hover {
 }
 .sys-tree-item[aria-current='page'] .sys-tree-index {
   color: var(--text-secondary);
+}
+.sys-view-empty {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+}
+/* Outline view */
+.sys-outline {
+  margin: 0;
+  padding: 0 0 var(--space-2);
+  list-style: none;
+}
+.sys-outline a {
+  display: block;
+  overflow: hidden;
+  min-height: 22px;
+  padding: 3px var(--space-3) 3px var(--space-4);
+  color: var(--text-secondary);
+  font: 400 var(--text-sm) / 1.3 var(--font-ui);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sys-outline a:hover {
+  background: var(--bg-02);
+  color: var(--text-strong);
+}
+.sys-outline a[aria-current='location'] {
+  background: var(--accent-soft);
+  color: var(--text-strong);
+  box-shadow: inset 1px 0 0 var(--accent);
+}
+.sys-outline a:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
 }
 .sys-explorer .sys-nav-customize {
   margin: var(--space-2) var(--space-2) 0;
@@ -2848,4 +2896,190 @@ html[data-livery='system'] .sys-topbar::after {
   gap: 6px;
   overflow: hidden;
   white-space: nowrap;
+}
+
+/* ── settings.json ──────────────────────────────────────────────────────── */
+.sys-settings {
+  display: grid;
+  gap: var(--space-3);
+}
+.sys-settings-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+}
+.sys-settings-file {
+  color: var(--text-strong);
+  font: 500 var(--text-sm) / 1 var(--font-code);
+}
+.sys-settings-dirty {
+  color: var(--accent);
+}
+.sys-settings-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+.sys-settings-editor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: min(62vh, 640px);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-01);
+  overflow: hidden;
+}
+.sys-settings-gutter {
+  overflow: hidden;
+  padding: 10px 10px 10px 14px;
+  border-right: 1px solid var(--line-subtle);
+  color: var(--text-muted);
+  font: 400 13px / 20px var(--font-code);
+  text-align: right;
+  user-select: none;
+}
+.sys-settings-gutter span {
+  display: block;
+}
+.sys-settings-gutter span[data-error] {
+  color: var(--status-error);
+  font-weight: 700;
+}
+.sys-settings-text {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-strong);
+  font: 400 13px / 20px var(--font-code);
+  tab-size: 2;
+  white-space: pre;
+  resize: none;
+  outline: none;
+}
+.sys-settings-editor:focus-within {
+  border-color: var(--accent);
+}
+.sys-settings-problems ul {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.sys-settings-problems button {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font: 400 var(--text-sm) / 1.4 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+.sys-settings-problems button:hover:not(:disabled) {
+  color: var(--text-strong);
+  text-decoration: underline;
+}
+
+/* ── Split editor ───────────────────────────────────────────────────────── */
+.sys-groups {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+.sys-groups[data-split] > .sys-main {
+  flex: 0 0 calc(var(--split, 0.5) * 100% - 2px);
+}
+.sys-split-sep {
+  flex: none;
+  width: 4px;
+  background: var(--line-subtle);
+  cursor: col-resize;
+  touch-action: none;
+}
+.sys-split-sep:hover,
+.sys-split-sep:focus-visible {
+  background: var(--accent);
+  outline: none;
+}
+.sys-split-pane {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.sys-split-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  height: 35px;
+  padding: 0 6px 0 12px;
+  background: var(--shell-tab-bg);
+  box-shadow: inset 0 -1px 0 var(--line-subtle);
+}
+.sys-split-title {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-strong);
+  font: 400 var(--text-sm) / 1 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sys-split-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: var(--bg-root);
+}
+.sys-groups[data-split] > .sys-molecule {
+  right: calc((1 - var(--split, 0.5)) * 100%);
+}
+.sys-groups[data-dragging] .sys-split-frame {
+  pointer-events: none;
+}
+@media (max-width: 1023px) {
+  .sys-split-sep,
+  .sys-split-pane {
+    display: none;
+  }
+  .sys-groups[data-split] > .sys-main {
+    flex: 1 1 auto;
+  }
+  .sys-groups[data-split] > .sys-molecule {
+    right: 0;
+  }
+}
+
+/* Inside the side editor's frame: the page only, no workbench chrome. */
+html.sys-embed .sys-shell {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'editor';
+}
+html.sys-embed .sys-topbar,
+html.sys-embed .sys-activitybar,
+html.sys-embed .sys-sidebar,
+html.sys-embed .sys-statusbar,
+html.sys-embed .sys-tabs,
+html.sys-embed .sys-breadcrumbs,
+html.sys-embed .sys-panel,
+html.sys-embed .sys-molecule,
+html.sys-embed .sys-skip,
+html.sys-embed .sys-split-sep,
+html.sys-embed .sys-split-pane {
+  display: none !important;
 }

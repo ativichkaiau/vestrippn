@@ -5,8 +5,9 @@ import path from "node:path";
 // per-request nonce (the inline pre-paint theme script rules out a strict
 // script-src on static pages): no framing, no plugins, no <base> hijacking.
 const SECURITY_HEADERS = [
-  { key: 'Content-Security-Policy', value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
-  { key: 'X-Frame-Options', value: 'DENY' },
+  // Only this site may frame its pages (the split editor's side group).
+  { key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'" },
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },

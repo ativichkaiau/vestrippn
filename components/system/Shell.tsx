@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { SYNC_STATUS_EVENT, type SyncStatus } from '@/lib/device-sync';
 import { openTab } from '@/lib/system/editor-tabs';
 import { readTabs, saveTabs } from '@/lib/system/editor-tabs-store';
+import { recordRecent } from '@/lib/system/recent';
+import { isEmbedded, SPLIT_PATH_MESSAGE } from '@/lib/system/embed';
 import { resolvePath } from '@/lib/system/navigation';
 import { logOutput } from '@/lib/system/output-log';
 import { PROJECTS, SYSTEMS } from '@/lib/system/registry';
@@ -19,8 +21,9 @@ import MoleculeBackdrop from './MoleculeBackdrop';
 import NavEditor from './NavEditor';
 import Panel from './Panel';
 import Shortcuts from './Shortcuts';
+import SplitEditor, { SplitDivider } from './SplitEditor';
 import SideBar, { ExplorerTree, SessionBlock } from './SideViews';
-import { useClock, useColorTheme, useLivery, useMode, useModifierLabel, useOnline, useRoutePathname, useSyncStatus, useWorkbench } from './hooks';
+import { useClock, useColorTheme, useEmbedded, useLivery, useMode, useModifierLabel, useOnline, useRoutePathname, useSyncStatus, useWorkbench } from './hooks';
 import { openPalette } from './shell-events';
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -44,6 +47,9 @@ export default function Shell({ children, build }: { children: ReactNode; build:
   const mainRef = useRef<HTMLElement>(null);
   const drawerRef = useRef<HTMLDialogElement>(null);
   const previousPath = useRef<string | undefined>(undefined);
+  const groupsRef = useRef<HTMLDivElement>(null);
+  const embedded = useEmbedded();
+  const split = !embedded && workbench.split ? workbench.split : null;
 
   useEffect(() => {
     console.info('%cVESTRIPPN // root mounted.', 'font-family: ui-monospace, monospace');
@@ -84,8 +90,14 @@ export default function Shell({ children, build }: { children: ReactNode; build:
     if (!window.location.hash) mainRef.current?.scrollTo({ top: 0 });
     drawerRef.current?.close();
     if (pathname === NOT_FOUND || pathname.startsWith('/auth')) return;
+    // Inside the side editor: tell the window that owns the frame where we are.
+    if (isEmbedded()) {
+      window.parent.postMessage({ type: SPLIT_PATH_MESSAGE, href: `${pathname}${window.location.search}` }, window.location.origin);
+      return;
+    }
     // New tabs open to the right of the page you came from, as in VS Code.
     saveTabs(openTab(readTabs(), `${pathname}${window.location.search}`, previousPath.current));
+    recordRecent(`${pathname}${window.location.search}`);
     previousPath.current = pathname;
     logOutput('nav', resolvePath(pathname).display);
   }, [pathname]);
@@ -120,12 +132,25 @@ export default function Shell({ children, build }: { children: ReactNode; build:
       {workbench.sidebar && <SideBar pathname={pathname} />}
 
       <div className="sys-editor">
-        <MoleculeBackdrop />
         <EditorTabs activePath={pathname} />
         <Breadcrumbs segments={path.segments} />
-        <main id="main" ref={mainRef} className="sys-main sys-scroll" tabIndex={-1}>
-          {children}
-        </main>
+        <div
+          ref={groupsRef}
+          className="sys-groups"
+          data-split={split ? 'on' : undefined}
+          style={split ? ({ '--split': workbench.splitSize } as CSSProperties) : undefined}
+        >
+          <MoleculeBackdrop />
+          <main id="main" ref={mainRef} className="sys-main sys-scroll" tabIndex={-1}>
+            {children}
+          </main>
+          {split && (
+            <>
+              <SplitDivider size={workbench.splitSize} groupsRef={groupsRef} />
+              <SplitEditor href={split} />
+            </>
+          )}
+        </div>
         {workbench.panel && <Panel pathname={pathname} />}
       </div>
 
@@ -197,6 +222,14 @@ function TopTools() {
   const modifier = useModifierLabel();
   return (
     <div className="sys-topbar-tools">
+      <div className="sys-history-nav sys-hide-mobile">
+        <button type="button" className="sys-icon-button" onClick={() => window.history.back()} aria-label="Go back" title="Go Back (Alt+←)">
+          <Icon name="back" />
+        </button>
+        <button type="button" className="sys-icon-button" onClick={() => window.history.forward()} aria-label="Go forward" title="Go Forward (Alt+→)">
+          <Icon name="forward" />
+        </button>
+      </div>
       <button type="button" className="sys-search-trigger" onClick={() => openPalette('')} aria-label="Search VESTRIPPN" aria-keyshortcuts="Meta+K Control+K">
         <SearchGlyph />
         <span>search VESTRIPPN…</span>
