@@ -23,3 +23,19 @@ test('owner data is not served anonymously', async ({ request }) => {
     expect((await request.get(removed)).status(), removed).toBe(404);
   }
 });
+
+test('retired entries redirect to their replacements', async ({ request }) => {
+  for (const [from, to] of [
+    ['/systems/williamshub', '/systems/studyex_medeetomihub'],
+    ['/systems/studyex', '/systems/studyex_medeetomihub'],
+    ['/projects/williamshub', '/projects/studyex_medeetomihub'],
+    ['/logs/001', '/'],
+  ]) {
+    const response = await request.get(from, { maxRedirects: 0 });
+    expect(response.status(), from).toBe(308);
+    expect(response.headers().location, from).toBe(to);
+  }
+  for (const gone of ['/systems/terra', '/projects/cardiac_sim_physics', '/systems/code_till_i_am_bored']) {
+    expect((await request.get(gone, { headers: { cookie: 'authjs.session-token=e2e' } })).status(), gone).toBe(404);
+  }
+});

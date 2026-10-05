@@ -22,7 +22,7 @@ assert.deepEqual(readNavLayout('{not json'), DEFAULT_NAV, 'Corrupt storage falls
 const edited = resolveNav(DEFAULT_NAV);
 edited.environment.reverse();
 edited.environment.find((item) => item.id === 'env:medicine').label = 'med school';
-edited.environment.find((item) => item.id === 'env:logs').hidden = true;
+edited.environment.find((item) => item.id === 'env:garage').hidden = true;
 edited.runtime.unshift({ id: 'custom:abc123', group: 'runtime', label: 'WilliamsHub', href: 'https://williamshub.vercel.app', match: [], custom: true, external: true, hidden: false });
 edited.environment.push({ id: 'custom:cases1', group: 'environment', label: 'cases', href: '/learn/cases', match: ['/learn/cases'], custom: true, external: false, hidden: false });
 const stored = serializeNavLayout(toEntries(edited));
@@ -31,9 +31,9 @@ assert.equal(synced.nav, stored, 'Canonical layouts pass through device sync unc
 const again = resolveNav(parseNavLayout(synced.nav));
 assert.equal(again.environment[0].id, 'env:contact');
 assert.equal(again.environment.find((item) => item.id === 'env:medicine').label, 'med school');
-assert.equal(again.environment.find((item) => item.id === 'env:logs').hidden, true);
-assert.equal(again.environment.find((item) => item.id === 'env:logs').index, undefined, 'Hidden tabs take no number');
-assert.deepEqual(again.environment.filter((item) => !item.hidden).map((item) => item.index), ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09']);
+assert.equal(again.environment.find((item) => item.id === 'env:garage').hidden, true);
+assert.equal(again.environment.find((item) => item.id === 'env:garage').index, undefined, 'Hidden tabs take no number');
+assert.deepEqual(again.environment.filter((item) => !item.hidden).map((item) => item.index), ['00', '01', '02', '03', '04', '05', '06', '07', '08']);
 assert.equal(again.runtime[0].external, true);
 assert.equal(isCurrent(again.environment.at(-1), '/learn/cases'), true, 'Custom in-app tabs light up on their route');
 assert.equal(reconcilePreferences({ nav: DEFAULT_NAV_STRING }, { nav: stored }, { nav: DEFAULT_NAV_STRING }).conflicts, 0);
@@ -45,7 +45,8 @@ assert.equal(resolveNav(parseNavLayout([{ id: 'rt:tools', group: 'environment' }
 assert.throws(() => parseNavLayout([{ id: 'env:root', group: 'environment', href: 'https://evil.example' }]));
 
 // Missing built-ins return; retired ones are dropped quietly.
-const partial = resolveNav(parseNavLayout([{ id: 'env:garage', group: 'environment' }, { id: 'env:retired-page', group: 'environment' }]));
+// env:logs is a retired page: layouts saved before it was removed still load.
+const partial = resolveNav(parseNavLayout([{ id: 'env:garage', group: 'environment' }, { id: 'env:logs', group: 'environment', hidden: true }, { id: 'env:retired-page', group: 'environment' }]));
 assert.equal(partial.environment[0].id, 'env:garage');
 assert.equal(partial.environment.length, ENVIRONMENT_NAV.length);
 assert.equal(partial.runtime.length, RUNTIME_NAV.length);

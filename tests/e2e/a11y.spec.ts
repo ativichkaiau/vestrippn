@@ -5,7 +5,7 @@ import { expect, test } from './fixtures';
    default theme and in VS Code Light Modern. Serious and critical issues
    fail the run. */
 
-const PAGES = ['/identity', '/systems', '/projects', '/medicine', '/logs', '/garage', '/archive', '/contact', '/tools', '/legal', '/learn/cases'];
+const PAGES = ['/identity', '/systems', '/projects', '/medicine', '/garage', '/archive', '/contact', '/tools', '/legal', '/learn/cases'];
 const THEMES = [
   { name: 'vestrippn dark', storage: {} },
   { name: 'vscode light modern', storage: { vest_theme: 'vscode-modern', vest_mode: 'day' } },

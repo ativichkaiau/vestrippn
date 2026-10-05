@@ -2,7 +2,7 @@
    VESTRIPPN registry model.
 
    Everything mounted under the root namespace is described by these types:
-   systems and projects (Node), the runtime modules inside this app, logs,
+   systems and projects (Node), the runtime modules inside this app,
    garage objects and archive records. Pages, navigation, search and the
    status bar all read the same data, so a count shown anywhere is a count of
    real entries.
@@ -25,9 +25,9 @@ export type Domain = 'software' | 'medicine' | 'research' | 'media';
 export type Node = {
   /** URL segment, unique across the registry. */
   slug: string;
-  /** Canonical identifier as written in the system, e.g. `studyex_medeetomihub`. */
+  /** Canonical identifier as written in the system, e.g. `Studyex_Medeetomihub`. */
   name: string;
-  /** Interface path, e.g. `~/systems/studyex`. */
+  /** Interface path, e.g. `~/medicine/studyex_medeetomihub`. */
   path: string;
   type: string;
   /** One line, lowercase, the way the registry describes it. */
@@ -69,23 +69,6 @@ export type RuntimeModule = {
   summary: string;
   branch: 'medicine' | 'research' | 'personal' | 'tools';
   keywords?: string;
-};
-
-export type LogEntry = {
-  id: string;
-  slug: string;
-  series: string;
-  title: string;
-  /** Node slug the session targeted. */
-  target: string;
-  targetFile: string;
-  runtime: string;
-  kind: string;
-  status: string;
-  termination?: string;
-  date?: string;
-  media?: { label: string; url: string };
-  notes?: string[];
 };
 
 export type GarageObject = {

@@ -2,7 +2,7 @@ import { requireUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import { ARCHIVE } from "@/lib/system/archive";
 import { IDENTITY } from "@/lib/system/identity";
-import { FEATURED, LOGS, OBJECTS, PROJECTS, SYSTEMS, systemIndex } from "@/lib/system/registry";
+import { FEATURED, OBJECTS, PROJECTS, SYSTEMS, systemIndex } from "@/lib/system/registry";
 import type { State } from "@/lib/system/types";
 import {
   CommandLink,
@@ -34,8 +34,7 @@ const BRANCHES: { name: string; state: State; path: string; href: string }[] = [
   { name: "medicine", state: "active", path: "~/medicine", href: "/medicine" },
   { name: "research", state: "active", path: "~/research", href: "/research" },
   { name: "software", state: "active", path: "~/projects", href: "/projects" },
-  { name: "studyex", state: "active", path: "~/systems/studyex", href: "/systems/studyex" },
-  { name: "logs", state: "active", path: "~/logs", href: "/logs" },
+  { name: "studyex_medeetomihub", state: "active", path: "~/medicine/studyex_medeetomihub", href: "/systems/studyex_medeetomihub" },
   { name: "archive", state: "mounted", path: "~/archive", href: "/archive" },
   { name: "garage", state: "available", path: "~/garage", href: "/garage" },
 ];
@@ -58,7 +57,6 @@ export default async function Root() {
     : null;
 
   const latestBuild = ARCHIVE.find((record) => record.category === "software");
-  const latestLog = LOGS[LOGS.length - 1];
   const vehicle = OBJECTS[0];
 
   return (
@@ -160,15 +158,6 @@ export default async function Root() {
 
       <Section id="recent" title="recent">
         <ul className="sys-list">
-          {latestLog && (
-            <li>
-              <span className="sys-list-name">
-                {latestLog.targetFile}
-                <small>development log · {latestLog.runtime}</small>
-              </span>
-              <CommandLink href={`/logs/${latestLog.slug}`}>read log</CommandLink>
-            </li>
-          )}
           {vehicle && (
             <li>
               <span className="sys-list-name">
@@ -199,7 +188,6 @@ export default async function Root() {
             { key: "namespace", value: "VESTRIPPN", mono: true },
             { key: "systems", value: String(SYSTEMS.length).padStart(2, "0"), mono: true },
             { key: "projects", value: String(PROJECTS.length).padStart(2, "0"), mono: true },
-            { key: "logs", value: String(LOGS.length).padStart(2, "0"), mono: true },
             { key: "objects", value: String(OBJECTS.length).padStart(2, "0"), mono: true },
             { key: "records", value: String(ARCHIVE.length).padStart(2, "0"), mono: true },
           ]}

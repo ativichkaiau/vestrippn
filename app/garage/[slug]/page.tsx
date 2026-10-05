@@ -24,7 +24,7 @@ export default async function GarageObjectPage({ params }: Params) {
 
   return (
     <Page wide>
-      <PageHeader index="07" label={`garage / ${object.id}`} title={object.name} lede={object.summary} />
+      <PageHeader index="06" label={`garage / ${object.id}`} title={object.name} lede={object.summary} />
       <ObjectInspector object={object} />
       <Section id="paints" title="paint" intro="Select a livery to repaint the object — and the environment around it.">
         <PaintLibrary />

@@ -9,7 +9,7 @@ test('customize tabs: rename, hide, reorder, add, reject bad links, reset', asyn
   await expect(dialog).toBeVisible();
 
   await dialog.getByLabel('Name for medicine').fill('med school');
-  await dialog.locator('li', { has: page.getByLabel('Name for logs') }).getByRole('checkbox').uncheck();
+  await dialog.locator('li', { has: page.getByLabel('Name for archive') }).getByRole('checkbox').uncheck();
   await expect(dialog.locator('li', { has: page.getByLabel('Name for root') }).getByRole('checkbox')).toBeDisabled();
   await dialog.getByRole('button', { name: 'Move garage up' }).click();
 
@@ -32,7 +32,7 @@ test('customize tabs: rename, hide, reorder, add, reject bad links, reset', asyn
 
   const explorer = page.getByRole('navigation', { name: 'VESTRIPPN' });
   await expect(explorer.getByRole('link', { name: 'med school' })).toBeVisible();
-  await expect(explorer.getByRole('link', { name: /^logs/ })).toHaveCount(0);
+  await expect(explorer.getByRole('link', { name: /^archive/ })).toHaveCount(0);
   await expect(explorer.getByRole('link', { name: /^cases/ })).toHaveCount(2);
 
   await page.reload();

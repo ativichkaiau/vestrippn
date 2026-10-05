@@ -6,7 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type Keyboard
 import { ARCHIVE } from '@/lib/system/archive';
 import { CATEGORY_ORDER as ORDER, STATIC_ENTRIES, isExternal, navEntries, rankEntries, type Category, type Entry } from '@/lib/system/search';
 import { openNavEditor } from '@/lib/system/nav-store';
-import { LOGS, NODES, OBJECTS, PROJECTS, SYSTEMS } from '@/lib/system/registry';
+import { NODES, OBJECTS, PROJECTS, SYSTEMS } from '@/lib/system/registry';
 import { enableReminders } from '@/lib/reminders';
 import { COLOR_THEMES, COLOR_THEME_LABEL, LIVERY_LABEL, MODE_LABEL, cycleLivery, getMode, isLowPower, setColorTheme, toggleMode } from '@/lib/theme';
 import { VSCODE_THEMES } from '@/lib/vscode-themes';
@@ -306,7 +306,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
         <span>
           <kbd>esc</kbd>close
         </span>
-        <span style={{ marginLeft: 'auto' }}>{NODES.length + LOGS.length + OBJECTS.length + ARCHIVE.length} indexed</span>
+        <span style={{ marginLeft: 'auto' }}>{NODES.length + OBJECTS.length + ARCHIVE.length} indexed</span>
       </div>
     </dialog>
   );
@@ -341,7 +341,6 @@ function AboutVerbose({ build }: { build: BuildInfo }) {
             {[
               [SYSTEMS.length, 'system'],
               [PROJECTS.length, 'project'],
-              [LOGS.length, 'log'],
               [OBJECTS.length, 'object'],
               [ARCHIVE.length, 'record'],
             ]

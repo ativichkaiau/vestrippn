@@ -1,17 +1,17 @@
 import { ARCHIVE } from './archive';
 import type { ResolvedNav } from './nav-layout';
-import { LOGS, OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
+import { OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
 
 /* ════════════════════════════════════════════════════════════════════════
    One search index for ⌘K and the sidebar's Search view.
 
    Every entry is a real destination: pages (named the way the operator set
-   the tabs), runtime modules, systems, projects, logs, garage objects and
+   the tabs), runtime modules, systems, projects, garage objects and
    archive records. Actions live in the palette, which adds its own.
    ════════════════════════════════════════════════════════════════════════ */
 
-export type Category = 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'LOG' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
-export const CATEGORY_ORDER: Category[] = ['PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'LOG', 'OBJECT', 'ARCHIVE', 'ACTION'];
+export type Category = 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
+export const CATEGORY_ORDER: Category[] = ['PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'OBJECT', 'ARCHIVE', 'ACTION'];
 
 export type Entry = {
   id: string;
@@ -67,14 +67,6 @@ export const STATIC_ENTRIES: Entry[] = [
     detail: `${node.summary}${node.language ? ` · ${node.language}` : ''}`,
     keywords: `${node.type} ${node.slug} ${node.domains.join(' ')}`,
     href: `/projects/${node.slug}`,
-  })),
-  ...LOGS.map((log) => ({
-    id: `log:${log.slug}`,
-    category: 'LOG' as const,
-    label: `${log.id} · ${log.targetFile}`,
-    detail: log.series,
-    keywords: `${log.title} ${log.runtime} ${log.kind}`,
-    href: `/logs/${log.slug}`,
   })),
   ...OBJECTS.map((object) => ({
     id: `object:${object.slug}`,

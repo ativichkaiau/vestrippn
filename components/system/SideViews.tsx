@@ -155,7 +155,6 @@ const CATEGORY_ICON: Record<Category, IconName> = {
   RUNTIME: 'runtime',
   SYSTEM: 'system',
   PROJECT: 'project',
-  LOG: 'log',
   OBJECT: 'object',
   ARCHIVE: 'archive',
   ACTION: 'gear',

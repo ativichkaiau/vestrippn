@@ -12,7 +12,7 @@ VESTRIPPN is the root environment: a personal website, study runtime, research e
 | Workbench state, editor tabs, output log, terminal, shared search index | `lib/system/workbench.ts`, `editor-tabs.ts`, `output-log.ts`, `terminal.ts`, `search.ts` |
 | Command palette (⌘K / Ctrl+K) | `components/system/CommandPalette.tsx` |
 | Primitives: `Page`, `PageHeader`, `Section`, `MetadataGrid`, `RegistryTable`, `StatusIndicator`, `CommandLink`, `Action`, `Pipeline` | `components/system/primitives.tsx` |
-| Registry: systems, projects, runtime modules, logs, garage objects | `lib/system/registry.ts` |
+| Registry: systems, projects, runtime modules, garage objects | `lib/system/registry.ts` |
 | Archive records and university summaries | `lib/system/archive.ts` |
 | Identity | `lib/system/identity.ts` |
 | Navigation and the path system (`/academics` → `~/medicine/academics`) | `lib/system/navigation.ts` |
@@ -22,7 +22,7 @@ VESTRIPPN is the root environment: a personal website, study runtime, research e
 
 Every count, index and inspector page is read from the registry. A field is filled in only when the fact is known. Unknown URLs, dates and stacks stay undefined, and the UI leaves them out. To add a system or project, add a `Node` to `NODES` with `system: true` and/or `project: true`. It then appears in the systems or projects registry, the palette, the status bar counts and its own inspector page, all generated statically.
 
-Open entries waiting on facts: launch URLs for `studyex_medeetomihub` and `Terra`, the source for `cardiac_sim_physics`, and the recording for `LOG_001`.
+Retired entries (Terra, cardiac_sim_physics, code_till_i_am_bored, the old studyex entry and the logs) redirect: `/systems/williamshub` and `/systems/studyex` go to `studyex_medeetomihub` (formerly WilliamsHub), `/logs` goes to root (`next.config.ts`).
 
 ## Appearance, colour themes and liveries
 
@@ -52,7 +52,7 @@ The shell follows VS Code's layout. The **activity bar** switches the side view:
 
 Every page you open gets an **editor tab**. Pinned tabs stay at the front. Tabs, the side view and the panel are saved per device (`vest_editor_tabs`, `vest_workbench`); the nav layout and colour theme sync to the account.
 
-The **panel** has OUTPUT (what the environment did this session: routes, sync, theme, notifications) and TERMINAL, a small shell over the tree: `ls`, `cd medicine`, `open williamshub`, `theme classic`, `appearance light`, `livery next`, `find anki`, `tabs`, `help`.
+The **panel** has OUTPUT (what the environment did this session: routes, sync, theme, notifications) and TERMINAL, a small shell over the tree: `ls`, `cd medicine`, `open studyex_medeetomihub`, `theme classic`, `appearance light`, `livery next`, `find anki`, `tabs`, `help`.
 
 | Keys | Action |
 | --- | --- |

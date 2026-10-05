@@ -2,7 +2,7 @@
 
 The root environment for Kaiau's medicine, research, software and experiments: a personal website, study runtime, research engine and archive in one Next.js app, deployed at [vestrippn.vercel.app](https://vestrippn.vercel.app).
 
-Everything sits inside one application shell laid out like VS Code: an activity bar with Explorer, Search, Appearance and Account views, editor tabs for the pages you open, breadcrumbs, a panel with an output log and a terminal, a status bar, and a ⌘K command palette. Colour themes include VS Code's Dark/Light Modern and Dark+/Light+. Pages are either **environment** pages (root, identity, systems, projects, medicine, research, logs, garage, archive, contact) or **runtime** modules: the working study hubs (academics, workspace, cases, analytics, assistant, fitness, IELTS, tools).
+Everything sits inside one application shell laid out like VS Code: an activity bar with Explorer, Search, Appearance and Account views, editor tabs for the pages you open, breadcrumbs, a panel with an output log and a terminal, a status bar, and a ⌘K command palette. Colour themes include VS Code's Dark/Light Modern and Dark+/Light+. Pages are either **environment** pages (root, identity, systems, projects, medicine, research, garage, archive, contact) or **runtime** modules: the working study hubs (academics, workspace, cases, analytics, assistant, fitness, IELTS, tools).
 
 See [`docs/system.md`](docs/system.md) for the design system, the registry and the appearance and livery model.
 
@@ -54,7 +54,7 @@ To seed the clinical case bank, run `npx tsx scripts/seed-w08-learn.ts`. The see
 | `npm run validate:spatial` | The 3D garage model: geometry, camera bounds and livery materials |
 | `npm run validate:nav` | Editable navigation: layout round trip and rejection of hostile values |
 
-CI (`.github/workflows/ci.yml`) runs Prisma validation, the typecheck, lint, unit tests and every validator, and in a second job builds the app and runs the Playwright suite (workbench, nav editor, themes, phone layout, security headers and auth, and an axe scan of 11 pages in three themes) on each push to `main` and on every pull request.
+CI (`.github/workflows/ci.yml`) runs Prisma validation, the typecheck, lint, unit tests and every validator, and in a second job builds the app and runs the Playwright suite (workbench, nav editor, themes, phone layout, security headers and auth, and an axe scan of 10 pages in three themes) on each push to `main` and on every pull request.
 
 ## Layout
 

@@ -1,6 +1,6 @@
 import type { ResolvedNav } from './nav-layout';
 import { resolvePath } from './navigation';
-import { LOGS, OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
+import { OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from './registry';
 import { COLOR_THEMES, COLOR_THEME_LABEL, type ColorTheme } from '../vscode-themes';
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -63,7 +63,6 @@ function children(path: string, nav: ResolvedNav): Child[] | null {
   }
   if (clean === '/systems') return SYSTEMS.map((node) => ({ name: node.slug, href: `/systems/${node.slug}` }));
   if (clean === '/projects') return PROJECTS.map((node) => ({ name: node.slug, href: `/projects/${node.slug}` }));
-  if (clean === '/logs') return LOGS.map((log) => ({ name: log.slug, href: `/logs/${log.slug}` }));
   if (clean === '/garage') return OBJECTS.map((object) => ({ name: object.slug, href: `/garage/${object.slug}` }));
   if (clean === '/medicine') return RUNTIME.filter((m) => m.branch === 'medicine').map((m) => ({ name: m.slug, href: m.href }));
   return null;

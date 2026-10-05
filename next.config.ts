@@ -19,6 +19,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: SECURITY_HEADERS }];
   },
+  // Retired registry entries and pages: WilliamsHub is now listed as
+  // Studyex_Medeetomihub (the old studyex entry is gone); the logs are gone.
+  async redirects() {
+    return [
+      { source: '/systems/williamshub', destination: '/systems/studyex_medeetomihub', permanent: true },
+      { source: '/systems/studyex', destination: '/systems/studyex_medeetomihub', permanent: true },
+      { source: '/projects/williamshub', destination: '/projects/studyex_medeetomihub', permanent: true },
+      { source: '/projects/studyex', destination: '/projects/studyex_medeetomihub', permanent: true },
+      { source: '/logs/:path*', destination: '/', permanent: true },
+      { source: '/logs', destination: '/', permanent: true },
+    ];
+  },
   turbopack: {
     // Claude worktrees live inside the main checkout (.claude/worktrees/…),
     // which also has a lockfile, so Next would infer the parent as the root

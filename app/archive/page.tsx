@@ -48,7 +48,7 @@ export default function ArchivePage() {
   return (
     <Page>
       <PageHeader
-        index="08"
+        index="07"
         label="archive"
         title="Archive"
         lede="Earlier work, kept as records rather than displayed as achievements."

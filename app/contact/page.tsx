@@ -12,7 +12,7 @@ export default function ContactPage() {
   return (
     <Page>
       <PageHeader
-        index="09"
+        index="08"
         label="contact"
         title="Contact"
         lede="Open channels. GitHub for code; the others for everything else."
