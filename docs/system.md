@@ -50,11 +50,15 @@ Motion uses CSS only, at 120–220 ms: page fade-in, the drawer and palette reve
 
 ## Workbench
 
-The shell follows VS Code's layout. The **activity bar** switches the side view: Explorer (environment and runtime tabs, systems, projects as collapsible folders), Search (the same index as ⌘K), Appearance (colour theme, appearance, livery) and Account (session and device sync). Selecting the open view again hides the side bar.
+The shell follows VS Code's layout. The **activity bar** switches the side view: Explorer (environment and runtime tabs, systems, projects as collapsible folders), Search (the same index as ⌘K), Outline (the open page's headings, kept current as it renders and scrolls), Study (exam countdowns, cases due, Anki due, drills, drug lookup), Appearance (colour theme, appearance, livery, watermark) and Account (session and device sync). Selecting the open view again hides the side bar.
+
+⌘K opens with a RECENT group: pages opened on this device, newest first (`vest_recent`). `settings.json` (`/settings`, ⌘/Ctrl+,) shows every synced setting as JSONC; Save validates the whole file, then applies and syncs only what changed.
+
+The **split editor** (Open to the Side on a tab, ⌘/Ctrl+\\, or ⌘K) shows a second page in the right-hand group. That group is a same-origin frame (`frame-ancestors 'self'`): the boot script marks the framed page `sys-embed` before paint, which hides its chrome, and its shell reports each route to the parent (`lib/system/embed.ts`) instead of opening tabs or syncing. The divider is a keyboard-operable separator; desktop only.
 
 Every page you open gets an **editor tab**. Pinned tabs stay at the front. Tabs, the side view and the panel are saved per device (`vest_editor_tabs`, `vest_workbench`); the nav layout and colour theme sync to the account.
 
-The **panel** has OUTPUT (what the environment did this session: routes, sync, theme, notifications) and TERMINAL, a small shell over the tree: `ls`, `cd medicine`, `open studyex_medeetomihub`, `theme classic`, `appearance light`, `livery next`, `find anki`, `tabs`, `help`.
+The **panel** has OUTPUT (what the environment did this session: routes, sync, theme, notifications) and TERMINAL, a small shell over the tree: `ls`, `cd medicine`, `open studyex_medeetomihub`, `theme classic`, `appearance light`, `livery next`, `watermark off`, `drug propofol`, `find anki`, `tabs`, `help`.
 
 | Keys | Action |
 | --- | --- |
@@ -63,5 +67,8 @@ The **panel** has OUTPUT (what the environment did this session: routes, sync, t
 | ⌘/Ctrl+B | Toggle the side bar (the drawer on phones) |
 | ⌘/Ctrl+Shift+E / F | Explorer / Search view |
 | ⌘/Ctrl+` | Toggle the panel |
+| ⌘/Ctrl+\\ | Split the editor / close the split |
+| ⌘/Ctrl+, | settings.json |
+| Alt+← / Alt+→ | Go back / forward |
 | Alt+W, Alt+[ / ], Alt+1…9 | Close tab, previous/next tab, go to tab (browsers reserve Ctrl+W and Ctrl+Tab) |
 | ⌘/Ctrl+/ | Keyboard shortcuts sheet |

@@ -6,6 +6,16 @@ import BranchingPlayer from './BranchingPlayer';
 import { type CaseDetail, type CaseSummary, colorFor, difficultyColor, isRare, nonRareTags, specialtyIcon } from './types';
 import { Skel, SkelGroup } from '@/components/system/Skeleton';
 import { Page, PageHeader } from '@/components/system/primitives';
+import { useReviewQueue } from '@/components/learn/useReviewQueue';
+
+/** Load a case for play; `fresh` restarts the run first (reviews start from the beginning). */
+async function fetchCase(id: string, fresh: boolean): Promise<CaseDetail> {
+  if (fresh) await fetch(`/api/learn/cases/${id}/reset`, { method: 'POST' }).catch(() => null);
+  const res = await fetch(`/api/learn/cases/${id}`);
+  if (res.status === 401) throw new Error('Sign in to play cases. Your progress is saved to your account.');
+  if (!res.ok) throw new Error(`Failed to open case (${res.status})`);
+  return (await res.json()) as CaseDetail;
+}
 
 export default function CasesClient() {
   const [cases, setCases] = useState<CaseSummary[]>([]);
@@ -16,12 +26,22 @@ export default function CasesClient() {
   const [opening, setOpening] = useState(false);
   const [specialty, setSpecialty] = useState<string>('all');
   const playerRef = useRef<HTMLElement>(null);
+  const review = useReviewQueue();
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch('/api/learn/cases');
         if (!res.ok) throw new Error(`Failed to load cases (${res.status})`);
-        setCases((await res.json()) as CaseSummary[]);
+        const list = (await res.json()) as CaseSummary[];
+        setCases(list);
+        // Deep links: /learn/cases?case=<id> opens it; &review=1 restarts it as a review.
+        const params = new URLSearchParams(window.location.search);
+        const linked = params.get('case');
+        if (linked && list.some((c) => c.id === linked)) {
+          const d = await fetchCase(linked, params.get('review') === '1');
+          setDetail(d);
+          if (d.type === 'linear') setCurrent(Math.min(d.currentStep ?? 0, Math.max(0, d.steps.length - 1)));
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load cases');
       } finally {
@@ -41,14 +61,11 @@ export default function CasesClient() {
   const activeSummary = detail ? cases.find((c) => c.id === detail.id) : undefined;
   const activeColor = colorFor(activeSummary?.specialty ?? null);
 
-  const openCase = async (id: string) => {
+  const openCase = async (id: string, fresh = false) => {
     setOpening(true);
     setError(null);
     try {
-      const res = await fetch(`/api/learn/cases/${id}`);
-      if (res.status === 401) throw new Error('Sign in to play cases. Your progress is saved to your account.');
-      if (!res.ok) throw new Error(`Failed to open case (${res.status})`);
-      const d = (await res.json()) as CaseDetail;
+      const d = await fetchCase(id, fresh);
       setDetail(d);
       if (d.type === 'linear') setCurrent(Math.min(d.currentStep ?? 0, Math.max(0, d.steps.length - 1)));
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -130,6 +147,35 @@ export default function CasesClient() {
             )}
 
             {error && <p className="mt-4 text-sm text-[color:var(--w09-danger)]">{error}</p>}
+
+            {review && (review.due.length > 0 || review.upcoming.length > 0) && (
+              <section className="sys-review-strip" aria-labelledby="review-title">
+                <div className="sys-review-head">
+                  <h2 id="review-title" className="sys-label">
+                    due for review · {String(review.due.length).padStart(2, '0')}
+                  </h2>
+                  <span className="sys-muted">
+                    missed cases return after {review.intervals.join(', ')} days · {review.upcoming.length} upcoming · {review.graduated} graduated
+                  </span>
+                </div>
+                {review.due.length === 0 ? (
+                  <p className="sys-muted">Nothing due today. Next: {review.upcoming[0]?.title} on {new Date(review.upcoming[0]?.dueAt ?? '').toLocaleDateString()}.</p>
+                ) : (
+                  <ul className="sys-review-list">
+                    {review.due.map((item) => (
+                      <li key={item.caseId}>
+                        <button type="button" onClick={() => openCase(item.caseId, true)} disabled={opening}>
+                          <b>{item.title}</b>
+                          <small>
+                            {item.specialty} · review {item.step + 1} of {review.intervals.length} · missed {item.misses}×
+                          </small>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
 
             <h2 className="mt-7 mb-3 text-xs font-black uppercase tracking-widest text-[color:var(--w09-text-muted)]">Select a clinical case</h2>
             {loading ? (

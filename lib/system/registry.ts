@@ -273,6 +273,7 @@ export const RUNTIME: RuntimeModule[] = [
   { slug: 'academics', name: 'academics', href: '/academics', path: '~/medicine/academics', branch: 'medicine', summary: 'courses, exam milestones, Anki trend', keywords: 'class exams milestones anki study' },
   { slug: 'workspace', name: 'workspace', href: '/workspace?tab=plan', path: '~/medicine/workspace', branch: 'medicine', summary: 'daily plan, coverage map, courses, backup', keywords: 'plan coverage courses backup semester' },
   { slug: 'cases', name: 'cases', href: '/learn/cases', path: '~/medicine/cases', branch: 'medicine', summary: 'branching clinical cases', keywords: 'clinical case bank branching' },
+  { slug: 'study', name: 'study', href: '/study', path: '~/medicine/study', branch: 'medicine', summary: 'exam countdowns, case reviews, weak-spot drills, case editor', keywords: 'drill review countdown spaced repetition exam weak editor' },
   { slug: 'drugs', name: 'drugs', href: '/drugs', path: '~/medicine/drugs', branch: 'medicine', summary: 'drug cards: class, mechanism, dose, pitfalls, structure', keywords: 'pharmacology drug dose mechanism structure formulary' },
   { slug: 'analytics', name: 'analytics', href: '/analytics', path: '~/runtime/analytics', branch: 'personal', summary: 'study telemetry across sources', keywords: 'telemetry canvas anki charts' },
   { slug: 'assistant', name: 'assistant', href: '/das', path: '~/runtime/assistant', branch: 'research', summary: 'cited question answering', keywords: 'chat das citations ask' },

@@ -2,7 +2,7 @@
 
 The root environment for Kaiau's medicine, research, software and experiments: a personal website, study runtime, research engine and archive in one Next.js app, deployed at [vestrippn.vercel.app](https://vestrippn.vercel.app).
 
-Everything sits inside one application shell laid out like VS Code: an activity bar with Explorer, Search, Appearance and Account views, editor tabs for the pages you open, breadcrumbs, a panel with an output log and a terminal, a status bar, and a ⌘K command palette. Colour themes include VS Code's Dark/Light Modern and Dark+/Light+. Pages are either **environment** pages (root, identity, systems, projects, medicine, research, garage, archive, contact) or **runtime** modules: the working study hubs (academics, workspace, cases, analytics, assistant, fitness, IELTS, tools).
+Everything sits inside one application shell laid out like VS Code: an activity bar with Explorer, Search, Outline, Study, Appearance and Account views, editor tabs for the pages you open, a split editor, breadcrumbs, a panel with an output log and a terminal, a status bar, a `settings.json`, and a ⌘K command palette with Open Recent. Colour themes include VS Code's Dark/Light Modern and Dark+/Light+. Pages are either **environment** pages (root, identity, systems, projects, medicine, research, garage, archive, contact) or **runtime** modules: the working study hubs (academics, workspace, cases, study, drugs, analytics, assistant, fitness, IELTS, tools).
 
 See [`docs/system.md`](docs/system.md) for the design system, the registry and the appearance and livery model.
 
@@ -25,7 +25,7 @@ npx prisma migrate deploy    # apply migrations to your database
 npm run dev                  # http://localhost:3000
 ```
 
-Only two variables are critical: `AUTH_SECRET` and `VESTRIPPN_PRISMA_DATABASE_URL`. Every other integration is optional, and a missing one just turns that feature off. The boot log (`instrumentation.ts` → `lib/env.ts`) prints which integrations are configured. [`.env.example`](.env.example) lists them all:
+Only two variables are critical: `AUTH_SECRET` and `VESTRIPPN_PRISMA_DATABASE_URL`. A local database without TLS also needs `VESTRIPPN_DB_SSL=disable`. Every other integration is optional, and a missing one just turns that feature off. The boot log (`instrumentation.ts` → `lib/env.ts`) prints which integrations are configured. [`.env.example`](.env.example) lists them all:
 
 | Integration | Variables |
 | --- | --- |
@@ -46,7 +46,7 @@ To seed the clinical case bank, run `npx tsx scripts/seed-w08-learn.ts`. The see
 | `npm run build` | `prisma generate`, `prisma migrate deploy`, then `next build`. Vercel runs this. |
 | `npm start` | Serve a production build |
 | `npm run lint` | ESLint, with zero warnings allowed |
-| `npm test` | Unit tests (`node:test`) for the pure modules: editor tabs, terminal, search, allow-list, rate limiter, workbench state |
+| `npm test` | Unit tests (`node:test`) for the pure modules: editor tabs, recent pages, settings.json, terminal, search, allow-list, rate limiter, workbench state, drug cards, case review scheduling, case graph validation, drills and exam countdowns |
 | `npm run test:e2e` | Playwright end-to-end and accessibility (axe, WCAG 2.1 AA) tests against a production build. Run `npx next build` first. A preinstalled Chromium can be used with `PW_CHROMIUM_PATH` |
 | `npm run validate:cases` | The 50 branching clinical cases are well-formed |
 | `npm run validate:coverage` | The WilliamsHub exam coverage catalogue and backups |
@@ -54,7 +54,7 @@ To seed the clinical case bank, run `npx tsx scripts/seed-w08-learn.ts`. The see
 | `npm run validate:spatial` | The 3D garage model: geometry, camera bounds and livery materials |
 | `npm run validate:nav` | Editable navigation: layout round trip and rejection of hostile values |
 
-CI (`.github/workflows/ci.yml`) runs Prisma validation, the typecheck, lint, unit tests and every validator, and in a second job builds the app and runs the Playwright suite (workbench, nav editor, themes, phone layout, security headers and auth, and an axe scan of 10 pages in three themes) on each push to `main` and on every pull request.
+CI (`.github/workflows/ci.yml`) runs Prisma validation, the typecheck, lint, unit tests and every validator, and in a second job builds the app and runs the Playwright suite (workbench, nav editor, themes, phone layout, security headers and auth, drug cards, study tools, and an axe scan of 16 pages in three themes) on each push to `main` and on every pull request.
 
 ## Layout
 
@@ -70,6 +70,14 @@ scripts/              validators, seeds, coverage import
 anki-addon/           Anki add-on that pushes review stats to /api/anki
 proxy.ts              page auth gate (Next 16 proxy, formerly middleware)
 ```
+
+## Study tools
+
+- **Exam countdowns.** For each exam in the next 90 days, the objectives still to cover (untouched first, then reviewed) are spread evenly over the days left. The last two days are kept for a weak-spot drill. Today's share appears in the daily plan (Workspace → plan) and in the Study view.
+- **Weak-spot drill** (`/study/drill`). Your ten weakest objectives in one course: untouched first, then low recent test scores, then reviewed but never tested. You grade each prompt *got it / shaky / missed*, and the score is saved to the coverage map as a practice result. Cases from the same body system are suggested at the end.
+- **Case review.** A case where the patient died, or where you made a deadly choice, comes back after 1, 3, 7 and 14 days (`CaseReview` table). A clean run moves it up a step; another miss starts it again. Due cases show on the case bank, the Study view and `/study`.
+- **Case editor** (`/study/editor`, owner only). Edit the decision tree of any branching case, or write a new one. The same validator runs in the browser and on save: every choice must lead somewhere, every node must be reachable, every path must end, and choice text may not give the outcome away. Note that `scripts/seed-w08-learn.ts` upserts the seeded cases, so re-running it overwrites edits to them.
+- **Drug cards** (`/drugs`, ⌘K, `drug <name>` in the terminal). Class, mechanism, typical adult dose, pitfalls and the skeletal formula of 33 high-yield drugs; a study aid, not a prescribing reference. The text is in `content/drugs/drugs.json`. After adding or changing a SMILES, run `python scripts/generate-drug-structures.py` (needs `pip install rdkit`) to redraw the structures and recompute formula and mass.
 
 ## Navigation tabs
 
