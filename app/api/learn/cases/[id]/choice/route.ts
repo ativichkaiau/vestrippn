@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import { forUser } from "@/lib/repositories/scoped";
 import {
@@ -11,6 +11,7 @@ import {
   nodeView,
   type CaseRunState,
 } from "@/lib/learn/content";
+import { isMiss, nextReview } from "@/lib/learn/review";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const userId = await resolveUserId();
+  const userId = await requireUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
@@ -109,7 +110,26 @@ export async function POST(
     }),
   ]);
 
+  // A finished run updates the spaced-review queue (lib/learn/review).
+  let review: { dueAt: string | null; step: number } | null = null;
+  if (status !== "active") {
+    const now = new Date();
+    const missed = isMiss(status, newState.path);
+    const current = await forUser(userId).caseReview.findFirst({ where: { caseId: id }, select: { step: true, dueAt: true } });
+    const next = nextReview(current, missed, now);
+    if (next) {
+      const data = { step: next.step, dueAt: next.dueAt, lastResult: missed ? "missed" : "clean", lastRunAt: now };
+      await prisma.caseReview.upsert({
+        where: { userId_caseId: { userId, caseId: id } },
+        update: { ...data, ...(missed ? { misses: { increment: 1 } } : {}) },
+        create: { userId, caseId: id, ...data, misses: missed ? 1 : 0 },
+      });
+      review = { dueAt: next.dueAt?.toISOString() ?? null, step: next.step };
+    }
+  }
+
   return NextResponse.json({
+    review,
     outcome: choice.outcome,
     feedback: choice.feedback,
     scoreDelta: choice.scoreDelta,

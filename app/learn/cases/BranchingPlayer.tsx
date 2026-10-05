@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, type CSSProperties } from 'react';
+import { REVIEW_CHANGE_EVENT } from '@/lib/learn/review';
 import {
   type BranchingDetail,
   type ChoiceResult,
@@ -31,6 +32,7 @@ export default function BranchingPlayer({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [maxScore, setMaxScore] = useState(Math.max(100, initial.score));
+  const [review, setReview] = useState<ChoiceResult['review']>(undefined);
 
   const ended = d.status !== 'active' || d.node.choices.length === 0;
   const sv = patientStatusView(d.patientStatus, d.score, maxScore, d.status);
@@ -54,6 +56,10 @@ export default function BranchingPlayer({
       const data = (await res.json().catch(() => null)) as ChoiceResult | null;
       if (!res.ok || !data) throw new Error(data?.error || `Choice failed (${res.status})`);
       setFeedback({ outcome: data.outcome, text: data.feedback, scoreDelta: data.scoreDelta });
+      if (data.status !== 'active') {
+        setReview(data.review ?? null);
+        window.dispatchEvent(new Event(REVIEW_CHANGE_EVENT));
+      }
       setMaxScore((m) => Math.max(m, data.score));
       setSelected(null);
       setD((prev) => ({
@@ -77,6 +83,7 @@ export default function BranchingPlayer({
     setError(null);
     setFeedback(null);
     setSelected(null);
+    setReview(undefined);
     try {
       const res = await fetch(`/api/learn/cases/${d.id}/reset`, { method: 'POST' });
       const data = (await res.json().catch(() => null)) as Partial<ChoiceResult> | null;
@@ -284,6 +291,15 @@ export default function BranchingPlayer({
                 {d.status === 'survived' ? 'Patient Survived' : 'Patient Died'}
               </div>
               <div className="mt-1 text-sm text-[color:var(--w09-text-muted)]">Final vitals: {d.score}</div>
+              {review !== undefined && (
+                <p className="mt-2 text-sm text-[color:var(--w09-text)]" role="status">
+                  {review === null
+                    ? 'Clean run: not in your review queue.'
+                    : review.dueAt === null
+                      ? 'Clean again: graduated from your review queue.'
+                      : `In your review queue: back on ${new Date(review.dueAt).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} (review ${review.step + 1} of 4).`}
+                </p>
+              )}
               <button
                 onClick={reset}
                 disabled={busy}

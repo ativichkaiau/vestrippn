@@ -1,9 +1,9 @@
 import { LIVERIES } from '../liveries';
-import type { GarageObject, LogEntry, Node, RuntimeModule } from './types';
+import type { GarageObject, Node, RuntimeModule } from './types';
 
 /* ════════════════════════════════════════════════════════════════════════
-   VESTRIPPN registry — the systems, projects, runtime modules, logs and
-   garage objects mounted under the root namespace.
+   VESTRIPPN registry — the systems, projects, runtime modules and garage
+   objects mounted under the root namespace.
 
    To add or correct an entry, edit this file. Fields are optional on
    purpose: leave a URL, date or stack undefined until it is real.
@@ -31,7 +31,7 @@ export const NODES: Node[] = [
     created: '2026-05-03',
     url: 'https://vestrippn.vercel.app',
     source: REPO,
-    files: ['app/', 'components/', 'lib/', 'prisma/', 'scripts/', 'anki-addon/', 'docs/', 'auth.ts', 'middleware.ts', 'package.json'],
+    files: ['app/', 'components/', 'lib/', 'prisma/', 'scripts/', 'anki-addon/', 'docs/', 'auth.ts', 'proxy.ts', 'package.json'],
     excerpt: {
       file: 'lib/theme-engine.ts',
       language: 'ts',
@@ -44,40 +44,7 @@ function solarElevation(date: Date): number {
   const hour = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
   const gamma = 2 * Math.PI / yearDays * (day - 1 + (hour - 12) / 24);`,
     },
-    related: ['anki_sync', 'studyex', 'research'],
-  },
-  {
-    slug: 'studyex',
-    name: 'studyex_medeetomihub',
-    path: '~/systems/studyex',
-    type: 'study-os',
-    summary: 'medical knowledge runtime',
-    description: [
-      'The medical knowledge runtime: the study application mounted under VESTRIPPN.',
-      'Studyex shares the VESTRIPPN grammar — type, spacing, system notation — but is denser and more operational, with its own accent. VESTRIPPN is the environment; Studyex is an application inside it.',
-    ],
-    state: 'active',
-    domains: ['medicine', 'software'],
-    system: true,
-    project: true,
-    language: 'web',
-    featured: true,
-    related: ['onepager', 'cardiac_sim_physics'],
-  },
-  {
-    slug: 'terra',
-    name: 'Terra',
-    path: '~/research/terra',
-    type: 'agent',
-    summary: 'research agent system',
-    description: ['An agent system for research work, part of the research branch of VESTRIPPN.'],
-    state: 'active',
-    domains: ['research', 'software'],
-    system: true,
-    project: true,
-    language: 'AI / research',
-    featured: true,
-    related: ['research', 'williamslab'],
+    related: ['anki_sync', 'research'],
   },
   {
     slug: 'research',
@@ -94,7 +61,7 @@ function solarElevation(date: Date): number {
     system: true,
     internal: '/research',
     featured: true,
-    related: ['williamslab', 'srma_screener', 'terra'],
+    related: ['williamslab', 'srma_screener'],
   },
   {
     slug: 'williamslab',
@@ -128,44 +95,9 @@ function solarElevation(date: Date): number {
     related: ['research', 'williamslab'],
   },
   {
-    slug: 'cardiac_sim_physics',
-    name: 'cardiac_sim_physics',
-    path: '~/projects/cardiac_sim_physics',
-    type: 'simulation',
-    summary: 'cardiovascular physiology simulation',
-    description: [
-      'A physics simulation of cardiovascular physiology, written in Python.',
-      'The target of the first code_till_i_am_bored entry. Development ended the way the series says it will.',
-    ],
-    state: 'experimental',
-    domains: ['medicine', 'software'],
-    system: true,
-    project: true,
-    language: 'Python',
-    files: ['cardiac_sim_physics.py'],
-    featured: true,
-    related: ['code_till_i_am_bored'],
-  },
-  {
-    slug: 'code_till_i_am_bored',
-    name: 'code_till_i_am_bored',
-    path: '~/logs/code_till_i_am_bored',
-    type: 'series',
-    summary: 'development log',
-    description: [
-      'A development log series: pick a target, code until bored, record what happened. Each entry lives in ~/logs with its target, runtime and termination reason.',
-    ],
-    state: 'active',
-    domains: ['media', 'software'],
-    system: true,
-    internal: '/logs',
-    featured: true,
-    related: ['cardiac_sim_physics'],
-  },
-  {
-    slug: 'williamshub',
-    name: 'WilliamsHub',
-    path: '~/medicine/williamshub',
+    slug: 'studyex_medeetomihub',
+    name: 'Studyex_Medeetomihub',
+    path: '~/medicine/studyex_medeetomihub',
     type: 'study hub',
     summary: 'study operations hub and exam coverage catalog',
     description: ['The study operations hub. Its topic catalog feeds the exam coverage map in the VESTRIPPN workspace.'],
@@ -175,7 +107,7 @@ function solarElevation(date: Date): number {
     project: true,
     language: 'web',
     url: 'https://williamshub.vercel.app',
-    related: ['williamspod', 'studyex'],
+    related: ['williamspod'],
   },
   {
     slug: 'williamspod',
@@ -189,7 +121,7 @@ function solarElevation(date: Date): number {
     project: true,
     language: 'web',
     url: 'https://williamspod.vercel.app',
-    related: ['williamshub'],
+    related: ['studyex_medeetomihub'],
   },
   {
     slug: 'anki_sync',
@@ -239,7 +171,6 @@ function solarElevation(date: Date): number {
     domains: ['medicine'],
     project: true,
     url: 'https://drive.google.com/drive/folders/1nobEj31AcMk0PhHu2YxNKaihVYsPJRCi',
-    related: ['studyex'],
   },
   {
     slug: 'physiohub',
@@ -342,33 +273,14 @@ export const RUNTIME: RuntimeModule[] = [
   { slug: 'academics', name: 'academics', href: '/academics', path: '~/medicine/academics', branch: 'medicine', summary: 'courses, exam milestones, Anki trend', keywords: 'class exams milestones anki study' },
   { slug: 'workspace', name: 'workspace', href: '/workspace?tab=plan', path: '~/medicine/workspace', branch: 'medicine', summary: 'daily plan, coverage map, courses, backup', keywords: 'plan coverage courses backup semester' },
   { slug: 'cases', name: 'cases', href: '/learn/cases', path: '~/medicine/cases', branch: 'medicine', summary: 'branching clinical cases', keywords: 'clinical case bank branching' },
+  { slug: 'study', name: 'study', href: '/study', path: '~/medicine/study', branch: 'medicine', summary: 'exam countdowns, case reviews, weak-spot drills, case editor', keywords: 'drill review countdown spaced repetition exam weak editor' },
+  { slug: 'drugs', name: 'drugs', href: '/drugs', path: '~/medicine/drugs', branch: 'medicine', summary: 'drug cards: class, mechanism, dose, pitfalls, structure', keywords: 'pharmacology drug dose mechanism structure formulary' },
   { slug: 'analytics', name: 'analytics', href: '/analytics', path: '~/runtime/analytics', branch: 'personal', summary: 'study telemetry across sources', keywords: 'telemetry canvas anki charts' },
   { slug: 'assistant', name: 'assistant', href: '/das', path: '~/runtime/assistant', branch: 'research', summary: 'cited question answering', keywords: 'chat das citations ask' },
   { slug: 'fitness', name: 'fitness', href: '/fitness', path: '~/runtime/fitness', branch: 'personal', summary: 'training log and streaks', keywords: 'workout gym streak training' },
   { slug: 'ielts', name: 'ielts', href: '/ielts', path: '~/runtime/ielts', branch: 'personal', summary: 'IELTS preparation', keywords: 'english band writing speaking' },
   { slug: 'tools', name: 'tools', href: '/tools', path: '~/runtime/tools', branch: 'tools', summary: 'planner and external tool index', keywords: 'links planner msca launch' },
 ];
-
-/* ── Logs ─────────────────────────────────────────────────────────────── */
-
-export const LOGS: LogEntry[] = [
-  {
-    id: 'LOG_001',
-    slug: '001',
-    series: 'code_till_i_am_bored',
-    title: 'code till I am bored #1',
-    target: 'cardiac_sim_physics',
-    targetFile: 'cardiac_sim_physics.py',
-    runtime: 'Python',
-    kind: 'development log',
-    status: 'got bored.',
-    termination: 'boredom',
-  },
-];
-
-export function getLog(slug: string): LogEntry | undefined {
-  return LOGS.find((log) => log.slug === slug);
-}
 
 /* ── Garage ───────────────────────────────────────────────────────────── */
 

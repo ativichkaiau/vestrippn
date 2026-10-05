@@ -12,8 +12,9 @@ if (!connectionString) {
 
 const pool = new Pool({ 
   connectionString,
-  // Recommended for Vercel Postgres to ensure stable handshakes
-  ssl: true 
+  // Recommended for Vercel Postgres to ensure stable handshakes. A local
+  // database without TLS (tests, development) sets VESTRIPPN_DB_SSL=disable.
+  ssl: process.env.VESTRIPPN_DB_SSL !== 'disable'
 })
 
 // 2. Wrap it in the Prisma v7 Adapter

@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { recordAnkiHistory } from "@/lib/anki";
 import { revalidatePath } from "next/cache";
 
@@ -99,8 +99,8 @@ export async function deleteTask(id: string) {
 // SECTOR DELTA: RESEARCH HUB
 // ==========================================
 export async function updateResearchStats(title: string, screening: number, fullText: number, extraction: number) {
-  const userId = await resolveUserId();
-  if (!userId) throw new Error("Owner account unavailable");
+  const userId = await requireUserId();
+  if (!userId) throw new Error("Unauthorized Access");
 
   await prisma.researchProject.upsert({
     where: { userId },

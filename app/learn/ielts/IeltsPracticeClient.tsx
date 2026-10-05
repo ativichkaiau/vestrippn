@@ -17,6 +17,18 @@ const SECTIONS = [
 ] as const;
 type SectionId = (typeof SECTIONS)[number]['id'];
 
+type Loaded = { questions: Question[] } | { error: string };
+
+async function fetchQuestions(sec: SectionId): Promise<Loaded> {
+  try {
+    const res = await fetch(`/api/learn/ielts/questions${sec === 'all' ? '' : `?section=${sec}`}`);
+    if (!res.ok) throw new Error(`Failed to load questions (${res.status})`);
+    return { questions: (await res.json()) as Question[] };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Failed to load questions' };
+  }
+}
+
 export default function IeltsPracticeClient() {
   const [section, setSection] = useState<SectionId>('all');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -24,25 +36,40 @@ export default function IeltsPracticeClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (sec: SectionId) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/learn/ielts/questions${sec === 'all' ? '' : `?section=${sec}`}`);
-      if (!res.ok) throw new Error(`Failed to load questions (${res.status})`);
-      setQuestions((await res.json()) as Question[]);
-      setAnswers({});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load questions');
+  const apply = useCallback((result: Loaded) => {
+    if ('error' in result) {
+      setError(result.error);
       setQuestions([]);
-    } finally {
-      setLoading(false);
+    } else {
+      setQuestions(result.questions);
+      setAnswers({});
+      setError(null);
     }
+    setLoading(false);
   }, []);
 
+  const load = (sec: SectionId) => {
+    setLoading(true);
+    setError(null);
+    void fetchQuestions(sec).then(apply);
+  };
+
+  const selectSection = (sec: SectionId) => {
+    if (sec === section) return;
+    setLoading(true);
+    setError(null);
+    setSection(sec);
+  };
+
   useEffect(() => {
-    load(section);
-  }, [section, load]);
+    let current = true;
+    void fetchQuestions(section).then((result) => {
+      if (current) apply(result);
+    });
+    return () => {
+      current = false;
+    };
+  }, [section, apply]);
 
   const onSelect = async (questionId: string, optionId: string) => {
     if (answers[questionId]?.status === 'answered') return;
@@ -81,7 +108,7 @@ export default function IeltsPracticeClient() {
           {SECTIONS.map((s) => (
             <button
               key={s.id}
-              onClick={() => setSection(s.id)}
+              onClick={() => selectSection(s.id)}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors duration-[var(--w09-motion-duration)] ${
  section === s.id
  ? 'bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'

@@ -13,7 +13,7 @@ export default function GaragePage() {
   return (
     <Page>
       <PageHeader
-        index="07"
+        index="06"
         label="garage"
         title="Garage"
         lede="Objects kept for inspection. Each one opens in a viewer; the paint library repaints them."

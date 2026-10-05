@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getNode, LOGS, PROJECTS, projectIndex } from '@/lib/system/registry';
+import { getNode, PROJECTS, projectIndex } from '@/lib/system/registry';
 import CodeBlock from '@/components/system/CodeBlock';
 import { NodeActions, NodeMetadata, RelatedNodes } from '@/components/system/NodeParts';
-import { CommandLink, Page, PageHeader, Section } from '@/components/system/primitives';
+import { Page, PageHeader, Section } from '@/components/system/primitives';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -24,7 +24,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function ProjectRepository({ params }: Params) {
   const node = getNode((await params).slug);
   if (!node?.project) notFound();
-  const logs = LOGS.filter((log) => log.target === node.slug);
 
   return (
     <Page>
@@ -74,24 +73,6 @@ export default async function ProjectRepository({ params }: Params) {
             file={node.excerpt.file}
             source={node.source ? `https://github.com/ativichkaiau/vestrippn/blob/main/${node.excerpt.file}` : undefined}
           />
-        </Section>
-      )}
-
-      {logs.length > 0 && (
-        <Section id="logs" title="logs">
-          <ul className="sys-list">
-            {logs.map((log) => (
-              <li key={log.id}>
-                <span className="sys-list-name">
-                  {log.id}
-                  <small>
-                    {log.series} · {log.status}
-                  </small>
-                </span>
-                <CommandLink href={`/logs/${log.slug}`}>read log</CommandLink>
-              </li>
-            ))}
-          </ul>
         </Section>
       )}
 

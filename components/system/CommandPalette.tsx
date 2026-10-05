@@ -4,13 +4,21 @@ import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { ARCHIVE } from '@/lib/system/archive';
-import { ENVIRONMENT_NAV } from '@/lib/system/navigation';
-import { LOGS, NODES, OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from '@/lib/system/registry';
+import { CATEGORY_ORDER as ORDER, STATIC_ENTRIES, isExternal, navEntries, rankEntries, type Category, type Entry } from '@/lib/system/search';
+import { openNavEditor } from '@/lib/system/nav-store';
+import { describeTab, tabPath } from '@/lib/system/editor-tabs';
+import { resolvePath } from '@/lib/system/navigation';
+import { clearRecent, readRecent } from '@/lib/system/recent';
+import { closeSplit, getWorkbenchSnapshot, openToSide, parseWorkbench } from '@/lib/system/workbench';
+import { NODES, OBJECTS, PROJECTS, SYSTEMS } from '@/lib/system/registry';
 import { enableReminders } from '@/lib/reminders';
-import { LIVERY_LABEL, MODE_LABEL, cycleLivery, getMode, isLowPower, toggleMode } from '@/lib/theme';
+import { COLOR_THEMES, COLOR_THEME_LABEL, LIVERY_LABEL, MODE_LABEL, cycleLivery, getMode, isLowPower, setColorTheme, toggleMode } from '@/lib/theme';
+import { VSCODE_THEMES } from '@/lib/vscode-themes';
 import { toast } from '@/lib/toast-bus';
 import { setLowPowerMode } from '../useLowPower';
+import { isWatermarkOn, setWatermark } from '../useWatermark';
 import type { BuildInfo } from './Shell';
+import { useColorTheme, useNav } from './hooks';
 
 /* ════════════════════════════════════════════════════════════════════════
    ⌘K / Ctrl+K — search VESTRIPPN.
@@ -21,118 +29,25 @@ import type { BuildInfo } from './Shell';
    <dialog> handles focus containment and Escape.
    ════════════════════════════════════════════════════════════════════════ */
 
-type Category = 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'LOG' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
-const ORDER: Category[] = ['PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'LOG', 'OBJECT', 'ARCHIVE', 'ACTION'];
-
-type Entry = {
-  id: string;
-  category: Category;
-  label: string;
-  detail: string;
-  keywords?: string;
-  href?: string;
-  run?: () => void | Promise<void>;
-};
-
-const STATIC_ENTRIES: Entry[] = [
-  ...ENVIRONMENT_NAV.map((item) => ({
-    id: `page:${item.href}`,
-    category: 'PAGE' as const,
-    label: item.label === 'root' ? 'Go to root' : `Open ${item.label}`,
-    detail: item.href === '/' ? '~' : `~${item.href}`,
-    keywords: item.label,
-    href: item.href,
-  })),
-  ...RUNTIME.map((module) => ({
-    id: `runtime:${module.slug}`,
-    category: 'RUNTIME' as const,
-    label: module.name,
-    detail: module.path,
-    keywords: `${module.summary} ${module.keywords ?? ''}`,
-    href: module.href,
-  })),
-  ...SYSTEMS.map((node) => ({
-    id: `system:${node.slug}`,
-    category: 'SYSTEM' as const,
-    label: node.name,
-    detail: node.summary,
-    keywords: `${node.type} ${node.slug} ${node.domains.join(' ')}`,
-    href: `/systems/${node.slug}`,
-  })),
-  ...PROJECTS.filter((node) => !node.system).map((node) => ({
-    id: `project:${node.slug}`,
-    category: 'PROJECT' as const,
-    label: node.name,
-    detail: `${node.summary}${node.language ? ` · ${node.language}` : ''}`,
-    keywords: `${node.type} ${node.slug} ${node.domains.join(' ')}`,
-    href: `/projects/${node.slug}`,
-  })),
-  ...LOGS.map((log) => ({
-    id: `log:${log.slug}`,
-    category: 'LOG' as const,
-    label: `${log.id} · ${log.targetFile}`,
-    detail: log.series,
-    keywords: `${log.title} ${log.runtime} ${log.kind}`,
-    href: `/logs/${log.slug}`,
-  })),
-  ...OBJECTS.map((object) => ({
-    id: `object:${object.slug}`,
-    category: 'OBJECT' as const,
-    label: object.name,
-    detail: `${object.id} · ${object.type}`,
-    keywords: `garage 3d ${object.slug} ${object.summary}`,
-    href: `/garage/${object.slug}`,
-  })),
-  { id: 'page:legal', category: 'PAGE', label: 'Open legal', detail: '~/legal · privacy, terms, disclaimers', keywords: 'privacy terms policy', href: '/legal' },
-  { id: 'page:ingest', category: 'RUNTIME', label: 'ingest sources', detail: '~/runtime/assistant/ingest', keywords: 'upload pdf docx das assistant grounding', href: '/das/ingest' },
-  { id: 'page:ielts-practice', category: 'RUNTIME', label: 'ielts practice', detail: '~/runtime/ielts/practice', keywords: 'questions reading listening graded', href: '/learn/ielts' },
-  { id: 'page:paints', category: 'OBJECT', label: 'Paint library', detail: '~/garage · liveries', keywords: 'livery theme paint color mercedes williams red bull senna', href: '/garage#paints' },
-  ...ARCHIVE.map((record) => ({
-    id: `archive:${record.id}`,
-    category: 'ARCHIVE' as const,
-    label: record.code ? `${record.code}${record.year ? ` / ${record.year}` : ''} · ${record.title}` : record.title,
-    detail: record.category,
-    keywords: `${record.type} ${record.field ?? ''} ${record.result ?? ''}`,
-    href: `/archive#${record.id}`,
-  })),
-];
-
-// Subsequence fuzzy score: every query character must appear in order.
-// Consecutive and word-start hits rank higher. Null when it does not match.
-function score(query: string, text: string): number | null {
-  const q = query.toLowerCase();
-  const t = text.toLowerCase();
-  let ti = 0;
-  let total = 0;
-  let streak = 0;
-  for (const c of q) {
-    const found = t.indexOf(c, ti);
-    if (found === -1) return null;
-    total += 1;
-    if (found === ti) {
-      streak += 1;
-      total += streak;
-    } else streak = 0;
-    if (found === 0 || /[\s_/.·-]/.test(t[found - 1])) total += 2;
-    ti = found + 1;
-  }
-  return total;
-}
-
 export default function CommandPalette({ build }: { build: BuildInfo }) {
   const router = useRouter();
   const { status } = useSession();
+  const nav = useNav();
+  const colorTheme = useColorTheme();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
+  const [recent, setRecent] = useState<string[]>([]);
   const listId = useId();
 
-  const show = useCallback(() => {
-    setQuery('');
+  const show = useCallback((event?: Event) => {
+    const initial = (event as CustomEvent<{ query?: string }> | undefined)?.detail?.query;
+    setQuery(typeof initial === 'string' ? initial : '');
     setActive(0);
+    setRecent(readRecent());
     setOpen(true);
   }, []);
 
@@ -153,6 +68,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           if (!value) {
             setQuery('');
             setActive(0);
+            setRecent(readRecent());
           }
           return !value;
         });
@@ -179,6 +95,72 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           toast({ id: 'appearance', title: `appearance: ${MODE_LABEL[next]}`, message: next === 'auto' ? 'Follows the sun over Chiang Mai.' : undefined, variant: 'success' });
         },
       },
+      ...COLOR_THEMES.map((id) => ({
+        id: `act:theme:${id}`,
+        category: 'ACTION' as const,
+        label: `Color Theme: ${COLOR_THEME_LABEL[id]}`,
+        detail: `${id === 'vestrippn' ? 'graphite and the precise blue · liveries tint it' : VSCODE_THEMES[id].description}${id === colorTheme ? ' · current' : ''}`,
+        keywords: 'preferences color colour theme vscode vs code dark modern light plus classic',
+        run: () => {
+          setColorTheme(id);
+          toast({ id: 'theme', title: `color theme: ${COLOR_THEME_LABEL[id]}`, variant: 'success' });
+        },
+      })),
+      {
+        id: 'act:settings',
+        category: 'ACTION',
+        label: 'Preferences: Open Settings (JSON)',
+        detail: `every synced setting as settings.json (${typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'}+,)`,
+        keywords: 'settings json preferences config configure',
+        href: '/settings',
+      },
+      {
+        id: 'act:split',
+        category: 'ACTION',
+        label: 'View: Split Editor',
+        detail: 'open this page to the side, or close the split (Ctrl+\\) · desktop',
+        keywords: 'split editor side by side group right two pages',
+        run: () => {
+          if (parseWorkbench(getWorkbenchSnapshot()).split) closeSplit();
+          else openToSide(`${window.location.pathname}${window.location.search}`);
+        },
+      },
+      {
+        id: 'act:back',
+        category: 'ACTION',
+        label: 'Go Back',
+        detail: 'the previous page (Alt+←)',
+        keywords: 'history previous navigate back',
+        run: () => window.history.back(),
+      },
+      {
+        id: 'act:forward',
+        category: 'ACTION',
+        label: 'Go Forward',
+        detail: 'the next page (Alt+→)',
+        keywords: 'history next navigate forward',
+        run: () => window.history.forward(),
+      },
+      {
+        id: 'act:recent-clear',
+        category: 'ACTION',
+        label: 'Clear Recently Opened',
+        detail: 'forget the recent pages on this device',
+        keywords: 'history recent clear forget',
+        run: () => {
+          clearRecent();
+          setRecent([]);
+          toast({ id: 'recent', title: 'recently opened: cleared', variant: 'success' });
+        },
+      },
+      {
+        id: 'act:nav',
+        category: 'ACTION',
+        label: 'Customize tabs',
+        detail: 'rename, reorder, hide or add sidebar tabs',
+        keywords: 'navigation sidebar menu edit rename reorder hide add link tabs',
+        run: openNavEditor,
+      },
       {
         id: 'act:livery',
         category: 'ACTION',
@@ -200,6 +182,18 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           const on = !isLowPower();
           setLowPowerMode(on);
           toast({ id: 'lowpower', title: on ? 'low power: on' : 'low power: off', variant: 'success' });
+        },
+      },
+      {
+        id: 'act:watermark',
+        category: 'ACTION',
+        label: 'Toggle watermark',
+        detail: 'show or hide the dexmedetomidine background',
+        keywords: 'background molecule structure dexmedetomidine',
+        run: () => {
+          const on = !isWatermarkOn();
+          setWatermark(on);
+          toast({ id: 'watermark', title: on ? 'watermark: on' : 'watermark: off', variant: 'success' });
         },
       },
       {
@@ -239,42 +233,45 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
       list.push({ id: 'act:signout', category: 'ACTION', label: 'Sign out', detail: 'end session', keywords: 'logout session', run: () => signOut({ callbackUrl: '/auth/signin' }) });
     }
     return list;
-  }, [router, status]);
+  }, [router, status, colorTheme]);
+
+  // Open Recent: the pages visited on this device, newest first, minus this one.
+  const recentEntries = useMemo<Entry[]>(() => {
+    const here = typeof window === 'undefined' ? '' : tabPath(window.location.pathname);
+    return recent
+      .filter((href) => tabPath(href) !== here)
+      .map((href) => ({
+        id: `recent:${href}`,
+        category: 'RECENT' as const,
+        label: describeTab(tabPath(href), nav).label,
+        detail: resolvePath(tabPath(href)).display,
+        keywords: 'recent history opened',
+        href,
+      }));
+  }, [recent, nav]);
 
   const verbose = /^about\s+--verbose$/.test(query.trim());
 
+  // VS Code: a leading '>' searches commands only (what Ctrl+Shift+P opens).
+  const commandMode = query.startsWith('>');
   const results = useMemo(() => {
-    const all = [...STATIC_ENTRIES, ...actions];
-    const q = query.trim();
     if (verbose) return [];
-    if (!q) return all.filter((entry) => entry.category === 'PAGE' || entry.category === 'ACTION');
-    return all
-      .map((entry) => {
-        const ql = q.toLowerCase();
-        const label = entry.label.toLowerCase();
-        const full = `${entry.label} ${entry.detail} ${entry.category} ${entry.keywords ?? ''}`.toLowerCase();
-        // Exact substrings rank first; a scattered subsequence must earn it
-        // with consecutive or word-start hits, or it is noise.
-        if (label.includes(ql)) return { entry, best: 200 - label.indexOf(ql) };
-        if (full.includes(ql)) return { entry, best: 100 };
-        const fuzzy = score(q, entry.label) ?? score(q, full);
-        return { entry, best: fuzzy !== null && fuzzy >= q.length * 2.5 ? fuzzy : null };
-      })
-      .filter((item): item is { entry: Entry; best: number } => item.best !== null)
-      .sort((a, b) => b.best - a.best)
-      .slice(0, 40)
-      .map((item) => item.entry);
-  }, [query, actions, verbose]);
+    if (commandMode) return rankEntries(actions, query.slice(1));
+    const q = query.trim();
+    const all = [...navEntries(nav), ...STATIC_ENTRIES, ...actions];
+    if (!q) return [...recentEntries, ...all.filter((entry) => entry.category === 'PAGE' || entry.category === 'ACTION')];
+    return rankEntries(all, q);
+  }, [query, actions, verbose, nav, commandMode, recentEntries]);
 
   // Group in a stable category order; `flat` is the keyboard order.
   const groups = useMemo(() => {
     const byCategory = new Map<Category, Entry[]>();
     for (const entry of results) byCategory.set(entry.category, [...(byCategory.get(entry.category) ?? []), entry]);
-    const ordered = query.trim()
+    const ordered = query.trim() && !commandMode
       ? [...byCategory.keys()]
       : ORDER.filter((category) => byCategory.has(category));
     return ordered.map((category) => ({ category, entries: byCategory.get(category)! }));
-  }, [results, query]);
+  }, [results, query, commandMode]);
   const flat = useMemo(() => groups.flatMap((group) => group.entries), [groups]);
 
   const close = useCallback(() => setOpen(false), []);
@@ -284,6 +281,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
       if (!entry) return;
       close();
       if (entry.run) void entry.run();
+      else if (entry.href && isExternal(entry.href)) window.open(entry.href, '_blank', 'noopener,noreferrer');
       else if (entry.href) router.push(entry.href);
     },
     [close, router],
@@ -337,7 +335,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
             setActive(0);
           }}
           onKeyDown={onKeyDown}
-          placeholder="search VESTRIPPN…"
+          placeholder={commandMode ? 'run a command…' : 'search VESTRIPPN… (type > for commands)'}
           aria-label="Search VESTRIPPN"
           role="combobox"
           aria-expanded={open}
@@ -390,7 +388,7 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
         <span>
           <kbd>esc</kbd>close
         </span>
-        <span style={{ marginLeft: 'auto' }}>{NODES.length + LOGS.length + OBJECTS.length + ARCHIVE.length} indexed</span>
+        <span style={{ marginLeft: 'auto' }}>{NODES.length + OBJECTS.length + ARCHIVE.length} indexed</span>
       </div>
     </dialog>
   );
@@ -425,7 +423,6 @@ function AboutVerbose({ build }: { build: BuildInfo }) {
             {[
               [SYSTEMS.length, 'system'],
               [PROJECTS.length, 'project'],
-              [LOGS.length, 'log'],
               [OBJECTS.length, 'object'],
               [ARCHIVE.length, 'record'],
             ]

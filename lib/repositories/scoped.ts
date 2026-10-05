@@ -37,6 +37,7 @@ const USER_SCOPED_MODELS = new Set<string>([
   "ChatThread",
   "ChatMessage",
   "CaseProgress",
+  "CaseReview",
   // W05–W07 telemetry
   "IeltsModule",
   "Task",

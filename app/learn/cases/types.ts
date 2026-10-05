@@ -72,8 +72,13 @@ export type ChoiceResult = {
   node: NodeView;
   vitals?: Vital[];
   patientStatus?: string;
+  /** Spaced review after a finished run; null when the case is not queued. */
+  review?: { dueAt: string | null; step: number } | null;
   error?: string;
 };
+
+export type ReviewItem = { caseId: string; title: string; specialty: string; step: number; dueAt: string | null; lastResult: string; misses: number };
+export type ReviewQueue = { due: ReviewItem[]; upcoming: ReviewItem[]; graduated: number; intervals: number[] };
 
 export type Feedback = { outcome: Outcome; text: string; scoreDelta: number };
 

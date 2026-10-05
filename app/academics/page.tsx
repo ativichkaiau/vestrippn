@@ -7,6 +7,7 @@ import { getActiveCourses, getActiveExams } from "@/lib/curriculum";
 import type { ActiveExamData, CourseData } from "@/lib/curriculum-types";
 import { getAnkiHistory, type AnkiHistoryPoint } from "@/lib/anki";
 import AcademicsClient from "./AcademicsClient";
+import MotionPolicy from "@/components/system/MotionPolicy";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -52,13 +53,15 @@ export default async function AcademicsPage() {
 
   return (
     <div className="relative h-full w-full">
-      <AcademicsClient
-        initialCanvasData={liveCanvasData}
-        ankiData={formattedAnkiData}
-        ankiHistory={ankiHistory}
-        curriculumCourses={curriculumCourses}
-        curriculumExams={curriculumExams}
-      />
+      <MotionPolicy>
+        <AcademicsClient
+          initialCanvasData={liveCanvasData}
+          ankiData={formattedAnkiData}
+          ankiHistory={ankiHistory}
+          curriculumCourses={curriculumCourses}
+          curriculumExams={curriculumExams}
+        />
+      </MotionPolicy>
     </div>
   );
 }

@@ -1,4 +1,6 @@
-export type AgendaKind = 'canvas' | 'anki' | 'task' | 'milestone';
+import { MINUTES_PER_OBJECTIVE, type Countdown } from './coverage-drill';
+
+export type AgendaKind = 'canvas' | 'anki' | 'task' | 'milestone' | 'coverage';
 
 export interface AgendaItem {
   id: string;
@@ -11,6 +13,8 @@ export interface AgendaItem {
   priority: number;
   completed: boolean;
   url?: string;
+  /** An in-app page for this item (e.g. the coverage map or a drill). */
+  href?: string;
   reason: string;
   rank: number;
 }
@@ -32,6 +36,14 @@ export interface PlanDeadline {
   name: string;
   dueAt: string;
   url?: string;
+}
+
+/** An upcoming exam and today's share of its coverage (lib/coverage-drill countdown). */
+export interface PlanCountdown {
+  courseId: string;
+  courseCode: string;
+  examTitle: string;
+  plan: Countdown;
 }
 
 export function studyDay(date = new Date()): string {
@@ -58,6 +70,7 @@ export function buildAgenda(input: {
   ankiDue: number;
   completedItems: string[];
   now: Date;
+  countdowns?: PlanCountdown[];
 }): AgendaItem[] {
   const completed = new Set(input.completedItems);
   const records = (items: PlanRecord[], kind: 'task' | 'milestone'): AgendaItem[] => items.map(item => {
@@ -88,6 +101,27 @@ export function buildAgenda(input: {
       context: 'Latest Anki snapshot · estimate at 2 cards/min', dueAt: null,
       estimatedMinutes: Math.max(5, Math.min(240, Math.ceil(input.ankiDue / 2))),
       priority: 1, completed: completed.has(id), reason: 'Daily spaced repetition', rank: 350,
+    });
+  }
+  for (const { courseId, courseCode, examTitle, plan } of input.countdowns ?? []) {
+    if (plan.phase === 'done') continue;
+    const id = `coverage:${courseId}:${studyDay(input.now)}`;
+    const days = `${plan.daysLeft} day${plan.daysLeft === 1 ? '' : 's'} to ${examTitle}`;
+    if (plan.phase === 'drill') {
+      items.push({
+        id, sourceId: courseId, kind: 'coverage', title: `${courseCode}: weak-spot drill before the exam`,
+        context: `${days} · ${plan.remaining} objectives not yet tested`, dueAt: null, estimatedMinutes: 30,
+        priority: 2, completed: completed.has(id), href: `/study/drill?course=${encodeURIComponent(courseId)}`,
+        reason: 'Exam countdown · final days', rank: 480,
+      });
+      continue;
+    }
+    const count = plan.today.length;
+    items.push({
+      id, sourceId: courseId, kind: 'coverage', title: `${courseCode}: cover ${count} objective${count === 1 ? '' : 's'} today`,
+      context: `${days} · ${plan.remaining} left at ${plan.perDay}/day · the last 2 days are for a drill`, dueAt: null,
+      estimatedMinutes: Math.max(10, Math.min(240, count * MINUTES_PER_OBJECTIVE)), priority: 1, completed: completed.has(id),
+      href: `/workspace?tab=coverage`, reason: 'Exam countdown', rank: plan.daysLeft <= 7 ? 450 : 320,
     });
   }
   return items.sort((a, b) => Number(a.completed) - Number(b.completed) || b.rank - a.rank ||

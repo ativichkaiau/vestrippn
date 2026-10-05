@@ -5,7 +5,7 @@ import { Pipeline, RegistryTable, Section, StatusIndicator } from './primitives'
 /* ~/research, documented as a system: the systems that exist, the review
    pipeline as a structure, and where each stage is served today. */
 
-const SYSTEM_SLUGS = ['research', 'terra', 'williamslab', 'srma_screener'];
+const SYSTEM_SLUGS = ['research', 'williamslab', 'srma_screener'];
 
 const STAGES = [
   {

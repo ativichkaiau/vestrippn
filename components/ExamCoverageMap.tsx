@@ -175,9 +175,9 @@ export default function ExamCoverageMap() {
             </div>
           </details>)}
         </div>
-        {groups.length === 0 && <p className="rounded-2xl border border-dashed border-black/15 p-8 text-center text-sm text-neutral-500 dark:border-white/15">{objectives.length ? 'No objectives match these filters.' : 'No WilliamsHub topics match this course yet. Add your own learning objectives to start tracking it.'}</p>}
+        {groups.length === 0 && <p className="rounded-2xl border border-dashed border-black/15 p-8 text-center text-sm text-neutral-500 dark:border-white/15">{objectives.length ? 'No objectives match these filters.' : 'No Studyex_Medeetomihub topics match this course yet. Add your own learning objectives to start tracking it.'}</p>}
       </>}
-      <p className="text-xs leading-5 text-neutral-500">Study objectives adapted from <a href={data.source.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">WilliamsHub</a> · Catalog updated {dateLabel(data.source.importedAt)}. This tracks your coverage of those topics; it is not an official exam blueprint or a predicted grade. WilliamsHub practice runs separately; record your result here after practice.</p>
+      <p className="text-xs leading-5 text-neutral-500">Study objectives adapted from <a href={data.source.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">Studyex_Medeetomihub</a> · Catalog updated {dateLabel(data.source.importedAt)}. This tracks your coverage of those topics; it is not an official exam blueprint or a predicted grade. Studyex_Medeetomihub practice runs separately; record your result here after practice.</p>
     </>}
   </div>;
 }
@@ -187,7 +187,7 @@ function CoverageOverview({ course }: { course: CoverageCourse }) {
   const covered = counts.reviewed + counts.tested;
   return <section className="rounded-2xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:p-7">
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="min-w-0 flex-1"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--hub-accent)]">{course.code} · {course.catalogCode ? 'WilliamsHub topics' : 'Your learning objectives'}</p><h3 className="mt-2 text-xl font-black sm:text-2xl">{course.name}</h3><p className="mt-2 text-xs text-neutral-500">{course.nextExam ? `${course.nextExam.title} · ${dateLabel(course.nextExam.scheduledAt)} (Bangkok)` : 'No upcoming exam set'}{course.archived ? ' · Archived semester · View only' : ''}</p></div>
+      <div className="min-w-0 flex-1"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--hub-accent)]">{course.code} · {course.catalogCode ? 'Studyex_Medeetomihub topics' : 'Your learning objectives'}</p><h3 className="mt-2 text-xl font-black sm:text-2xl">{course.name}</h3><p className="mt-2 text-xs text-neutral-500">{course.nextExam ? `${course.nextExam.title} · ${dateLabel(course.nextExam.scheduledAt)} (Bangkok)` : 'No upcoming exam set'}{course.archived ? ' · Archived semester · View only' : ''}</p></div>
       <div className="text-right"><p className="text-3xl font-black tabular-nums">{counts.total ? Math.round(covered / counts.total * 100) : 0}%</p><p className="mt-1 text-xs text-neutral-500">reviewed or tested</p></div>
     </div>
     <div className="mt-5"><CoverageBar counts={counts} /></div>
@@ -256,7 +256,7 @@ function ObjectiveEvidence({ item, readOnly, busy, onSave, onDelete }: {
         </li>
       ))}</ul> : <p className="mt-2 text-xs text-neutral-500">No results recorded yet. A tested status can also be set manually.</p>}
       {!readOnly && <form onSubmit={event => void recordResult(event)} className="mt-4 space-y-3">
-        <label className="block text-xs font-bold">Practice name<input name="label" required maxLength={120} defaultValue="WilliamsHub practice" className={input} /></label>
+        <label className="block text-xs font-bold">Practice name<input name="label" required maxLength={120} defaultValue="Studyex_Medeetomihub practice" className={input} /></label>
         <div className="grid grid-cols-2 gap-3"><label className="text-xs font-bold">Correct<input type="number" name="correct" min={0} max={10000} step={1} required className={input} /></label><label className="text-xs font-bold">Total questions<input type="number" name="total" min={1} max={10000} step={1} required className={input} /></label></div>
         <label className="block text-xs font-bold">Result link (optional)<input type="url" name="url" maxLength={2048} className={input} placeholder="https://…" /></label>
         <button type="submit" disabled={busy} className={button}>{busy ? 'Saving…' : 'Record practice result'}</button>

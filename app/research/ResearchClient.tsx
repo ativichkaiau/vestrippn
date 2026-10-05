@@ -38,7 +38,7 @@ interface SourceStatus {
   reason: string;
 }
 
-interface VaultItem {
+export interface VaultItem {
   id: string;
   title: string;
   authors?: string | null;
@@ -53,9 +53,6 @@ interface VaultItem {
 }
 
 interface ResearchProps {
-  // Retained seam for the incoming Williams-grade research engine; the Review
-  // Matrix that consumed it was removed. Still fetched in page.tsx.
-  cloudResearch?: any;
   cloudExtractions?: VaultItem[];
 }
 
@@ -116,13 +113,17 @@ const QUICK_LINKS: { id: QuickLinkId; icon: string; label: string }[] = [
   { id: 'srma', icon: '🤖', label: 'SRMA Engine' },
 ];
 
-export default function ResearchClient({ cloudResearch, cloudExtractions = [] }: ResearchProps) {
+export default function ResearchClient({ cloudExtractions = [] }: ResearchProps) {
 
   /* ── Multi-source search state ── */
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchData, setSearchData] = useState<SearchResponse | null>(null);
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
+  // The latest finished search. The visible state derives from it: results
+  // stay up while a newer query loads, and clear with an empty query.
+  const [lastSearch, setLastSearch] = useState<{ q: string; data: SearchResponse | null; error: string | null } | null>(null);
+  const activeQuery = searchQuery.trim();
+  const searching = activeQuery !== '' && lastSearch?.q !== activeQuery;
+  const searchData = activeQuery ? lastSearch?.data ?? null : null;
+  const searchError = activeQuery && lastSearch?.q === activeQuery ? lastSearch.error : null;
 
   /* ── Source filters (from /api/research/sources) ── */
   const [sources, setSources] = useState<SourceStatus[]>([]);
@@ -158,30 +159,18 @@ export default function ResearchClient({ cloudResearch, cloudExtractions = [] }:
 
   /* ── Debounced multi-source search (~400ms after typing stops) ── */
   useEffect(() => {
-    const q = searchQuery.trim();
-    if (!q) {
-      setSearchData(null);
-      setSearchError(null);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
-    setSearchError(null);
+    if (!activeQuery) return;
     const handle = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/research/search?q=${encodeURIComponent(q)}&limit=20`);
+        const r = await fetch(`/api/research/search?q=${encodeURIComponent(activeQuery)}&limit=20`);
         if (!r.ok) throw new Error(`search ${r.status}`);
-        const data = (await r.json()) as SearchResponse;
-        setSearchData(data);
+        setLastSearch({ q: activeQuery, data: (await r.json()) as SearchResponse, error: null });
       } catch (e) {
-        setSearchError(e instanceof Error ? e.message : 'Search failed');
-        setSearchData(null);
-      } finally {
-        setSearching(false);
+        setLastSearch({ q: activeQuery, data: null, error: e instanceof Error ? e.message : 'Search failed' });
       }
     }, 400);
     return () => clearTimeout(handle);
-  }, [searchQuery]);
+  }, [activeQuery]);
 
   const isSaved = (r: { doi?: string | null; pmid?: string | null; title: string }) =>
     keysFor(r).some((k) => savedKeys.has(k));

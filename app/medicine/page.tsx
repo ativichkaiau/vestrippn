@@ -18,9 +18,8 @@ const WORKSTREAMS: { name: string; covers: string; artifacts: Artifact[] }[] = [
     name: 'study systems',
     covers: 'planning, revision and exam preparation',
     artifacts: [
-      { label: 'studyex', href: '/systems/studyex' },
+      { label: 'Studyex_Medeetomihub', href: '/systems/studyex_medeetomihub' },
       { label: 'workspace', href: '/workspace?tab=plan' },
-      { label: 'WilliamsHub', href: '/systems/williamshub' },
       { label: 'WilliamsPod', href: '/systems/williamspod' },
     ],
   },
@@ -37,9 +36,8 @@ const WORKSTREAMS: { name: string; covers: string; artifacts: Artifact[] }[] = [
   },
   {
     name: 'simulation',
-    covers: 'physiology in code; clinical reasoning as branching cases',
+    covers: 'clinical reasoning as branching cases',
     artifacts: [
-      { label: 'cardiac_sim_physics', href: '/projects/cardiac_sim_physics' },
       { label: 'cases', href: '/learn/cases' },
     ],
   },
@@ -48,7 +46,6 @@ const WORKSTREAMS: { name: string; covers: string; artifacts: Artifact[] }[] = [
     covers: 'systematic reviews and evidence synthesis',
     artifacts: [
       { label: '~/research', href: '/research' },
-      { label: 'Terra', href: '/systems/terra' },
     ],
   },
   {
@@ -64,7 +61,7 @@ const WORKSTREAMS: { name: string; covers: string; artifacts: Artifact[] }[] = [
 
 export default function MedicinePage() {
   const runtime = RUNTIME.filter((module) => module.branch === 'medicine');
-  const studyex = getNode('studyex');
+  const studyex = getNode('studyex_medeetomihub');
 
   return (
     <Page>
@@ -99,7 +96,7 @@ export default function MedicinePage() {
             <p>
               {studyex ? (
                 <>
-                  The study side lives in <Link href="/systems/studyex">{studyex.name}</Link>; the evidence side in <Link href="/research">~/research</Link>.
+                  The study side lives in <Link href={`/systems/${studyex.slug}`}>{studyex.name}</Link>; the evidence side in <Link href="/research">~/research</Link>.
                 </>
               ) : null}
             </p>

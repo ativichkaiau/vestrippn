@@ -3,6 +3,7 @@ import { requireUserId } from '@/lib/auth/owner';
 import { prisma } from '@/lib/prisma';
 import { fetchCanvasTelemetry } from '@/lib/canvas';
 import { buildAgenda, studyDay } from '@/lib/daily-plan';
+import { examCountdowns } from '@/lib/study-overview';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,17 +13,21 @@ export async function GET() {
   try {
     const now = new Date();
     const day = studyDay(now);
-    const [tasks, milestones, saved, anki, canvas] = await Promise.all([
+    const [tasks, milestones, saved, anki, canvas, countdowns] = await Promise.all([
       prisma.task.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
       prisma.researchMilestone.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
       prisma.studyPlanDay.findUnique({ where: { userId_day: { userId, day } } }),
       prisma.ankiTelemetry.findUnique({ where: { userId } }),
       fetchCanvasTelemetry(userId),
+      examCountdowns(userId, now).catch((error) => {
+        console.error('[STUDY PLAN] Countdown failed:', error);
+        return [];
+      }),
     ]);
     const completedItems = Array.isArray(saved?.completedItems) ? saved.completedItems.filter((id): id is string => typeof id === 'string') : [];
     return NextResponse.json({
       day, availableMinutes: saved?.availableMinutes ?? 120,
-      items: buildAgenda({ tasks, milestones, deadlines: canvas.deadlines ?? canvas.upcoming, ankiDue: anki?.dueCards ?? 0, completedItems, now }),
+      items: buildAgenda({ tasks, milestones, deadlines: canvas.deadlines ?? canvas.upcoming, ankiDue: anki?.dueCards ?? 0, completedItems, now, countdowns }),
       canvas: { status: canvas.status ?? 'unknown', syncedAt: canvas.syncedAt ?? null },
       anki: { due: anki?.dueCards ?? 0, lastSync: anki?.lastSync.toISOString() ?? null, stale: !anki || now.getTime() - anki.lastSync.getTime() > 86_400_000 },
     }, { headers: { 'Cache-Control': 'private, no-store' } });
@@ -63,7 +68,12 @@ export async function PATCH(request: Request) {
   const id = body.id;
   const completed = body.completed;
   try {
-    if (id !== `anki:${day}`) {
+    const coverage = /^coverage:([^:]{1,200}):(\d{4}-\d{2}-\d{2})$/.exec(id);
+    if (coverage) {
+      if (coverage[2] !== day || !(await prisma.course.findFirst({ where: { id: coverage[1], userId }, select: { id: true } }))) {
+        return NextResponse.json({ error: 'This countdown is no longer on today\'s plan. Refresh your plan.' }, { status: 404 });
+      }
+    } else if (id !== `anki:${day}`) {
       const canvas = await fetchCanvasTelemetry(userId);
       if (!(canvas.deadlines ?? canvas.upcoming).some(item => `canvas:${item.courseId}:${item.id}` === id)) {
         return NextResponse.json({ error: 'This deadline is no longer available. Refresh your plan.' }, { status: 404 });
