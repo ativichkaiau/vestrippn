@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
 import { auth } from "@/auth";
 import { PRIMARY_EMAIL } from "@/lib/auth/allow-list";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/rate-limit";
+import { consumeRateLimit } from "@/lib/rate-limit-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ function canRegister(email: string) {
 }
 
 export async function POST(req: Request) {
-  const limit = rateLimit(`register:${clientIp(req.headers)}`, 5, 60 * 60_000);
+  const limit = await consumeRateLimit(`register:${clientIp(req.headers)}`, 5, 60 * 60_000);
   if (!limit.ok) {
     return NextResponse.json({ error: "Too many sign-up attempts. Try again later." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } });
   }

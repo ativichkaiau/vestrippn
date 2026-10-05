@@ -86,7 +86,7 @@ The sidebar tabs can be edited from **customize tabs** at the bottom of the side
 
 - Google and LINE sign-in follow `AUTH_ALLOWED_EMAILS` (default: the owner plus any `@gmail.com` account). Every account gets its own data.
 - Integrations that run on the owner's credentials (Canvas grades, the Gmail and Canvas feed) are served to the owner only (`requireOwnerId` / `isOwner` in `lib/auth/owner.ts`).
-- Email/password sign-in and sign-up are rate-limited per address. A password can't be added to an existing Google/LINE account except by that account, signed in.
+- Email/password sign-in and sign-up are rate-limited per address. The counters live in Postgres (`RateLimit` table, keys stored as SHA-256 hashes), so every serverless instance shares them; if the database is unreachable an in-memory limiter takes over. A password can't be added to an existing Google/LINE account except by that account, signed in.
 - Security headers (frame blocking, nosniff, referrer and permissions policies, HSTS) are set in `next.config.ts`.
 
 ## Anki add-on

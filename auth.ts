@@ -6,7 +6,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
 import { isAllowedEmail } from "@/lib/auth/allow-list";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/rate-limit";
+import { consumeRateLimit } from "@/lib/rate-limit-db";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // 1. DATABASE UPLINK
@@ -34,7 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!email || !password) return null;
         // Blunt password guessing: per address+account, and per address overall.
         const ip = request instanceof Request ? clientIp(request.headers) : "unknown";
-        if (!rateLimit(`signin:${ip}:${email}`, 8, 15 * 60_000).ok || !rateLimit(`signin:${ip}`, 30, 15 * 60_000).ok) return null;
+        if (!(await consumeRateLimit(`signin:${ip}:${email}`, 8, 15 * 60_000)).ok || !(await consumeRateLimit(`signin:${ip}`, 30, 15 * 60_000)).ok) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;

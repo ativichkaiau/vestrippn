@@ -1,10 +1,9 @@
 /* ════════════════════════════════════════════════════════════════════════
-   A small fixed-window rate limiter for sign-in and sign-up.
+   The in-memory fixed-window rate limiter.
 
-   In memory, per server instance: on serverless each warm instance counts
-   separately, so this blunts brute force and scripted sign-ups rather than
-   guaranteeing a global cap. Keys are hashed-ish strings (ip + purpose);
-   nothing is persisted.
+   Per server instance, so on serverless each warm instance counts
+   separately. Sign-in and sign-up use the shared Postgres limiter in
+   rate-limit-db.ts; this one is its fallback when the database is down.
    ════════════════════════════════════════════════════════════════════════ */
 
 type Window = { count: number; resetAt: number };

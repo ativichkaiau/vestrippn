@@ -589,3 +589,13 @@ model CoverageObjective {
   @@unique([courseId, key])
   @@index([userId, courseId])
 }
+
+// Shared fixed-window counters for sign-in and sign-up (lib/rate-limit-db.ts).
+// `key` is a SHA-256 of the purpose, address and email; expired rows are swept.
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime @db.Timestamptz(3)
+
+  @@index([resetAt])
+}
