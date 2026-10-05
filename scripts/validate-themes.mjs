@@ -13,7 +13,7 @@ assert.equal(LIVERIES.filter(id => LIVERY_CATALOG[id].team === 'redbull').length
 assert(LIVERIES.includes('senna'), 'The existing driver tribute remains available');
 for (const [old, current] of Object.entries(LEGACY_LIVERIES)) assert.equal(validatePreferences({ livery: old }).livery, current);
 for (const id of LIVERIES) for (const mode of MODES) assert.deepEqual(validatePreferences({ livery: id, mode }), { livery: id, mode });
-for (const bad of [{ livery: 'constructor' }, { livery: 'made-up-team' }, { mode: 'random' }, { lowPower: 1 }]) assert.throws(() => validatePreferences(bad));
+for (const bad of [{ livery: 'constructor' }, { livery: 'made-up-team' }, { mode: 'random' }, { lowPower: 1 }, { watermark: 'off' }]) assert.throws(() => validatePreferences(bad));
 assert.equal(themeEngine.livery('__proto__'), null);
 
 const day = new Date('2026-09-15T12:00:00+07:00');
@@ -137,6 +137,7 @@ const plain = boot({ vest_theme: 'made-up' });
 assert.equal(plain.root.dataset.theme, 'vestrippn', 'Unknown themes fall back to VESTRIPPN');
 assert(!plain.properties.has('--shell-status-bg'), 'The default theme keeps the stylesheet shell tokens');
 assert.deepEqual(validatePreferences({ theme: 'vscode-modern' }), { theme: 'vscode-modern' });
+assert.deepEqual(validatePreferences({ watermark: false }), { watermark: false });
 assert.throws(() => validatePreferences({ theme: 'monokai-hacked' }));
 console.log(`Theme checks passed: ${COLOR_THEMES.length - 1} VS Code themes x 2 variants (${themeChecks} contrast checks, boot parity, livery independence),`);
 console.log(`Theme checks passed: ${LIVERIES.length} liveries, ${twilightSamples} twilight samples, ${environmentChecks} environment surface checks, readable palettes, migration, sync, and pre-paint parity.`);

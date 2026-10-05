@@ -15,6 +15,7 @@ import { VSCODE_THEMES } from '@/lib/vscode-themes';
 import Icon, { type IconName } from './Icon';
 import { useColorTheme, useLivery, useMode, useNav, useSyncStatus, useWorkbench } from './hooks';
 import { FOCUS_SEARCH_EVENT } from './shell-events';
+import { setWatermark, useWatermark } from '../useWatermark';
 
 /* ════════════════════════════════════════════════════════════════════════
    Side bar views (VS Code's primary side bar): Explorer, Search,
@@ -242,6 +243,7 @@ function AppearanceView() {
   const colorTheme = useColorTheme();
   const mode = useMode();
   const livery = useLivery();
+  const watermark = useWatermark();
   const name = useId();
   return (
     <div className="sys-appearance">
@@ -272,6 +274,16 @@ function AppearanceView() {
             </span>
           </label>
         ))}
+      </fieldset>
+      <fieldset className="sys-choice-group">
+        <legend className="sys-label">background</legend>
+        <label className="sys-choice">
+          <input type="checkbox" checked={watermark} onChange={(event) => setWatermark(event.target.checked)} />
+          <span>
+            <b>dexmedetomidine watermark</b>
+            <small>the faint structure behind every page</small>
+          </span>
+        </label>
       </fieldset>
       <fieldset className="sys-choice-group">
         <legend className="sys-label">livery</legend>

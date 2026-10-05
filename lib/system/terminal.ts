@@ -19,6 +19,7 @@ export type TerminalContext = {
   livery: string;
   liveries: string[];
   appearance: string;
+  watermark: boolean;
   tabs: string[];
   history: string[];
   now: Date;
@@ -30,6 +31,7 @@ export type TerminalEffect =
   | { type: 'theme'; value: ColorTheme }
   | { type: 'appearance'; value: 'dark' | 'light' | 'auto' }
   | { type: 'livery'; value: string | 'next' }
+  | { type: 'watermark'; value: boolean }
   | { type: 'palette'; query: string }
   | { type: 'clear' };
 
@@ -45,6 +47,7 @@ const HELP = [
   '  theme [name]       list or set the colour theme (vestrippn, modern, classic)',
   '  appearance <mode>  dark, light or auto',
   '  livery [id|next]   show, set or cycle the livery',
+  '  watermark [on|off] show or set the dexmedetomidine background',
   '  tabs               list open editor tabs',
   '  whoami · date · echo · history · clear · help',
 ];
@@ -161,6 +164,12 @@ export function run(line: string, ctx: TerminalContext): TerminalResult {
       if (rest === 'next') return { output: [], effect: { type: 'livery', value: 'next' } };
       if (!ctx.liveries.includes(rest)) return { output: [`livery: unknown livery '${rest}'`], error: true };
       return { output: [`livery: ${rest}`], effect: { type: 'livery', value: rest } };
+    }
+    case 'watermark': {
+      const value = rest.toLowerCase();
+      if (!value) return { output: [`watermark: ${ctx.watermark ? 'on' : 'off'}`] };
+      if (value !== 'on' && value !== 'off') return { output: [`watermark: expected on or off, got '${rest}'`], error: true };
+      return { output: [`watermark: ${value}`], effect: { type: 'watermark', value: value === 'on' } };
     }
     case 'sudo':
       return { output: ['nice try. VESTRIPPN runs as you.'] };

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { applyLivery, getColorTheme, getLivery, getMode } from '@/lib/theme';
 import { mergeFocusSessions, setFocusLogOwner } from '@/lib/study-log';
 import { NAV_CHANGE_EVENT, NAV_STORAGE_KEY } from '@/lib/system/nav-store';
+import { WATERMARK_EVENT } from './useWatermark';
 import { reconcilePreferences, SYNC_REQUEST_EVENT, SYNC_STATUS_EVENT, validatePreferences, type SyncedPreferences, type SyncSnapshot, type SyncStatus } from '@/lib/device-sync';
 
 type Cache = { revision: number; values: SyncedPreferences; pending: SyncedPreferences; base: SyncedPreferences; lastSync?: string };
@@ -26,6 +27,8 @@ function storedPreferences(): SyncedPreferences {
     if (livery) Object.assign(values, validatePreferences({ livery }));
     if (mode) Object.assign(values, validatePreferences({ mode }));
     if (lowPower !== null) values.lowPower = lowPower === '1';
+    const watermark = localStorage.getItem('vest_watermark');
+    if (watermark !== null) values.watermark = watermark !== '0';
     const theme = localStorage.getItem('vest_theme');
     if (theme) Object.assign(values, validatePreferences({ theme }));
     const nav = localStorage.getItem(NAV_STORAGE_KEY);
@@ -40,14 +43,17 @@ function applyPreferences(values: SyncedPreferences) {
     if (values.livery !== undefined) localStorage.setItem('vest_livery', values.livery);
     if (values.mode !== undefined) localStorage.setItem('vest_mode', values.mode);
     if (values.lowPower !== undefined) localStorage.setItem('vest_lowpower', values.lowPower ? '1' : '0');
+    if (values.watermark !== undefined) localStorage.setItem('vest_watermark', values.watermark ? '1' : '0');
     if (values.nav !== undefined) localStorage.setItem(NAV_STORAGE_KEY, values.nav);
     if (values.theme !== undefined) localStorage.setItem('vest_theme', values.theme);
   } catch { /* DOM remains usable without storage */ }
   applyLivery(values.livery ?? getLivery(), values.mode ?? getMode(), values.theme ?? getColorTheme());
   if (values.lowPower !== undefined) document.documentElement.classList.toggle('low-power', values.lowPower);
+  if (values.watermark !== undefined) document.documentElement.classList.toggle('no-watermark', !values.watermark);
   // These are display notifications, never preference-edit events.
   window.dispatchEvent(new Event('vest:theme-change'));
   window.dispatchEvent(new Event('vest-lowpower'));
+  window.dispatchEvent(new Event(WATERMARK_EVENT));
   window.dispatchEvent(new Event(NAV_CHANGE_EVENT));
 }
 
@@ -75,8 +81,8 @@ export default function DeviceSync() {
       const previousOwner = localStorage.getItem('vest_preferences_owner');
       migratePreferences = !previousOwner;
       if (previousOwner && previousOwner !== userId) {
-        for (const storageKey of ['vest_livery', 'vest_mode', 'vest_lowpower', 'vest_theme', NAV_STORAGE_KEY]) localStorage.removeItem(storageKey);
-        applyPreferences({ livery: 'system', mode: 'night', lowPower: false, theme: 'vestrippn' });
+        for (const storageKey of ['vest_livery', 'vest_mode', 'vest_lowpower', 'vest_theme', 'vest_watermark', NAV_STORAGE_KEY]) localStorage.removeItem(storageKey);
+        applyPreferences({ livery: 'system', mode: 'night', lowPower: false, theme: 'vestrippn', watermark: true });
       }
       localStorage.setItem('vest_preferences_owner', userId);
     } catch { /* continue online when browser storage is unavailable */ }

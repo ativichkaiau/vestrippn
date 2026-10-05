@@ -13,6 +13,7 @@ import { MODE_LABEL, cycleLivery, getLivery, setColorTheme, setTheme, type Liver
 import Icon from './Icon';
 import { useColorTheme, useEditorTabs, useLivery, useMode, useNav, useOutput, useWorkbench } from './hooks';
 import { openPalette } from './shell-events';
+import { isWatermarkOn, setWatermark } from '../useWatermark';
 
 /* ════════════════════════════════════════════════════════════════════════
    The panel (Ctrl+`): OUTPUT, the environment's own log for this session,
@@ -137,6 +138,9 @@ function Terminal({ pathname }: { pathname: string }) {
         if (effect.value === 'next') cycleLivery();
         else setTheme(effect.value as Livery);
         break;
+      case 'watermark':
+        setWatermark(effect.value);
+        break;
     }
   };
 
@@ -151,6 +155,7 @@ function Terminal({ pathname }: { pathname: string }) {
       livery: livery.id,
       liveries: LIVERIES,
       appearance: MODE_LABEL[mode],
+      watermark: isWatermarkOn(),
       tabs: tabs.map((tab) => `${describeTab(tab.path, nav).label.padEnd(16)} ${tab.href}${tab.pinned ? '  (pinned)' : ''}`),
       history,
       now: new Date(),

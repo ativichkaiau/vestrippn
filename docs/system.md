@@ -40,6 +40,8 @@ The study hubs (academics, workspace, cases, analytics, fitness, IELTS, assistan
 
 ## Motion
 
+Behind the editor area sits a watermark: the skeletal formula of dexmedetomidine (C13H16N2) in the text colour at 6% opacity, `aria-hidden` and not interactive (`MoleculeBackdrop`). It is on by default. The Appearance view, ⌘K ("Toggle watermark") and the terminal (`watermark on|off`) switch it off; the choice is the synced `watermark` preference and the boot script applies it before paint. It is never printed.
+
 Motion uses CSS only, at 120–220 ms: page fade-in, the drawer and palette reveal, and the blinking cursor in the masthead. Framer-motion is loaded only by the four hubs that use it (academics, fitness, IELTS, research), whose route pages wrap them in `MotionPolicy` (`reducedMotion="always"`), so they fade but never spring or travel. Toasts and notices use CSS (`.sys-pop-in`). Focus mode loads on first request (`FocusModeLoader`). The garage viewer is the one thing that moves on its own. It sleeps between frames at 30 fps and pauses when hidden, under reduced motion and in low power.
 
 ## Garage

@@ -5,7 +5,7 @@ import { load } from './load.mjs';
 const { run, resolveTarget } = await load('lib/system/terminal.ts');
 const { resolveNav, DEFAULT_NAV } = await load('lib/system/nav-layout.ts');
 const nav = resolveNav(DEFAULT_NAV);
-const ctx = (over = {}) => ({ pathname: '/', nav, user: null, colorTheme: 'vestrippn', livery: 'system', liveries: ['system', 'senna'], appearance: 'dark', tabs: [], history: [], now: new Date(0), ...over });
+const ctx = (over = {}) => ({ pathname: '/', nav, user: null, colorTheme: 'vestrippn', livery: 'system', liveries: ['system', 'senna'], appearance: 'dark', watermark: true, tabs: [], history: [], now: new Date(0), ...over });
 
 test('help, pwd and unknown commands', () => {
   assert(run('help', ctx()).output.length > 5);
@@ -43,4 +43,11 @@ test('settings commands return effects, not side effects', () => {
   assert.equal(run('livery ferrari', ctx()).error, true);
   assert.deepEqual(run('find anki', ctx()).effect, { type: 'palette', query: 'anki' });
   assert.deepEqual(run('clear', ctx()).effect, { type: 'clear' });
+});
+
+test('watermark shows its state and sets on/off', () => {
+  assert.deepEqual(run('watermark', ctx({ watermark: false })).output, ['watermark: off']);
+  assert.deepEqual(run('watermark off', ctx()).effect, { type: 'watermark', value: false });
+  assert.deepEqual(run('watermark ON', ctx({ watermark: false })).effect, { type: 'watermark', value: true });
+  assert.equal(run('watermark maybe', ctx()).error, true);
 });

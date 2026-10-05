@@ -12,6 +12,7 @@ import { COLOR_THEMES, COLOR_THEME_LABEL, LIVERY_LABEL, MODE_LABEL, cycleLivery,
 import { VSCODE_THEMES } from '@/lib/vscode-themes';
 import { toast } from '@/lib/toast-bus';
 import { setLowPowerMode } from '../useLowPower';
+import { isWatermarkOn, setWatermark } from '../useWatermark';
 import type { BuildInfo } from './Shell';
 import { useColorTheme, useNav } from './hooks';
 
@@ -127,6 +128,18 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
           const on = !isLowPower();
           setLowPowerMode(on);
           toast({ id: 'lowpower', title: on ? 'low power: on' : 'low power: off', variant: 'success' });
+        },
+      },
+      {
+        id: 'act:watermark',
+        category: 'ACTION',
+        label: 'Toggle watermark',
+        detail: 'show or hide the dexmedetomidine background',
+        keywords: 'background molecule structure dexmedetomidine',
+        run: () => {
+          const on = !isWatermarkOn();
+          setWatermark(on);
+          toast({ id: 'watermark', title: on ? 'watermark: on' : 'watermark: off', variant: 'success' });
         },
       },
       {
