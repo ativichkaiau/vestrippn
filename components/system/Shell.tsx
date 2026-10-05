@@ -15,6 +15,7 @@ import { onToast } from '@/lib/toast-bus';
 import ActivityBar from './ActivityBar';
 import EditorTabs from './EditorTabs';
 import Icon from './Icon';
+import MoleculeBackdrop from './MoleculeBackdrop';
 import NavEditor from './NavEditor';
 import Panel from './Panel';
 import Shortcuts from './Shortcuts';
@@ -119,6 +120,7 @@ export default function Shell({ children, build }: { children: ReactNode; build:
       {workbench.sidebar && <SideBar pathname={pathname} />}
 
       <div className="sys-editor">
+        <MoleculeBackdrop />
         <EditorTabs activePath={pathname} />
         <Breadcrumbs segments={path.segments} />
         <main id="main" ref={mainRef} className="sys-main sys-scroll" tabIndex={-1}>
