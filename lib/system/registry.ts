@@ -7,8 +7,6 @@ import type { GarageObject, LogEntry, Node, RuntimeModule } from './types';
 
    To add or correct an entry, edit this file. Fields are optional on
    purpose: leave a URL, date or stack undefined until it is real.
-   Everything here reaches the browser (the shell and the palette import
-   it); a private link such as a Drive folder goes in private-links.ts.
    ════════════════════════════════════════════════════════════════════════ */
 
 const REPO = 'https://github.com/ativichkaiau/vestrippn';
@@ -240,6 +238,7 @@ function solarElevation(date: Date): number {
     state: 'active',
     domains: ['medicine'],
     project: true,
+    url: 'https://drive.google.com/drive/folders/1nobEj31AcMk0PhHu2YxNKaihVYsPJRCi',
     related: ['studyex'],
   },
   {

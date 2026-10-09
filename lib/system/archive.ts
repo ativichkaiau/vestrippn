@@ -3,10 +3,6 @@ import type { ArchiveCategory, ArchiveRecord } from './types';
 /* ════════════════════════════════════════════════════════════════════════
    ~/archive — old work kept as records. Sources: the former Identity and
    Archive hubs, and this repository's own git history (software builds).
-
-   Everything here reaches the browser (the palette imports it). Private
-   Drive folders — the notes records, the university summaries — live in
-   private-links.ts, which is server-only.
    ════════════════════════════════════════════════════════════════════════ */
 
 export const ARCHIVE_CATEGORIES: { id: ArchiveCategory; label: string }[] = [
@@ -52,6 +48,11 @@ export const ARCHIVE: ArchiveRecord[] = [
   {
     id: 'olympiad-notes', category: 'olympiad', type: 'notes', field: 'astronomy / astrophysics / earth science',
     title: 'Olympiad notes',
+    links: [
+      { label: 'astrophysics', url: 'https://drive.google.com/drive/folders/1ta_ydTUk8YLe91z_tgBWawMAlxHxqs06' },
+      { label: 'astronomy', url: 'https://drive.google.com/drive/folders/1FIy_K00EC4I9UGy-LyP0_eRxHGGkqtJZ' },
+      { label: 'earth science', url: 'https://drive.google.com/drive/folders/1--FnoZZe4GWo4i7YYXyzSZNjwIX5HHks' },
+    ],
   },
 
   /* competition */
@@ -81,10 +82,19 @@ export const ARCHIVE: ArchiveRecord[] = [
   {
     id: 'medical-foundations', category: 'academic', type: 'notes', field: 'medicine',
     title: 'Medical foundations',
+    links: [
+      { label: 'university summaries', url: 'https://drive.google.com/drive/folders/1Wp9C_rP2ybeVUPgfXJCOganRNjuWaViS' },
+      { label: 'portfolio showcase', url: 'https://drive.google.com/drive/folders/1-34E1ClpDxzP5-3Hr_b52svDZX7J2ucF' },
+    ],
   },
   {
     id: 'preparation-vault', category: 'academic', type: 'notes', field: 'pre-medicine',
     title: 'Preparation notes',
+    links: [
+      { label: 'high school notes', url: 'https://drive.google.com/drive/folders/1rs2HtVZBXJ_4IOf_HkPMIRCW0XwuMSk5' },
+      { label: 'linguistics', url: 'https://drive.google.com/drive/folders/1-2RoL8dU8UjiSJZqQRIVZhh1LJ_yRgBw' },
+      { label: 'IELTS master', url: 'https://drive.google.com/drive/folders/1-1if13M7Pg0PNGiyFJ6YuXZe04AH9rKR' },
+    ],
   },
 
   /* research */
@@ -103,20 +113,20 @@ export const ARCHIVE: ArchiveRecord[] = [
   { id: 'studygram', category: 'media', type: 'link hub', field: 'study notes', title: 'shankusu.studygram', links: [{ label: 'linktree', url: 'https://linktr.ee/shankusu.studygram' }] },
 ];
 
-/* University summaries, by year → module → subject. A module's folder, once
-   published, is in private-links.ts; Year 3 folders are not published yet. */
-export type UniversityModule = { label: string; subjects: { code: string; name: string }[] };
+/* University summaries, by year → module → subject. Year 3 folders are not
+   published yet. */
+export type UniversityModule = { label: string; href?: string; subjects: { code: string; name: string }[] };
 export type UniversityYear = { year: string; modules: UniversityModule[] };
 
 export const UNIVERSITY_SUMMARIES: UniversityYear[] = [
   {
     year: 'Y1',
     modules: [
-      { label: 'term 1', subjects: [
+      { label: 'term 1', href: 'https://drive.google.com/drive/folders/1P7CTRwWOGVGyM7n5nbFDbppoK5P72Pqx', subjects: [
         { code: 'MBH', name: 'Molecular Basis of Human Body' },
         { code: 'HGD', name: 'Human Genetics and Developmental Biology' },
       ] },
-      { label: 'term 2', subjects: [
+      { label: 'term 2', href: 'https://drive.google.com/drive/folders/1soEWnZ6YpzaMIWIj6jEo4ZLXeK1buyoB', subjects: [
         { code: 'MFN', name: 'Metabolism of Fuel Nutrients in Human' },
         { code: 'ABM', name: 'Applied Biochemistry in Medicine' },
         { code: 'BMR', name: 'Intro to Biomedical Research' },
@@ -126,26 +136,26 @@ export const UNIVERSITY_SUMMARIES: UniversityYear[] = [
   {
     year: 'Y2',
     modules: [
-      { label: 'module 1', subjects: [
+      { label: 'module 1', href: 'https://drive.google.com/drive/folders/1LGag8DnkZLljngHvkhPcL6EmKoFHdkH-', subjects: [
         { code: 'BHCB', name: 'Basic Histology and Cell Biology' },
         { code: 'HIM', name: 'Human Immunology' },
         { code: 'EHP', name: 'Essential Human Physiology' },
         { code: 'HGA', name: 'Human Gross Anatomy' },
       ] },
-      { label: 'module 2', subjects: [
+      { label: 'module 2', href: 'https://drive.google.com/drive/folders/1BmrfGiFtl43mOMoVNdmXcyjIa4MCbc3q', subjects: [
         { code: 'HMS-1', name: 'Human Musculoskeletal System-1' },
         { code: 'HCVS-1', name: 'Human Cardiovascular System-1' },
         { code: 'HRS-1', name: 'Human Respiratory System-1' },
       ] },
-      { label: 'module 3', subjects: [
+      { label: 'module 3', href: 'https://drive.google.com/drive/folders/1p-2WhF7NCklH9JlUuH0ple3eG2K6Ig2m', subjects: [
         { code: 'HGB-1', name: 'Human Gastrointestinal and Biliary Tract System-1' },
         { code: 'HRP-1', name: 'Human Reproductive System and Perinatal Period-1' },
       ] },
-      { label: 'module 4', subjects: [
+      { label: 'module 4', href: 'https://drive.google.com/drive/folders/1I5mz0LQMIHMc8eV4v8Z4vCQ4wldTzIvb', subjects: [
         { code: 'HRU-1', name: 'Human Renal and Urinary System-1' },
         { code: 'HNS-1', name: 'Human Nervous and Special Senses System-1' },
       ] },
-      { label: 'module 5', subjects: [
+      { label: 'module 5', href: 'https://drive.google.com/drive/folders/1SqowuBE7bu17JtPVmvriOL4ZpCp1Ak2J', subjects: [
         { code: 'MHI', name: 'Microbiology of Human Infectious Diseases' },
         { code: 'PHI', name: 'Parasitology of Human Infectious Diseases' },
         { code: 'BAP', name: 'Basic Human Anatomical Pathology' },

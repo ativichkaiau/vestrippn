@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getNode, LOGS, PROJECTS, projectIndex } from '@/lib/system/registry';
-import { requireUserId } from '@/lib/auth/owner';
 import CodeBlock from '@/components/system/CodeBlock';
 import { NodeActions, NodeMetadata, RelatedNodes } from '@/components/system/NodeParts';
 import { CommandLink, Page, PageHeader, Section } from '@/components/system/primitives';
@@ -26,8 +25,6 @@ export default async function ProjectRepository({ params }: Params) {
   const node = getNode((await params).slug);
   if (!node?.project) notFound();
   const logs = LOGS.filter((log) => log.target === node.slug);
-  // Private links (Drive) appear for the signed-in owner only.
-  const signedIn = Boolean(await requireUserId());
 
   return (
     <Page>
@@ -36,7 +33,7 @@ export default async function ProjectRepository({ params }: Params) {
         label="projects / repository"
         title={<span className="sys-title-mono">{node.name}</span>}
         lede={node.summary}
-        actions={<NodeActions node={node} view="project" signedIn={signedIn} />}
+        actions={<NodeActions node={node} view="project" />}
       />
 
       <div className="sys-columns sys-section" data-ratio="wide-left">
@@ -52,7 +49,7 @@ export default async function ProjectRepository({ params }: Params) {
           )}
         </Section>
         <Section id="project" title="project">
-          <NodeMetadata node={node} signedIn={signedIn} />
+          <NodeMetadata node={node} />
         </Section>
       </div>
 

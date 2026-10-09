@@ -1,13 +1,11 @@
 import type { Node } from '@/lib/system/types';
 import { getNode } from '@/lib/system/registry';
-import { nodeLink } from '@/lib/system/private-links';
 import { Action, CommandLink, MetadataGrid, type MetaRow, StatusIndicator } from './primitives';
 
 /* Shared pieces of the system inspector and the project repository view:
    the same node, read two ways. */
 
-export function nodeMetadata(node: Node, extra: MetaRow[] = [], signedIn = false): MetaRow[] {
-  const { url, locked } = nodeLink(node, signedIn);
+export function nodeMetadata(node: Node, extra: MetaRow[] = []): MetaRow[] {
   return [
     { key: 'name', value: node.name, mono: true },
     { key: 'namespace', value: 'VESTRIPPN', mono: true },
@@ -20,12 +18,10 @@ export function nodeMetadata(node: Node, extra: MetaRow[] = [], signedIn = false
     { key: 'created', value: node.created, mono: true },
     {
       key: 'url',
-      value: url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          {url.replace(/^https?:\/\//, '')}
+      value: node.url ? (
+        <a href={node.url} target="_blank" rel="noopener noreferrer">
+          {node.url.replace(/^https?:\/\//, '')}
         </a>
-      ) : locked ? (
-        <a href={`/auth/signin?callbackUrl=${encodeURIComponent(node.project ? `/projects/${node.slug}` : `/systems/${node.slug}`)}`}>private · sign in</a>
       ) : undefined,
     },
     {
@@ -40,13 +36,12 @@ export function nodeMetadata(node: Node, extra: MetaRow[] = [], signedIn = false
   ];
 }
 
-export function NodeMetadata({ node, extra, signedIn = false }: { node: Node; extra?: MetaRow[]; signedIn?: boolean }) {
-  return <MetadataGrid rows={nodeMetadata(node, extra, signedIn)} label={`${node.name} metadata`} />;
+export function NodeMetadata({ node, extra }: { node: Node; extra?: MetaRow[] }) {
+  return <MetadataGrid rows={nodeMetadata(node, extra)} label={`${node.name} metadata`} />;
 }
 
 /** Launch / enter / source — only the actions that exist for this node. */
-export function NodeActions({ node, view, signedIn = false }: { node: Node; view: 'system' | 'project'; signedIn?: boolean }) {
-  const { url } = nodeLink(node, signedIn);
+export function NodeActions({ node, view }: { node: Node; view: 'system' | 'project' }) {
   return (
     <>
       {node.internal && (
@@ -54,8 +49,8 @@ export function NodeActions({ node, view, signedIn = false }: { node: Node; view
           enter
         </Action>
       )}
-      {url && (
-        <Action href={url} primary={!node.internal}>
+      {node.url && (
+        <Action href={node.url} primary={!node.internal}>
           launch
         </Action>
       )}

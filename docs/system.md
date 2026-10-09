@@ -16,7 +16,6 @@ VESTRIPPN is the root environment: a personal website, study runtime, research e
 | Identity | `lib/system/identity.ts` |
 | Navigation and the path system (`/academics` → `~/medicine/academics`) | `lib/system/navigation.ts` |
 | The environment tree on the root page | `lib/system/tree.ts`, `components/system/SystemTree.tsx` |
-| Private links (Drive folders), server-only | `lib/system/private-links.ts` |
 | Which pages are public | `proxy.ts` |
 | Assistant: hub personas, live context, request budget | `lib/assistant/`, `app/api/assistant/route.ts`, `components/assistant/AssistantClient.tsx` |
 | Sources: parsing, chunking, embeddings, retrieval, grounded answers | `lib/das/`, `app/api/das/` |
@@ -25,7 +24,7 @@ VESTRIPPN is the root environment: a personal website, study runtime, research e
 
 ## Registry rule
 
-Every count, index and inspector page is read from the registry. A field is filled in only when the fact is known. Unknown URLs, dates and stacks stay undefined, and the UI leaves them out. To add a system or project, add a `Node` to `NODES` with `system: true` and/or `project: true`. It then appears in the systems or projects registry, the palette, the status bar counts and its own inspector page. A private link goes in `private-links.ts` instead of `url` (see below).
+Every count, index and inspector page is read from the registry. A field is filled in only when the fact is known. Unknown URLs, dates and stacks stay undefined, and the UI leaves them out. To add a system or project, add a `Node` to `NODES` with `system: true` and/or `project: true`. It then appears in the systems or projects registry, the palette, the status bar counts and its own inspector page. Everything in the registry and the archive is public, links included: the shell and the palette import them, so they reach every visitor's browser.
 
 Open entries waiting on facts: launch URLs for `studyex_medeetomihub` and `Terra`, the source for `cardiac_sim_physics`, and the recording for `LOG_001`.
 
@@ -33,8 +32,7 @@ Open entries waiting on facts: launch URLs for `studyex_medeetomihub` and `Terra
 
 The portfolio is public: root, identity, systems, projects, medicine, research, logs, garage, archive, contact, legal, case practice and IELTS practice. The study hubs and the assistant need sign-in. `proxy.ts` holds the public list; every other page redirects to sign-in, so a new page stays private until it is added there. The proxy does not cover `/api`. Each private API route checks the session itself with `requireUserId`, and answers 401 without one.
 
-- **Private links.** The registry, the archive and the identity reach the browser, because the shell and the palette import them. Google Drive folders (OnePager, the notes records, the university summaries) therefore live in `lib/system/private-links.ts`. That module is `server-only`, so importing it from a client component fails the build. Server pages read it: the owner sees the folder, and a visitor sees that it exists (`private · sign in`, linking to sign-in and back). To publish a folder, move its URL into the registry or the archive.
-- **Rendering.** Pages that read the session (root, research, archive, project pages) render per request. The auth helpers in `lib/auth/owner.ts` rethrow Next's dynamic-render signal (`unstable_rethrow`), so these pages are never prerendered as a visitor's view.
+- **Rendering.** Pages that read the session (root, research) render per request. The auth helpers in `lib/auth/owner.ts` rethrow Next's dynamic-render signal (`unstable_rethrow`), so these pages are never prerendered as a visitor's view.
 - **Owner fallback.** `resolveUserId` falls back to the owner account when there is no session. Use `requireUserId` in anything a visitor can reach. Four case-bank routes under `app/api/learn/cases/` still use the fallback.
 
 ## Assistant
