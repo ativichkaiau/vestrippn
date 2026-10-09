@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import { forUser } from "@/lib/repositories/scoped";
 import {
   caseType,
   parseBranchingCase,
   parseRunState,
+  parseVisitorRunState,
   initRunState,
   nodeView,
   type CaseRunState,
@@ -16,24 +17,26 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/learn/cases/:id/choice   Body: { nodeId, choiceId }
+ * POST /api/learn/cases/:id/choice   Body: { nodeId, choiceId, state? }
  * The consequence engine: resolves the choice server-side (optimal / suboptimal
  * / deadly are never exposed up front), updates run state + score, advances to
  * the next node, and persists. Deadly choices are fatal regardless of score.
+ * Signed-in runs live in the database. A visitor's run is the `state` their
+ * browser sends back, checked against the case; nothing is stored for them.
  *
- * -> { outcome, feedback, scoreDelta, score, status, node }
+ * -> { outcome, feedback, scoreDelta, score, status, node, run, saved }
  */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const userId = await resolveUserId();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = await requireUserId();
 
   const { id } = await params;
   const body = (await req.json().catch(() => null)) as {
     nodeId?: unknown;
     choiceId?: unknown;
+    state?: unknown;
   } | null;
   if (typeof body?.nodeId !== "string" || typeof body?.choiceId !== "string") {
     return NextResponse.json(
@@ -53,11 +56,20 @@ export async function POST(
   const bc = parseBranchingCase(found.branches);
   if (!bc) return NextResponse.json({ error: "Case is misconfigured" }, { status: 422 });
 
-  const existing = await forUser(userId).caseProgress.findFirst({
-    where: { caseId: id },
-    select: { state: true },
-  });
-  const state = parseRunState(existing?.state) ?? initRunState(bc);
+  let state: CaseRunState;
+  if (userId) {
+    const existing = await forUser(userId).caseProgress.findFirst({
+      where: { caseId: id },
+      select: { state: true },
+    });
+    state = parseRunState(existing?.state) ?? initRunState(bc);
+  } else {
+    const carried = parseVisitorRunState(body.state, bc);
+    if (!carried) {
+      return NextResponse.json({ error: "Run state is missing or invalid — restart the case" }, { status: 400 });
+    }
+    state = carried;
+  }
 
   if (state.status !== "active") {
     return NextResponse.json({ error: "This case run is already complete" }, { status: 409 });
@@ -90,24 +102,26 @@ export async function POST(
 
   // Persist run state (base prisma — scoped client forbids upsert) + log the choice.
   // Cast: a typed object isn't structurally assignable to Prisma's Json input.
-  const stateJson = newState as unknown as Prisma.InputJsonValue;
-  await Promise.all([
-    prisma.caseProgress.upsert({
-      where: { userId_caseId: { userId, caseId: id } },
-      update: { state: stateJson },
-      create: { userId, caseId: id, state: stateJson },
-    }),
-    forUser(userId).userAttempt.create({
-      data: {
-        userId,
-        itemType: "case",
-        itemId: id,
-        response: { nodeId: body.nodeId, choiceId: body.choiceId, outcome: choice.outcome },
-        score: choice.outcome === "optimal" ? 1 : 0,
-        completedAt: status === "active" ? null : new Date(),
-      },
-    }),
-  ]);
+  if (userId) {
+    const stateJson = newState as unknown as Prisma.InputJsonValue;
+    await Promise.all([
+      prisma.caseProgress.upsert({
+        where: { userId_caseId: { userId, caseId: id } },
+        update: { state: stateJson },
+        create: { userId, caseId: id, state: stateJson },
+      }),
+      forUser(userId).userAttempt.create({
+        data: {
+          userId,
+          itemType: "case",
+          itemId: id,
+          response: { nodeId: body.nodeId, choiceId: body.choiceId, outcome: choice.outcome },
+          score: choice.outcome === "optimal" ? 1 : 0,
+          completedAt: status === "active" ? null : new Date(),
+        },
+      }),
+    ]);
+  }
 
   return NextResponse.json({
     outcome: choice.outcome,
@@ -118,5 +132,7 @@ export async function POST(
     node: nodeView(choice.next, nextNode), // terminal node has empty choices
     vitals: nextNode.vitals,
     patientStatus: nextNode.patientStatus,
+    run: newState,
+    saved: Boolean(userId),
   });
 }

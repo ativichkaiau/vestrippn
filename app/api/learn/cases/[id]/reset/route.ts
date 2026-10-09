@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import {
   caseType,
@@ -14,15 +14,15 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/learn/cases/:id/reset
- * Restart a branching case run from the start node.
- * -> { id, type:"branching", node, score, status:"active" }
+ * Restart a branching case run from the start node. Stored only for a
+ * signed-in player; a visitor just gets a fresh `run` back.
+ * -> { id, type:"branching", node, score, status:"active", run, saved }
  */
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const userId = await resolveUserId();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = await requireUserId();
 
   const { id } = await params;
   const found = await prisma.clinicalCase.findUnique({
@@ -37,12 +37,14 @@ export async function POST(
   if (!bc) return NextResponse.json({ error: "Case is misconfigured" }, { status: 422 });
 
   const state = initRunState(bc);
-  const stateJson = state as unknown as Prisma.InputJsonValue;
-  await prisma.caseProgress.upsert({
-    where: { userId_caseId: { userId, caseId: id } },
-    update: { state: stateJson },
-    create: { userId, caseId: id, state: stateJson },
-  });
+  if (userId) {
+    const stateJson = state as unknown as Prisma.InputJsonValue;
+    await prisma.caseProgress.upsert({
+      where: { userId_caseId: { userId, caseId: id } },
+      update: { state: stateJson },
+      create: { userId, caseId: id, state: stateJson },
+    });
+  }
 
   const node = bc.nodes[state.currentNodeId];
   return NextResponse.json({
@@ -53,5 +55,7 @@ export async function POST(
     patientStatus: node.patientStatus,
     score: state.score,
     status: state.status,
+    run: state,
+    saved: Boolean(userId),
   });
 }

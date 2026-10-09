@@ -46,7 +46,9 @@ export type NodeView = {
   prompt?: string;
 };
 
-export type LinearDetail = { id: string; title: string; type: 'linear'; steps: CaseStep[]; currentStep: number };
+export type LinearDetail = { id: string; title: string; type: 'linear'; steps: CaseStep[]; currentStep: number; saved?: boolean };
+/** A run as the server reports it. Visitors' runs aren't stored, so the player sends this back with each choice. */
+export type RunState = { currentNodeId: string; score: number; status: RunStatus; path: { nodeId: string; choiceId: string; outcome: Outcome }[] };
 export type BranchingDetail = {
   id: string;
   title: string;
@@ -54,6 +56,8 @@ export type BranchingDetail = {
   node: NodeView;
   score: number;
   status: RunStatus;
+  run?: RunState;
+  saved?: boolean;
   // target extensions
   subtitle?: string;
   patient?: Patient;
@@ -72,6 +76,8 @@ export type ChoiceResult = {
   node: NodeView;
   vitals?: Vital[];
   patientStatus?: string;
+  run?: RunState;
+  saved?: boolean;
   error?: string;
 };
 

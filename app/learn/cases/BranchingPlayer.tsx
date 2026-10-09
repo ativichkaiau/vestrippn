@@ -5,6 +5,7 @@ import {
   type BranchingDetail,
   type ChoiceResult,
   type Feedback,
+  type RunState,
   CHOICE_KEYS,
   OUTCOME_COLOR,
   OUTCOME_LABEL,
@@ -26,6 +27,9 @@ export default function BranchingPlayer({
   onClose: () => void;
 }) {
   const [d, setD] = useState<BranchingDetail>(initial);
+  // Sent back with each choice: the server stores signed-in runs itself and
+  // stores nothing for visitors, so their run travels with the page.
+  const [run, setRun] = useState<RunState | undefined>(initial.run);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,11 +53,12 @@ export default function BranchingPlayer({
       const res = await fetch(`/api/learn/cases/${d.id}/choice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodeId: d.node.id, choiceId: selected }),
+        body: JSON.stringify({ nodeId: d.node.id, choiceId: selected, state: run }),
       });
       const data = (await res.json().catch(() => null)) as ChoiceResult | null;
       if (!res.ok || !data) throw new Error(data?.error || `Choice failed (${res.status})`);
       setFeedback({ outcome: data.outcome, text: data.feedback, scoreDelta: data.scoreDelta });
+      setRun(data.run);
       setMaxScore((m) => Math.max(m, data.score));
       setSelected(null);
       setD((prev) => ({
@@ -81,6 +86,7 @@ export default function BranchingPlayer({
       const res = await fetch(`/api/learn/cases/${d.id}/reset`, { method: 'POST' });
       const data = (await res.json().catch(() => null)) as Partial<ChoiceResult> | null;
       if (!res.ok || !data?.node) throw new Error(data?.error || `Reset failed (${res.status})`);
+      setRun(data.run);
       setMaxScore((m) => Math.max(m, data.score ?? 0));
       setD((prev) => ({
         ...prev,

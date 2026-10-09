@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resolveUserId } from "@/lib/auth/owner";
+import { requireUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import { parseBranches } from "@/lib/learn/content";
 
@@ -10,13 +10,13 @@ export const dynamic = "force-dynamic";
  * POST /api/learn/cases/:id/progress  Body: { stepIndex }
  * Upserts this user's current step for the case. Uses base prisma with an
  * explicit (userId, caseId) unique key — the scoped client forbids upsert.
+ * Visitors get the same answer with `saved: false`; nothing is stored.
  */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const userId = await resolveUserId();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = await requireUserId();
 
   const { id } = await params;
 
@@ -39,11 +39,13 @@ export async function POST(
   const stepCount = parseBranches(found.branches).steps.length;
   const stepIndex = stepCount > 0 ? Math.min(raw, stepCount - 1) : 0;
 
+  if (!userId) return NextResponse.json({ ok: true, stepIndex, saved: false });
+
   await prisma.caseProgress.upsert({
     where: { userId_caseId: { userId, caseId: id } },
     update: { stepIndex },
     create: { userId, caseId: id, stepIndex },
   });
 
-  return NextResponse.json({ ok: true, stepIndex });
+  return NextResponse.json({ ok: true, stepIndex, saved: true });
 }

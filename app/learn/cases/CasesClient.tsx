@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useSession } from 'next-auth/react';
 import CaseStepper from '@/components/w09/CaseStepper';
 import BranchingPlayer from './BranchingPlayer';
 import { type CaseDetail, type CaseSummary, colorFor, difficultyColor, isRare, nonRareTags, specialtyIcon } from './types';
 import { Skel, SkelGroup } from '@/components/system/Skeleton';
-import { Page, PageHeader } from '@/components/system/primitives';
+import { Action, Page, PageHeader } from '@/components/system/primitives';
 
 export default function CasesClient() {
+  const { status } = useSession();
   const [cases, setCases] = useState<CaseSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +76,19 @@ export default function CasesClient() {
         label="runtime / medicine"
         title="Cases"
         lede="Branching clinical cases. Each choice moves the patient's vitals and outcome in real time."
-        meta={loading ? undefined : [{ key: 'cases', value: String(cases.length).padStart(3, '0') }]}
+        meta={
+          loading
+            ? undefined
+            : [
+                { key: 'cases', value: String(cases.length).padStart(3, '0') },
+                { key: 'saving', value: status === 'authenticated' ? 'on' : 'off · sign in to keep progress' },
+              ]
+        }
+        actions={
+          status === 'authenticated' ? undefined : (
+            <Action href={`/auth/signin?callbackUrl=${encodeURIComponent('/learn/cases')}`}>sign in to save</Action>
+          )
+        }
       />
       <div className="sys-section text-[color:var(--w09-text)]">
         {/* ── Selection mode ── */}

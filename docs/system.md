@@ -32,8 +32,9 @@ Open entries waiting on facts: launch URLs for `studyex_medeetomihub` and `Terra
 
 The portfolio is public: root, identity, systems, projects, medicine, research, logs, garage, archive, contact, legal, case practice and IELTS practice. The study hubs and the assistant need sign-in. `proxy.ts` holds the public list; every other page redirects to sign-in, so a new page stays private until it is added there. The proxy does not cover `/api`. Each private API route checks the session itself with `requireUserId`, and answers 401 without one.
 
-- **Rendering.** Pages that read the session (root, research) render per request. The auth helpers in `lib/auth/owner.ts` rethrow Next's dynamic-render signal (`unstable_rethrow`), so these pages are never prerendered as a visitor's view.
-- **Owner fallback.** `resolveUserId` falls back to the owner account when there is no session. Use `requireUserId` in anything a visitor can reach. Four case-bank routes under `app/api/learn/cases/` still use the fallback.
+- **Rendering.** Pages that read the session (root, research) render per request. `requireUserId` rethrows Next's dynamic-render signal (`unstable_rethrow`), so these pages are never prerendered as a visitor's view.
+- **No owner fallback.** A route identifies the user with `requireUserId` only, which returns null without a session. Nothing a visitor does is written to the owner's account.
+- **Practice for visitors.** IELTS answers and clinical case runs are graded on the server for everyone and stored only for a signed-in user. A visitor's case run is held by the page and sent back with each choice; the choice route checks it against the case (`parseVisitorRunState`) before applying the move.
 
 ## Assistant
 
