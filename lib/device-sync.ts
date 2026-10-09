@@ -1,8 +1,11 @@
 import { MODES, type Livery, type Mode } from './liveries';
 import { themeEngine } from './theme-config';
+import { parseNavLayout, serializeNavLayout } from './system/nav-layout';
+import { COLOR_THEMES, type ColorTheme } from './vscode-themes';
 export { LIVERIES } from './liveries';
 // Validate and migrate older device caches and backup files with the same catalog.
-export type SyncedPreferences = { livery?: Livery; mode?: Mode; lowPower?: boolean };
+/** `nav` is the editable navigation layout as a canonical JSON string (lib/system/nav-layout). */
+export type SyncedPreferences = { livery?: Livery; mode?: Mode; lowPower?: boolean; nav?: string; theme?: ColorTheme; watermark?: boolean };
 export type SyncedSession = { id: string; ts: number; circuit: string; mode: 'open' | 'min' | 'laps'; target: number; durationSec: number; laps: number; bestLap: number | null; title?: string; agendaItemId?: string };
 export type SyncSnapshot = { sessions: SyncedSession[]; preferences: { values: SyncedPreferences; revision: number } };
 export type SyncStatus = { state: 'signed-out' | 'syncing' | 'synced' | 'offline' | 'error'; message: string; lastSync?: string };
@@ -12,12 +15,16 @@ export const SYNC_REQUEST_EVENT = 'vest:sync-request';
 export function validatePreferences(value: unknown): SyncedPreferences {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid preferences.');
   const data = value as Record<string, unknown>;
-  if (Object.keys(data).some(key => !['livery', 'mode', 'lowPower'].includes(key))) throw new Error('Unsupported preference.');
+  if (Object.keys(data).some(key => !['livery', 'mode', 'lowPower', 'nav', 'theme', 'watermark'].includes(key))) throw new Error('Unsupported preference.');
   const livery = data.livery === undefined ? undefined : themeEngine.livery(data.livery);
   if (livery === null) throw new Error('Invalid livery.');
   if (data.mode !== undefined && !MODES.includes(data.mode as Mode)) throw new Error('Invalid display mode.');
   if (data.lowPower !== undefined && typeof data.lowPower !== 'boolean') throw new Error('Invalid low-power setting.');
-  return { ...data, ...(livery !== undefined ? { livery } : {}) } as SyncedPreferences;
+  if (data.watermark !== undefined && typeof data.watermark !== 'boolean') throw new Error('Invalid watermark setting.');
+  if (data.theme !== undefined && !COLOR_THEMES.includes(data.theme as ColorTheme)) throw new Error('Invalid colour theme.');
+  // Canonical form, so the same layout always compares equal across devices.
+  const nav = data.nav === undefined ? undefined : serializeNavLayout(parseNavLayout(data.nav));
+  return { ...data, ...(livery !== undefined ? { livery } : {}), ...(nav !== undefined ? { nav } : {}) } as SyncedPreferences;
 }
 
 export function validateFocusSession(value: unknown): SyncedSession {

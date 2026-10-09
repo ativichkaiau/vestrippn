@@ -18,15 +18,15 @@ export const dynamic = "force-dynamic";
  * GET /api/learn/cases/:id
  * Linear:    { id, title, type:"linear", steps[], currentStep }
  * Branching: { id, title, type:"branching", node:{id,content,choices[{id,label}]},
- *              score, status, run }  — only the player's CURRENT node, no spoilers.
- * Both carry `saved`. A signed-in player resumes their stored run; a visitor
- * gets a fresh one that is never stored (their browser carries `run`).
+ *              score, status }  — only the player's CURRENT node, no spoilers.
  */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const userId = await requireUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
 
   const found = await prisma.clinicalCase.findUnique({
@@ -35,12 +35,10 @@ export async function GET(
   });
   if (!found) return NextResponse.json({ error: "Case not found" }, { status: 404 });
 
-  const progress = userId
-    ? await forUser(userId).caseProgress.findFirst({
-        where: { caseId: id },
-        select: { stepIndex: true, state: true },
-      })
-    : null;
+  const progress = await forUser(userId).caseProgress.findFirst({
+    where: { caseId: id },
+    select: { stepIndex: true, state: true },
+  });
 
   if (caseType(found.branches) === "branching") {
     const bc = parseBranchingCase(found.branches);
@@ -61,8 +59,6 @@ export async function GET(
       patientStatus: node.patientStatus,
       score: state.score,
       status: state.status,
-      run: state,
-      saved: Boolean(userId),
     });
   }
 
@@ -73,6 +69,5 @@ export async function GET(
     type: "linear",
     steps,
     currentStep: progress?.stepIndex ?? 0,
-    saved: Boolean(userId),
   });
 }

@@ -18,14 +18,9 @@ export default function IdentityPage() {
     <Page>
       <PageHeader
         index="01"
-        label="identity · whoami"
-        title={
-          <>
-            {IDENTITY.handle}
-            <span className="sys-title-sub">{IDENTITY.fullName}</span>
-          </>
-        }
-        lede={`${IDENTITY.roles.join(', ').replace(/^./, (c) => c.toUpperCase())} — ${IDENTITY.location.replace(' / ', ', ')}.`}
+        label="identity"
+        title="whoami"
+        lede={`${IDENTITY.handle} — ${IDENTITY.roles.join(', ')}.`}
         meta={[
           { key: 'program', value: `${IDENTITY.program} · year ${IDENTITY.year}` },
           { key: 'institution', value: IDENTITY.institutionShort },

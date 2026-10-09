@@ -1,9 +1,18 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { usePathname, useSelectedLayoutSegment } from 'next/navigation';
-import { serverThemeSnapshot, subscribeTheme, themeSnapshot } from '@/lib/theme';
+import { serverThemeSnapshot, subscribeTheme, themeSnapshot, type ColorTheme } from '@/lib/theme';
 import { LIVERY_CATALOG, type Livery, type Mode } from '@/lib/liveries';
+import { readNavLayout, resolveNav, type ResolvedNav } from '@/lib/system/nav-layout';
+import { getNavSnapshot, serverNavSnapshot, subscribeNav } from '@/lib/system/nav-store';
+import { getWorkbenchSnapshot, parseWorkbench, serverWorkbenchSnapshot, subscribeWorkbench, type Workbench } from '@/lib/system/workbench';
+import { getTabsSnapshot, serverTabsSnapshot, subscribeTabs } from '@/lib/system/editor-tabs-store';
+import { parseTabs, type EditorTab } from '@/lib/system/editor-tabs';
+import { getOutputSnapshot, serverOutputSnapshot, subscribeOutput, type OutputLine } from '@/lib/system/output-log';
+import { SYNC_STATUS_EVENT, type SyncStatus } from '@/lib/device-sync';
+import { getSyncStatus } from '../DeviceSync';
+import { isEmbedded } from '@/lib/system/embed';
 
 /* Small external-store hooks for real runtime state shown in the shell:
    wall clock, network, appearance. Each has a stable server snapshot so the
@@ -11,6 +20,11 @@ import { LIVERY_CATALOG, type Livery, type Mode } from '@/lib/liveries';
 
 const subscribeNever = () => () => {};
 const NOT_FOUND_PATH = '/_not-found';
+
+/** True inside the side editor's frame (after hydration). */
+export function useEmbedded(): boolean {
+  return useSyncExternalStore(subscribeNever, isEmbedded, () => false);
+}
 
 /** False during the server render and hydration, true afterwards. */
 export function useHydrated(): boolean {
@@ -65,6 +79,11 @@ export function useMode(): Mode {
   return useSyncExternalStore(subscribeTheme, themeSnapshot, serverThemeSnapshot).split('|')[1] as Mode;
 }
 
+/** The VS Code colour theme (or the VESTRIPPN default). */
+export function useColorTheme(): ColorTheme {
+  return useSyncExternalStore(subscribeTheme, themeSnapshot, serverThemeSnapshot).split('|')[4] as ColorTheme;
+}
+
 /** The selected livery and its catalogue entry. */
 export function useLivery() {
   const id = useSyncExternalStore(subscribeTheme, themeSnapshot, serverThemeSnapshot).split('|')[0] as Livery;
@@ -78,4 +97,37 @@ export function useModifierLabel(): string {
     () => (/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'),
     () => '⌘',
   );
+}
+
+/** The operator's navigation layout; the default until hydration is done. */
+export function useNav(): ResolvedNav {
+  const stored = useSyncExternalStore(subscribeNav, getNavSnapshot, serverNavSnapshot);
+  return useMemo(() => resolveNav(readNavLayout(stored)), [stored]);
+}
+
+/** Workbench layout (side view, side bar, panel) for this device. */
+export function useWorkbench(): Workbench {
+  const raw = useSyncExternalStore(subscribeWorkbench, getWorkbenchSnapshot, serverWorkbenchSnapshot);
+  return useMemo(() => parseWorkbench(raw), [raw]);
+}
+
+/** Open editor tabs on this device. */
+export function useEditorTabs(): EditorTab[] {
+  const raw = useSyncExternalStore(subscribeTabs, getTabsSnapshot, serverTabsSnapshot);
+  return useMemo(() => parseTabs(raw), [raw]);
+}
+
+/** The Output panel's lines. */
+export function useOutput(): OutputLine[] {
+  return useSyncExternalStore(subscribeOutput, getOutputSnapshot, serverOutputSnapshot);
+}
+
+const SERVER_SYNC: SyncStatus = { state: 'signed-out', message: 'Sign in to sync this device.' };
+function subscribeSync(listener: () => void) {
+  window.addEventListener(SYNC_STATUS_EVENT, listener);
+  return () => window.removeEventListener(SYNC_STATUS_EVENT, listener);
+}
+/** Device sync state, as DeviceSync last published it. */
+export function useSyncStatus(): SyncStatus {
+  return useSyncExternalStore(subscribeSync, getSyncStatus, () => SERVER_SYNC);
 }

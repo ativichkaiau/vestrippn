@@ -1,182 +1,190 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { Action, Page, PageHeader, Section } from '@/components/system/primitives';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import QuestionCard from '@/components/w09/QuestionCard';
+import { Skel, SkelGroup } from '@/components/system/Skeleton';
+import { Action, Page, PageHeader } from '@/components/system/primitives';
 
-/* ~/runtime/ielts/practice — graded server-side, explained after each answer.
-   Public: anyone can practise; attempts are stored only when signed in. */
+type Question = { id: string; number: number; prompt: string; options: { id: string; label: string }[] };
+type AnswerState = { selectedId?: string; status: 'idle' | 'answered'; correctId?: string };
 
-type Question = {
-  id: string;
-  number: number;
-  section: string;
-  skill: string;
-  difficulty: number;
-  prompt: string;
-  options: { id: string; label: string }[];
-};
-type Answer = { selectedId: string; state: 'grading' | 'answered'; correctId?: string; explanation?: string };
+const SECTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'reading', label: 'Reading' },
+  { id: 'listening', label: 'Listening' },
+  { id: 'writing', label: 'Writing' },
+  { id: 'speaking', label: 'Speaking' },
+] as const;
+type SectionId = (typeof SECTIONS)[number]['id'];
 
-const SECTIONS = ['all', 'reading', 'listening', 'writing', 'speaking'] as const;
-type SectionId = (typeof SECTIONS)[number];
+type Loaded = { questions: Question[] } | { error: string };
+
+async function fetchQuestions(sec: SectionId): Promise<Loaded> {
+  try {
+    const res = await fetch(`/api/learn/ielts/questions${sec === 'all' ? '' : `?section=${sec}`}`);
+    if (!res.ok) throw new Error(`Failed to load questions (${res.status})`);
+    return { questions: (await res.json()) as Question[] };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Failed to load questions' };
+  }
+}
 
 export default function IeltsPracticeClient() {
-  const { status } = useSession();
   const [section, setSection] = useState<SectionId>('all');
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, Answer>>({});
+  const [answers, setAnswers] = useState<Record<string, AnswerState>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Only the latest request may update the list: switching sections quickly
-  // must not let a slower, earlier response win.
-  const latest = useRef(0);
-  const load = useCallback((next: SectionId) => {
-    const request = ++latest.current;
-    return fetch(`/api/learn/ielts/questions${next === 'all' ? '' : `?section=${next}`}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Could not load questions (${res.status})`);
-        const list = (await res.json()) as Question[];
-        if (request === latest.current) setQuestions(list);
-      })
-      .catch((e: unknown) => {
-        if (request !== latest.current) return;
-        setError(e instanceof Error ? e.message : 'Could not load questions');
-        setQuestions([]);
-      })
-      .finally(() => {
-        if (request === latest.current) setLoading(false);
-      });
+  const apply = useCallback((result: Loaded) => {
+    if ('error' in result) {
+      setError(result.error);
+      setQuestions([]);
+    } else {
+      setQuestions(result.questions);
+      setAnswers({});
+      setError(null);
+    }
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    void load('all');
-  }, [load]);
-
-  const pick = (next: SectionId) => {
-    if (next === section) return;
-    setSection(next);
-    setAnswers({});
-    setError(null);
+  const load = (sec: SectionId) => {
     setLoading(true);
-    void load(next);
+    setError(null);
+    void fetchQuestions(sec).then(apply);
   };
 
-  const choose = async (question: Question, optionId: string) => {
-    if (answers[question.id]) return;
-    setAnswers((prev) => ({ ...prev, [question.id]: { selectedId: optionId, state: 'grading' } }));
+  const selectSection = (sec: SectionId) => {
+    if (sec === section) return;
+    setLoading(true);
+    setError(null);
+    setSection(sec);
+  };
+
+  useEffect(() => {
+    let current = true;
+    void fetchQuestions(section).then((result) => {
+      if (current) apply(result);
+    });
+    return () => {
+      current = false;
+    };
+  }, [section, apply]);
+
+  const onSelect = async (questionId: string, optionId: string) => {
+    if (answers[questionId]?.status === 'answered') return;
+    setAnswers((prev) => ({ ...prev, [questionId]: { selectedId: optionId, status: 'idle' } }));
     try {
       const res = await fetch('/api/learn/ielts/answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionId: question.id, optionId }),
+        body: JSON.stringify({ questionId, optionId }),
       });
-      const data = (await res.json().catch(() => null)) as { correctId?: string; explanation?: string; error?: string } | null;
+      const data = (await res.json().catch(() => null)) as { correct?: boolean; correctId?: string; error?: string } | null;
       if (!res.ok) throw new Error(data?.error || `Grading failed (${res.status})`);
-      setAnswers((prev) => ({ ...prev, [question.id]: { selectedId: optionId, state: 'answered', correctId: data?.correctId, explanation: data?.explanation } }));
+      setAnswers((prev) => ({ ...prev, [questionId]: { selectedId: optionId, status: 'answered', correctId: data?.correctId } }));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Grading failed');
-      setAnswers((prev) => {
-        const next = { ...prev };
-        delete next[question.id];
-        return next;
-      });
+      setAnswers((prev) => ({ ...prev, [questionId]: { selectedId: optionId, status: 'idle' } }));
     }
   };
 
-  const answered = useMemo(() => Object.values(answers).filter((a) => a.state === 'answered'), [answers]);
-  const correct = answered.filter((a) => a.selectedId === a.correctId).length;
+  const total = questions.length;
+  const answered = useMemo(() => Object.values(answers).filter((a) => a.status === 'answered').length, [answers]);
+  const correct = useMemo(
+    () => Object.values(answers).filter((a) => a.status === 'answered' && a.selectedId === a.correctId).length,
+    [answers],
+  );
+  const allDone = total > 0 && answered === total;
+  const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
 
   return (
     <Page>
-      <PageHeader
-        label="runtime / ielts / practice"
-        title="IELTS practice"
-        lede="Choose an answer and it is graded on the server, with the reasoning shown straight after."
-        meta={[
-          { key: 'questions', value: String(questions.length).padStart(2, '0') },
-          { key: 'answered', value: `${answered.length}/${questions.length}` },
-          { key: 'correct', value: answered.length ? `${correct} · ${Math.round((correct / answered.length) * 100)}%` : '—' },
-          { key: 'saving', value: status === 'authenticated' ? 'on' : 'off · sign in to keep attempts' },
-        ]}
-        actions={
-          status === 'authenticated' ? (
-            <Action href="/ielts">ielts hub</Action>
-          ) : (
-            <Action href={`/auth/signin?callbackUrl=${encodeURIComponent('/learn/ielts')}`}>sign in to save</Action>
-          )
-        }
-      />
+      <PageHeader label="runtime / ielts / practice" title="IELTS practice" lede="Pick a section and answer — each choice is graded instantly." actions={<Action href="/ielts">ielts hub</Action>} />
+      <div className="sys-section" style={{ maxWidth: 720 }}>
 
-      <Section id="practice" title="questions" count={loading ? '…' : String(questions.length).padStart(2, '0')}>
-        <div className="sys-filter" role="group" aria-label="Section">
-          {SECTIONS.map((id) => (
-            <button key={id} type="button" aria-pressed={section === id} onClick={() => pick(id)}>
-              {id}
+        {/* Section filter */}
+        <div className="mt-5 flex flex-wrap gap-2">
+          {SECTIONS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => selectSection(s.id)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors duration-[var(--w09-motion-duration)] ${
+ section === s.id
+ ? 'bg-[var(--w09-accent-primary)] text-[color:var(--w09-accent-contrast)]'
+ : 'border border-[color:var(--w09-border)] bg-[var(--w09-surface)] text-[color:var(--w09-text-muted)] hover:bg-[var(--w09-surface-raised)]'
+ }`}
+            >
+              {s.label}
             </button>
           ))}
-          {answered.length > 0 && (
-            <button type="button" onClick={() => setAnswers({})}>
-              reset answers
-            </button>
-          )}
         </div>
 
-        {error && <p className="sys-alert" role="alert">{error}</p>}
+        {/* Sticky progress / score */}
+        {!loading && total > 0 && (
+          <div className="sticky top-0 z-10 -mx-5 mt-5 border-b border-[color:var(--w09-border)] bg-[var(--w09-bg)] px-5 py-3">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">
+              <span>Answered {answered}/{total}</span>
+              <span className="text-[color:var(--w09-success)]">{correct} correct</span>
+            </div>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--w09-surface-raised)]">
+              <div
+                className="h-full rounded-full bg-[var(--w09-accent-primary)] transition-[width] duration-[var(--w09-motion-duration)] ease-[var(--w09-motion-ease)]"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {error && <p className="mt-4 text-sm text-[color:var(--w09-danger)]">{error}</p>}
 
         {loading ? (
-          <div className="sys-skel-group" aria-busy="true" aria-label="Loading questions">
-            {[0, 1, 2].map((i) => <span key={i} className="sys-skel" style={{ height: 140 }} />)}
+          <SkelGroup label="IELTS practice" className="mt-6 space-y-4">
+            {[1, 2, 3].map((n) => (
+              <Skel key={n} className="h-40 rounded-[var(--w09-radius)]" />
+            ))}
+          </SkelGroup>
+        ) : total === 0 ? (
+          <div className="mt-10 rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-8 text-center text-sm text-[color:var(--w09-text-muted)]">
+            No questions{section !== 'all' ? ` in ${section}` : ''} yet.
           </div>
-        ) : questions.length === 0 ? (
-          <p className="sys-empty">no questions in this section yet.</p>
         ) : (
-          <ol className="sys-quiz">
-            {questions.map((question) => {
-              const answer = answers[question.id];
-              const done = answer?.state === 'answered';
+          <div className="mt-6 space-y-5">
+            {questions.map((q) => {
+              const a = answers[q.id];
               return (
-                <li key={question.id} className="sys-quiz-item" data-state={done ? (answer.selectedId === answer.correctId ? 'correct' : 'wrong') : undefined}>
-                  <p className="sys-label">
-                    Q{String(question.number).padStart(2, '0')} · {question.section} · {question.skill}
-                  </p>
-                  <p className="sys-quiz-prompt">{question.prompt}</p>
-                  <div className="sys-quiz-options" role="group" aria-label={`Options for question ${question.number}`}>
-                    {question.options.map((option) => {
-                      const selected = answer?.selectedId === option.id;
-                      const right = done && answer.correctId === option.id;
-                      const wrong = done && selected && answer.correctId !== option.id;
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          className="sys-quiz-option"
-                          data-selected={selected || undefined}
-                          data-result={right ? 'correct' : wrong ? 'wrong' : undefined}
-                          aria-pressed={selected}
-                          disabled={Boolean(answer)}
-                          onClick={() => void choose(question, option.id)}
-                        >
-                          <span>{option.label}</span>
-                          {right && <span className="sys-quiz-mark">correct</span>}
-                          {wrong && <span className="sys-quiz-mark">your answer</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {answer?.state === 'grading' && <p className="sys-turn-wait">grading</p>}
-                  {done && answer.explanation && (
-                    <p className="sys-quiz-explanation">
-                      <b>{answer.selectedId === answer.correctId ? 'Correct.' : 'Not quite.'}</b> {answer.explanation}
-                    </p>
-                  )}
-                </li>
+                <QuestionCard
+                  key={q.id}
+                  number={q.number}
+                  prompt={q.prompt}
+                  options={q.options}
+                  selectedId={a?.selectedId}
+                  correctId={a?.correctId}
+                  status={a?.status ?? 'idle'}
+                  onSelect={(optionId) => onSelect(q.id, optionId)}
+                />
               );
             })}
-          </ol>
+          </div>
         )}
-      </Section>
+
+        {/* Results summary */}
+        {allDone && (
+          <div className="mt-6 rounded-[var(--w09-radius)] border border-[color:var(--w09-border)] bg-[var(--w09-surface)] p-6 text-center">
+            <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--w09-text-muted)]">Session complete</div>
+            <div className="mt-1 text-3xl font-black text-[color:var(--w09-accent-primary)]">
+              {correct}/{total}
+            </div>
+            <div className="mt-1 text-sm text-[color:var(--w09-text-muted)]">{Math.round((correct / total) * 100)}% correct</div>
+            <button
+              onClick={() => load(section)}
+              className="mt-4 rounded-[var(--w09-radius)] bg-[var(--w09-accent-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--w09-accent-contrast)] transition-transform active:scale-95"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+      </div>
     </Page>
   );
 }

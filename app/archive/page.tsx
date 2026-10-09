@@ -44,15 +44,11 @@ export default function ArchivePage() {
     ...category,
     records: ARCHIVE.filter((record) => record.category === category.id),
   })).filter((category) => category.records.length > 0);
-  // One table for every year, so the columns line up; the year opens each group.
-  const summaries = UNIVERSITY_SUMMARIES.flatMap((year) =>
-    year.modules.map((module, i) => ({ ...module, year: year.year, first: i === 0 })),
-  );
 
   return (
     <Page>
       <PageHeader
-        index="08"
+        index="07"
         label="archive"
         title="Archive"
         lede="Earlier work, kept as records rather than displayed as achievements."
@@ -73,23 +69,29 @@ export default function ArchivePage() {
       ))}
 
       <Section id="university" title="university summaries" intro="Medical school summaries by year and module. Year 3 folders are not published yet.">
-        <RegistryTable
-          caption="University summaries by year and module"
-          rows={summaries}
-          rowKey={(row) => `${row.year}/${row.label}`}
-          href={(row) => row.href ?? ''}
-          columns={[
-            { key: 'year', label: 'year', kind: 'id', render: (row) => (row.first ? row.year : '') },
-            { key: 'module', label: 'module', kind: 'name', render: (row) => row.label },
-            { key: 'subjects', label: 'subjects', kind: 'mono', render: (row) => row.subjects.map((subject) => subject.code).join(' · ') },
-            {
-              key: 'state',
-              label: 'notes',
-              optional: true,
-              render: (row) => <StatusIndicator state={row.href ? 'available' : 'planned'} label={row.href ? 'published' : 'pending'} />,
-            },
-          ]}
-        />
+        {UNIVERSITY_SUMMARIES.map((year) => (
+          <div key={year.year} style={{ marginBottom: 'var(--space-6)' }}>
+            <p className="sys-label" style={{ marginBottom: 'var(--space-3)' }}>
+              {year.year}
+            </p>
+            <RegistryTable
+              caption={`University summaries, ${year.year}`}
+              rows={year.modules}
+              rowKey={(module) => module.label}
+              href={(module) => module.href ?? ''}
+              columns={[
+                { key: 'module', label: 'module', kind: 'name', render: (module) => module.label },
+                { key: 'subjects', label: 'subjects', kind: 'mono', render: (module) => module.subjects.map((subject) => subject.code).join(' · ') },
+                {
+                  key: 'state',
+                  label: 'notes',
+                  optional: true,
+                  render: (module) => <StatusIndicator state={module.href ? 'available' : 'planned'} label={module.href ? 'published' : 'pending'} />,
+                },
+              ]}
+            />
+          </div>
+        ))}
       </Section>
     </Page>
   );

@@ -1,54 +1,60 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Action, Page, PageHeader } from '@/components/system/primitives';
+import { useStoredValue, writeStored } from '@/components/system/useStoredValue';
 
 interface Module { id: number; text: string; }
 
+// dictionaryapi.dev response, the fields this page reads.
+type LexiconEntry = {
+  word: string;
+  phonetic?: string;
+  meanings: { partOfSpeech: string; definitions: { definition: string }[]; synonyms: string[] }[];
+};
+
+const MODULES_KEY = 'vest_ielts_modules_v3';
+const MODULES_EVENT = 'vest:ielts-modules-change';
+const DEFAULT_MODULES: Module[] = [
+  { id: 1, text: 'Reading Strategies' },
+  { id: 2, text: 'Listening' },
+  { id: 3, text: 'Writing Framework' },
+  { id: 4, text: 'Speaking' },
+];
+function readModules(): Module[] {
+  const saved = localStorage.getItem(MODULES_KEY);
+  const parsed: unknown = saved ? JSON.parse(saved) : null;
+  return Array.isArray(parsed) ? (parsed as Module[]) : DEFAULT_MODULES;
+}
+
 export default function IELTSHub() {
   const [lexiconQuery, setLexiconQuery] = useState('');
-  const [lexiconData, setLexiconData] = useState<any>(null);
+  const [lexiconData, setLexiconData] = useState<LexiconEntry | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [isMounted, setIsMounted] = useState(false);
 
-  const [modules, setModules] = useState<Module[]>([
-    { id: 1, text: 'Reading Strategies' },
-    { id: 2, text: 'Listening' },
-    { id: 3, text: 'Writing Framework' },
-    { id: 4, text: 'Speaking' }
-  ]);
+  const modules = useStoredValue(readModules, DEFAULT_MODULES, [MODULES_EVENT]);
   const [isEditingModules, setIsEditingModules] = useState(false);
   const [tempModules, setTempModules] = useState<Module[]>([]);
 
-  useEffect(() => {
-    setIsMounted(true);
-
-    const savedModules = localStorage.getItem('vest_ielts_modules_v3');
-    if (savedModules) setModules(JSON.parse(savedModules));
-  }, []);
-
-  useEffect(() => {
-    if (isMounted) localStorage.setItem('vest_ielts_modules_v3', JSON.stringify(modules));
-  }, [modules, isMounted]);
-
-  const handleLexiconSearch = async () => {
-    if (!lexiconQuery.trim()) return;
+  const handleLexiconSearch = async (word = lexiconQuery) => {
+    const query = word.trim();
+    if (!query) return;
     setIsSearching(true);
     setSearchError('');
     setLexiconData(null);
     try {
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${lexiconQuery}`);
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(query)}`);
       const data = await response.json();
       if (response.ok && data.length > 0) setLexiconData(data[0]);
       else setSearchError('TOKEN_NOT_FOUND');
-    } catch (e) { setSearchError('SEARCH_UNAVAILABLE'); }
+    } catch { setSearchError('SEARCH_UNAVAILABLE'); }
     finally { setIsSearching(false); }
   };
 
   const commitModules = () => {
-    setModules(tempModules);
+    writeStored(MODULES_KEY, tempModules, MODULES_EVENT);
     setIsEditingModules(false);
   };
 
@@ -106,7 +112,7 @@ export default function IELTSHub() {
                     <div key={mod.id} className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl p-4 flex flex-col gap-2 transition-all hover:bg-black/10 active:scale-[0.98]">
                       <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 tracking-widest uppercase">M-0{mod.id}</span>
                       {isEditingModules ? (
-                        <input type="text" value={mod.text} onChange={(e) => { const next = [...tempModules]; next[i].text = e.target.value; setTempModules(next); }} className="bg-white dark:bg-neutral-800 border border-amber-500/30 rounded-lg px-3 py-2 text-[13px] text-neutral-900 dark:text-white font-bold outline-none focus:ring-2 ring-amber-500/20" />
+                        <input type="text" value={mod.text} onChange={(e) => { const text = e.target.value; setTempModules(tempModules.map((m, j) => (j === i ? { ...m, text } : m))); }} className="bg-white dark:bg-neutral-800 border border-amber-500/30 rounded-lg px-3 py-2 text-[13px] text-neutral-900 dark:text-white font-bold outline-none focus:ring-2 ring-amber-500/20" />
                       ) : (
                         <span className="text-[14px] text-neutral-800 dark:text-neutral-200 font-bold tracking-tight truncate">{mod.text}</span>
                       )}
@@ -137,7 +143,7 @@ export default function IELTSHub() {
                 <div className="p-6 lg:p-8 space-y-8 flex-1 min-h-[500px]">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <input type="text" placeholder="look up a word…" value={lexiconQuery} onChange={(e) => setLexiconQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLexiconSearch()} className="flex-1 bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl px-6 py-4 text-[15px] text-neutral-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/30 transition-all font-medium placeholder:text-neutral-400" />
-                    <button onClick={handleLexiconSearch} className="bg-purple-500 text-white px-8 py-4 sm:py-0 rounded-2xl text-[11px] font-bold uppercase tracking-widest active:scale-95 shadow-md">Query</button>
+                    <button onClick={() => handleLexiconSearch()} disabled={isSearching} aria-busy={isSearching} className="disabled:opacity-60 bg-purple-500 text-white px-8 py-4 sm:py-0 rounded-2xl text-[11px] font-bold uppercase tracking-widest active:scale-95 shadow-md">{isSearching ? 'Searching…' : 'Query'}</button>
                   </div>
 
                   <div className="bg-black/5 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-md p-6 lg:p-8 flex-1 overflow-y-auto custom-scrollbar">
@@ -150,7 +156,7 @@ export default function IELTSHub() {
 
                         {/* Definitions */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          {lexiconData.meanings.slice(0, 2).map((meaning: any, idx: number) => (
+                          {lexiconData.meanings.slice(0, 2).map((meaning, idx) => (
                             <div key={idx} className="space-y-3">
                               <div className="text-[10px] font-bold uppercase tracking-widest text-purple-500 bg-purple-500/10 w-fit px-2.5 py-1 rounded-md">{meaning.partOfSpeech}</div>
                               <p className="text-[15px] text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">{meaning.definitions[0].definition}</p>
@@ -165,7 +171,7 @@ export default function IELTSHub() {
                             <div className="flex flex-wrap gap-2">
                               {lexiconData.meanings[0].synonyms.length > 0 ? (
                                 lexiconData.meanings[0].synonyms.slice(0, 8).map((syn: string) => (
-                                  <button key={syn} onClick={() => { setLexiconQuery(syn); setTimeout(handleLexiconSearch, 50); }} className="px-4 py-2 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl text-[13px] font-bold hover:bg-purple-500 hover:text-white transition-all active:scale-95 border border-transparent dark:border-purple-500/20">
+                                  <button key={syn} onClick={() => { setLexiconQuery(syn); void handleLexiconSearch(syn); }} className="px-4 py-2 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl text-[13px] font-bold hover:bg-purple-500 hover:text-white transition-all active:scale-95 border border-transparent dark:border-purple-500/20">
                                     {syn}
                                   </button>
                                 ))

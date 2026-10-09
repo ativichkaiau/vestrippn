@@ -4,13 +4,11 @@ import { requireUserId } from '@/lib/auth/owner';
 
 export const dynamic = 'force-dynamic';
 
-// Store (or refresh) a browser push subscription for the signed-in user. Keyed
-// on the endpoint, so re-subscribing the same device is idempotent. Strict
-// auth: with an owner fallback, any browser could subscribe itself to the
-// owner's reminders.
+// Store (or refresh) a browser push subscription for the owner. Keyed on the
+// endpoint, so re-subscribing the same device is idempotent.
 export async function POST(req: Request) {
   const userId = await requireUserId();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ error: 'Sign in to enable reminders.' }, { status: 401 });
 
   const body = (await req.json().catch(() => null)) as
     | { endpoint?: string; keys?: { p256dh?: string; auth?: string } }

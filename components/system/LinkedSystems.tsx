@@ -4,7 +4,7 @@ import { RegistryTable, Section, StatusIndicator } from './primitives';
 
 /* Study systems linked from the academics runtime: the self-built study apps
    and the Williams companions. Rows open the registry inspector. */
-const SLUGS = ['microbiology_pokedex', 'biochem_pathway', 'neuro_pathway', 'physiohub', 'immunopath', 'williamspod', 'williamshub'];
+const SLUGS = ['microbiology_pokedex', 'biochem_pathway', 'neuro_pathway', 'physiohub', 'immunopath', 'williamspod', 'studyex_medeetomihub'];
 
 export default function LinkedSystems() {
   const nodes = SLUGS.map(getNode).filter((node): node is Node => Boolean(node));

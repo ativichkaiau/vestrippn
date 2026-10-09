@@ -5,24 +5,24 @@ import { Pipeline, RegistryTable, Section, StatusIndicator } from './primitives'
 /* ~/research, documented as a system: the systems that exist, the review
    pipeline as a structure, and where each stage is served today. */
 
-const SYSTEM_SLUGS = ['research', 'terra', 'williamslab', 'srma_screener'];
+const SYSTEM_SLUGS = ['research', 'williamslab', 'srma_screener'];
 
 const STAGES = [
   {
     name: 'search',
-    detail: 'Federated search across PubMed, Europe PMC, Crossref (with Cochrane), Scopus and ScienceDirect in parallel; Google Scholar and ClinicalKey as deep links.',
+    detail: 'Federated search across PubMed, Europe PMC, Crossref (with Cochrane), Scopus and ScienceDirect in parallel; Google Scholar and ClinicalKey as deep links. Served below.',
   },
   {
     name: 'deduplicate',
     detail: 'Merged by DOI → PMID → title. The richest record wins: Europe PMC › PubMed › Scopus › ScienceDirect › Cochrane › Crossref.',
   },
   { name: 'screen', detail: 'Title, abstract and full-text screening — srma_screener.' },
-  { name: 'extract', detail: 'Saved records in the extraction vault; structured extraction in WilliamsLab.' },
+  { name: 'extract', detail: 'Saved records in the extraction vault below; structured extraction in WilliamsLab.' },
   { name: 'analyse', detail: 'Risk of bias and statistics — the SRMA engine.' },
   { name: 'synthesise', detail: 'PRISMA reporting and the manuscript — the SRMA engine.' },
 ];
 
-export default function ResearchDocs({ signedIn = true }: { signedIn?: boolean }) {
+export default function ResearchDocs() {
   const systems = SYSTEM_SLUGS.map(getNode).filter((node): node is Node => Boolean(node));
   return (
     <>
@@ -44,15 +44,7 @@ export default function ResearchDocs({ signedIn = true }: { signedIn?: boolean }
         <Pipeline label="Systematic review pipeline" stages={STAGES} />
       </Section>
 
-      <Section
-        id="tools"
-        title={signedIn ? 'tools' : 'knowledge graph'}
-        intro={
-          signedIn
-            ? 'Mounted here: the literature search, the extraction vault, the Brugada knowledge graph and the case guide.'
-            : 'The Brugada syndrome knowledge graph from WilliamsLab. The literature search and the extraction vault are available after sign-in.'
-        }
-      />
+      <Section id="tools" title="tools" intro="Mounted here: the literature search, the extraction vault, the Brugada knowledge graph and the case guide." />
     </>
   );
 }

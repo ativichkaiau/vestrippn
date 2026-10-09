@@ -332,21 +332,3 @@ export function parseRunState(value: unknown): CaseRunState | null {
   const path = Array.isArray(v.path) ? (v.path as CaseRunState["path"]) : [];
   return { currentNodeId: v.currentNodeId, score: v.score, status, path };
 }
-
-const OUTCOMES: readonly ChoiceOutcome[] = ["optimal", "suboptimal", "deadly"];
-
-/**
- * A visitor's run, sent back by the browser because nothing is stored for
- * visitors. Checked against the case, so a stale or forged state can't point
- * at a node that doesn't exist or carry an impossible score.
- */
-export function parseVisitorRunState(value: unknown, bc: BranchingCase): CaseRunState | null {
-  const state = parseRunState(value);
-  if (!state || !bc.nodes[state.currentNodeId]) return null;
-  if (!Number.isFinite(state.score) || state.score < 0 || state.score > bc.startScore) return null;
-  const path = state.path
-    .filter((step) => step && typeof step.nodeId === "string" && typeof step.choiceId === "string" && OUTCOMES.includes(step.outcome))
-    .slice(-Object.keys(bc.nodes).length)
-    .map(({ nodeId, choiceId, outcome }) => ({ nodeId, choiceId, outcome }));
-  return { ...state, path };
-}

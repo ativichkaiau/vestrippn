@@ -1,11 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { launchAgendaFocus, scheduleAgenda, studyDay, type AgendaItem, type StudyPlanResponse } from '@/lib/daily-plan';
 
 const inputClass = 'w-full rounded-xl border border-black/15 bg-white px-3 py-2.5 text-sm dark:border-white/15 dark:bg-neutral-950';
 const buttonClass = 'rounded-full border border-black/15 px-4 py-2 text-xs font-bold transition-colors hover:bg-black/5 disabled:cursor-wait disabled:opacity-50 dark:border-white/15 dark:hover:bg-white/10';
-const sourceLabels = { canvas: 'Canvas', anki: 'Anki', task: 'Task', milestone: 'Research' };
+const sourceLabels = { canvas: 'Canvas', anki: 'Anki', task: 'Task', milestone: 'Research', coverage: 'Coverage' };
 
 async function requestJson(url: string, method: string, body?: unknown) {
   const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body), cache: 'no-store' });
@@ -81,7 +82,7 @@ export default function DailyStudyPlan() {
         await requestJson('/api/study-plan', 'PATCH', { day: plan?.day, action: 'complete', id: item.id, completed: !item.completed });
       }
       await refresh();
-      setNotice(item.completed ? 'Item returned to your agenda.' : item.kind === 'canvas' ? 'Study work marked done for today. Submit the assignment in Canvas.' : item.kind === 'anki' ? 'Review block marked done for today. Anki sync remains the source of card counts.' : 'Completed and saved.');
+      setNotice(item.completed ? 'Item returned to your agenda.' : item.kind === 'canvas' ? 'Study work marked done for today. Submit the assignment in Canvas.' : item.kind === 'anki' ? 'Review block marked done for today. Anki sync remains the source of card counts.' : item.kind === 'coverage' ? 'Marked done for today. Mark objectives reviewed or tested in the coverage map to move the countdown on.' : 'Completed and saved.');
     });
   }
 
@@ -101,8 +102,9 @@ export default function DailyStudyPlan() {
             <p className="mt-2 text-xs font-medium">{item.estimatedMinutes} min estimated{!item.completed && ` · ${plannedMinutes ? `${plannedMinutes} min scheduled` : 'Not scheduled'}`}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button type="button" className={`${buttonClass} bg-[var(--hub-accent)] text-black`} onClick={() => launchAgendaFocus(item, scheduled[0]?.minutes ?? Math.min(25, item.estimatedMinutes))}>Focus · {scheduled[0]?.minutes ?? Math.min(25, item.estimatedMinutes)} min</button>
-              <button type="button" disabled={busy !== null} className={buttonClass} onClick={() => void complete(item)}>{busy === item.id ? 'Saving…' : item.completed ? 'Undo completion' : item.kind === 'canvas' ? 'Study work done today' : item.kind === 'anki' ? 'Review block done today' : 'Mark complete'}</button>
+              <button type="button" disabled={busy !== null} className={buttonClass} onClick={() => void complete(item)}>{busy === item.id ? 'Saving…' : item.completed ? 'Undo completion' : item.kind === 'canvas' ? 'Study work done today' : item.kind === 'anki' ? 'Review block done today' : item.kind === 'coverage' ? 'Done for today' : 'Mark complete'}</button>
               {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className={buttonClass}>Open in Canvas ↗</a>}
+              {item.href && <Link href={item.href} className={buttonClass}>{item.href.startsWith('/study/drill') ? 'Start the drill' : 'Open the coverage map'}</Link>}
               {(item.kind === 'task' || item.kind === 'milestone') && <>
                 <button type="button" className={buttonClass} onClick={() => setEditor(item)}>Edit</button>
                 <button type="button" className={buttonClass} onClick={() => setDeleteId(item.id)}>Delete</button>

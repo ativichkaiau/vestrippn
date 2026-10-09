@@ -2,21 +2,22 @@ import { requireUserId } from "@/lib/auth/owner";
 import { prisma } from "@/lib/prisma";
 import { ARCHIVE } from "@/lib/system/archive";
 import { IDENTITY } from "@/lib/system/identity";
-import { FEATURED, LOGS, OBJECTS, PROJECTS, SYSTEMS, systemIndex } from "@/lib/system/registry";
-import { buildTree } from "@/lib/system/tree";
-import { Action, CommandLink, MetadataGrid, Page, Section, StatusIndicator } from "@/components/system/primitives";
-import SystemTree from "@/components/system/SystemTree";
-import LocalTime from "@/components/system/LocalTime";
+import { FEATURED, OBJECTS, PROJECTS, SYSTEMS, systemIndex } from "@/lib/system/registry";
+import type { State } from "@/lib/system/types";
+import {
+  CommandLink,
+  MetadataGrid,
+  Page,
+  RegistryTable,
+  Section,
+  StatusIndicator,
+} from "@/components/system/primitives";
 import SessionTasks, { type SessionTask } from "@/components/system/SessionTasks";
 import SessionInbox from "@/components/system/SessionInbox";
-import GarageTeaser from "@/components/garage/GarageTeaser";
 import DomainHealth from "@/components/DomainHealth";
 
-// Rendered per request: signed in, the root adds the owner's session; signed
-// out, it is the public front page of the portfolio.
+// Rendered per request: the session block reads the owner's tasks.
 export const dynamic = "force-dynamic";
-
-const YEAR_ORDINAL: Record<string, string> = { "01": "first-year", "02": "second-year", "03": "third-year", "04": "fourth-year", "05": "fifth-year", "06": "sixth-year" };
 
 // Each query in isolation, so one failing table cannot blank the root.
 async function safe<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
@@ -28,11 +29,19 @@ async function safe<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
   }
 }
 
+/* The branches of the root tree, as the owner describes their state. */
+const BRANCHES: { name: string; state: State; path: string; href: string }[] = [
+  { name: "medicine", state: "active", path: "~/medicine", href: "/medicine" },
+  { name: "research", state: "active", path: "~/research", href: "/research" },
+  { name: "software", state: "active", path: "~/projects", href: "/projects" },
+  { name: "studyex_medeetomihub", state: "active", path: "~/medicine/studyex_medeetomihub", href: "/systems/studyex_medeetomihub" },
+  { name: "archive", state: "mounted", path: "~/archive", href: "/archive" },
+  { name: "garage", state: "available", path: "~/garage", href: "/garage" },
+];
+
 export default async function Root() {
-  // A real session only — never the owner fallback — so private data is
-  // rendered for a signed-in user alone.
+  // A real session only; the proxy already redirected anonymous visitors.
   const userId = await requireUserId();
-  const signedIn = Boolean(userId);
 
   const tasks = userId
     ? ((await safe("tasks", () =>
@@ -48,50 +57,40 @@ export default async function Root() {
     : null;
 
   const latestBuild = ARCHIVE.find((record) => record.category === "software");
-  const latestLog = LOGS[LOGS.length - 1];
   const vehicle = OBJECTS[0];
 
   return (
     <Page>
       <header className="sys-root-head">
-        <p className="sys-label" style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
-          <span>VESTRIPPN / root</span>
-          <LocalTime />
-        </p>
+        <p className="sys-label">VESTRIPPN / root</p>
         <h1 className="sys-root-title">
           VESTRIPPN<span className="sys-cursor" aria-hidden="true">_</span>
         </h1>
         <p className="sys-lede">personal systems environment</p>
-        {signedIn ? (
-          <MetadataGrid
-            compact
-            label="Environment"
-            rows={[
-              { key: "namespace", value: "VESTRIPPN", mono: true },
-              { key: "environment", value: "personal", mono: true },
-              { key: "runtime", value: <StatusIndicator state="active" label="active" /> },
-            ]}
-          />
-        ) : (
-          <>
-            <p className="sys-root-intro">
-              The root environment of <b>{IDENTITY.handle}</b> — a {YEAR_ORDINAL[IDENTITY.year] ?? ""} medical student at {IDENTITY.institution},
-              building software for medicine and research. Study systems, research infrastructure, experiments and an archive, mounted under one namespace.
-            </p>
-            <div className="sys-header-actions">
-              <Action href="/identity" primary>
-                whoami
-              </Action>
-              <Action href="/systems">list systems</Action>
-              <Action href="/garage/silver_arrow">open garage</Action>
-            </div>
-          </>
-        )}
+        <MetadataGrid
+          compact
+          label="Environment"
+          rows={[
+            { key: "namespace", value: "VESTRIPPN", mono: true },
+            { key: "environment", value: "personal", mono: true },
+            { key: "runtime", value: <StatusIndicator state="active" label="active" /> },
+          ]}
+        />
       </header>
 
-      <Section id="root" title="environment" count={`${SYSTEMS.length} systems · ${PROJECTS.length} projects`}>
+      <Section id="root" title="root" count={`${BRANCHES.length} branches`}>
         <p className="sys-prompt">select system</p>
-        <SystemTree lines={buildTree()} />
+        <RegistryTable
+          caption="Branches of the VESTRIPPN root"
+          rows={BRANCHES}
+          rowKey={(row) => row.name}
+          href={(row) => row.href}
+          columns={[
+            { key: "name", label: "branch", kind: "name", render: (row) => row.name },
+            { key: "state", label: "state", render: (row) => <StatusIndicator state={row.state} /> },
+            { key: "path", label: "path", kind: "mono", optional: true, render: (row) => row.path },
+          ]}
+        />
       </Section>
 
       <div className="sys-columns sys-section">
@@ -110,20 +109,14 @@ export default async function Root() {
           </p>
         </Section>
 
-        {signedIn ? (
-          <Section id="session" title="session" count={directive?.intent ? "directive set" : undefined}>
-            {directive?.intent && (
-              <p className="sys-prompt" style={{ color: "var(--text-strong)" }}>
-                {directive.intent}
-              </p>
-            )}
-            <SessionTasks initialTasks={tasks as SessionTask[]} />
-          </Section>
-        ) : (
-          <Section id="object" title="garage">
-            <GarageTeaser />
-          </Section>
-        )}
+        <Section id="session" title="session" count={directive?.intent ? "directive set" : undefined}>
+          {directive?.intent && (
+            <p className="sys-prompt" style={{ color: "var(--text-strong)" }}>
+              {directive.intent}
+            </p>
+          )}
+          <SessionTasks initialTasks={tasks as SessionTask[]} />
+        </Section>
       </div>
 
       <Section id="active-systems" title="active systems" count={String(FEATURED.length).padStart(2, "0")}>
@@ -140,7 +133,11 @@ export default async function Root() {
                 </div>
               </div>
               <div className="sys-object-actions">
-                {node.internal ? <CommandLink href={node.internal}>enter</CommandLink> : node.url ? <CommandLink href={node.url}>launch</CommandLink> : null}
+                {node.internal ? (
+                  <CommandLink href={node.internal}>enter</CommandLink>
+                ) : node.url ? (
+                  <CommandLink href={node.url}>launch</CommandLink>
+                ) : null}
                 <CommandLink href={`/systems/${node.slug}`} label={`Inspect ${node.name}`}>
                   inspect
                 </CommandLink>
@@ -150,28 +147,17 @@ export default async function Root() {
         </ol>
       </Section>
 
-      {signedIn && (
-        <div className="sys-columns sys-section" data-ratio="wide-left">
-          <Section id="inbox" title="inbox">
-            <SessionInbox />
-          </Section>
-          <Section id="domains" title="domains">
-            <DomainHealth />
-          </Section>
-        </div>
-      )}
+      <div className="sys-columns sys-section" data-ratio="wide-left">
+        <Section id="inbox" title="inbox">
+          <SessionInbox />
+        </Section>
+        <Section id="domains" title="domains">
+          <DomainHealth />
+        </Section>
+      </div>
 
       <Section id="recent" title="recent">
         <ul className="sys-list">
-          {latestLog && (
-            <li>
-              <span className="sys-list-name">
-                {latestLog.targetFile}
-                <small>development log · {latestLog.runtime}</small>
-              </span>
-              <CommandLink href={`/logs/${latestLog.slug}`}>read log</CommandLink>
-            </li>
-          )}
           {vehicle && (
             <li>
               <span className="sys-list-name">
@@ -185,7 +171,9 @@ export default async function Root() {
             <li>
               <span className="sys-list-name">
                 {latestBuild.code} · {latestBuild.title}
-                <small>previous build · {latestBuild.year}</small>
+                <small>
+                  previous build · {latestBuild.year}
+                </small>
               </span>
               <CommandLink href={`/archive#${latestBuild.id}`}>open record</CommandLink>
             </li>
@@ -198,10 +186,8 @@ export default async function Root() {
           rows={[
             { key: "environment", value: <StatusIndicator state="active" /> },
             { key: "namespace", value: "VESTRIPPN", mono: true },
-            { key: "session", value: signedIn ? "authenticated" : "public view", mono: true },
             { key: "systems", value: String(SYSTEMS.length).padStart(2, "0"), mono: true },
             { key: "projects", value: String(PROJECTS.length).padStart(2, "0"), mono: true },
-            { key: "logs", value: String(LOGS.length).padStart(2, "0"), mono: true },
             { key: "objects", value: String(OBJECTS.length).padStart(2, "0"), mono: true },
             { key: "records", value: String(ARCHIVE.length).padStart(2, "0"), mono: true },
           ]}

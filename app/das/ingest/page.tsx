@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import DasIngestClient from './DasIngestClient';
 
-export const metadata: Metadata = { title: 'Sources', description: 'Documents the assistant may answer from.' };
+export const metadata: Metadata = { title: 'Ingest sources' };
 
 export default function DasIngestPage() {
   return <DasIngestClient />;

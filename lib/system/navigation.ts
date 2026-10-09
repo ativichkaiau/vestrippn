@@ -1,4 +1,4 @@
-import { getLog, getNode, getObject, RUNTIME } from './registry';
+import { getNode, getObject, RUNTIME } from './registry';
 
 /* ════════════════════════════════════════════════════════════════════════
    Navigation and the path system.
@@ -13,8 +13,6 @@ export type NavItem = {
   href: string;
   /** Route prefixes that mark this item as current. */
   match: string[];
-  /** Needs a signed-in session. */
-  restricted?: boolean;
 };
 
 export const ENVIRONMENT_NAV: NavItem[] = [
@@ -24,10 +22,9 @@ export const ENVIRONMENT_NAV: NavItem[] = [
   { index: '03', label: 'projects', href: '/projects', match: ['/projects'] },
   { index: '04', label: 'medicine', href: '/medicine', match: ['/medicine'] },
   { index: '05', label: 'research', href: '/research', match: ['/research'] },
-  { index: '06', label: 'logs', href: '/logs', match: ['/logs'] },
-  { index: '07', label: 'garage', href: '/garage', match: ['/garage'] },
-  { index: '08', label: 'archive', href: '/archive', match: ['/archive'] },
-  { index: '09', label: 'contact', href: '/contact', match: ['/contact'] },
+  { index: '06', label: 'garage', href: '/garage', match: ['/garage'] },
+  { index: '07', label: 'archive', href: '/archive', match: ['/archive'] },
+  { index: '08', label: 'contact', href: '/contact', match: ['/contact'] },
 ];
 
 const RUNTIME_MATCH: Record<string, string[]> = {
@@ -41,7 +38,6 @@ export const RUNTIME_NAV: NavItem[] = RUNTIME.map((module) => ({
   label: module.name,
   href: module.href,
   match: RUNTIME_MATCH[module.slug] ?? [module.href.split('?')[0]],
-  restricted: !module.public,
 }));
 
 export function isCurrent(item: NavItem, pathname: string): boolean {
@@ -57,7 +53,6 @@ const BRANCH_HREF: Record<string, string> = {
   medicine: '/medicine',
   research: '/research',
   runtime: '/systems#runtime',
-  logs: '/logs',
 };
 
 const ROOT: PathSegment = { label: '~', href: '/' };
@@ -89,15 +84,6 @@ export function resolvePath(pathname: string): ResolvedPath {
   }
   if (head === 'projects' && slug) {
     return finish([ROOT, { label: 'projects', href: '/projects' }, { label: slug, href: clean }]);
-  }
-  if (head === 'logs' && slug) {
-    const log = getLog(slug);
-    return finish([
-      ROOT,
-      { label: 'logs', href: '/logs' },
-      { label: log?.series ?? 'log', href: '/logs' },
-      { label: log ? log.id.toLowerCase() : slug, href: clean },
-    ]);
   }
   if (head === 'garage' && slug) {
     return finish([ROOT, { label: 'garage', href: '/garage' }, { label: getObject(slug)?.slug ?? slug, href: clean }]);

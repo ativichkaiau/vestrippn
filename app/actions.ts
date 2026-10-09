@@ -99,8 +99,6 @@ export async function deleteTask(id: string) {
 // SECTOR DELTA: RESEARCH HUB
 // ==========================================
 export async function updateResearchStats(title: string, screening: number, fullText: number, extraction: number) {
-  // Signed-in only: server actions are reachable from public pages, so no
-  // owner fallback here.
   const userId = await requireUserId();
   if (!userId) throw new Error("Unauthorized Access");
 

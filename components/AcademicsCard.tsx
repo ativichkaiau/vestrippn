@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Skel, SkelGroup, SkelLabel } from '@/components/system/Skeleton';
+import { useHydrated } from '@/components/system/hooks';
 
 interface Subject { id: string; name: string; progress: number | null; }
 interface AcademicsData {
@@ -10,13 +11,12 @@ interface AcademicsData {
 }
 
 export default function AcademicsCard() {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useHydrated();
   const [data, setData] = useState<AcademicsData>({ subjects: [], metrics: { quizzes: 0, assignments: 0 } });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setIsMounted(true);
     const fetchCanvasData = async () => {
       try {
         // 🚨 THE FIX: Aggressive Cache Busting
@@ -37,8 +37,8 @@ export default function AcademicsCard() {
           subjects: Array.isArray(json.subjects) ? json.subjects : [],
           metrics: json.metrics || { quizzes: 0, assignments: 0 }
         });
-      } catch (e: any) {
-        setError(e.message === '500' ? 'SERVER_OFFLINE' : 'SYNC_ERR');
+      } catch (e) {
+        setError(e instanceof Error && e.message === '500' ? 'SERVER_OFFLINE' : 'SYNC_ERR');
       } finally {
         setIsLoading(false);
       }

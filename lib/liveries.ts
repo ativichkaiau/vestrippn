@@ -1,3 +1,4 @@
+import { VSCODE_THEMES } from './vscode-themes';
 /** The collection, appearance engine, boot script, and synced preferences share these IDs. */
 export type ThemePalette = {
   canvas: string; surface: string; raised: string; inset: string;
@@ -134,6 +135,6 @@ export const LEGACY_LIVERIES: Record<string, Livery> = {
   ferrari: 'normal', forceindia: 'normal', mclaren: 'normal', benetton: 'normal', jps: 'normal', alpine: 'normal',
 };
 export const THEME_CONFIG = {
-  liveries: LIVERY_CATALOG, legacy: LEGACY_LIVERIES, mercedes: MERCEDES_PALETTES,
+  liveries: LIVERY_CATALOG, legacy: LEGACY_LIVERIES, mercedes: MERCEDES_PALETTES, themes: VSCODE_THEMES,
   location: { latitude: 18.7883, longitude: 98.9853, name: 'Chiang Mai' },
 };

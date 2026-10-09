@@ -8,9 +8,8 @@ export const dynamic = 'force-dynamic';
 // Fire an immediate confirmation push to all of the owner's devices — used right
 // after the user enables reminders so they can see it actually landed.
 export async function POST() {
-  // Strict auth: anonymous callers must not be able to push to the owner's devices.
   const userId = await requireUserId();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ error: 'Sign in to enable reminders.' }, { status: 401 });
 
   const subs = await prisma.pushSubscription.findMany({ where: { userId } });
   let sent = 0;

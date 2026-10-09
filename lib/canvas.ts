@@ -4,9 +4,30 @@
 // existing callers without an id retain the established course set.
 
 import { getActiveCourses } from '@/lib/curriculum';
+import { isOwner } from '@/lib/auth/owner';
 
 // All tracked Canvas course ids (dashboard card + Academics hub read the same
 // list, so both show the same courses — full parity).
+
+// The Canvas REST fields read here (courses with total_scores, assignments
+// with their submission).
+type CanvasCourse = {
+  id: number;
+  name?: string;
+  course_code?: string;
+  enrollments?: { type?: string; role?: string; computed_current_score?: number | null; computed_final_score?: number | null }[];
+};
+type CanvasAssignment = {
+  id?: number;
+  name?: string;
+  due_at?: string | null;
+  html_url?: string;
+  points_possible: number;
+  is_quiz_assignment?: boolean;
+  submission_types?: string[];
+  submission?: { score: number | null; workflow_state?: string; submitted_at?: string | null };
+};
+
 export const TARGET_COURSES = ['26141', '26393', '26349', '26702', '27415', '30964', '31275', '26896', '31469'];
 
 // Keep established course-number labels and the supplied HHL / HSC short names.
@@ -71,7 +92,9 @@ export async function fetchCanvasTelemetry(userId?: string): Promise<CanvasTelem
   const token = process.env.CANVAS_TOKEN;
   const base = process.env.CANVAS_BASE_URL || 'https://mango-cmu.instructure.com';
 
-  if (!token) return EMPTY;
+  // The token is the owner's: other accounts (and anonymous callers) get
+  // nothing, whatever courses they configure.
+  if (!token || !(await isOwner(userId))) return EMPTY;
 
   let configuredCourses = TARGET_COURSES;
   let configuredLabels: Record<string, string> = { ...COURSE_LABEL };
@@ -106,7 +129,7 @@ export async function fetchCanvasTelemetry(userId?: string): Promise<CanvasTelem
     const allCourses = await res.json();
 
     const courses = (Array.isArray(allCourses) ? allCourses : []).filter(
-      (c: any) => c.id && configuredCourses.includes(c.id.toString())
+      (c: CanvasCourse) => c.id && configuredCourses.includes(c.id.toString())
     );
 
     // Global accumulators for the two summary metrics
@@ -120,7 +143,7 @@ export async function fetchCanvasTelemetry(userId?: string): Promise<CanvasTelem
     // 2. For each course, derive the real grade from graded submissions.
     //    This bypasses hidden course totals (computed_current_score = null).
     const subjects = await Promise.all(
-      courses.map(async (c: any) => {
+      courses.map(async (c: CanvasCourse) => {
         const id = c.id.toString();
         let earned = 0, total = 0;
 
@@ -131,7 +154,7 @@ export async function fetchCanvasTelemetry(userId?: string): Promise<CanvasTelem
           );
           const assignments = aRes.ok ? await aRes.json() : [];
 
-          (Array.isArray(assignments) ? assignments : []).forEach((a: any) => {
+          (Array.isArray(assignments) ? (assignments as CanvasAssignment[]) : []).forEach((a) => {
             const sub = a?.submission;
             if (sub && sub.score !== null && sub.workflow_state === 'graded' && a.points_possible > 0) {
               earned += sub.score;
@@ -168,14 +191,14 @@ export async function fetchCanvasTelemetry(userId?: string): Promise<CanvasTelem
           progress = Math.round((earned / total) * 100);
         } else {
           const enrollment =
-            c.enrollments?.find((e: any) => e.type === 'student' || e.role === 'StudentEnrollment') ||
+            c.enrollments?.find((e) => e.type === 'student' || e.role === 'StudentEnrollment') ||
             c.enrollments?.[0];
           const rawScore = enrollment?.computed_current_score ?? enrollment?.computed_final_score;
           progress = rawScore != null ? Math.round(Number(rawScore)) : null;
         }
 
         // Use a stable label when known, else Canvas's course_code (the number).
-        return { id, name: configuredLabels[id] || c.course_code || c.name, progress };
+        return { id, name: configuredLabels[id] || c.course_code || c.name || id, progress };
       })
     );
 

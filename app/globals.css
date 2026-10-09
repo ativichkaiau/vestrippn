@@ -118,6 +118,20 @@
   --shell-topbar: 44px;
   --shell-statusbar: 28px;
   --shell-sidebar: 232px;
+
+  /* Shell chrome colours. VESTRIPPN keeps them on the surface tokens; a VS
+     Code colour theme sets its own (lib/vscode-themes.ts, via the engine). */
+  --shell-title-bg: var(--bg-01);
+  --shell-title-fg: var(--text-secondary);
+  --shell-activity-bg: var(--bg-01);
+  --shell-activity-fg: var(--text-muted);
+  --shell-activity-fg-active: var(--text-strong);
+  --shell-indicator: var(--accent);
+  --shell-status-bg: var(--bg-01);
+  --shell-status-fg: var(--text-muted);
+  --shell-tab-bg: var(--bg-01);
+  --shell-tab-active-bg: var(--bg-root);
+  --shell-panel-bg: var(--bg-01);
   --content-max: 1120px;
 
   /* motion: engineered, short, never springy */
