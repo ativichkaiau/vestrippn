@@ -1,9 +1,10 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { ARCHIVE } from '@/lib/system/archive';
+import { HUB_CONFIG, hubForPath } from '@/lib/assistant/hubs';
 import { ENVIRONMENT_NAV } from '@/lib/system/navigation';
 import { LOGS, NODES, OBJECTS, PROJECTS, RUNTIME, SYSTEMS } from '@/lib/system/registry';
 import { enableReminders } from '@/lib/reminders';
@@ -21,8 +22,8 @@ import type { BuildInfo } from './Shell';
    <dialog> handles focus containment and Escape.
    ════════════════════════════════════════════════════════════════════════ */
 
-type Category = 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'LOG' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
-const ORDER: Category[] = ['PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'LOG', 'OBJECT', 'ARCHIVE', 'ACTION'];
+type Category = 'ASK' | 'PAGE' | 'RUNTIME' | 'SYSTEM' | 'PROJECT' | 'LOG' | 'OBJECT' | 'ARCHIVE' | 'ACTION';
+const ORDER: Category[] = ['ASK', 'PAGE', 'SYSTEM', 'PROJECT', 'RUNTIME', 'LOG', 'OBJECT', 'ARCHIVE', 'ACTION'];
 
 type Entry = {
   id: string;
@@ -97,6 +98,10 @@ const STATIC_ENTRIES: Entry[] = [
   })),
 ];
 
+// Entries that need an account: hidden (actions) or marked (modules) for visitors.
+const ACCOUNT_ONLY = new Set(['act:focus', 'act:reminders']);
+const RESTRICTED = new Set([...RUNTIME.filter((module) => !module.public).map((module) => `runtime:${module.slug}`), 'page:ingest']);
+
 // Subsequence fuzzy score: every query character must appear in order.
 // Consecutive and word-start hits rank higher. Null when it does not match.
 function score(query: string, text: string): number | null {
@@ -121,6 +126,7 @@ function score(query: string, text: string): number | null {
 
 export default function CommandPalette({ build }: { build: BuildInfo }) {
   const router = useRouter();
+  const pathname = usePathname() ?? '/';
   const { status } = useSession();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -236,19 +242,49 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
       },
     ];
     if (status === 'authenticated') {
+      const hub = hubForPath(pathname);
+      list.push({
+        id: 'act:assistant',
+        category: 'ACTION',
+        label: 'Open assistant',
+        detail: `answers from ${HUB_CONFIG[hub].path} — or type "ask …"`,
+        keywords: 'ai chat question copilot help',
+        href: `/das?hub=${hub}`,
+      });
       list.push({ id: 'act:signout', category: 'ACTION', label: 'Sign out', detail: 'end session', keywords: 'logout session', run: () => signOut({ callbackUrl: '/auth/signin' }) });
     }
     return list;
-  }, [router, status]);
+  }, [router, status, pathname]);
 
   const verbose = /^about\s+--verbose$/.test(query.trim());
 
   const results = useMemo(() => {
-    const all = [...STATIC_ENTRIES, ...actions];
+    const visitor = status !== 'authenticated';
+    const all = [...STATIC_ENTRIES, ...actions]
+      .filter((entry) => !(visitor && ACCOUNT_ONLY.has(entry.id)))
+      .map((entry) => (visitor && RESTRICTED.has(entry.id) ? { ...entry, detail: `${entry.detail} · sign in` } : entry));
     const q = query.trim();
     if (verbose) return [];
     if (!q) return all.filter((entry) => entry.category === 'PAGE' || entry.category === 'ACTION');
-    return all
+
+    // "ask …" — the assistant answers, with the page you are on as context.
+    // Offered for any query when signed in; an explicit "ask " prefix puts it first.
+    const asking = /^(ask|\?)\s+/i.test(q);
+    const question = q.replace(/^(ask|\?)\s+/i, '').trim();
+    const hub = hubForPath(pathname);
+    const ask: Entry | null =
+      status === 'authenticated' && question
+        ? {
+            id: 'ask',
+            category: 'ASK',
+            label: `Ask: “${question.length > 72 ? `${question.slice(0, 72)}…` : question}”`,
+            detail: `assistant · ${HUB_CONFIG[hub].path}`,
+            href: `/das?${new URLSearchParams({ q: question, hub }).toString()}`,
+          }
+        : null;
+    if (asking) return ask ? [ask] : [];
+
+    const matches = all
       .map((entry) => {
         const ql = q.toLowerCase();
         const label = entry.label.toLowerCase();
@@ -264,7 +300,8 @@ export default function CommandPalette({ build }: { build: BuildInfo }) {
       .sort((a, b) => b.best - a.best)
       .slice(0, 40)
       .map((item) => item.entry);
-  }, [query, actions, verbose]);
+    return ask ? [...matches, ask] : matches;
+  }, [query, actions, verbose, status, pathname]);
 
   // Group in a stable category order; `flat` is the keyboard order.
   const groups = useMemo(() => {

@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { resolveUserId } from '@/lib/auth/owner';
+import { requireUserId } from '@/lib/auth/owner';
 
 export const dynamic = 'force-dynamic';
 
-// Store (or refresh) a browser push subscription for the owner. Keyed on the
-// endpoint, so re-subscribing the same device is idempotent.
+// Store (or refresh) a browser push subscription for the signed-in user. Keyed
+// on the endpoint, so re-subscribing the same device is idempotent. Strict
+// auth: with an owner fallback, any browser could subscribe itself to the
+// owner's reminders.
 export async function POST(req: Request) {
-  const userId = await resolveUserId();
-  if (!userId) return NextResponse.json({ error: 'no owner' }, { status: 401 });
+  const userId = await requireUserId();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = (await req.json().catch(() => null)) as
     | { endpoint?: string; keys?: { p256dh?: string; auth?: string } }

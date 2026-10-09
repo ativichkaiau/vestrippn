@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { UNIVERSITY_SUMMARIES } from '@/lib/system/archive';
+import { summaryFolder } from '@/lib/system/private-links';
 import { IDENTITY } from '@/lib/system/identity';
 import { getNode, RUNTIME } from '@/lib/system/registry';
 import { CommandLink, MetadataGrid, Page, PageHeader, RegistryTable, Section, StatusIndicator } from '@/components/system/primitives';
@@ -157,7 +158,7 @@ export default function MedicinePage() {
               key: 'notes',
               label: 'notes',
               render: (year) => {
-                const published = year.modules.filter((m) => m.href).length;
+                const published = year.modules.filter((m) => summaryFolder(year.year, m.label)).length;
                 return <StatusIndicator state={published ? 'available' : 'planned'} label={published ? `${published} published` : 'pending'} />;
               },
             },

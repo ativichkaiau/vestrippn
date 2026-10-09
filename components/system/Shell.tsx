@@ -133,6 +133,7 @@ function PathBar({ segments }: { segments: { label: string; href?: string }[] })
 }
 
 function TopTools() {
+  const { status } = useSession();
   const clock = useClock();
   const online = useOnline();
   const mode = useMode();
@@ -161,12 +162,19 @@ function TopTools() {
       >
         ◐ {MODE_LABEL[mode]}
       </button>
+      {status === 'unauthenticated' && (
+        <Link href="/auth/signin" className="sys-tool sys-signin-tool">
+          sign in
+        </Link>
+      )}
     </div>
   );
 }
 
 function NavGroup({ title, items, pathname, indexed }: { title: string; items: NavItem[]; pathname: string; indexed: boolean }) {
   const id = `nav-${title}`;
+  const { status } = useSession();
+  const visitor = status === 'unauthenticated';
   return (
     <div className="sys-nav-group">
       <h2 id={id} className="sys-label">
@@ -175,11 +183,21 @@ function NavGroup({ title, items, pathname, indexed }: { title: string; items: N
       <ul aria-labelledby={id}>
         {items.map((item) => (
           <li key={item.href}>
-            <Link href={item.href} className="sys-nav-link" aria-current={isCurrent(item, pathname) ? 'page' : undefined}>
+            <Link
+              href={item.href}
+              className="sys-nav-link"
+              aria-current={isCurrent(item, pathname) ? 'page' : undefined}
+              aria-label={visitor && item.restricted ? `${item.label} (requires sign-in)` : undefined}
+            >
               <span className="sys-nav-index" aria-hidden="true">
                 {indexed ? item.index : '·'}
               </span>
               <span>{item.label}</span>
+              {visitor && item.restricted && (
+                <span className="sys-nav-lock" aria-hidden="true">
+                  sign in
+                </span>
+              )}
             </Link>
           </li>
         ))}

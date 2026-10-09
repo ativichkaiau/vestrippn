@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { ARCHIVE, ARCHIVE_CATEGORIES, UNIVERSITY_SUMMARIES } from '@/lib/system/archive';
 import type { ArchiveRecord } from '@/lib/system/types';
+import { requireUserId } from '@/lib/auth/owner';
+import { recordFolders, summaryFolder } from '@/lib/system/private-links';
 import { CommandLink, Page, PageHeader, RegistryTable, Section, StatusIndicator } from '@/components/system/primitives';
 
 export const metadata: Metadata = {
@@ -8,8 +10,11 @@ export const metadata: Metadata = {
   description: 'Records of earlier work: olympiads, competitions, academic results, notes and VESTRIPPN builds.',
 };
 
-function Record({ record }: { record: ArchiveRecord }) {
+function Record({ record, signedIn }: { record: ArchiveRecord; signedIn: boolean }) {
   const tag = [record.code, record.year].filter(Boolean).join(' / ');
+  const folders = recordFolders(record.id);
+  const links = [...(record.links ?? []), ...(signedIn ? folders : [])];
+  const hidden = signedIn ? 0 : folders.length;
   return (
     <li id={record.id} className="sys-record">
       <span className="sys-label">ARCHIVE_RECORD{tag ? ` · ${tag}` : ''}</span>
@@ -26,24 +31,34 @@ function Record({ record }: { record: ArchiveRecord }) {
           ))}
         </ul>
       )}
-      {record.links && (
+      {(links.length > 0 || hidden > 0) && (
         <p className="sys-inline-links">
-          {record.links.map((link) => (
+          {links.map((link) => (
             <CommandLink key={link.url} href={link.url}>
               {link.label}
             </CommandLink>
           ))}
+          {hidden > 0 && (
+            <CommandLink href={`/auth/signin?callbackUrl=${encodeURIComponent(`/archive#${record.id}`)}`}>
+              {`${hidden} private folder${hidden === 1 ? '' : 's'} · sign in`}
+            </CommandLink>
+          )}
         </p>
       )}
     </li>
   );
 }
 
-export default function ArchivePage() {
+export default async function ArchivePage() {
+  const signedIn = Boolean(await requireUserId());
   const categories = ARCHIVE_CATEGORIES.map((category) => ({
     ...category,
     records: ARCHIVE.filter((record) => record.category === category.id),
   })).filter((category) => category.records.length > 0);
+  // One table for every year, so the columns line up; the year opens each group.
+  const summaries = UNIVERSITY_SUMMARIES.flatMap((year) =>
+    year.modules.map((module, i) => ({ ...module, year: year.year, first: i === 0, folder: summaryFolder(year.year, module.label) })),
+  );
 
   return (
     <Page>
@@ -62,36 +77,32 @@ export default function ArchivePage() {
         <Section key={category.id} id={category.id} title={category.label} count={String(category.records.length).padStart(2, '0')}>
           <ol className="sys-records">
             {category.records.map((record) => (
-              <Record key={record.id} record={record} />
+              <Record key={record.id} record={record} signedIn={signedIn} />
             ))}
           </ol>
         </Section>
       ))}
 
       <Section id="university" title="university summaries" intro="Medical school summaries by year and module. Year 3 folders are not published yet.">
-        {UNIVERSITY_SUMMARIES.map((year) => (
-          <div key={year.year} style={{ marginBottom: 'var(--space-6)' }}>
-            <p className="sys-label" style={{ marginBottom: 'var(--space-3)' }}>
-              {year.year}
-            </p>
-            <RegistryTable
-              caption={`University summaries, ${year.year}`}
-              rows={year.modules}
-              rowKey={(module) => module.label}
-              href={(module) => module.href ?? ''}
-              columns={[
-                { key: 'module', label: 'module', kind: 'name', render: (module) => module.label },
-                { key: 'subjects', label: 'subjects', kind: 'mono', render: (module) => module.subjects.map((subject) => subject.code).join(' · ') },
-                {
-                  key: 'state',
-                  label: 'notes',
-                  optional: true,
-                  render: (module) => <StatusIndicator state={module.href ? 'available' : 'planned'} label={module.href ? 'published' : 'pending'} />,
-                },
-              ]}
-            />
-          </div>
-        ))}
+        <RegistryTable
+          caption="University summaries by year and module"
+          rows={summaries}
+          rowKey={(row) => `${row.year}/${row.label}`}
+          href={(row) => (row.folder ? (signedIn ? row.folder : `/auth/signin?callbackUrl=${encodeURIComponent('/archive#university')}`) : '')}
+          columns={[
+            { key: 'year', label: 'year', kind: 'id', render: (row) => (row.first ? row.year : '') },
+            { key: 'module', label: 'module', kind: 'name', render: (row) => row.label },
+            { key: 'subjects', label: 'subjects', kind: 'mono', render: (row) => row.subjects.map((subject) => subject.code).join(' · ') },
+            {
+              key: 'state',
+              label: 'notes',
+              optional: true,
+              render: (row) => (
+                <StatusIndicator state={row.folder ? 'available' : 'planned'} label={row.folder ? (signedIn ? 'published' : 'published · sign in') : 'pending'} />
+              ),
+            },
+          ]}
+        />
       </Section>
     </Page>
   );

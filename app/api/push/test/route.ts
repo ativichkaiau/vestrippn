@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { resolveUserId } from '@/lib/auth/owner';
+import { requireUserId } from '@/lib/auth/owner';
 import { sendPush } from '@/lib/push';
 
 export const dynamic = 'force-dynamic';
@@ -8,8 +8,9 @@ export const dynamic = 'force-dynamic';
 // Fire an immediate confirmation push to all of the owner's devices — used right
 // after the user enables reminders so they can see it actually landed.
 export async function POST() {
-  const userId = await resolveUserId();
-  if (!userId) return NextResponse.json({ error: 'no owner' }, { status: 401 });
+  // Strict auth: anonymous callers must not be able to push to the owner's devices.
+  const userId = await requireUserId();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const subs = await prisma.pushSubscription.findMany({ where: { userId } });
   let sent = 0;

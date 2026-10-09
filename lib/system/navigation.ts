@@ -13,6 +13,8 @@ export type NavItem = {
   href: string;
   /** Route prefixes that mark this item as current. */
   match: string[];
+  /** Needs a signed-in session. */
+  restricted?: boolean;
 };
 
 export const ENVIRONMENT_NAV: NavItem[] = [
@@ -39,6 +41,7 @@ export const RUNTIME_NAV: NavItem[] = RUNTIME.map((module) => ({
   label: module.name,
   href: module.href,
   match: RUNTIME_MATCH[module.slug] ?? [module.href.split('?')[0]],
+  restricted: !module.public,
 }));
 
 export function isCurrent(item: NavItem, pathname: string): boolean {

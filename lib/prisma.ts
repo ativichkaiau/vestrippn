@@ -10,10 +10,13 @@ if (!connectionString) {
   console.error("Critical: VESTRIPPN_PRISMA_DATABASE_URL is missing from environment.");
 }
 
-const pool = new Pool({ 
+// A database on this machine (local development, tests) speaks plain TCP;
+// every hosted database keeps TLS, as Vercel Postgres requires.
+const isLocalDatabase = /@(localhost|127\.0\.0\.1)(:\d+)?\//.test(connectionString ?? "")
+
+const pool = new Pool({
   connectionString,
-  // Recommended for Vercel Postgres to ensure stable handshakes
-  ssl: true 
+  ssl: isLocalDatabase ? false : true,
 })
 
 // 2. Wrap it in the Prisma v7 Adapter

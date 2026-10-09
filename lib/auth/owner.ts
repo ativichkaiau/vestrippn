@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -12,6 +13,9 @@ export async function requireUserId(): Promise<string | null> {
     const session = await auth();
     return session?.user?.id ?? null;
   } catch (err) {
+    // Let Next's own signals through (e.g. "this page reads cookies, render it
+    // per request") — swallowing them would prerender the page as anonymous.
+    unstable_rethrow(err);
     console.error("requireUserId failed:", err);
     return null;
   }
@@ -81,6 +85,7 @@ export async function resolveUserId(): Promise<string | null> {
     if (ownerId) cachedOwnerId = ownerId; // cache positives only
     return ownerId;
   } catch (err) {
+    unstable_rethrow(err);
     console.error("resolveUserId failed:", err);
     return null;
   }

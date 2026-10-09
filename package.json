@@ -21,6 +21,7 @@
     "c12": "^4.0.0-beta.5",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.38.0",
+    "mammoth": "^1.13.0",
     "next": "^16.2.6",
     "next-auth": "^5.0.0-beta.31",
     "openai": "^6.45.0",
@@ -28,6 +29,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "three": "^0.186.1",
+    "unpdf": "^1.7.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {

@@ -7,6 +7,8 @@ import type { GarageObject, LogEntry, Node, RuntimeModule } from './types';
 
    To add or correct an entry, edit this file. Fields are optional on
    purpose: leave a URL, date or stack undefined until it is real.
+   Everything here reaches the browser (the shell and the palette import
+   it); a private link such as a Drive folder goes in private-links.ts.
    ════════════════════════════════════════════════════════════════════════ */
 
 const REPO = 'https://github.com/ativichkaiau/vestrippn';
@@ -238,7 +240,6 @@ function solarElevation(date: Date): number {
     state: 'active',
     domains: ['medicine'],
     project: true,
-    url: 'https://drive.google.com/drive/folders/1nobEj31AcMk0PhHu2YxNKaihVYsPJRCi',
     related: ['studyex'],
   },
   {
@@ -341,7 +342,7 @@ export function projectIndex(node: Node): string {
 export const RUNTIME: RuntimeModule[] = [
   { slug: 'academics', name: 'academics', href: '/academics', path: '~/medicine/academics', branch: 'medicine', summary: 'courses, exam milestones, Anki trend', keywords: 'class exams milestones anki study' },
   { slug: 'workspace', name: 'workspace', href: '/workspace?tab=plan', path: '~/medicine/workspace', branch: 'medicine', summary: 'daily plan, coverage map, courses, backup', keywords: 'plan coverage courses backup semester' },
-  { slug: 'cases', name: 'cases', href: '/learn/cases', path: '~/medicine/cases', branch: 'medicine', summary: 'branching clinical cases', keywords: 'clinical case bank branching' },
+  { slug: 'cases', name: 'cases', href: '/learn/cases', path: '~/medicine/cases', branch: 'medicine', summary: 'branching clinical cases', keywords: 'clinical case bank branching', public: true },
   { slug: 'analytics', name: 'analytics', href: '/analytics', path: '~/runtime/analytics', branch: 'personal', summary: 'study telemetry across sources', keywords: 'telemetry canvas anki charts' },
   { slug: 'assistant', name: 'assistant', href: '/das', path: '~/runtime/assistant', branch: 'research', summary: 'cited question answering', keywords: 'chat das citations ask' },
   { slug: 'fitness', name: 'fitness', href: '/fitness', path: '~/runtime/fitness', branch: 'personal', summary: 'training log and streaks', keywords: 'workout gym streak training' },

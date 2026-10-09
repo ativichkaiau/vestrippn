@@ -69,6 +69,8 @@ export type RuntimeModule = {
   summary: string;
   branch: 'medicine' | 'research' | 'personal' | 'tools';
   keywords?: string;
+  /** Open to visitors without an account. */
+  public?: boolean;
 };
 
 export type LogEntry = {

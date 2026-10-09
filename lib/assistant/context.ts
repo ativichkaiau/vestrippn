@@ -1,13 +1,13 @@
-// Builds the "live data" the Cockpit Intelligence assistant sees, scoped to the
-// hub the user is on. Every source is wrapped in try/catch and returns [] on
-// failure so a DB/Canvas hiccup can never break the assistant response.
+// Builds the "live data" the VESTRIPPN assistant sees, scoped to the hub the
+// user chose. Every source is wrapped in try/catch and returns [] on failure
+// so a DB/Canvas hiccup can never break the assistant response.
 
 import { prisma } from '@/lib/prisma';
 import { fetchCanvasTelemetry } from '@/lib/canvas';
+import { getActiveExams } from '@/lib/curriculum';
+import type { IntelligenceHub } from './hubs';
 
-export type IntelligenceHub =
-  | 'dashboard' | 'academics' | 'research' | 'fitness'
-  | 'tools' | 'archive' | 'identity' | 'ielts';
+export type { IntelligenceHub } from './hubs';
 
 export interface ContextItem { label: string; value: string }
 
@@ -31,6 +31,25 @@ async function canvasItems(userId?: string): Promise<ContextItem[]> {
       items.push({ label: 'Upcoming Canvas deadlines', value: deadlines });
     }
     return items;
+  } catch {
+    return [];
+  }
+}
+
+// Upcoming exams from the user's own curriculum (Workspace → Courses), so the
+// assistant never relies on a hard-coded exam date.
+async function examItems(userId: string): Promise<ContextItem[]> {
+  try {
+    const now = Date.now();
+    const upcoming = (await getActiveExams(userId)).filter((exam) => new Date(exam.scheduledAt).getTime() > now).slice(0, 6);
+    if (!upcoming.length) return [{ label: 'Upcoming exams', value: 'none scheduled in the curriculum' }];
+    const fmt = (iso: string) => {
+      const date = new Date(iso);
+      const days = Math.ceil((date.getTime() - now) / 86_400_000);
+      const ict = new Date(date.getTime() + 7 * 3_600_000).toISOString().slice(0, 16).replace('T', ' ');
+      return `${ict} ICT (in ${days} day${days === 1 ? '' : 's'})`;
+    };
+    return [{ label: 'Upcoming exams', value: upcoming.map((exam) => `${exam.name} ${exam.fullName} · ${exam.title} — ${fmt(exam.scheduledAt)}`).join('; ') }];
   } catch {
     return [];
   }
@@ -138,9 +157,9 @@ async function ieltsItems(userId: string): Promise<ContextItem[]> {
 export async function buildHubContext(userId: string, hub: IntelligenceHub): Promise<ContextItem[]> {
   switch (hub) {
     case 'academics':
-      return [...(await canvasItems(userId)), ...(await ankiItems(userId))];
+      return [...(await examItems(userId)), ...(await canvasItems(userId)), ...(await ankiItems(userId))];
     case 'dashboard':
-      return [...(await taskItems(userId)), ...(await ankiItems(userId)), ...(await canvasItems(userId))];
+      return [...(await taskItems(userId)), ...(await examItems(userId)), ...(await ankiItems(userId)), ...(await canvasItems(userId))];
     case 'tools':
       return taskItems(userId);
     case 'archive':
